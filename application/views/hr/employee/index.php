@@ -41,6 +41,9 @@
 					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<div class="modal-body">
+					<p>
+						<a href="<?= base_url() ?>form_file/employee.xlsx" download="employee_form.xlsx">Download Form</a>
+					</p>
 					<form class="row g-3" id="form_uff">
 						<div class="col-12">
 							<label for="md_uff_file" class="form-label">File</label>
@@ -51,7 +54,6 @@
 							<button type="submit" class="btn btn-primary">Upload</button>
 						</div>
 					</form>
-				
 				</div>
 			</div>
 		</div>
