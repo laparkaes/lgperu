@@ -1,0 +1,458 @@
+-- phpMyAdmin SQL Dump
+-- version 5.1.3
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- 생성 시간: 24-02-16 15:41
+-- 서버 버전: 10.4.24-MariaDB
+-- PHP 버전: 7.4.29
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- 데이터베이스: `lgperu`
+--
+
+-- --------------------------------------------------------
+
+--
+-- 테이블 구조 `employee`
+--
+
+CREATE TABLE `employee` (
+  `employee_id` int(11) NOT NULL,
+  `subsidiary_id` int(11) NOT NULL,
+  `organization_id` int(11) NOT NULL,
+  `employee_number` varchar(20) NOT NULL,
+  `name` varchar(150) NOT NULL,
+  `valid` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- 테이블의 덤프 데이터 `employee`
+--
+
+INSERT INTO `employee` (`employee_id`, `subsidiary_id`, `organization_id`, `employee_number`, `name`, `valid`) VALUES
+(1, 1, 8, 'PR008707', 'Jacqueline Peralta', 1),
+(2, 1, 14, 'PR008778', 'Claudio Rojas', 1),
+(3, 1, 27, 'PR008863', 'Carla Chiang', 1),
+(4, 1, 33, 'PR008813', 'Gissella Di Lucca', 1),
+(5, 1, 3, 'PR001775', 'ADOLFO ANTONIO MITTERHOFER NAVARRETE', 1),
+(6, 1, 38, 'PR001871', 'MARIELA GLORIA CARBAJAL HUAYNA', 1),
+(7, 1, 1, 'PR008255', 'MARIA DEL PILAR MONTA?O COCA', 1),
+(8, 1, 29, 'PR008265', 'RUTH AVELLANEDA GUTIERREZ', 1),
+(9, 1, 37, 'PR001849', 'MELISA KATTY CARBAJAL HUAYNA', 1),
+(10, 1, 19, 'PR008859', 'JESSICA PEREA SANCHEZ', 1),
+(11, 1, 7, 'PR008744', 'ERICKA MARIA PORTARO NOVOA', 1),
+(12, 1, 8, 'PR008891', 'Manuel Carranza', 1),
+(13, 1, 15, 'PR008907', 'Renzo Casanova', 1),
+(14, 1, 38, 'PR001774', 'MIGUEL ALBERTO SARRIA CARDENAS', 1),
+(15, 1, 16, 'PR001350', 'EMIL SEBASTIAN ORE ORE', 1),
+(16, 1, 37, 'PR008911', 'Cristina Gamboa', 1),
+(17, 1, 22, 'PR008873', 'Ariana Alvarez', 1),
+(18, 1, 33, 'PR008800', 'Juan Palomino', 1),
+(19, 1, 33, 'PR008889', 'Jordan Galdos', 1),
+(20, 1, 37, 'PR008903', 'Alvaro Pella', 1),
+(21, 1, 15, 'PR008883', 'Juan Martinez', 1),
+(22, 1, 6, 'PR001914', 'ARTURO MADRID GOMEZ', 1),
+(23, 1, 17, 'PR008942', 'Gonzalo Bolivar', 1),
+(24, 1, 33, 'PR008161', 'DIANA ELISA KANAGUSUKU ARIAS', 1),
+(25, 1, 39, 'PR008144', 'JUAN FRANCISCO CHUG MORALES', 1),
+(26, 1, 38, 'PR008964', 'Sava Torres', 1),
+(27, 1, 14, 'PR008960', 'Johana Marapi', 1),
+(28, 1, 27, 'PR008835', 'Ursula Gonzales del Valle', 1),
+(29, 1, 3, 'PR008345', 'DORIS LAURA RODRIGUEZ VARGAS', 1),
+(30, 1, 16, 'PR008965', 'Miluska Foo Kong', 1),
+(31, 1, 36, 'PR008849', 'LUIS ALBERTO MARTIN CONCHA VILLALTA', 1),
+(32, 1, 15, 'PR001100', 'JULIO ENRIQUE MENDOZA NOEL', 1),
+(33, 1, 18, 'PR008933', 'Anais warthon', 1),
+(34, 1, 16, 'PR008727', 'Maria Isabel Olivares', 1),
+(35, 1, 47, 'PR008845', 'ANDRES MARTIN QUINO VILLAFUERTE', 1),
+(36, 1, 32, 'PR008737', 'ROBERTO CARLOS KAWANO CASTILLO', 1),
+(37, 1, 36, 'PR008780', 'RONY CORTEZ TERRAZAS', 1),
+(38, 1, 4, 'PR001736', 'GUILLERMO ENRIQUE SALAZAR GARCIA', 1),
+(39, 1, 45, 'PR001759', 'LUIS ENRIQUE AYALA RENGIFO', 1),
+(40, 1, 45, 'PR008164', 'SONIA TERESA MURILLO BAZAN', 1),
+(41, 1, 33, 'PR008802', 'Mauricio Alvarez', 1),
+(42, 1, 17, 'PR008839', 'Cynthia Montero', 1),
+(43, 1, 18, 'PR008809', 'JAIME LA CRUZ LLAURY', 1),
+(44, 1, 19, 'PR008938', 'ALONSO PAOLO OSORES PALACIOS', 1),
+(45, 1, 17, 'PR008788', 'Lourdes Yui', 1),
+(46, 1, 10, 'PR008796', 'Mariano Rabanal', 1),
+(47, 1, 14, 'PR008944', 'Marco Granadino', 1),
+(48, 1, 16, 'PR008932', 'Carlos Vasquez', 1),
+(49, 1, 21, 'PR001724', 'EDUARDO IVAN MIRANDA OVALLE', 1),
+(50, 1, 29, 'PR008936', 'LISSETH MENDOZA QUISPE', 1),
+(51, 1, 15, 'PR008959', 'David Cervantes', 1),
+(52, 1, 15, 'PR008855', 'Nur Mustafa', 1),
+(53, 1, 29, 'PR008941', 'JHENMI LIBET SUSAYA ORMENO', 1),
+(54, 1, 13, 'PR001806', 'GEOVANI JUAN FRANCISCO BARBA PAJUELO', 1),
+(55, 1, 14, 'PR008958', 'Lucero Bedregal', 1),
+(56, 1, 27, 'PR008566', 'DANIELA IVIKA BURGA MEJIA', 1),
+(57, 1, 33, 'PR008905', 'Estefani Hernandez', 1),
+(58, 1, 39, 'PR008135', 'BELEN GISELLA GALLO ZEBALLOS', 1),
+(59, 1, 37, 'PR008940', 'Masiel Mansilla', 1),
+(60, 1, 11, 'PR001931', 'SONALY MORALES TORRES', 1),
+(61, 1, 40, 'PR008851', 'JOSUE FRANCCESCO HERRERA CONCHA', 1),
+(62, 1, 40, 'PR008423', 'VANESSA ROSALIA VILLANUEVA ZENTENO', 1),
+(63, 1, 3, 'PR001723', 'ROBERTO ROMULO FRANCO YSLA', 1),
+(64, 1, 41, 'PR001762', 'ELIZABETH GIANNINA MEZA GAVIDIA', 1),
+(65, 1, 41, 'PR008200', 'HECTOR ALONSO ZE?A QUICHIS', 1),
+(66, 1, 14, 'PR008756', 'WAGNER ALONSO ROJAS FLOREANO', 1),
+(67, 1, 1, 'PR008766', 'Alexandra Campos', 1),
+(68, 1, 26, 'PR008829', 'Fredy Inga', 1),
+(69, 1, 9, 'PR008210', 'BYUNG SEOK HWANG', 1),
+(70, 1, 24, 'PR008843', 'ANDERSON DIETRICH POMA ZUMARAN', 1),
+(71, 1, 32, 'PR008502', 'HYUN A CHO', 1),
+(72, 1, 41, 'PR001847', 'CELIA FABIANA OBREGON UNCIHUAY', 1),
+(73, 1, 1, 'PR008877', 'Michel Cacsire', 1),
+(74, 1, 23, 'PR001902', 'MARIO ROSAZZA ROEDER', 1),
+(75, 1, 1, 'PR001929', 'JOEL GUTIERREZ MIRANDA', 1),
+(76, 1, 41, 'PR008654', 'ALEXANDER AVALOS SOLARI', 1),
+(77, 1, 43, 'PR008652', 'JHONY GREGORIO LAURA LARA', 1),
+(78, 1, 24, 'PR008656', 'RUBEN VIDAL ARMAS MELGAREJO', 1),
+(79, 1, 26, 'PR008922', 'Romina Barreda', 1),
+(80, 1, 18, 'PR008377', 'GODOFREDO HERNAN PALMA SAN BARTOLOME', 1),
+(81, 1, 28, 'PR008411', 'SEBASTIAN ARTURO LEON REMENYI', 1),
+(82, 1, 24, 'PR008584', 'CARLOS EDWARD FALCON VILLAMIZAR', 1),
+(83, 1, 43, 'PR008733', 'KURT KENY VALDIVIEZO LEON', 1),
+(84, 1, 15, 'PR008667', 'CHRISTIAN EDUARDO PASTOR SERRA', 1),
+(85, 1, 24, 'PR008754', 'EDWIN GALINDO PEREIRA', 1),
+(86, 1, 1, 'PR008427', 'LIZBETH CATHERINA ZENOZAIN FLORES', 1),
+(87, 1, 1, 'PR008865', 'Robert Chavez', 1),
+(88, 1, 26, 'PR008512', 'PABLO GERSON MEDINA GUTIERREZ', 1),
+(89, 1, 41, 'PR001703', 'CESAR ANTONIO ZAVALETA DURAN', 1),
+(90, 1, 12, 'PR008206', 'ANDY FRANK JIMENEZ NOLORBE', 1),
+(91, 1, 10, 'PR008672', 'FERNANDO JAVIER NOVOA CHANG', 1),
+(92, 1, 22, 'PR008451', 'PATRICIA ROSA PANDOLFI MERCADO', 1),
+(93, 1, 40, 'PR008837', 'Ivo Ore', 1),
+(94, 1, 26, 'PR008757', 'Diego Ortiz', 1),
+(95, 1, 24, 'PR008641', 'JORGE ENRIQUE CALDERON VELASQUEZ', 1),
+(96, 1, 28, 'PR008522', 'JUAN IGNACIO PINILLOS SEMINARIO', 1),
+(97, 1, 41, 'PR008457', 'LESLY MERCEDES PIZARRO BRAVO', 1),
+(98, 1, 5, 'PR008797', 'CESAR ANDRE CALDERON CASTILLO', 1),
+(99, 1, 15, 'PR008786', 'ALONSO FERRER GAMBOA', 1),
+(100, 1, 11, 'PR008857', 'GARI ALEJANDRO LUNA LOPEZ', 1),
+(101, 1, 9, 'PR008367', 'MARIBEL YENE MORALES LARA', 1),
+(102, 1, 26, 'PR008220', 'JOHAN PABLO BOY RAMOS', 1),
+(103, 1, 11, 'PR008612', 'JIMMY SANTIAGO BAUTISTA MUNOZ', 1),
+(104, 1, 18, 'PR008971', 'Luis Del Campo', 1),
+(105, 1, 31, 'PR008208', 'FATIMA JOY QUIROZ ECHEGARAY', 1),
+(106, 1, 14, 'PR008968', 'Franco Valencia', 1),
+(107, 1, 33, 'PR008721', 'Juliana Rubio', 1),
+(108, 1, 34, 'PR001808', 'PEDRO MANUEL PAUCAR SUAREZ', 1),
+(109, 1, 35, 'PR008978', 'ROBERTO ALEXIS MORALES CANAHUALPA', 1),
+(110, 1, 44, 'PR008793', 'SANG JUNE SHIM', 1),
+(111, 1, 17, 'PR008934', 'ANA FABIOLA GARCIA TIMOTEO', 1),
+(112, 1, 38, 'PR008980', 'Alessandra Alvarado', 1),
+(113, 1, 8, 'PR008975', 'ZDENKA MIRJANA MOMIRKA ILICH SALVADOR', 1),
+(114, 1, 3, 'PR008956', 'JUAN PABLO DEPAZ VARGAS', 1),
+(115, 1, 46, 'PR008770', 'CLAUDIA SOFIA TORRES ESPINOZA', 1),
+(116, 1, 27, 'PR008662', 'MARIA YOLANDA NUNEZ BORJA MURILLO', 1),
+(117, 1, 2, 'PR008289', 'UCKHYUN SUNG', 1),
+(118, 1, 24, 'PR008644', 'GLADIMIR JIMENEZ CONCHA', 1),
+(119, 1, 24, 'PR008901', 'RICHARD GIL ARIZAGA', 1),
+(120, 1, 25, 'PR008295', 'BO JUNG SEO', 1),
+(121, 1, 5, 'PR008875', 'Ignacio Arellano', 1),
+(122, 1, 24, 'PR008755', 'MIGUEL ANGEL CHAVEZ AMORIN', 1),
+(123, 1, 22, 'PR008919', 'MARIO AUGUSTO ESPINOSA LEON', 1),
+(124, 1, 24, 'PR008860', 'SUSANA ELIZABETH JACINTO CARRION', 1),
+(125, 1, 37, 'PR008995', 'Alexandra Suarez', 1),
+(126, 1, 5, 'PR008970', 'Cesar Torres', 1),
+(127, 1, 9, 'PR008987', 'JIYOON KIM', 1),
+(128, 1, 32, 'PR008985', 'RICARDO JESUS ALVAREZ RAMIREZ', 1),
+(129, 1, 46, 'PR008969', 'LAUCO FABRIZZIO NEYRA GARCIA', 1),
+(130, 1, 41, 'PR008992', 'LUCIA UGARTE HUAYHUA', 1),
+(131, 1, 18, 'PR008997', 'JAVIER AUGUSTO REATEGUI RODRIGUEZ', 1),
+(132, 1, 18, 'PR009020', 'Jose Manuel Lavalle', 1),
+(133, 1, 37, 'PR009007', 'Maira Malpartida', 1),
+(134, 1, 1, 'PR009030', 'Gianinna Ramos', 1),
+(135, 1, 11, 'PR008996', 'Henry Moreano', 1),
+(136, 1, 22, 'PR008983', 'Lucciana Gonzales', 1),
+(137, 1, 28, 'PR009027', 'ELIZABETH PATRICIA GALLEGOS LOVERA', 1),
+(138, 1, 22, 'PR008982', 'Diego Fernandez', 1),
+(139, 1, 14, 'PR009018', 'Gabriela Gonzalez', 1),
+(140, 1, 16, 'PR009022', 'Luis Felipe Villafuerte', 1),
+(141, 1, 17, 'PR009025', 'Arianna Saenz', 1),
+(142, 1, 37, 'PR009017', 'Adriana Cruz', 1),
+(143, 1, 46, 'PR009033', 'DARIO ANTHONY VARGAS MENDOZA', 1),
+(144, 1, 18, 'PR008976', 'ANGEL ESTEBAN TORRES FLORES', 1),
+(145, 1, 15, 'PR008989', 'AUGUSTO GIOVANNI ARAMBULO VINATEA', 1),
+(146, 1, 17, 'PR009001', 'Fiorella Brescia', 1),
+(147, 1, 16, 'PR009009', 'JEAN PHILLIPE MONAR DAVILA', 1),
+(148, 1, 27, 'PR009024', 'Karina Figallo', 1),
+(149, 1, 33, 'PR009005', 'Paulo Caffo', 1),
+(150, 1, 33, 'PR009006', 'Brian Zapata', 1),
+(151, 1, 37, 'PR009015', 'DEBORAH GLORIA MARIA VASSALLO JIMENEZ', 1),
+(152, 1, 14, 'PR009054', 'Marco Granadino', 1),
+(153, 1, 15, 'PR009026', 'KAREN MOSTAJO CHAVEZ', 1),
+(154, 1, 26, 'PR009013', 'Alexa Mallqui', 1),
+(155, 1, 33, 'PR009043', 'Tatiana Cusicanqui', 1),
+(156, 1, 15, 'PR009037', 'CAMILA MAYTE BARINOTTO TRIGOSO', 1),
+(157, 1, 17, 'PR009047', 'Carla Castro', 1),
+(158, 1, 36, 'PR009045', 'LUIS ARTURO MORENO HERMOZA', 1),
+(159, 1, 21, 'PR009049', 'GONZALO EDUARDO GONZALEZ SARMIENTO', 1),
+(160, 1, 14, 'PR009041', 'LUCERO JIMENA BEDREGAL VICUNA', 1),
+(161, 1, 16, 'PR009011', 'RICARDO RAPHAEL KANAI TANAKA', 1),
+(162, 1, 1, 'PR009053', 'Enrique Diaz', 1),
+(163, 1, 15, 'PR009068', 'LUIS EMILIO VELA DEUNIS', 1),
+(164, 1, 43, 'PR009031', 'ARTURO HUANCA AQUISE', 1),
+(165, 1, 5, 'PR009060', 'MARKUS STEFAN CABALLERO ALFARO', 1),
+(166, 1, 33, 'PR009070', 'GIULIANA DEL CARMEN PARRA FLORES', 1),
+(167, 1, 37, 'PR009064', 'CHABELLY VARGAS WONG', 1),
+(168, 1, 16, 'PR009056', 'Fiorella Vidal', 1),
+(169, 1, 16, 'PR009063', 'ROSSANA ALICIA STODDART LANDAZURI', 1),
+(170, 1, 17, 'PR009066', 'LIZCEF PAOLA MORAN REATEGUI', 1),
+(171, 1, 17, 'PR009098', 'LUIS ATILIO BUSTAMANTE LOPEZ AMERI', 1),
+(172, 1, 23, 'PR009078', 'Fernando Palomino', 1),
+(173, 1, 39, 'PR009094', 'PIERRE ALEXANDER GASPAR VALDIVIA', 1),
+(174, 1, 9, 'PR009074', 'HAYOUNG KIM', 1),
+(175, 1, 2, 'PR009072', 'YOUNG KEUN BANG', 1),
+(176, 1, 24, 'PR009102', 'JOSE CARLOS SARMIENTO FARFAN', 1),
+(177, 1, 2, 'PR009088', 'ANDREA CECILIA ALFARO HERNANDEZ', 1),
+(178, 1, 8, 'PR009104', 'BRENDA FRANCESCA ALZAMORA BARANDIARAN', 1),
+(179, 1, 17, 'PR009090', 'MARLON TENINSON CARRION ZAMUDIO', 1),
+(180, 1, 27, 'PR009096', 'Alessandra Araneta', 1),
+(181, 1, 18, 'PR009103', 'SERGIO BERNABE ESCOBEDO', 1),
+(182, 1, 16, 'PR009105', 'ALVARO BENAVIDES ALAYZA', 1),
+(183, 1, 42, 'PR009082', 'LIZ MARGARET LLAJARUNA GONZALES', 1),
+(184, 1, 36, 'PR009111', 'DAVID CARLOS CONTRERAS TARAZONA', 1),
+(185, 1, 33, 'PR009132', 'MARISSELA CARMEN TORRES ESPINOZA', 1),
+(186, 1, 22, 'PR009136', 'ROSA MARIA RUIZ ANTEZANA', 1),
+(187, 1, 16, 'PR009152', 'DANIEL LEON RAMIREZ', 1),
+(188, 1, 42, 'PR009164', 'MELISSA MILKA COZ YGLECIAS', 1),
+(189, 1, 3, 'PR009142', 'ELIZABETH DEL ROSARIO PIZARRO ALVA', 1),
+(190, 1, 42, 'PR009092', 'LUIS GUSTAVO PENA ANGO', 1),
+(191, 1, 36, 'PR009168', 'RONY VEICARDO MONTOYA CAMPOS', 1),
+(192, 1, 18, 'PR009177', 'ALFREDO CALDERON PUERTAS', 1),
+(193, 1, 39, 'PR009174', 'DANNY JEFFERSON ROMERO CARRASCO', 1),
+(194, 1, 7, 'PR009163', 'LESLIE VICTORIA CHAVEZ ESTRADA', 1),
+(195, 1, 16, 'PR009123', 'MELISSA AMANDA MELENDEZ ARISTA', 1),
+(196, 1, 1, 'PR009166', 'FRANK RICHARD ZUNIGA MARQUINA', 1),
+(197, 1, 17, 'PR009153', 'CYNTHIA FIORELLA MONTERO ATOCHE', 1),
+(198, 1, 3, 'PR009119', 'TEDDY MARTIN NACIMENTO FLORES', 1),
+(199, 1, 1, 'PR009175', 'MADELEYNE VELASQUEZ FLORES', 1),
+(200, 1, 37, 'PR009127', 'CLAUDIA NERI FERNANDEZ GONZALEZ', 1),
+(201, 1, 36, 'PR009184', 'CARLOS EDUARDO HINOSTROZA LOZANO', 1),
+(202, 1, 14, 'PR009179', 'ANGEL DANIEL CORAL PILARES', 1),
+(203, 1, 25, 'PR009194', 'EMMANUEL ANDRE BAZAN PEREZ', 1),
+(204, 1, 17, 'PR009176', 'ROSA NAGATANI PEREZ', 1),
+(205, 1, 8, 'PR009151', 'GABRIELA JULIANA CHOQUEHUANCA PLASENCIA', 1),
+(206, 1, 15, 'PR009204', 'RICARDO ALEJANDRO ALCAZAR ANCIETA', 1),
+(207, 1, 33, 'PR009192', 'EMELY JULIET LEON BABILONIA', 1),
+(208, 1, 35, 'PR009133', 'ESTEBAN RAMON LUGO IRAUSQUIN', 1),
+(209, 1, 37, 'PR009172', 'ROCIO DEL MILAGRO CARRASCO SANTOS', 1),
+(210, 1, 28, 'PR009156', 'RODRIGO CESAR ALEJANDRO OYARCE ZEGARRA', 1),
+(211, 1, 16, 'PR009206', 'RICARDO PADILLA DE LA PORTILLA', 1),
+(212, 1, 8, 'PR009218', 'ZDENKA MIRJANA MOMIRKA ILICH SALVADOR', 1),
+(213, 1, 16, 'PR009220', 'SILVANA MILAGROS CHAVEZ TALAVERA', 1),
+(214, 1, 39, 'PR009134', 'ALFREDO MOISES CARRILLO OSCCO', 1),
+(215, 1, 35, 'PR009162', 'JOSE ALEX DELGADO FERIA', 1),
+(216, 1, 3, 'PR009197', 'Anthony Copa', 1),
+(217, 1, 7, 'PR009237', 'DIKHARLA YVONNE MARTINEZ CHAVEZ', 1),
+(218, 1, 39, 'PR009130', 'MILAGROS ISABEL LENGUA NUNEZ', 1),
+(219, 1, 8, 'PR009180', 'PAMELA JHOHANA ASTUHUAMAN CASACHAGUA', 1),
+(220, 1, 15, 'PR009200', 'ANA ELIZABETH PERALES ZEGARRA', 1),
+(221, 1, 22, 'PR009216', 'RENATO FREUNDT MONTOYA', 1),
+(222, 1, 39, 'PR009201', 'JHAN PIERRE CALUA MATOS', 1),
+(223, 1, 47, 'PR009207', 'BRIAN ALEXIS OYOLA CARDENAS', 1),
+(224, 1, 42, 'PR009244', 'XILENA DAPHNE QUEZADA BERROCAL', 1),
+(225, 1, 33, 'PR009240', 'AUREA LUISA MONDRAGON TORRES', 1),
+(226, 1, 39, 'PR009188', 'JULIO MANUEL MARTINEZ CIEZA', 1),
+(227, 1, 17, 'PR009252', 'Anaclaudia Yepez', 1),
+(228, 1, 18, 'PR009198', 'JAIME ALFREDO MUNOZ GONZALES', 1),
+(229, 1, 33, 'PR009242', 'CESAR NIXON RUCOBA GRANDEZ', 1),
+(230, 1, 33, 'PR009243', 'RONALD ALEJANDRO CHAVEZ RODRIGUEZ', 1),
+(231, 1, 15, 'PR009212', 'ROSA EVELYN CRUZ BARDALES', 1),
+(232, 1, 22, 'PR009246', 'MILAGROS GUADALUPE ARENAS VALDIVIA', 1),
+(233, 1, 16, 'PR009249', 'EDITH ANGELICA VICTORIA GINOCCHIO PAREDES', 1),
+(234, 1, 16, 'PR009254', 'Jose Altamirano', 1),
+(235, 1, 25, 'PR009229', 'IGNACIO GERARDO ARELLANO MONTOYA', 1),
+(236, 1, 29, 'PR009210', 'ELIZABETH MILUSKA SAMPE MIRANDA', 1),
+(237, 1, 29, 'PR009248', 'ANDREA VIRGINIA CORIA LEYTHON', 1),
+(238, 1, 33, 'PR009241', 'JEIMY CASTELO HUARCAYA', 1),
+(239, 1, 36, 'PR009109', 'CHRISTIAN ARAPA ORIUNDO', 1),
+(240, 1, 15, 'PR009250', 'Morella Ruiz', 1),
+(241, 1, 20, 'PR009234', 'SOFIA MERCEDEZ HUBY URRIAGA', 1),
+(242, 1, 21, 'PR009222', 'JOSE MARTIN ESPARZA DULANTO', 1),
+(243, 1, 18, 'PR009287', 'Jose Rabanal', 1),
+(244, 1, 36, 'PR009303', 'Edgard Chara', 1),
+(245, 1, 37, 'PR009301', 'Kelly Hernandez', 1),
+(246, 1, 31, 'PR009100', 'JHON DAVID FLORES CANCHANYA', 1),
+(247, 1, 8, 'PR009289', 'Laura Soplin', 1),
+(248, 1, 31, 'PR009295', 'Jackrlyn Gamarra', 1),
+(249, 1, 13, 'PR009291', 'Jose Castillo', 1),
+(250, 1, 32, 'PR009128', 'JAIR FREDDI CORNEJO SANCHEZ', 1),
+(251, 1, 31, 'PR009257', 'Sujeong Kim', 1),
+(252, 1, 19, 'PR009277', 'Miluska Quispe', 1),
+(253, 1, 3, 'PR009307', 'Angela Aquije', 1),
+(254, 1, 1, 'PR009311', 'Paola Avalos', 1),
+(255, 1, 45, 'PR009309', 'Maria Pomacaja', 1),
+(256, 1, 31, 'PR009325', 'david choi', 1),
+(257, 1, 19, 'PR009319', 'Cesar Caballero', 1),
+(258, 1, 21, 'PR009317', 'Gianpierre Serna', 1),
+(259, 1, 29, 'PR009327', 'Patricia Rivas', 1),
+(260, 1, 12, 'PR009321', 'Jeter Retto', 1),
+(261, 1, 32, 'PR009337', 'jeong park', 1);
+
+-- --------------------------------------------------------
+
+--
+-- 테이블 구조 `organization`
+--
+
+CREATE TABLE `organization` (
+  `organization_id` int(11) NOT NULL,
+  `subsidiary_id` int(11) NOT NULL,
+  `organization` varchar(100) NOT NULL,
+  `valid` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- 테이블의 덤프 데이터 `organization`
+--
+
+INSERT INTO `organization` (`organization_id`, `subsidiary_id`, `organization`, `valid`) VALUES
+(1, 1, 'Accounting', 1),
+(2, 1, 'Air Solution', 1),
+(3, 1, 'AR & Credit', 1),
+(4, 1, 'AR&AP Management', 1),
+(5, 1, 'AV Product', 1),
+(6, 1, 'B2B Sales', 1),
+(7, 1, 'B2B2C / Family Club', 1),
+(8, 1, 'Brand Marketing', 1),
+(9, 1, 'Business Management', 1),
+(10, 1, 'CE Sales', 1),
+(11, 1, 'CIC Operation', 1),
+(12, 1, 'General Procurement', 1),
+(13, 1, 'HA / HE Provincia', 1),
+(14, 1, 'HA Product', 1),
+(15, 1, 'HA Sales', 1),
+(16, 1, 'HE Sales', 1),
+(17, 1, 'Human Resources', 1),
+(18, 1, 'ID Sales', 1),
+(19, 1, 'Import Logistics', 1),
+(20, 1, 'ISM', 1),
+(21, 1, 'IT Sales', 1),
+(22, 1, 'IT&ID Product', 1),
+(23, 1, 'Legal', 1),
+(24, 1, 'LG SVC Center', 1),
+(25, 1, 'Marketing', 1),
+(26, 1, 'MC Product', 1),
+(27, 1, 'MC Sales', 1),
+(28, 1, 'OBS', 1),
+(29, 1, 'Order Management', 1),
+(30, 1, 'Organization', 1),
+(31, 1, 'Planning', 1),
+(32, 1, 'Process Innovation', 1),
+(33, 1, 'Promotor/Retail Marketing CE', 1),
+(34, 1, 'RAC Sales', 1),
+(35, 1, 'SAC Engineering', 1),
+(36, 1, 'SAC Sales', 1),
+(37, 1, 'Sales Administration', 1),
+(38, 1, 'SCM', 1),
+(39, 1, 'SOM', 1),
+(40, 1, 'SVC', 1),
+(41, 1, 'SVC Networks & Parts', 1),
+(42, 1, 'Tax', 1),
+(43, 1, 'Technical Support', 1),
+(44, 1, 'Trade Marketing', 1),
+(45, 1, 'Treasury', 1),
+(46, 1, 'TV Product', 1),
+(47, 1, 'WH Management', 1);
+
+-- --------------------------------------------------------
+
+--
+-- 테이블 구조 `subsidiary`
+--
+
+CREATE TABLE `subsidiary` (
+  `subsidiary_id` int(11) NOT NULL,
+  `subsidiary` varchar(100) NOT NULL,
+  `valid` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- 테이블의 덤프 데이터 `subsidiary`
+--
+
+INSERT INTO `subsidiary` (`subsidiary_id`, `subsidiary`, `valid`) VALUES
+(1, 'LGEPR', 1);
+
+--
+-- 덤프된 테이블의 인덱스
+--
+
+--
+-- 테이블의 인덱스 `employee`
+--
+ALTER TABLE `employee`
+  ADD PRIMARY KEY (`employee_id`),
+  ADD KEY `fk_employee_subsidiary` (`subsidiary_id`),
+  ADD KEY `fk_employee_organization` (`organization_id`);
+
+--
+-- 테이블의 인덱스 `organization`
+--
+ALTER TABLE `organization`
+  ADD PRIMARY KEY (`organization_id`),
+  ADD KEY `fk_organization_subsidiary` (`subsidiary_id`);
+
+--
+-- 테이블의 인덱스 `subsidiary`
+--
+ALTER TABLE `subsidiary`
+  ADD PRIMARY KEY (`subsidiary_id`);
+
+--
+-- 덤프된 테이블의 AUTO_INCREMENT
+--
+
+--
+-- 테이블의 AUTO_INCREMENT `employee`
+--
+ALTER TABLE `employee`
+  MODIFY `employee_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=262;
+
+--
+-- 테이블의 AUTO_INCREMENT `organization`
+--
+ALTER TABLE `organization`
+  MODIFY `organization_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+
+--
+-- 테이블의 AUTO_INCREMENT `subsidiary`
+--
+ALTER TABLE `subsidiary`
+  MODIFY `subsidiary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- 덤프된 테이블의 제약사항
+--
+
+--
+-- 테이블의 제약사항 `employee`
+--
+ALTER TABLE `employee`
+  ADD CONSTRAINT `fk_employee_organization` FOREIGN KEY (`organization_id`) REFERENCES `organization` (`organization_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_employee_subsidiary` FOREIGN KEY (`subsidiary_id`) REFERENCES `subsidiary` (`subsidiary_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- 테이블의 제약사항 `organization`
+--
+ALTER TABLE `organization`
+  ADD CONSTRAINT `fk_organization_subsidiary` FOREIGN KEY (`subsidiary_id`) REFERENCES `subsidiary` (`subsidiary_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
