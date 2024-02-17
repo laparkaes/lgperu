@@ -18,8 +18,24 @@ class Employee extends CI_Controller {
 	public function index(){
 		$page = $this->input->get("page"); if (!$page) $page = 1;
 		
+		$subs = [];
+		$subs_rec = $this->sub_m->all();
+		foreach($subs_rec as $sub) $subs[$sub->subsidiary_id] = $sub->subsidiary;
+		
+		$orgs = [];
+		$orgs_rec = $this->org_m->all();
+		foreach($orgs_rec as $org) $orgs[$org->organization_id] = $org->organization;
+		
+		$employees = $this->emp_m->all([["name", "asc"]], 30, 30*($page-1));
+		foreach($employees as $emp){
+			$emp->subsidiary = $subs[$emp->subsidiary_id];
+			$emp->organization = $orgs[$emp->organization_id];
+		}
+		
 		$data = [
-			"employees" => $this->emp_m->all([["name", "asc"]], 30, 30*($page-1)),
+			"paging" => $this->my_func->set_page($page, $this->emp_m->qty()),
+			"page" => $page,
+			"employees" => $employees,
 			"main" => "hr/employee/index",
 		];
 		$this->load->view('layout', $data);
@@ -52,14 +68,16 @@ class Employee extends CI_Controller {
 				$sub = $this->sub_m->unique("subsidiary", trim($sheet->getCell('A'.$row)->getValue()));
 				$org = $this->org_m->unique("organization", trim($sheet->getCell('B'.$row)->getValue()));
 				
-				$emp = [
-					"subsidiary_id" => $sub->subsidiary_id,
-					"organization_id" => $org->organization_id,
-					"employee_number" => trim($sheet->getCell('C'.$row)->getValue()),
-					"name" => trim($sheet->getCell('D'.$row)->getValue()),
-				];
-				if (!$this->emp_m->unique("employee_number", $emp["employee_number"]))
-					if ($this->emp_m->insert($emp)) $count++;
+				if ($sub and $org){
+					$emp = [
+						"subsidiary_id" => $sub->subsidiary_id,
+						"organization_id" => $org->organization_id,
+						"employee_number" => trim($sheet->getCell('C'.$row)->getValue()),
+						"name" => trim($sheet->getCell('D'.$row)->getValue()),
+					];
+					if (!$this->emp_m->unique("employee_number", $emp["employee_number"]))
+						if ($this->emp_m->insert($emp)) $count++;	
+				}
             }
 			
 			$type = "success";

@@ -1,10 +1,10 @@
 <?php
 
-class Employee_model extends CI_Model{
+class Vacation_model extends CI_Model{
 	
 	public function __construct(){
 		parent::__construct();
-		$this->tablename = "employee";
+		$this->tablename = "vacation";
 	}
 
 	function unique($field, $value, $valid = true){
@@ -48,6 +48,36 @@ class Employee_model extends CI_Model{
 		$aux = $this->db->list_fields($this->tablename);
 		foreach($aux as $field) $res->$field = null;
 		return $res;
+	}
+	
+	/* status */
+	function unique_status($status){
+		$this->db->where("status", $status);
+		$query = $this->db->get($this->tablename."_status", 1, 0);
+		$result = $query->result();
+		if ($result) return $result[0]; else return null;
+	}
+	
+	function all_status(){
+		$this->db->order_by("status", "asc");
+		$query = $this->db->get($this->tablename."_status");
+		$result = $query->result();
+		return $result;
+	}
+	
+	/* type */
+	function unique_type($type){
+		$this->db->where("type", $type);
+		$query = $this->db->get($this->tablename."_type", 1, 0);
+		$result = $query->result();
+		if ($result) return $result[0]; else return null;
+	}
+	
+	function all_type(){
+		$this->db->order_by("type", "asc");
+		$query = $this->db->get($this->tablename."_type");
+		$result = $query->result();
+		return $result;
 	}
 }
 ?>

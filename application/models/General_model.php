@@ -2,21 +2,8 @@
 
 class General_model extends CI_Model{
 
-	function unique($tablename, $field, $value, $check_valid = true){
-		$this->db->where($field, $value);
-		if ($check_valid) $this->db->where("valid", true);
-		$query = $this->db->get($tablename, 1, 0);
-		$result = $query->result();
-		if ($result) return $result[0]; else return null;
-	}
-	
-	function insert($tablename, $data){
-		$this->db->insert($tablename, $data);
-		return $this->db->insert_id();
-	}
-	
-	function filter($tablename, $w, $l = null, $w_in = null, $orders = [], $limit = "", $offset = "", $check_valid = true){
-		if ($check_valid) $this->db->where("valid", true);
+	function filter($tablename, $valid = true, $w = null, $l = null, $w_in = null, $orders = [], $limit = "", $offset = ""){
+		if ($valid) $this->db->where("valid", true);
 		if ($w){ $this->db->group_start(); $this->db->where($w); $this->db->group_end(); }
 		if ($l){
 			$this->db->group_start();
@@ -37,6 +24,31 @@ class General_model extends CI_Model{
 		$query = $this->db->get($tablename, $limit, $offset);
 		$result = $query->result();
 		return $result;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+	function unique($tablename, $field, $value, $check_valid = true){
+		$this->db->where($field, $value);
+		if ($check_valid) $this->db->where("valid", true);
+		$query = $this->db->get($tablename, 1, 0);
+		$result = $query->result();
+		if ($result) return $result[0]; else return null;
+	}
+	
+	function insert($tablename, $data){
+		$this->db->insert($tablename, $data);
+		return $this->db->insert_id();
 	}
 	
 	function filter_like($tablename, $field, $like = "", $limit = "", $offset = "", $check_valid = true){

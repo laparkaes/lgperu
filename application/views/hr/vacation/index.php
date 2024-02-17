@@ -1,10 +1,10 @@
 <div class="d-flex justify-content-between align-items-start">
 	<div class="pagetitle">
-		<h1>Employee</h1>
+		<h1>Vacation</h1>
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Home</a></li>
-				<li class="breadcrumb-item active">Employee</li>
+				<li class="breadcrumb-item active">Vacation</li>
 			</ol>
 		</nav>
 	</div>
@@ -25,6 +25,7 @@
 		<div class="col">
 			<div class="card">
 				<div class="card-body">
+				<?php print_r($vacations); ?>
 					<h5 class="card-title">List</h5>
 					<div class="table-responsive">
 						<table class="table align-middle">
@@ -38,7 +39,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								<?php $base_i = ($page-1) * 30; foreach($employees as $i => $emp){ ?>
+								<?php $base_i = ($page-1) * 30; foreach($vacations as $i => $emp){ ?>
 								<tr>
 									<td><?= number_format($base_i + $i + 1) ?></td>
 									<td><?= $emp->subsidiary ?><br/><?= $emp->organization  ?></td>
@@ -78,9 +79,13 @@
 					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<div class="modal-body">
-					<p>
-						<a href="<?= base_url() ?>form_file/employee.xlsx" download="employee_form.xlsx">Download upload form</a>
-					</p>
+					<div>
+						<a href="<?= base_url() ?>form_file/vacation.xlsx" download="vacation_form.xlsx">1. Download upload form</a>
+					</div>
+					<div>
+						<a href="<?= base_url() ?>upload/vacation.xlsx" download="vacation_upload_result.xlsx">2. Last file upload result</a>
+					</div>
+					<br/>
 					<form class="row g-3" id="form_uff">
 						<div class="col-12">
 							<label for="md_uff_file" class="form-label">File</label>
@@ -101,8 +106,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_uff").submit(function(e) {
 		e.preventDefault();
 		$("#form_uff .sys_msg").html("");
-		ajax_form_warning(this, "hr/employee/upload_from_file", "Do you want to load data from attachment?").done(function(res) {
-			swal_redirection(res.type, res.msg, "hr/employee");
+		ajax_form_warning(this, "hr/vacation/upload_from_file", "Do you want to load data from attachment?").done(function(res) {
+			swal_redirection(res.type, res.msg, "hr/vacation");
 		});
 	});
 	
