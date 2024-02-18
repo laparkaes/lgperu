@@ -54,7 +54,8 @@ class Vacation extends CI_Controller {
 		$vacations = $this->vac_m->all([["date_from", "desc"]], 30, 30*($page-1));
 		foreach($vacations as $vac){
 			$vac->employee = $emps[$vac->employee_id];
-			
+			$vac->status = $vac_status[$vac->status_id];
+			$vac->type = $vac_type[$vac->type_id];
 		}
 		
 		$data = [

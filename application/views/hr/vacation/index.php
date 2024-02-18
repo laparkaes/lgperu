@@ -25,26 +25,38 @@
 		<div class="col">
 			<div class="card">
 				<div class="card-body">
-				<?php print_r($vacations); ?>
 					<h5 class="card-title">List</h5>
 					<div class="table-responsive">
 						<table class="table align-middle">
 							<thead>
 								<tr>
 									<th scope="col" style="width: 80px;">#</th>
-									<th scope="col">Organization</th>
-									<th scope="col">Emp. Num.</th>
-									<th scope="col">Name</th>
+									<th scope="col">Employee</th>
+									<th scope="col">Type</th>
+									<th scope="col">Days</th>
+									<th scope="col">Date</th>
+									<th scope="col">Request</th>
+									<th scope="col">Status</th>
 									<th scope="col"></th>
 								</tr>
 							</thead>
 							<tbody>
-								<?php $base_i = ($page-1) * 30; foreach($vacations as $i => $emp){ ?>
+								<?php $base_i = ($page-1) * 30; foreach($vacations as $i => $vac){ ?>
 								<tr>
 									<td><?= number_format($base_i + $i + 1) ?></td>
-									<td><?= $emp->subsidiary ?><br/><?= $emp->organization  ?></td>
-									<td><?= $emp->employee_number  ?></td>
-									<td><?= $emp->name  ?></td>
+									<td>
+										<div><?= $vac->employee->name ?></div>
+										<div><?= $vac->employee->employee_number ?></div>
+										<div><?= $vac->employee->subsidiary ?>.<?= $vac->employee->organization ?></div>
+									</td>
+									<td><?= str_replace("(", "<br/>(", $vac->type)  ?></td>
+									<td><?= $vac->day  ?></td>
+									<td>
+										<div><?= date("Y-m-d", strtotime($vac->date_from)) ?></div>
+										<div class="text-nowrap">~ <?= date("Y-m-d", strtotime($vac->date_to)) ?></div>
+									</td>
+									<td><?= date("Y-m-d", strtotime($vac->request)) ?></td>
+									<td><?= $vac->status  ?></td>
 									<td class="text-end">
 										<button type="button" class="btn btn-link">
 											<i class="bi bi-file-earmark-fill"></i>
@@ -60,7 +72,7 @@
 						$f_url = $this->input->get();
 						foreach($paging as $p){
 						$f_url["page"] = $p[0]; ?>
-						<a href="<?= base_url() ?>hr/employee?<?= http_build_query($f_url) ?>" class="btn btn-<?= $p[2] ?>">
+						<a href="<?= base_url() ?>hr/vacation?<?= http_build_query($f_url) ?>" class="btn btn-<?= $p[2] ?>">
 							<?= $p[1] ?>
 						</a>
 						<?php } ?>
