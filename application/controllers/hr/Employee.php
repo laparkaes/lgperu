@@ -2,17 +2,28 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Color;
 
 class Employee extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
 		date_default_timezone_set('America/Lima');
+		$this->load->model('general_model','gen_m');
 		$this->load->model('subsidiary_model', 'sub_m');
 		$this->load->model('organization_model', 'org_m');
 		$this->load->model('employee_model', 'emp_m');
-		//$this->load->model('general_model','general');
+		$this->load->model('vacation_model', 'vac_m');
+		$this->load->model('office_location_model', 'ofl_m');
+		$this->load->model('working_hour_model', 'whour_m');
 		$this->nav_menu = ["hr", "employee"];
+	}
+	
+	private function excel_date_to_php($value){
+		return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value)->format('Y-m-d');
 	}
 
 	public function index(){
@@ -41,7 +52,7 @@ class Employee extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	public function upload_from_file(){
+	public function upload_employee_from_file(){
 		$type = "error"; $msg = null;
 		
 		$config = [
@@ -60,6 +71,14 @@ class Employee extends CI_Controller {
 			$spreadsheet = IOFactory::load($file_path);
 			$sheet = $spreadsheet->getActiveSheet();
 			
+			$sheet->setCellValue('E1', 'Upload Result');
+			$sheet->getStyle('E')->getFill()->setFillType(Fill::FILL_SOLID);
+			$sheet->getStyle('E')->getFill()->getStartColor()->setARGB('FFFF00');
+			
+			$sheet->setCellValue('F1', 'Upload Time');
+			$sheet->getStyle('F')->getFill()->setFillType(Fill::FILL_SOLID);
+			$sheet->getStyle('F')->getFill()->getStartColor()->setARGB('FFFF00');
+			
             $highestRow = $sheet->getHighestRow();
             //$highestColumn = $sheet->getHighestColumn();
 
@@ -75,10 +94,21 @@ class Employee extends CI_Controller {
 						"employee_number" => trim($sheet->getCell('C'.$row)->getValue()),
 						"name" => trim($sheet->getCell('D'.$row)->getValue()),
 					];
-					if (!$this->emp_m->unique("employee_number", $emp["employee_number"]))
-						if ($this->emp_m->insert($emp)) $count++;	
+					if (!$this->emp_m->unique("employee_number", $emp["employee_number"])){
+						if ($this->emp_m->insert($emp)){
+							$count++;
+							$sheet->setCellValue('E'.$row, 'Success');
+							$sheet->setCellValue('F'.$row, date('Y-m-d H:i:s'));
+						}	
+					}else{
+						$sheet->setCellValue('E'.$row, 'Duplicated');
+						$sheet->setCellValue('F'.$row, date('Y-m-d H:i:s'));
+					}
 				}
             }
+			
+			$writer = new Xlsx($spreadsheet);
+			$writer->save($file_path);
 			
 			$type = "success";
 			$msg = number_format($count)." new employee(s) has been inserted.";
@@ -86,6 +116,221 @@ class Employee extends CI_Controller {
 			$error = array('error' => $this->upload->display_errors());
 			$msg = str_replace("p>", "div>", $this->upload->display_errors());
 		}
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg]);
+	}
+	
+	public function upload_vacation_from_file(){
+		$type = "error"; $msg = null;
+		
+		$config = [
+			'upload_path'	=> './upload/',
+			'allowed_types'	=> 'xls|xlsx',
+			'max_size'		=> 10000,
+			'overwrite'		=> TRUE,
+			'file_name'		=> 'vacation',
+		];
+		$this->load->library('upload', $config);
+
+		if ($this->upload->do_upload('md_uff_file')){
+			$data = $this->upload->data();
+			$file_path = $data['full_path'];
+
+			$spreadsheet = IOFactory::load($file_path);
+			$sheet = $spreadsheet->getActiveSheet();
+			
+			$sheet->setCellValue('O1', 'Upload Result');
+			$sheet->getStyle('O')->getFill()->setFillType(Fill::FILL_SOLID);
+			$sheet->getStyle('O')->getFill()->getStartColor()->setARGB('FFFF00');
+			
+			$sheet->setCellValue('P1', 'Upload Time');
+			$sheet->getStyle('P')->getFill()->setFillType(Fill::FILL_SOLID);
+			$sheet->getStyle('P')->getFill()->getStartColor()->setARGB('FFFF00');
+			
+            $highestRow = $sheet->getHighestRow();
+            //$highestColumn = $sheet->getHighestColumn();
+			
+			$status = $this->vac_m->unique_status("Approved");
+			$count = 0;
+            for ($row = 2; $row <= $highestRow; $row++){
+				$emp = $this->emp_m->unique("employee_number", trim($sheet->getCell('C'.$row)->getValue()));
+				if ($emp){
+					$from = $this->excel_date_to_php($sheet->getCell('G'.$row)->getValue());
+					$to = $this->excel_date_to_php($sheet->getCell('H'.$row)->getValue());
+					
+					$w = [
+						"status_id" => $status->status_id,
+						"employee_id" => $emp->employee_id,
+						"date_from <=" => $from,
+						"date_to >=" => $to,
+					];
+					
+					if (!$this->gen_m->filter("vacation", true, $w)){
+						$type = $this->vac_m->unique_type(str_replace(" (", "(", $sheet->getCell('J'.$row)->getValue()));
+						
+						$vac = [
+							"status_id" => $status->status_id,
+							"type_id" => $type->type_id,
+							"employee_id" => $emp->employee_id,
+							"date_from" => $from,
+							"date_to" => $to,
+							"day" => ($type->type === "All") ? $this->my_func->day_counter($from, $to) + 1 : 0.5,
+							"request" => $this->excel_date_to_php($sheet->getCell('M'.$row)->getValue()),
+						];
+						if ($this->vac_m->insert($vac)){
+							$count++;
+							$sheet->setCellValue('O'.$row, 'Success');
+							$sheet->setCellValue('P'.$row, date('Y-m-d H:i:s'));
+						}
+					}else{
+						$sheet->setCellValue('O'.$row, 'Duplicated');
+						$sheet->setCellValue('P'.$row, date('Y-m-d H:i:s'));
+					}
+				}else{
+					$sheet->setCellValue('O'.$row, 'No Employee');
+					$sheet->setCellValue('P'.$row, date('Y-m-d H:i:s'));
+				}
+            }
+			
+			$type = "success";
+			$msg = number_format($count)." new vacation(s) has been inserted.";
+			
+			$writer = new Xlsx($spreadsheet);
+			$writer->save($file_path);
+		}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg]);
+	}
+
+	public function upload_w_hour_from_file(){
+		$type = "error"; $msg = null;
+		
+		$config = [
+			'upload_path'	=> './upload/',
+			'allowed_types'	=> 'xls|xlsx',
+			'max_size'		=> 10000,
+			'overwrite'		=> TRUE,
+			'file_name'		=> 'working_hour',
+		];
+		$this->load->library('upload', $config);
+
+		if ($this->upload->do_upload('md_uff_file')){
+			$data = $this->upload->data();
+			$file_path = $data['full_path'];
+
+			$spreadsheet = IOFactory::load($file_path);
+			$sheet = $spreadsheet->getActiveSheet();
+			
+			$sheet->setCellValue('D1', 'Upload Result');
+			$sheet->getStyle('D')->getFill()->setFillType(Fill::FILL_SOLID);
+			$sheet->getStyle('D')->getFill()->getStartColor()->setARGB('FFFF00');
+			
+			$sheet->setCellValue('E1', 'Upload Time');
+			$sheet->getStyle('E')->getFill()->setFillType(Fill::FILL_SOLID);
+			$sheet->getStyle('E')->getFill()->getStartColor()->setARGB('FFFF00');
+			
+            $highestRow = $sheet->getHighestRow();
+            //$highestColumn = $sheet->getHighestColumn();
+			
+			$count = 0;
+            for ($row = 2; $row <= $highestRow; $row++){
+				$emp = $this->emp_m->unique("employee_number", trim($sheet->getCell('A'.$row)->getValue()));
+				if ($emp){
+					//update employee location
+					$loc = $this->ofl_m->unique("location", trim($sheet->getCell('B'.$row)->getValue()));
+					if ($loc){
+						$this->emp_m->update(["employee_id" => $emp->employee_id], ["office_location_id" => $loc->location_id]);
+						$sheet->setCellValue('D'.$row, 'Location Updated');
+						$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
+					}
+					
+					//update_working hour
+					$w_hours = explode(" - ", trim($sheet->getCell('C'.$row)->getValue()));
+					$w_hour_op = $this->whour_m->unique_option($w_hours[0], $w_hours[1]);
+					if ($w_hour_op){
+						
+						$today = date("Y-m-d");
+						$tomorrow = date('Y-m-d', strtotime('+1 day'));
+						
+						$insert_new = true;
+						$w_hour_tomorrow = $this->whour_m->get_by_employee($emp->employee_id, $tomorrow);
+						if ($w_hour_tomorrow){
+							$date_from = $tomorrow;//change will be apply from tomorrow
+							
+							//this change is exclusive for working hour change
+							if ($w_hour_tomorrow->wh_option_id == $w_hour_op->option_id){
+								$insert_new = false;
+								$sheet->setCellValue('D'.$row, 'Error - No change');
+								$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
+							}else $this->whour_m->update(["employee_id" => $emp->employee_id], ["date_to" => $today]);
+						}else $date_from = $today;//in case of first working hour record
+						
+						if ($insert_new){
+							//new working hour record form tomorrow to 9999-12-31
+							$w_hour = [
+								"employee_id" => $emp->employee_id,
+								"wh_option_id" => $w_hour_op->option_id,
+								"date_from" => $date_from,
+								"date_to" => "9999-12-31",
+							];
+							if ($this->whour_m->insert($w_hour)){
+								$count++;
+								$sheet->setCellValue('D'.$row, 'Success');
+								$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
+							}
+						}
+					}else{
+						$sheet->setCellValue('D'.$row, 'Error - No working hour option');
+						$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
+					}
+					
+					/*
+					$from = $this->excel_date_to_php($sheet->getCell('G'.$row)->getValue());
+					$to = $this->excel_date_to_php($sheet->getCell('H'.$row)->getValue());
+					
+					$w = [
+						"status_id" => $status->status_id,
+						"employee_id" => $emp->employee_id,
+						"date_from <=" => $from,
+						"date_to >=" => $to,
+					];
+					
+					if (!$this->gen_m->filter("vacation", true, $w)){
+						$type = $this->vac_m->unique_type(str_replace(" (", "(", $sheet->getCell('J'.$row)->getValue()));
+						
+						$vac = [
+							"status_id" => $status->status_id,
+							"type_id" => $type->type_id,
+							"employee_id" => $emp->employee_id,
+							"date_from" => $from,
+							"date_to" => $to,
+							"day" => ($type->type === "All") ? $this->my_func->day_counter($from, $to) + 1 : 0.5,
+							"request" => $this->excel_date_to_php($sheet->getCell('M'.$row)->getValue()),
+						];
+						if ($this->vac_m->insert($vac)){
+							$count++;
+							$sheet->setCellValue('D'.$row, 'Success');
+							$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
+						}
+					}else{
+						$sheet->setCellValue('D'.$row, 'Duplicated');
+						$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
+					}
+					*/
+				}else{
+					$sheet->setCellValue('D'.$row, 'Error - No Employee');
+					$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
+				}
+            }
+			
+			$type = "success";
+			$msg = "Working hours has been updated.";
+			
+			$writer = new Xlsx($spreadsheet);
+			$writer->save($file_path);
+		}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg]);
