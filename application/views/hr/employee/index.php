@@ -41,7 +41,7 @@
 								<?php $base_i = ($page-1) * 30; foreach($employees as $i => $emp){ ?>
 								<tr>
 									<td><?= number_format($base_i + $i + 1) ?></td>
-									<td><?= $emp->subsidiary ?><br/><?= $emp->organization  ?></td>
+									<td><?= $emp->subsidiary.($emp->office ? ".".$emp->office : "") ?><br/><?= $emp->organization  ?></td>
 									<td><?= $emp->employee_number  ?></td>
 									<td><?= $emp->name  ?></td>
 									<td class="text-end">

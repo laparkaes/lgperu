@@ -166,11 +166,6 @@
 						</a>
 					</li>
 					<li>
-						<a href="<?= base_url() ?>hr/vacation" class="<?= ($this->nav_menu[1] === "vacation") ? "active" : "" ?>">
-							<i class="bi bi-circle"></i><span>Vacation</span>
-						</a>
-					</li>
-					<li>
 						<a href="<?= base_url() ?>hr/employee" class="<?= ($this->nav_menu[1] === "employee") ? "active" : "" ?>">
 							<i class="bi bi-circle"></i><span>Employee</span>
 						</a>

@@ -1,10 +1,10 @@
 <?php
 
-class Office_location_model extends CI_Model{
+class Attendance_model extends CI_Model{
 	
 	public function __construct(){
 		parent::__construct();
-		$this->tablename = "office_location";
+		$this->tablename = "attendance";
 	}
 
 	function unique($field, $value, $valid = true){
@@ -20,6 +20,10 @@ class Office_location_model extends CI_Model{
 		return $this->db->insert_id();
 	}
 	
+	function insert_m($data){
+		return $this->db->insert_batch($this->tablename, $data);
+	}
+	
 	function all($orders = [], $limit = "", $offset = "", $valid = true){
 		if ($valid) $this->db->where("valid", true);
 		if ($orders) foreach($orders as $o) $this->db->order_by($o[0], $o[1]);
@@ -28,14 +32,13 @@ class Office_location_model extends CI_Model{
 		return $result;
 	}
 	
-	function qty($valid = true){
-		if ($valid) $this->db->where("valid", true);
-		return $this->db->count_all_results($this->tablename);
-	}
-	
 	function update($filter, $data){
 		$this->db->where($filter);
 		return $this->db->update($this->tablename, $data);
+	}
+	
+	function update_m($data){
+		return $this->db->update_batch($this->tablename, $data, 'attendance_id');
 	}
 	
 	function delete($filter){

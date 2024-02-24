@@ -17,7 +17,7 @@ class Employee extends CI_Controller {
 		$this->load->model('organization_model', 'org_m');
 		$this->load->model('employee_model', 'emp_m');
 		$this->load->model('vacation_model', 'vac_m');
-		$this->load->model('office_location_model', 'ofl_m');
+		$this->load->model('office_model', 'off_m');
 		$this->load->model('working_hour_model', 'whour_m');
 		$this->nav_menu = ["hr", "employee"];
 	}
@@ -37,10 +37,15 @@ class Employee extends CI_Controller {
 		$orgs_rec = $this->org_m->all();
 		foreach($orgs_rec as $org) $orgs[$org->organization_id] = $org->organization;
 		
+		$offs = [];
+		$offs_rec = $this->off_m->all();
+		foreach($offs_rec as $off) $offs[$off->office_id] = $off->office;
+		
 		$employees = $this->emp_m->all([["name", "asc"]], 30, 30*($page-1));
 		foreach($employees as $emp){
-			$emp->subsidiary = $subs[$emp->subsidiary_id];
-			$emp->organization = $orgs[$emp->organization_id];
+			$emp->subsidiary = ($emp->subsidiary_id) ? $subs[$emp->subsidiary_id] : "";
+			$emp->organization = ($emp->organization_id) ? $orgs[$emp->organization_id] : "";
+			$emp->office = ($emp->office_id) ? $offs[$emp->office_id] : "";
 		}
 		
 		$data = [
@@ -236,14 +241,14 @@ class Employee extends CI_Controller {
 			
 			$count = 0;
             for ($row = 2; $row <= $highestRow; $row++){
+				$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
 				$emp = $this->emp_m->unique("employee_number", trim($sheet->getCell('A'.$row)->getValue()));
 				if ($emp){
-					//update employee location
-					$loc = $this->ofl_m->unique("location", trim($sheet->getCell('B'.$row)->getValue()));
-					if ($loc){
-						$this->emp_m->update(["employee_id" => $emp->employee_id], ["office_location_id" => $loc->location_id]);
-						$sheet->setCellValue('D'.$row, 'Location Updated');
-						$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
+					//update employee office
+					$off = $this->off_m->unique("office", trim($sheet->getCell('B'.$row)->getValue()));
+					if ($off){
+						$this->emp_m->update(["employee_id" => $emp->employee_id], ["office_id" => $off->office_id]);
+						$sheet->setCellValue('D'.$row, 'Office Updated');
 					}
 					
 					//update_working hour
@@ -262,8 +267,7 @@ class Employee extends CI_Controller {
 							//this change is exclusive for working hour change
 							if ($w_hour_tomorrow->wh_option_id == $w_hour_op->option_id){
 								$insert_new = false;
-								$sheet->setCellValue('D'.$row, 'Error - No change');
-								$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
+								$sheet->setCellValue('D'.$row, 'Success - No change');
 							}else $this->whour_m->update(["employee_id" => $emp->employee_id], ["date_to" => $today]);
 						}else $date_from = $today;//in case of first working hour record
 						
@@ -278,51 +282,10 @@ class Employee extends CI_Controller {
 							if ($this->whour_m->insert($w_hour)){
 								$count++;
 								$sheet->setCellValue('D'.$row, 'Success');
-								$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
 							}
 						}
-					}else{
-						$sheet->setCellValue('D'.$row, 'Error - No working hour option');
-						$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
-					}
-					
-					/*
-					$from = $this->excel_date_to_php($sheet->getCell('G'.$row)->getValue());
-					$to = $this->excel_date_to_php($sheet->getCell('H'.$row)->getValue());
-					
-					$w = [
-						"status_id" => $status->status_id,
-						"employee_id" => $emp->employee_id,
-						"date_from <=" => $from,
-						"date_to >=" => $to,
-					];
-					
-					if (!$this->gen_m->filter("vacation", true, $w)){
-						$type = $this->vac_m->unique_type(str_replace(" (", "(", $sheet->getCell('J'.$row)->getValue()));
-						
-						$vac = [
-							"status_id" => $status->status_id,
-							"type_id" => $type->type_id,
-							"employee_id" => $emp->employee_id,
-							"date_from" => $from,
-							"date_to" => $to,
-							"day" => ($type->type === "All") ? $this->my_func->day_counter($from, $to) + 1 : 0.5,
-							"request" => $this->excel_date_to_php($sheet->getCell('M'.$row)->getValue()),
-						];
-						if ($this->vac_m->insert($vac)){
-							$count++;
-							$sheet->setCellValue('D'.$row, 'Success');
-							$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
-						}
-					}else{
-						$sheet->setCellValue('D'.$row, 'Duplicated');
-						$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
-					}
-					*/
-				}else{
-					$sheet->setCellValue('D'.$row, 'Error - No Employee');
-					$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
-				}
+					}else $sheet->setCellValue('D'.$row, 'Error - No working hour option');
+				}else $sheet->setCellValue('D'.$row, 'Error - No Employee');
             }
 			
 			$type = "success";
