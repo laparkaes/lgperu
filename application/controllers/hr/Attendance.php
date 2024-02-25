@@ -27,24 +27,72 @@ class Attendance extends CI_Controller {
 		$headers = [];//save days and week days for table header
 		$employees = $this->emp_m->all([["name", "asc"]]);
 		
-		
 		$month = date("F");
 		
 		$start = new DateTime(date('Y-m-01'));
 		$last = new DateTime(date('Y-m-t'));
 		
+		$dates = [];
 		$interval = new DateInterval('P1D');
 		$now = clone $start;
 		while ($now <= $last) {
 			$headers[] = ["day" => $now->format('d'), "w_day" => $now->format('D')];
-			$date = $now->format('Y-m-d');
-			
-			//echo $now->format('Y-m-d D') . "<br>";//요일 전체 표시하려면 l
-			
+			$dates[] = $now->format('Y-m-d');
 			$now->add($interval);
 		}
 		
+		//set mapping for save daily information
+		$mapping = [];
+		foreach($employees as $emp){
+			$mapping[$emp->employee_id] = [
+				"absence_qty" => 0,//absence counter
+				"tardiness_qty" => 0,//tardiness counter
+				"vacation_qty" => 0,//vacacion counter
+				"check" => [],//daily check data array => [date][enter/leave] = ["time" => , "color" =>]
+			];
+			
+			$whour_f = [
+				"employee_id" => $emp->employee_id,
+				"date_from <=" => $dates[0],
+				"date_to >=" => $dates[0],
+			];
+			$whour = $this->gen_m->filter("working_hour", true, $whour_f);
+			if ($whour) $whour = $whour[0];
+			
+			foreach($dates as $d){
+				$mapping[$emp->employee_id][$d] = ["enter" => [], "leave" => []];
+				
+				//check if actual day require update working hour
+				if ($whour) if ($whour->date_to < $d){
+					$whour_f["date_from <="] = $whour_f["date_to >="] = $d;
+					$whour = $this->gen_m->filter("working_hour", true, $whour_f);
+					if ($whour) $whour = $whour[0];
+				}
+				
+				$att = $this->gen_m->filter("attendance", true, ["employee_id" => $emp->employee_id, "date" => $d]);
+				if ($att){//attendance record exists
+					$att = $att[0];
+					$mapping[$emp->employee_id][$d]["enter"] = ["time" => $att->enter_time, "color" => ""];
+					$mapping[$emp->employee_id][$d]["leave"] = ["time" => $att->leave_time, "color" => ""];
+					
+					if ($whour){//working hour record exists => evaluate if tardiness
+						
+					}
+				}else{//attendance record no exists
+					/*
+					1. check if vacation exists
+					2. check if coorporation event exists
+					*/
+				}
+			}
+		}
+		
+		
 		print_r($headers);
+		echo "<br/><br/>";
+		print_r($dates);
+		echo "<br/><br/>";
+		print_r($mapping);
 		
 		$data = [
 			"main" => "hr/attendance/index",

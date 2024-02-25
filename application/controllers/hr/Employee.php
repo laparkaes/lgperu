@@ -269,7 +269,7 @@ class Employee extends CI_Controller {
 								$insert_new = false;
 								$sheet->setCellValue('D'.$row, 'Success - No change');
 							}else $this->whour_m->update(["employee_id" => $emp->employee_id], ["date_to" => $today]);
-						}else $date_from = $today;//in case of first working hour record
+						}else $date_from = "1000-01-01";//in case of first working hour record
 						
 						if ($insert_new){
 							//new working hour record form tomorrow to 9999-12-31
