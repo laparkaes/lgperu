@@ -32,6 +32,7 @@
 								<tr>
 									<th scope="col" style="width: 80px;">#</th>
 									<th scope="col">Eployee</th>
+									<th scope="col">Falta</th>
 									<th scope="col">Tardiness</th>
 									<th scope="col">vacation</th>
 									<?php foreach($headers as $h){ ?>
@@ -44,6 +45,17 @@
 								<tr>
 									<td><?= number_format($i + 1) ?></td>
 									<td><?= $emp->employee_number  ?><br/><?= $emp->name  ?></td>
+									<td><?= number_format($mapping[$emp->employee_id]["absence_qty"]) ?></td>
+									<td><?= number_format($mapping[$emp->employee_id]["tardiness_qty"]) ?></td>
+									<td><?= number_format($mapping[$emp->employee_id]["vacation_qty"]) ?></td>
+									<?php foreach($dates as $d){ $aux = $mapping[$emp->employee_id][$d]; ?>
+									<td>
+										<?php if (array_key_exists("time", $aux["enter"])){ ?>
+										<div><?= date("H:i", strtotime($aux["enter"]["time"])) ?></div>
+										<div><?= date("H:i", strtotime($aux["leave"]["time"])) ?></div>
+										<?php } ?>
+									</td>
+									<?php } ?>
 									<td class="text-end">
 										<button type="button" class="btn btn-link">
 											<i class="bi bi-file-earmark-fill"></i>
@@ -102,7 +114,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		e.preventDefault();
 		$("#form_uff_attendance .sys_msg").html("");
 		ajax_form_warning(this, "hr/attendance/upload_device_file", "Do you want to upload device check-in data from selected file?").done(function(res) {
-			//if (res.type == "success") window.location.href = base_url + "upload/attendance.xlsx";
 			swal_redirection(res.type, res.msg, "hr/attendance");
 		});
 	});

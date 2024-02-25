@@ -90,6 +90,7 @@ class Attendance extends CI_Controller {
 		$data = [
 			"month" => $month,
 			"headers" => $headers,
+			"dates" => $dates,
 			"employees" => $employees,
 			"mapping" => $mapping,
 			"main" => "hr/attendance/index",
@@ -116,6 +117,7 @@ class Attendance extends CI_Controller {
 			$spreadsheet = IOFactory::load($file_path);
 			$sheet = $spreadsheet->getActiveSheet();
 			
+			/*
 			$sheet->setCellValue('B1', 'Upload Result');
 			$sheet->getStyle('B')->getFill()->setFillType(Fill::FILL_SOLID);
 			$sheet->getStyle('B')->getFill()->getStartColor()->setARGB('FFFF00');
@@ -123,6 +125,7 @@ class Attendance extends CI_Controller {
 			$sheet->setCellValue('C1', 'Upload Time');
 			$sheet->getStyle('C')->getFill()->setFillType(Fill::FILL_SOLID);
 			$sheet->getStyle('C')->getFill()->getStartColor()->setARGB('FFFF00');
+			*/
 			
             $highestRow = $sheet->getHighestRow();
             //$highestColumn = $sheet->getHighestColumn();
@@ -151,8 +154,9 @@ class Attendance extends CI_Controller {
 						if (!array_key_exists($date_split[0], $atts[$aux[0]]["check"])) 
 							$atts[$aux[0]]["check"][$date_split[0]] = [];
 						
-						$atts[$aux[0]]["check"][$date_split[0]][] = $date_split[1];
 						$atts[$aux[0]]["name"] = $aux[1];
+						$atts[$aux[0]]["check"][$date_split[0]][] = $date_split[1];
+						$atts[$aux[0]]["check"][$date_split[0]][] = $date_split[1];
 					}
 				}
             }
@@ -178,7 +182,6 @@ class Attendance extends CI_Controller {
 						];
 						
 						$att_rec = $this->gen_m->filter("attendance", true, $f);
-						//echo $this->db->last_query();
 						if ($att_rec){
 							$att_data["attendance_id"] = $att_rec[0]->attendance_id;
 							$upd_rec[] = $att_data;
@@ -189,9 +192,6 @@ class Attendance extends CI_Controller {
 			
 			$new_qty = ($new_rec) ? $this->att_m->insert_m($new_rec) : 0;
 			$upd_qty = ($upd_rec) ? $this->att_m->update_m($upd_rec) : 0;
-			
-			$writer = new Xlsx($spreadsheet);
-			$writer->save($file_path);
 			
 			$type = "success";
 			$msg = "Check-in time upload result: ".number_format($new_qty)." new and ".number_format($upd_qty)." updated.";
