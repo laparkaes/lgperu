@@ -87,17 +87,14 @@ class Attendance extends CI_Controller {
 			}
 		}
 		
-		
-		print_r($headers);
-		echo "<br/><br/>";
-		print_r($dates);
-		echo "<br/><br/>";
-		print_r($mapping);
-		
 		$data = [
+			"month" => $month,
+			"headers" => $headers,
+			"employees" => $employees,
+			"mapping" => $mapping,
 			"main" => "hr/attendance/index",
 		];
-		//$this->load->view('layout', $data);
+		$this->load->view('layout', $data);
 	}
 	
 	public function upload_device_file(){

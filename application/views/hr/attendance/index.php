@@ -1,10 +1,10 @@
 <div class="d-flex justify-content-between align-items-start">
 	<div class="pagetitle">
-		<h1>Employee</h1>
+		<h1>Attendance</h1>
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Home</a></li>
-				<li class="breadcrumb-item active">Employee</li>
+				<li class="breadcrumb-item active">Attendance</li>
 			</ol>
 		</nav>
 	</div>
@@ -25,25 +25,25 @@
 		<div class="col">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">List</h5>
+					<h5 class="card-title"><?= $month ?></h5>
 					<div class="table-responsive">
 						<table class="table align-middle">
 							<thead>
 								<tr>
 									<th scope="col" style="width: 80px;">#</th>
-									<th scope="col">Organization</th>
-									<th scope="col">Emp. Num.</th>
-									<th scope="col">Name</th>
-									<th scope="col"></th>
+									<th scope="col">Eployee</th>
+									<th scope="col">Tardiness</th>
+									<th scope="col">vacation</th>
+									<?php foreach($headers as $h){ ?>
+									<th scope="col"><?= $h["day"] ?><br/><?= $h["w_day"] ?></th>
+									<?php } ?>
 								</tr>
 							</thead>
 							<tbody>
-								<?php $base_i = ($page-1) * 30; foreach($employees as $i => $emp){ ?>
+								<?php foreach($employees as $i => $emp){ ?>
 								<tr>
-									<td><?= number_format($base_i + $i + 1) ?></td>
-									<td><?= $emp->subsidiary.($emp->office ? ".".$emp->office : "") ?><br/><?= $emp->organization  ?></td>
-									<td><?= $emp->employee_number  ?></td>
-									<td><?= $emp->name  ?></td>
+									<td><?= number_format($i + 1) ?></td>
+									<td><?= $emp->employee_number  ?><br/><?= $emp->name  ?></td>
 									<td class="text-end">
 										<button type="button" class="btn btn-link">
 											<i class="bi bi-file-earmark-fill"></i>
