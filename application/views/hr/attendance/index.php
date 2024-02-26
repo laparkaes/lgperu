@@ -31,12 +31,12 @@
 							<thead>
 								<tr>
 									<th scope="col" style="width: 80px;">#</th>
-									<th scope="col">Eployee</th>
+									<th scope="col">Employee</th>
 									<th scope="col">Falta</th>
 									<th scope="col">Tardiness</th>
 									<th scope="col">vacation</th>
 									<?php foreach($headers as $h){ ?>
-									<th scope="col"><?= $h["day"] ?><br/><?= $h["w_day"] ?></th>
+									<th scope="col" class="text-<?= $h["color"] ?>"><?= $h["day"] ?><br/><?= $h["w_day"] ?></th>
 									<?php } ?>
 								</tr>
 							</thead>
@@ -44,7 +44,10 @@
 								<?php foreach($employees as $i => $emp){ ?>
 								<tr>
 									<td><?= number_format($i + 1) ?></td>
-									<td><?= $emp->employee_number  ?><br/><?= $emp->name  ?></td>
+									<td>
+										<div><?= $emp->employee_number  ?></div>
+										<div style="overflow: hidden; max-width: 150px; text-overflow: ellipsis;" class="text-nowrap"><?= $emp->name  ?></div>
+									</td>
 									<td><?= number_format($mapping[$emp->employee_id]["absence_qty"]) ?></td>
 									<td><?= number_format($mapping[$emp->employee_id]["tardiness_qty"]) ?></td>
 									<td><?= number_format($mapping[$emp->employee_id]["vacation_qty"]) ?></td>
@@ -56,11 +59,6 @@
 										<?php } ?>
 									</td>
 									<?php } ?>
-									<td class="text-end">
-										<button type="button" class="btn btn-link">
-											<i class="bi bi-file-earmark-fill"></i>
-										</button>
-									</td>
 								</tr>
 								<?php } ?>
 							</tbody>

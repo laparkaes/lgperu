@@ -32,12 +32,20 @@ class Attendance extends CI_Controller {
 		$start = new DateTime(date('Y-m-01'));
 		$last = new DateTime(date('Y-m-t'));
 		
+		$day_red = ["Sat", "Sun"];
 		$dates = [];
 		$interval = new DateInterval('P1D');
 		$now = clone $start;
 		while ($now <= $last) {
-			$headers[] = ["day" => $now->format('d'), "w_day" => $now->format('D')];
+			$aux = ["day" => $now->format('d'), "w_day" => $now->format('D'), "color" => ""];
+			
 			$dates[] = $now->format('Y-m-d');
+			if (in_array($now->format('D'), $day_red)){
+				$dates_red[] = $now->format('Y-m-d');
+				$aux["color"] = "danger";
+			}
+			
+			$headers[] = $aux;
 			$now->add($interval);
 		}
 		
@@ -91,6 +99,7 @@ class Attendance extends CI_Controller {
 			"month" => $month,
 			"headers" => $headers,
 			"dates" => $dates,
+			"dates_red" => $dates_red,
 			"employees" => $employees,
 			"mapping" => $mapping,
 			"main" => "hr/attendance/index",
