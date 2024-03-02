@@ -24,13 +24,15 @@ class Attendance extends CI_Controller {
 	}
 
 	public function index(){
+		$ref_date = "2024-02-01";
+		
 		$headers = [];//save days and week days for table header
 		$employees = $this->emp_m->all([["name", "asc"]]);
 		
-		$month = date("F");
+		$month = date("F", strtotime($ref_date));
 		
-		$start = new DateTime(date('Y-m-01'));
-		$last = new DateTime(date('Y-m-t'));
+		$start = new DateTime(date('Y-m-01', strtotime($ref_date)));
+		$last = new DateTime(date('Y-m-t', strtotime($ref_date)));
 		
 		$day_red = ["Sat", "Sun"];
 		$dates = [];

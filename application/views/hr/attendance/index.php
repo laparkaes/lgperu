@@ -32,9 +32,7 @@
 								<tr>
 									<th scope="col" style="width: 80px;">#</th>
 									<th scope="col">Employee</th>
-									<th scope="col">Falta</th>
-									<th scope="col">Tardiness</th>
-									<th scope="col">vacation</th>
+									<th scope="col" class="text-nowrap">F, T, V</th>
 									<?php foreach($headers as $h){ ?>
 									<th scope="col" class="text-<?= $h["color"] ?>"><?= $h["day"] ?><br/><?= $h["w_day"] ?></th>
 									<?php } ?>
@@ -48,9 +46,11 @@
 										<div><?= $emp->employee_number  ?></div>
 										<div style="overflow: hidden; max-width: 150px; text-overflow: ellipsis;" class="text-nowrap"><?= $emp->name  ?></div>
 									</td>
-									<td><?= number_format($mapping[$emp->employee_id]["absence_qty"]) ?></td>
-									<td><?= number_format($mapping[$emp->employee_id]["tardiness_qty"]) ?></td>
-									<td><?= number_format($mapping[$emp->employee_id]["vacation_qty"]) ?></td>
+									<td>
+										<?= number_format($mapping[$emp->employee_id]["absence_qty"]) ?>, 
+										<?= number_format($mapping[$emp->employee_id]["tardiness_qty"]) ?>, 
+										<?= number_format($mapping[$emp->employee_id]["vacation_qty"]) ?>
+									</td>
 									<?php foreach($dates as $d){ $aux = $mapping[$emp->employee_id][$d]; ?>
 									<td>
 										<?php if (array_key_exists("time", $aux["enter"])){ ?>
