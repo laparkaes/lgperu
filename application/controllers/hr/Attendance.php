@@ -22,9 +22,9 @@ class Attendance extends CI_Controller {
 		$this->load->model('attendance_model', 'att_m');
 		$this->nav_menu = ["hr", "attendance"];
 	}
-
-	public function index(){
-		$ref_date = "2024-02-01";
+	
+	private function set_mapping($ref_date){
+		if (!$ref_date) $ref_date = date("Y-m-d");
 		
 		$headers = [];//save days and week days for table header
 		$employees = $this->emp_m->all([["name", "asc"]]);
@@ -52,41 +52,56 @@ class Attendance extends CI_Controller {
 		}
 		
 		//set mapping for save daily information
-		$mapping = [];
-		foreach($employees as $emp){
-			$mapping[$emp->employee_id] = [
-				"absence_qty" => 0,//absence counter
-				"tardiness_qty" => 0,//tardiness counter
-				"vacation_qty" => 0,//vacacion counter
-				"check" => [],//daily check data array => [date][enter/leave] = ["time" => , "color" =>]
+		$summary = $mapping = [];
+		foreach($employees as $key => $emp){
+			$summary[$emp->employee_id] = [
+				"abs" => 0,//absence qty
+				"tar" => 0,//tardiness qty
+				"vac" => 0,//vacacion qty
 			];
 			
+			//daily check data array => [date][enter/leave] = [time, color]
+			$mapping[$emp->employee_id] = [];
+			
+			$whour_op = null;
 			$whour_f = [
 				"employee_id" => $emp->employee_id,
 				"date_from <=" => $dates[0],
 				"date_to >=" => $dates[0],
 			];
 			$whour = $this->gen_m->filter("working_hour", true, $whour_f);
-			if ($whour) $whour = $whour[0];
+			if ($whour){
+				$whour = $whour[0];
+				$whour_op = $this->whour_m->unique_option("option_id", $whour->wh_option_id);
+			}
 			
+			$has_att = false;
 			foreach($dates as $d){
-				$mapping[$emp->employee_id][$d] = ["enter" => [], "leave" => []];
+				$mapping[$emp->employee_id][$d] = ["e" => [], "l" => []];
 				
 				//check if actual day require update working hour
 				if ($whour) if ($whour->date_to < $d){
 					$whour_f["date_from <="] = $whour_f["date_to >="] = $d;
 					$whour = $this->gen_m->filter("working_hour", true, $whour_f);
-					if ($whour) $whour = $whour[0];
+					if ($whour){
+						$whour = $whour[0];
+						$whour_op = $this->whour_m->unique_option("option_id", $whour->wh_option_id);
+					}
 				}
 				
 				$att = $this->gen_m->filter("attendance", true, ["employee_id" => $emp->employee_id, "date" => $d]);
 				if ($att){//attendance record exists
+					$has_att = true;
 					$att = $att[0];
-					$mapping[$emp->employee_id][$d]["enter"] = ["time" => $att->enter_time, "color" => ""];
-					$mapping[$emp->employee_id][$d]["leave"] = ["time" => $att->leave_time, "color" => ""];
+					$mapping[$emp->employee_id][$d]["e"] = ["time" => $att->enter_time, "color" => ""];//enter
+					$mapping[$emp->employee_id][$d]["l"] = ["time" => $att->leave_time, "color" => ""];//leave
 					
-					if ($whour){//working hour record exists => evaluate if tardiness
+					if ($whour_op){//working hour record exists => evaluate if tardiness
+						if (strtotime($whour_op->entrance_time) < strtotime($att->enter_time))
+							$mapping[$emp->employee_id][$d]["e"]["color"] = "danger";
 						
+						if (strtotime($att->leave_time) < strtotime($whour_op->exit_time))
+							$mapping[$emp->employee_id][$d]["l"]["color"] = "danger";
 					}
 				}else{//attendance record no exists
 					/*
@@ -95,6 +110,8 @@ class Attendance extends CI_Controller {
 					*/
 				}
 			}
+			
+			if (!$has_att) unset($employees[$key]);
 		}
 		
 		$data = [
@@ -103,10 +120,40 @@ class Attendance extends CI_Controller {
 			"dates" => $dates,
 			"dates_red" => $dates_red,
 			"employees" => $employees,
+			"summary" => $summary,
 			"mapping" => $mapping,
-			"main" => "hr/attendance/index",
 		];
-		$this->load->view('layout', $data);
+		
+		return $data;
+	}
+
+	public function index(){
+		$ref_date = "2024-02";
+		
+		$w = [
+			"date_from <" => date('Y-m-01', strtotime($ref_date)),
+			"date_to >=" => date('Y-m-01', strtotime($ref_date)),
+			"date_to <=" =>date('Y-m-t', strtotime($ref_date))
+		];
+		$vacations_t = $this->gen_m->filter("vacation", true, $w, null, null, [["date_to", "asc"]]);
+		
+		$w = [
+			"date_from >=" => date('Y-m-01', strtotime($ref_date)),
+			"date_from <=" =>date('Y-m-t', strtotime($ref_date))
+		];
+		$vacations_f = $this->gen_m->filter("vacation", true, $w, null, null, [["date_from", "asc"]]);
+		
+		$vacations = array_merge($vacations_t, $vacations_f);
+		foreach($vacations as $vac){
+			print_r($vac);
+			echo "<br/>";
+		}
+		
+		
+		$data = $this->set_mapping($ref_date);
+		$data["main"] = "hr/attendance/index";
+		
+		//$this->load->view('layout', $data);
 	}
 	
 	public function upload_device_file(){
@@ -114,7 +161,7 @@ class Attendance extends CI_Controller {
 		
 		$config = [
 			'upload_path'	=> './upload/',
-			'allowed_types'	=> 'xls|xlsx',
+			'allowed_types'	=> 'xls|xlsx|csv',
 			'max_size'		=> 10000,
 			'overwrite'		=> TRUE,
 			'file_name'		=> 'attendance',
@@ -145,7 +192,20 @@ class Attendance extends CI_Controller {
 			$atts = [];
 			$count = 0;
             for ($row = 2; $row <= $highestRow; $row++){
-				$row_now = explode(",", trim($sheet->getCell('A'.$row)->getValue()));
+				//datas are joined with comma (,)
+				//$row_now = explode(",", trim($sheet->getCell('A'.$row)->getValue()));
+				
+				//datas are separated in columns
+				$row_now = [
+					trim($sheet->getCell('A'.$row)->getValue()),
+					trim($sheet->getCell('B'.$row)->getValue()),
+					trim($sheet->getCell('C'.$row)->getValue()),
+					trim($sheet->getCell('D'.$row)->getValue()),
+					trim($sheet->getCell('E'.$row)->getValue()),
+					trim($sheet->getCell('F'.$row)->getValue()),
+					trim($sheet->getCell('G'.$row)->getValue()),
+				];
+				
 				if ($row_now[5]){
 					$aux = explode("(", str_replace(")", "", $row_now[5]));
 					if (array_key_exists(1, $aux)){
@@ -166,8 +226,8 @@ class Attendance extends CI_Controller {
 							$atts[$aux[0]]["check"][$date_split[0]] = [];
 						
 						$atts[$aux[0]]["name"] = $aux[1];
-						$atts[$aux[0]]["check"][$date_split[0]][] = $date_split[1];
-						$atts[$aux[0]]["check"][$date_split[0]][] = $date_split[1];
+						$atts[$aux[0]]["check"][$date_split[0]][] = strtotime($date_split[1]);
+						$atts[$aux[0]]["check"][$date_split[0]][] = strtotime($date_split[1]);
 					}
 				}
             }
@@ -188,8 +248,8 @@ class Attendance extends CI_Controller {
 						$att_data = [
 							"employee_id" => $emp_rec->employee_id,
 							"date" => $day,
-							"enter_time" => $times[0],
-							"leave_time" => $times[count($times) - 1],
+							"enter_time" => date("H:i", $times[0]),
+							"leave_time" => date("H:i",$times[count($times) - 1]),
 						];
 						
 						$att_rec = $this->gen_m->filter("attendance", true, $f);

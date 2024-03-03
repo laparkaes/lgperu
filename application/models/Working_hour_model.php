@@ -64,7 +64,15 @@ class Working_hour_model extends CI_Model{
 	}
 	
 	//working_hour_option
-	function unique_option($entrance_time, $exit_time, $valid = true){
+	function unique_option($field, $value, $valid = true){
+		$this->db->where($field, $value);
+		if ($valid) $this->db->where("valid", true);
+		$query = $this->db->get($this->tablename."_option", 1, 0);
+		$result = $query->result();
+		if ($result) return $result[0]; else return null;
+	}
+	
+	function filter_option($entrance_time, $exit_time, $valid = true){
 		$this->db->where("entrance_time", $entrance_time);
 		$this->db->where("exit_time", $exit_time);
 		if ($valid) $this->db->where("valid", true);

@@ -253,7 +253,7 @@ class Employee extends CI_Controller {
 					
 					//update_working hour
 					$w_hours = explode(" - ", trim($sheet->getCell('C'.$row)->getValue()));
-					$w_hour_op = $this->whour_m->unique_option($w_hours[0], $w_hours[1]);
+					$w_hour_op = $this->whour_m->filter_option($w_hours[0], $w_hours[1]);
 					if ($w_hour_op){
 						
 						$today = date("Y-m-d");

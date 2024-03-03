@@ -32,30 +32,34 @@
 								<tr>
 									<th scope="col" style="width: 80px;">#</th>
 									<th scope="col">Employee</th>
-									<th scope="col" class="text-nowrap">F, T, V</th>
+									<!-- th scope="col" class="text-nowrap">F, T, V</th -->
 									<?php foreach($headers as $h){ ?>
 									<th scope="col" class="text-<?= $h["color"] ?>"><?= $h["day"] ?><br/><?= $h["w_day"] ?></th>
 									<?php } ?>
 								</tr>
 							</thead>
 							<tbody>
-								<?php foreach($employees as $i => $emp){ ?>
+								<?php $i = 0; foreach($employees as $emp){ ?>
 								<tr>
-									<td><?= number_format($i + 1) ?></td>
+									<td><?= number_format($i++ + 1) ?></td>
 									<td>
 										<div><?= $emp->employee_number  ?></div>
 										<div style="overflow: hidden; max-width: 150px; text-overflow: ellipsis;" class="text-nowrap"><?= $emp->name  ?></div>
 									</td>
-									<td>
-										<?= number_format($mapping[$emp->employee_id]["absence_qty"]) ?>, 
-										<?= number_format($mapping[$emp->employee_id]["tardiness_qty"]) ?>, 
-										<?= number_format($mapping[$emp->employee_id]["vacation_qty"]) ?>
-									</td>
+									<!-- td>
+										<?= number_format($summary[$emp->employee_id]["abs"]) ?>, 
+										<?= number_format($summary[$emp->employee_id]["tar"]) ?>, 
+										<?= number_format($summary[$emp->employee_id]["vac"]) ?>
+									</td -->
 									<?php foreach($dates as $d){ $aux = $mapping[$emp->employee_id][$d]; ?>
 									<td>
-										<?php if (array_key_exists("time", $aux["enter"])){ ?>
-										<div><?= date("H:i", strtotime($aux["enter"]["time"])) ?></div>
-										<div><?= date("H:i", strtotime($aux["leave"]["time"])) ?></div>
+										<?php if (array_key_exists("time", $aux["e"]) or array_key_exists("time", $aux["l"])){ ?>
+										<div class="text-<?= $aux["e"]["color"] ?>">
+											<?= date("H:i", strtotime($aux["e"]["time"])) ?>
+										</div>
+										<div class="text-<?= $aux["l"]["color"] ?>">
+											<?= date("H:i", strtotime($aux["l"]["time"])) ?>
+										</div>
 										<?php } ?>
 									</td>
 									<?php } ?>
@@ -63,16 +67,6 @@
 								<?php } ?>
 							</tbody>
 						</table>
-					</div>
-					<div class="btn-group" role="group" aria-label="paging">
-						<?php 
-						$f_url = $this->input->get();
-						foreach($paging as $p){
-						$f_url["page"] = $p[0]; ?>
-						<a href="<?= base_url() ?>hr/employee?<?= http_build_query($f_url) ?>" class="btn btn-<?= $p[2] ?>">
-							<?= $p[1] ?>
-						</a>
-						<?php } ?>
 					</div>
 				</div>
 			</div>
@@ -94,7 +88,7 @@
 					<form class="row g-3" id="form_uff_attendance">
 						<div class="col-12">
 							<label class="form-label">Device File</label>
-							<input type="file" class="form-control" name="md_uff_file" accept=".xls,.xlsx">
+							<input type="file" class="form-control" name="md_uff_file" accept=".xls,.xlsx,.csv">
 						</div>
 						<div class="text-end pt-3">
 							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
