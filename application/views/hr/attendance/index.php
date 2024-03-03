@@ -25,6 +25,54 @@
 		<div class="col">
 			<div class="card">
 				<div class="card-body">
+					<h5 class="card-title">Vacations</h5>
+					<div class="table-responsive">
+						<table class="table align-middle">
+							<thead>
+								<tr>
+									<th scope="col" style="width: 80px;">#</th>
+									<th scope="col">Employee</th>
+									<th scope="col">Type</th>
+									<th scope="col">From/To</th>
+									<th scope="col">Status</th>
+									<th scope="col" class="text-end">Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php $i = 0; foreach($vacations as $vac){ ?>
+								<tr>
+									<td><?= number_format($i++ + 1) ?></td>
+									<td>
+										<div><?= $vac->employee->name ?></div>
+										<div><?= $vac->employee->employee_number ?></div>
+									</td>
+									<td>
+										<div><?= str_replace("(", "<br/>(", $vac->type) ?></div>
+									</td>
+									<td>
+										<div><?= date("Y-m-d", strtotime($vac->date_from)) ?></div>
+										<?php if ($vac->date_from !== $vac->date_to){ ?>
+										<div><?= date("Y-m-d", strtotime($vac->date_to)) ?></div>
+										<?php } ?>
+									</td>
+									<td><?= $vac->status ?></td>
+									<td class="text-end">
+										<?php if ($vac->status === "Approved"){ ?>
+										<div class="btn-group" role="group" aria-label="Basic mixed styles example">
+											<button type="button" class="btn btn-danger btn-sm" value="<?= $vac->vacation_id ?>">Cancel</button>
+											<button type="button" class="btn btn-primary btn-sm" value="<?= $vac->vacation_id ?>">Taken</button>
+										</div>
+										<?php } ?>
+									</td>
+								</tr>
+								<?php } ?>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="card">
+				<div class="card-body">
 					<h5 class="card-title"><?= $month ?></h5>
 					<div class="table-responsive">
 						<table class="table align-middle">

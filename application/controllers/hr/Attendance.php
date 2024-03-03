@@ -143,17 +143,27 @@ class Attendance extends CI_Controller {
 		];
 		$vacations_f = $this->gen_m->filter("vacation", true, $w, null, null, [["date_from", "asc"]]);
 		
+		$vac_status = [];
+		$vac_status_rec = $this->vac_m->all_status();
+		foreach($vac_status_rec as $vs) $vac_status[$vs->status_id] = $vs->status;
+		
+		$vac_type = [];
+		$vac_type_rec = $this->vac_m->all_type();
+		foreach($vac_type_rec as $vt) $vac_type[$vt->type_id] = $vt->type;
+		
 		$vacations = array_merge($vacations_t, $vacations_f);
 		foreach($vacations as $vac){
-			print_r($vac);
-			echo "<br/>";
+			$vac->type = $vac_type[$vac->type_id];
+			$vac->status = $vac_status[$vac->status_id];
+			$vac->employee = $this->emp_m->unique("employee_id", $vac->employee_id);
 		}
 		
 		
 		$data = $this->set_mapping($ref_date);
+		$data["vacations"] = $vacations;
 		$data["main"] = "hr/attendance/index";
 		
-		//$this->load->view('layout', $data);
+		$this->load->view('layout', $data);
 	}
 	
 	public function upload_device_file(){

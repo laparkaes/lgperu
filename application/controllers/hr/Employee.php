@@ -156,7 +156,7 @@ class Employee extends CI_Controller {
             $highestRow = $sheet->getHighestRow();
             //$highestColumn = $sheet->getHighestColumn();
 			
-			$status = $this->vac_m->unique_status("Approved");
+			$status = $this->vac_m->unique_status("status", "Approved");
 			$count = 0;
             for ($row = 2; $row <= $highestRow; $row++){
 				$emp = $this->emp_m->unique("employee_number", trim($sheet->getCell('C'.$row)->getValue()));
@@ -172,7 +172,7 @@ class Employee extends CI_Controller {
 					];
 					
 					if (!$this->gen_m->filter("vacation", true, $w)){
-						$type = $this->vac_m->unique_type(str_replace(" (", "(", $sheet->getCell('J'.$row)->getValue()));
+						$type = $this->vac_m->unique_type("type", str_replace(" (", "(", $sheet->getCell('J'.$row)->getValue()));
 						
 						$vac = [
 							"status_id" => $status->status_id,

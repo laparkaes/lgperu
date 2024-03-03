@@ -51,8 +51,8 @@ class Vacation_model extends CI_Model{
 	}
 	
 	/* status */
-	function unique_status($status){
-		$this->db->where("status", $status);
+	function unique_status($field, $status){
+		$this->db->where($field, $status);
 		$query = $this->db->get($this->tablename."_status", 1, 0);
 		$result = $query->result();
 		if ($result) return $result[0]; else return null;
@@ -66,8 +66,8 @@ class Vacation_model extends CI_Model{
 	}
 	
 	/* type */
-	function unique_type($type){
-		$this->db->where("type", $type);
+	function unique_type($field, $type){
+		$this->db->where($field, $type);
 		$query = $this->db->get($this->tablename."_type", 1, 0);
 		$result = $query->result();
 		if ($result) return $result[0]; else return null;
