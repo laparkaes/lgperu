@@ -136,9 +136,22 @@
   /**
    * Initiate Datatables
    */
-  const datatables = select('.datatable', true)
+  const datatables = select('.datatable', true);
+  let options = {
+	searchable: true,
+	sortable: false,
+    perPage: 10,
+	classes: {
+		input: "form-control",
+		selector: "form-select",
+	},
+	labels: {
+		perPage: "",
+		info: "{start} - {end} / {rows}",
+	},
+  };
   datatables.forEach(datatable => {
-    new simpleDatatables.DataTable(datatable);
+    new simpleDatatables.DataTable(datatable, options);
   })
 
   /**

@@ -51,9 +51,26 @@ class Attendance extends CI_Controller {
 			$now->add($interval);
 		}
 		
+		//employee subsidiary, organization, office variable set
+		$subs = []; $subs_rec = $this->sub_m->all();
+		foreach($subs_rec as $sub) $subs[$sub->subsidiary_id] = $sub->subsidiary;
+		
+		$orgs = []; $orgs_rec = $this->org_m->all();
+		foreach($orgs_rec as $org) $orgs[$org->organization_id] = $org->organization;
+		
+		$offs = []; $offs_rec = $this->off_m->all();
+		foreach($offs_rec as $off) $offs[$off->office_id] = $off->office;
+		
 		//set mapping for save daily information
-		$summary = $mapping = [];
+		$summary = $mapping = $vacation_emps = [];
 		foreach($employees as $key => $emp){
+			//basic vacation array
+			$vacation_emps[$emp->employee_id] = [];
+			
+			$emp->subsidiary = ($emp->subsidiary_id) ? $subs[$emp->subsidiary_id] : "";
+			$emp->organization = ($emp->organization_id) ? $orgs[$emp->organization_id] : "";
+			$emp->office = ($emp->office_id) ? $offs[$emp->office_id] : "";
+			
 			$summary[$emp->employee_id] = [
 				"abs" => 0,//absence qty
 				"tar" => 0,//tardiness qty
@@ -114,22 +131,7 @@ class Attendance extends CI_Controller {
 			if (!$has_att) unset($employees[$key]);
 		}
 		
-		$data = [
-			"month" => $month,
-			"headers" => $headers,
-			"dates" => $dates,
-			"dates_red" => $dates_red,
-			"employees" => $employees,
-			"summary" => $summary,
-			"mapping" => $mapping,
-		];
-		
-		return $data;
-	}
-
-	public function index(){
-		$ref_date = "2024-02";
-		
+		//start vacations
 		$w = [
 			"date_from <" => date('Y-m-01', strtotime($ref_date)),
 			"date_to >=" => date('Y-m-01', strtotime($ref_date)),
@@ -143,27 +145,69 @@ class Attendance extends CI_Controller {
 		];
 		$vacations_f = $this->gen_m->filter("vacation", true, $w, null, null, [["date_from", "asc"]]);
 		
-		$vac_status = [];
-		$vac_status_rec = $this->vac_m->all_status();
-		foreach($vac_status_rec as $vs) $vac_status[$vs->status_id] = $vs->status;
-		
-		$vac_type = [];
-		$vac_type_rec = $this->vac_m->all_type();
-		foreach($vac_type_rec as $vt) $vac_type[$vt->type_id] = $vt->type;
-		
 		$vacations = array_merge($vacations_t, $vacations_f);
 		foreach($vacations as $vac){
-			$vac->type = $vac_type[$vac->type_id];
-			$vac->status = $vac_status[$vac->status_id];
-			$vac->employee = $this->emp_m->unique("employee_id", $vac->employee_id);
+			$start = new DateTime($vac->date_from);
+			$last = new DateTime($vac->date_to);
+			$interval = new DateInterval('P1D');//each one day
+			
+			$now = clone $start;
+			while ($now <= $last) {
+				$vacation_emps[$vac->employee_id][] = $now->format('Y-m-d');
+				$now->add($interval);
+			}
 		}
 		
+		$data = [
+			"month" => $month,
+			"headers" => $headers,
+			"dates" => $dates,
+			"dates_red" => $dates_red,
+			"employees" => $employees,
+			"summary" => $summary,
+			"mapping" => $mapping,
+			"vacation_emps" => $vacation_emps,
+		];
+		
+		return $data;
+	}
+
+	public function index(){
+		$ref_date = "2024-02";
 		
 		$data = $this->set_mapping($ref_date);
-		$data["vacations"] = $vacations;
 		$data["main"] = "hr/attendance/index";
 		
 		$this->load->view('layout', $data);
+	}
+	
+	public function export_monthly_report(){
+		$type = "error"; $msg = null; $url = "aaa";
+		
+		// Create new Spreadsheet object
+        $spreadsheet = new Spreadsheet();
+
+        // Set active sheet
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Add data to the cells
+        $sheet->setCellValue('A1', 'Hello');
+        $sheet->setCellValue('B1', 'World!');
+
+        // Save Excel file to a temporary directory
+		$file_name = 'attandance_202402.xlsx';
+        $file_path = './upload/report/';
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($file_path.$file_name);
+		
+		// Make file url
+		if (file_exists($file_path)){
+			$type = "success";
+			$url = base_url()."upload/report/".$file_name;
+		}else $msg = "An error occured exporting report. Try again.";
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
 	}
 	
 	public function upload_device_file(){
