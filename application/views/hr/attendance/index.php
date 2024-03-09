@@ -40,15 +40,15 @@
 									<!-- th scope="col" class="text-nowrap">F, T, V</th -->
 									<?php foreach($headers as $h){ ?>
 									<th scope="col">
-										<div class="text-<?= $h["color"] ?>"><?= $h["day"] ?><br/><?= $h["w_day"] ?></div>
+										<div class="text-<?= $h["color_bt"] ?>"><?= $h["day"] ?><br/><?= $h["w_day"] ?></div>
 									</th>
 									<?php } ?>
 								</tr>
 							</thead>
 							<tbody>
-								<?php $i = 0; foreach($employees as $emp){ ?>
+								<?php foreach($employees as $i => $emp){ ?>
 								<tr>
-									<td><?= number_format($i++ + 1) ?></td>
+									<td><?= number_format($i + 1) ?></td>
 									<td>
 										<div><?= $emp->employee_number ?></div>
 										<div style="overflow: hidden; max-width: 150px; text-overflow: ellipsis;" class="text-nowrap" title="<?= $emp->name ?>"><?= $emp->name ?></div>
@@ -68,14 +68,14 @@
 									<?php foreach($dates as $idate => $d){ $aux = $mapping[$emp->employee_id][$d]; ?>
 									<td>
 										<?php
-										if ($headers[$idate]["color"] !== "danger"){
+										if ($headers[$idate]["color_bt"] !== "danger"){
 											if (in_array($d, $vacation_emps[$emp->employee_id])) echo "V";
 											else{
 												if (array_key_exists("time", $aux["e"]) or array_key_exists("time", $aux["l"])){ ?>
-										<div class="text-<?= $aux["e"]["color"] ?>">
+										<div class="text-<?= $aux["e"]["color_bt"] ?>">
 											<?= date("H:i", strtotime($aux["e"]["time"])) ?>
 										</div>
-										<div class="text-<?= $aux["l"]["color"] ?>">
+										<div class="text-<?= $aux["l"]["color_bt"] ?>">
 											<?= date("H:i", strtotime($aux["l"]["time"])) ?>
 										</div>
 										<?php }else echo "N";

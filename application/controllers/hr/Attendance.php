@@ -23,33 +23,39 @@ class Attendance extends CI_Controller {
 		$this->nav_menu = ["hr", "attendance"];
 	}
 	
-	private function set_mapping($ref_date){
-		if (!$ref_date) $ref_date = date("Y-m-d");
+	private function set_mapping($period){
+		if (!$period) $period = date("Y-m");
 		
-		$headers = [];//save days and week days for table header
-		$employees = $this->emp_m->all([["name", "asc"]]);
+		//set header
+		$month = date("F", strtotime($period));
 		
-		$month = date("F", strtotime($ref_date));
+		$day_red = ["Sat", "Sun"];//red calendar days
+		$headers = [];//day, day of week, header color
+		$dates = [];//all dates of month
+		$dates_red = [];//red dates array
 		
-		$start = new DateTime(date('Y-m-01', strtotime($ref_date)));
-		$last = new DateTime(date('Y-m-t', strtotime($ref_date)));
-		
-		$day_red = ["Sat", "Sun"];
-		$dates = [];
+		$start = new DateTime(date('Y-m-01', strtotime($period)));
+		$last = new DateTime(date('Y-m-t', strtotime($period)));
 		$interval = new DateInterval('P1D');
+		
 		$now = clone $start;
 		while ($now <= $last) {
-			$aux = ["day" => $now->format('d'), "w_day" => $now->format('D'), "color" => ""];
-			
 			$dates[] = $now->format('Y-m-d');
 			if (in_array($now->format('D'), $day_red)){
 				$dates_red[] = $now->format('Y-m-d');
-				$aux["color"] = "danger";
+				$color = "dc3545";
+				$color_bt = "danger";
+			}else{
+				$color = "000000";
+				$color_bt = "";
 			}
 			
-			$headers[] = $aux;
+			$headers[] = ["day" => $now->format('d'), "w_day" => $now->format('D'), "color" => $color, "color_bt" => $color_bt];
 			$now->add($interval);
 		}
+		
+		//load all employees
+		$employees = $this->emp_m->all([["name", "asc"]]);
 		
 		//employee subsidiary, organization, office variable set
 		$subs = []; $subs_rec = $this->sub_m->all();
@@ -86,6 +92,7 @@ class Attendance extends CI_Controller {
 				"date_from <=" => $dates[0],
 				"date_to >=" => $dates[0],
 			];
+			
 			$whour = $this->gen_m->filter("working_hour", true, $whour_f);
 			if ($whour){
 				$whour = $whour[0];
@@ -110,15 +117,19 @@ class Attendance extends CI_Controller {
 				if ($att){//attendance record exists
 					$has_att = true;
 					$att = $att[0];
-					$mapping[$emp->employee_id][$d]["e"] = ["time" => $att->enter_time, "color" => ""];//enter
-					$mapping[$emp->employee_id][$d]["l"] = ["time" => $att->leave_time, "color" => ""];//leave
+					$mapping[$emp->employee_id][$d]["e"] = ["time" => $att->enter_time, "color" => "", "color_bt" => ""];//enter
+					$mapping[$emp->employee_id][$d]["l"] = ["time" => $att->leave_time, "color" => "", "color_bt" => ""];//leave
 					
 					if ($whour_op){//working hour record exists => evaluate if tardiness
-						if (strtotime($whour_op->entrance_time) < strtotime($att->enter_time))
-							$mapping[$emp->employee_id][$d]["e"]["color"] = "danger";
-						
-						if (strtotime($att->leave_time) < strtotime($whour_op->exit_time))
-							$mapping[$emp->employee_id][$d]["l"]["color"] = "danger";
+						if (strtotime($whour_op->entrance_time) < strtotime($att->enter_time)){
+							$mapping[$emp->employee_id][$d]["e"]["color"] = "dc3545";//tardance
+							$mapping[$emp->employee_id][$d]["e"]["color_bt"] = "danger";//tardance
+						}
+							
+						if (strtotime($att->leave_time) < strtotime($whour_op->exit_time)){
+							$mapping[$emp->employee_id][$d]["l"]["color"] = "dc3545";
+							$mapping[$emp->employee_id][$d]["l"]["color_bt"] = "danger";
+						}
 					}
 				}else{//attendance record no exists
 					/*
@@ -133,15 +144,15 @@ class Attendance extends CI_Controller {
 		
 		//start vacations
 		$w = [
-			"date_from <" => date('Y-m-01', strtotime($ref_date)),
-			"date_to >=" => date('Y-m-01', strtotime($ref_date)),
-			"date_to <=" =>date('Y-m-t', strtotime($ref_date))
+			"date_from <" => date('Y-m-01', strtotime($period)),
+			"date_to >=" => date('Y-m-01', strtotime($period)),
+			"date_to <=" =>date('Y-m-t', strtotime($period))
 		];
 		$vacations_t = $this->gen_m->filter("vacation", true, $w, null, null, [["date_to", "asc"]]);
 		
 		$w = [
-			"date_from >=" => date('Y-m-01', strtotime($ref_date)),
-			"date_from <=" =>date('Y-m-t', strtotime($ref_date))
+			"date_from >=" => date('Y-m-01', strtotime($period)),
+			"date_from <=" =>date('Y-m-t', strtotime($period))
 		];
 		$vacations_f = $this->gen_m->filter("vacation", true, $w, null, null, [["date_from", "asc"]]);
 		
@@ -158,12 +169,16 @@ class Attendance extends CI_Controller {
 			}
 		}
 		
+		//employee array key clean working
+		$emp_arr = [];
+		foreach($employees as $e) $emp_arr[] = clone $e;
+		
 		$data = [
 			"month" => $month,
 			"headers" => $headers,
 			"dates" => $dates,
 			"dates_red" => $dates_red,
-			"employees" => $employees,
+			"employees" => $emp_arr,
 			"summary" => $summary,
 			"mapping" => $mapping,
 			"vacation_emps" => $vacation_emps,
@@ -184,16 +199,75 @@ class Attendance extends CI_Controller {
 	public function export_monthly_report(){
 		$type = "error"; $msg = null; $url = "aaa";
 		
-		// Create new Spreadsheet object
+		$period = $this->input->post("period");
+		if (!$period) $period = date("Y-m");
+		
+		$data = $this->set_mapping($period);
+		
         $spreadsheet = new Spreadsheet();
-
-        // Set active sheet
         $sheet = $spreadsheet->getActiveSheet();
-
-        // Add data to the cells
-        $sheet->setCellValue('A1', 'Hello');
-        $sheet->setCellValue('B1', 'World!');
-
+		
+		//set report parameters
+		$sheet->setCellValueByColumnAndRow(1, 1, "Attendance Monthly Report");
+		$sheet->setCellValueByColumnAndRow(1, 2, "Period");
+		$sheet->setCellValueByColumnAndRow(2, 2, $period);
+		$sheet->setCellValueByColumnAndRow(1, 3, "Created");
+		$sheet->setCellValueByColumnAndRow(2, 3, date('Y-m-d H:i:s'));
+		
+		//set headers
+		$sheet->setCellValueByColumnAndRow(1, 5, 'Num');
+		$sheet->setCellValueByColumnAndRow(2, 5, 'Employee');
+		$sheet->setCellValueByColumnAndRow(3, 5, 'Code');
+		$sheet->setCellValueByColumnAndRow(4, 5, 'Location');
+		$sheet->setCellValueByColumnAndRow(5, 5, 'Subsidiary');
+		$sheet->setCellValueByColumnAndRow(6, 5, 'Organization');
+		
+		$headers = $data["headers"];
+		foreach($headers as $i => $h){
+			$x = 7 + $i;
+			
+			$sheet->setCellValueByColumnAndRow($x, 5, $h["day"]." ".$h["w_day"]);
+			//$sheet->getStyleByColumnAndRow($x, 5)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFFF00');
+			$sheet->getStyleByColumnAndRow($x, 5)->getFont()->setColor(new Color($h["color"]));
+		}
+		
+		$vacation_emps = $data["vacation_emps"];
+		$dates = $data["dates"];
+		$mapping = $data["mapping"];
+		$employees = $data["employees"];//employee info from row 6
+		foreach($employees as $i => $emp){
+			$y = ($i * 2) + 6;
+			$sheet->setCellValueByColumnAndRow(1, $y, $i + 1);
+			$sheet->setCellValueByColumnAndRow(2, $y, $emp->name);
+			$sheet->setCellValueByColumnAndRow(3, $y, $emp->employee_number);
+			$sheet->setCellValueByColumnAndRow(4, $y, $emp->office);
+			$sheet->setCellValueByColumnAndRow(5, $y, $emp->subsidiary);
+			$sheet->setCellValueByColumnAndRow(6, $y, $emp->organization);
+			
+			foreach($dates as $idate => $d){
+				$x = 7 + $idate;
+				$aux = $mapping[$emp->employee_id][$d];
+				
+				if ($headers[$idate]["color_bt"] !== "danger"){
+					if (in_array($d, $vacation_emps[$emp->employee_id])){
+						$sheet->setCellValueByColumnAndRow($x, $y, "V");
+					}else{
+						if (array_key_exists("time", $aux["e"]) or array_key_exists("time", $aux["l"])){
+							$sheet->setCellValueByColumnAndRow($x, $y, date("H:i", strtotime($aux["e"]["time"])));
+							$sheet->setCellValueByColumnAndRow($x, $y + 1, date("H:i", strtotime($aux["l"]["time"])));
+							
+							$sheet->getStyleByColumnAndRow($x, $y)->getFont()->setColor(new Color($aux["e"]["color"]));
+							$sheet->getStyleByColumnAndRow($x, $y + 1)->getFont()->setColor(new Color($aux["e"]["color"]));
+						}else{
+							$sheet->setCellValueByColumnAndRow($x, $y, "N");
+						}
+					}
+					
+				}
+			}
+		}
+		
+		
         // Save Excel file to a temporary directory
 		$file_name = 'attandance_202402.xlsx';
         $file_path = './upload/report/';
