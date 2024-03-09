@@ -6,6 +6,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class Attendance extends CI_Controller {
 
@@ -80,6 +81,9 @@ class Attendance extends CI_Controller {
 			$summary[$emp->employee_id] = [
 				"abs" => 0,//absence qty
 				"tar" => 0,//tardiness qty
+				"tar_acc" => "00:00",//tardiness accumulate hour
+				"ove" => 0,//overtime qty
+				"ove_acc" => "00:00",//overtime accumulate hour
 				"vac" => 0,//vacacion qty
 			];
 			
@@ -117,18 +121,33 @@ class Attendance extends CI_Controller {
 				if ($att){//attendance record exists
 					$has_att = true;
 					$att = $att[0];
-					$mapping[$emp->employee_id][$d]["e"] = ["time" => $att->enter_time, "color" => "", "color_bt" => ""];//enter
-					$mapping[$emp->employee_id][$d]["l"] = ["time" => $att->leave_time, "color" => "", "color_bt" => ""];//leave
+					$mapping[$emp->employee_id][$d]["e"] = ["time" => $att->enter_time, "type" => ""];//enter
+					$mapping[$emp->employee_id][$d]["l"] = ["time" => $att->leave_time, "type" => ""];//leave
 					
 					if ($whour_op){//working hour record exists => evaluate if tardiness
-						if (strtotime($whour_op->entrance_time) < strtotime($att->enter_time)){
-							$mapping[$emp->employee_id][$d]["e"]["color"] = "dc3545";//tardance
-							$mapping[$emp->employee_id][$d]["e"]["color_bt"] = "danger";//tardance
+						$wo_e = strtotime($whour_op->entrance_time);
+						$wo_l = strtotime($whour_op->exit_time);
+						
+						$at_e = strtotime($att->enter_time);
+						$at_l = strtotime($att->leave_time);
+						
+						$diff_e = $at_e - $wo_e;
+						$diff_l = $at_l - $wo_l;
+					
+						if (0 < $diff_e){
+							$mapping[$emp->employee_id][$d]["e"]["type"] = "T";//tardance
+							//dc3545
+							$summary[$emp->employee_id]["tar"]++;
+							$summary[$emp->employee_id]["tar_acc"] = "1:00";
 						}
 							
-						if (strtotime($att->leave_time) < strtotime($whour_op->exit_time)){
-							$mapping[$emp->employee_id][$d]["l"]["color"] = "dc3545";
-							$mapping[$emp->employee_id][$d]["l"]["color_bt"] = "danger";
+						if ($diff_l < 0){
+							$mapping[$emp->employee_id][$d]["l"]["type"] = "E";//early exit
+						}else{
+							$mapping[$emp->employee_id][$d]["l"]["type"] = "O";//overtime
+							
+							$summary[$emp->employee_id]["ove"]++;
+							$summary[$emp->employee_id]["ove_acc"] = "1:00";
 						}
 					}
 				}else{//attendance record no exists
@@ -186,6 +205,16 @@ class Attendance extends CI_Controller {
 		
 		return $data;
 	}
+	
+	private function columnIndexToLetters($index) {
+		$letters = '';
+		while ($index > 0) {
+			$index--; // 1부터 시작하도록 감소
+			$letters = chr($index % 26 + 65) . $letters; // ASCII 코드를 문자로 변환하여 문자열에 추가
+			$index = intval($index / 26); // 다음 자리수 계산
+		}
+		return $letters;
+	}
 
 	public function index(){
 		$ref_date = "2024-02";
@@ -221,16 +250,23 @@ class Attendance extends CI_Controller {
 		$sheet->setCellValueByColumnAndRow(4, 5, 'Location');
 		$sheet->setCellValueByColumnAndRow(5, 5, 'Subsidiary');
 		$sheet->setCellValueByColumnAndRow(6, 5, 'Organization');
+		$sheet->setCellValueByColumnAndRow(7, 5, 'Vacation');
+		$sheet->setCellValueByColumnAndRow(8, 5, 'Tardiness');
+		$sheet->setCellValueByColumnAndRow(9, 5, 'Overtime');
+		$sheet->setCellValueByColumnAndRow(10, 5, 'Absence');
 		
 		$headers = $data["headers"];
 		foreach($headers as $i => $h){
-			$x = 7 + $i;
+			$x = 11 + $i;
 			
 			$sheet->setCellValueByColumnAndRow($x, 5, $h["day"]." ".$h["w_day"]);
 			//$sheet->getStyleByColumnAndRow($x, 5)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFFF00');
 			$sheet->getStyleByColumnAndRow($x, 5)->getFont()->setColor(new Color($h["color"]));
 		}
 		
+		$v_center = Alignment::VERTICAL_CENTER;
+		
+		$summary = $data["summary"];
 		$vacation_emps = $data["vacation_emps"];
 		$dates = $data["dates"];
 		$mapping = $data["mapping"];
@@ -244,29 +280,46 @@ class Attendance extends CI_Controller {
 			$sheet->setCellValueByColumnAndRow(5, $y, $emp->subsidiary);
 			$sheet->setCellValueByColumnAndRow(6, $y, $emp->organization);
 			
+			
+			$sheet->setCellValueByColumnAndRow(8, $y, $summary[$emp->employee_id]["tar"]." / ".$summary[$emp->employee_id]["tar_acc"]);
+			$sheet->setCellValueByColumnAndRow(9, $y, $summary[$emp->employee_id]["ove"]." / ".$summary[$emp->employee_id]["ove_acc"]);
+			
+			
+			for($c = 1; $c < 11; $c++){
+				$cl = $this->columnIndexToLetters($c);
+				$sheet->mergeCells($cl.$y.':'.$cl.($y + 1));
+				
+				$sheet->getStyle($cl.$y)->getAlignment()->setVertical($v_center);
+			}
+			
 			foreach($dates as $idate => $d){
-				$x = 7 + $idate;
+				$x = 11 + $idate;
+				$xl = $this->columnIndexToLetters($x);
+				
 				$aux = $mapping[$emp->employee_id][$d];
 				
 				if ($headers[$idate]["color_bt"] !== "danger"){
 					if (in_array($d, $vacation_emps[$emp->employee_id])){
 						$sheet->setCellValueByColumnAndRow($x, $y, "V");
+						$sheet->mergeCells($xl.$y.':'.$xl.($y + 1));
+						$sheet->getStyle($xl.$y)->getAlignment()->setVertical($v_center);
 					}else{
 						if (array_key_exists("time", $aux["e"]) or array_key_exists("time", $aux["l"])){
 							$sheet->setCellValueByColumnAndRow($x, $y, date("H:i", strtotime($aux["e"]["time"])));
 							$sheet->setCellValueByColumnAndRow($x, $y + 1, date("H:i", strtotime($aux["l"]["time"])));
 							
 							$sheet->getStyleByColumnAndRow($x, $y)->getFont()->setColor(new Color($aux["e"]["color"]));
-							$sheet->getStyleByColumnAndRow($x, $y + 1)->getFont()->setColor(new Color($aux["e"]["color"]));
+							$sheet->getStyleByColumnAndRow($x, $y + 1)->getFont()->setColor(new Color($aux["l"]["color"]));
 						}else{
 							$sheet->setCellValueByColumnAndRow($x, $y, "N");
+							$sheet->mergeCells($xl.$y.':'.$xl.($y + 1));
+							$sheet->getStyle($xl.$y)->getAlignment()->setVertical($v_center);
 						}
 					}
 					
 				}
 			}
 		}
-		
 		
         // Save Excel file to a temporary directory
 		$file_name = 'attandance_202402.xlsx';
