@@ -40,7 +40,9 @@
 									<!-- th scope="col" class="text-nowrap">F, T, V</th -->
 									<?php foreach($headers as $h){ ?>
 									<th scope="col">
-										<div class="text-<?= $h["color_bt"] ?>"><?= $h["day"] ?><br/><?= $h["w_day"] ?></div>
+										<div class="text-<?= ($h["type"] === "H") ? "danger" : "" ?>">
+											<?= $h["day"] ?><br/><?= $h["w_day"] ?>
+										</div>
 									</th>
 									<?php } ?>
 								</tr>
@@ -67,21 +69,16 @@
 									</td -->
 									<?php foreach($dates as $idate => $d){ $aux = $mapping[$emp->employee_id][$d]; ?>
 									<td>
-										<?php
-										if ($headers[$idate]["color_bt"] !== "danger"){
-											if (in_array($d, $vacation_emps[$emp->employee_id])) echo "V";
-											else{
-												if (array_key_exists("time", $aux["e"]) or array_key_exists("time", $aux["l"])){ ?>
-										<div class="text-<?= $aux["e"]["color_bt"] ?>">
-											<?= date("H:i", strtotime($aux["e"]["time"])) ?>
+										<?php if ($aux["type"] === "N"){ ?>
+										<div class="text-<?= $aux["e"]["type"] === "T" ? "danger" : "" ?>">
+											<?= $aux["e"]["time"] ? date("H:i", strtotime($aux["e"]["time"])) : "" ?>
 										</div>
-										<div class="text-<?= $aux["l"]["color_bt"] ?>">
-											<?= date("H:i", strtotime($aux["l"]["time"])) ?>
-										</div>
-										<?php }else echo "N";
-											}
-										}
-										?>
+										<div class="text-<?= $aux["l"]["type"] === "E" ? "danger" : "" ?>">
+											<?= $aux["l"]["time"] ? date("H:i", strtotime($aux["l"]["time"])) : "" ?>
+										</div>	
+										<?php }else{ ?>
+										<?= $aux["type"] ?>
+										<?php } ?>
 									</td>
 									<?php } ?>
 								</tr>

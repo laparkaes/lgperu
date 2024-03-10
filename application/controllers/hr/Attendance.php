@@ -22,6 +22,9 @@ class Attendance extends CI_Controller {
 		$this->load->model('working_hour_model', 'whour_m');
 		$this->load->model('attendance_model', 'att_m');
 		$this->nav_menu = ["hr", "attendance"];
+		$this->color_rgb = [
+			"red" => "dc3545",
+		];
 	}
 	
 	private function set_mapping($period){
@@ -44,19 +47,43 @@ class Attendance extends CI_Controller {
 			$dates[] = $now->format('Y-m-d');
 			if (in_array($now->format('D'), $day_red)){
 				$dates_red[] = $now->format('Y-m-d');
-				$color = "dc3545";
-				$color_bt = "danger";
-			}else{
-				$color = "000000";
-				$color_bt = "";
-			}
+				$type = "H";//holiday
+			}else $type = "N";//normal
 			
-			$headers[] = ["day" => $now->format('d'), "w_day" => $now->format('D'), "color" => $color, "color_bt" => $color_bt];
+			$headers[] = ["day" => $now->format('d'), "w_day" => $now->format('D'), "type" => $type];
 			$now->add($interval);
 		}
 		
 		//load all employees
 		$employees = $this->emp_m->all([["name", "asc"]]);
+		
+		//start vacations
+		$w = [
+			"date_from <" => date('Y-m-01', strtotime($period)),
+			"date_to >=" => date('Y-m-01', strtotime($period)),
+			"date_to <=" =>date('Y-m-t', strtotime($period))
+		];
+		$vacations_t = $this->gen_m->filter("vacation", true, $w, null, null, [["date_to", "asc"]]);
+		
+		$w = [
+			"date_from >=" => date('Y-m-01', strtotime($period)),
+			"date_from <=" =>date('Y-m-t', strtotime($period))
+		];
+		$vacations_f = $this->gen_m->filter("vacation", true, $w, null, null, [["date_from", "asc"]]);
+		
+		$vacation_emps = [];
+		$vacations = array_merge($vacations_t, $vacations_f);
+		foreach($vacations as $vac){
+			$start = new DateTime($vac->date_from);
+			$last = new DateTime($vac->date_to);
+			$interval = new DateInterval('P1D');//each one day
+			
+			$now = clone $start;
+			while ($now <= $last) {
+				$vacation_emps[$vac->employee_id][] = $now->format('Y-m-d');
+				$now->add($interval);
+			}
+		}//end vacations
 		
 		//employee subsidiary, organization, office variable set
 		$subs = []; $subs_rec = $this->sub_m->all();
@@ -69,11 +96,8 @@ class Attendance extends CI_Controller {
 		foreach($offs_rec as $off) $offs[$off->office_id] = $off->office;
 		
 		//set mapping for save daily information
-		$summary = $mapping = $vacation_emps = [];
+		$summary = $mapping = [];
 		foreach($employees as $key => $emp){
-			//basic vacation array
-			$vacation_emps[$emp->employee_id] = [];
-			
 			$emp->subsidiary = ($emp->subsidiary_id) ? $subs[$emp->subsidiary_id] : "";
 			$emp->organization = ($emp->organization_id) ? $orgs[$emp->organization_id] : "";
 			$emp->office = ($emp->office_id) ? $offs[$emp->office_id] : "";
@@ -104,8 +128,8 @@ class Attendance extends CI_Controller {
 			}
 			
 			$has_att = false;
-			foreach($dates as $d){
-				$mapping[$emp->employee_id][$d] = ["e" => [], "l" => []];
+			foreach($dates as $idate => $d){
+				$mapping[$emp->employee_id][$d] = ["type" => null];
 				
 				//check if actual day require update working hour
 				if ($whour) if ($whour->date_to < $d){
@@ -117,40 +141,67 @@ class Attendance extends CI_Controller {
 					}
 				}
 				
+				/*
+				access check types
+				T: tardance
+				E: early exit
+				
+				daily attendance types
+				N: normal
+				X: no mark
+				H: holiday
+				V: vacation
+				M: medical
+				*/
+				
 				$att = $this->gen_m->filter("attendance", true, ["employee_id" => $emp->employee_id, "date" => $d]);
 				if ($att){//attendance record exists
+					$mapping[$emp->employee_id][$d]["type"] = "N";
+				
 					$has_att = true;
 					$att = $att[0];
 					$mapping[$emp->employee_id][$d]["e"] = ["time" => $att->enter_time, "type" => ""];//enter
 					$mapping[$emp->employee_id][$d]["l"] = ["time" => $att->leave_time, "type" => ""];//leave
 					
-					if ($whour_op){//working hour record exists => evaluate if tardiness
-						$wo_e = strtotime($whour_op->entrance_time);
-						$wo_l = strtotime($whour_op->exit_time);
+					if (($whour_op) and ($headers[$idate]["type"] !== "H")){//working hour record exists => evaluate if tardiness
+						$wo_e = strtotime(date("H:i", strtotime($whour_op->entrance_time)));
+						$wo_l = strtotime(date("H:i", strtotime($whour_op->exit_time)));
 						
-						$at_e = strtotime($att->enter_time);
-						$at_l = strtotime($att->leave_time);
+						$at_e = strtotime(date("H:i", strtotime($att->enter_time)));
+						$at_l = strtotime(date("H:i", strtotime($att->leave_time)));
 						
 						$diff_e = $at_e - $wo_e;
 						$diff_l = $at_l - $wo_l;
 					
-						if (0 < $diff_e){
-							$mapping[$emp->employee_id][$d]["e"]["type"] = "T";//tardance
-							//dc3545
+						if (0 < $diff_e){//tardance
+							$mapping[$emp->employee_id][$d]["e"]["type"] = "T";
 							$summary[$emp->employee_id]["tar"]++;
 							$summary[$emp->employee_id]["tar_acc"] = "1:00";
 						}
 							
-						if ($diff_l < 0){
-							$mapping[$emp->employee_id][$d]["l"]["type"] = "E";//early exit
-						}else{
-							$mapping[$emp->employee_id][$d]["l"]["type"] = "O";//overtime
-							
+						if ($diff_l < 0){//early exit
+							$mapping[$emp->employee_id][$d]["l"]["type"] = "E";
+						}else{//overtime
 							$summary[$emp->employee_id]["ove"]++;
 							$summary[$emp->employee_id]["ove_acc"] = "1:00";
 						}
 					}
 				}else{//attendance record no exists
+					if ($headers[$idate]["type"] !== "H"){
+						//No mark is default
+						$mapping[$emp->employee_id][$d]["type"] = "X";
+						$mapping[$emp->employee_id][$d]["e"] = ["time" => null, "type" => ""];//enter
+						$mapping[$emp->employee_id][$d]["l"] = ["time" => null, "type" => ""];//leave
+						
+						//vacation
+						if (array_key_exists($emp->employee_id, $vacation_emps)){
+							if (in_array($d, $vacation_emps[$emp->employee_id])) 
+								$mapping[$emp->employee_id][$d]["type"] = "V";
+						}
+					}
+					
+					//else 
+				
 					/*
 					1. check if vacation exists
 					2. check if coorporation event exists
@@ -159,33 +210,6 @@ class Attendance extends CI_Controller {
 			}
 			
 			if (!$has_att) unset($employees[$key]);
-		}
-		
-		//start vacations
-		$w = [
-			"date_from <" => date('Y-m-01', strtotime($period)),
-			"date_to >=" => date('Y-m-01', strtotime($period)),
-			"date_to <=" =>date('Y-m-t', strtotime($period))
-		];
-		$vacations_t = $this->gen_m->filter("vacation", true, $w, null, null, [["date_to", "asc"]]);
-		
-		$w = [
-			"date_from >=" => date('Y-m-01', strtotime($period)),
-			"date_from <=" =>date('Y-m-t', strtotime($period))
-		];
-		$vacations_f = $this->gen_m->filter("vacation", true, $w, null, null, [["date_from", "asc"]]);
-		
-		$vacations = array_merge($vacations_t, $vacations_f);
-		foreach($vacations as $vac){
-			$start = new DateTime($vac->date_from);
-			$last = new DateTime($vac->date_to);
-			$interval = new DateInterval('P1D');//each one day
-			
-			$now = clone $start;
-			while ($now <= $last) {
-				$vacation_emps[$vac->employee_id][] = $now->format('Y-m-d');
-				$now->add($interval);
-			}
 		}
 		
 		//employee array key clean working
@@ -255,13 +279,16 @@ class Attendance extends CI_Controller {
 		$sheet->setCellValueByColumnAndRow(9, 5, 'Overtime');
 		$sheet->setCellValueByColumnAndRow(10, 5, 'Absence');
 		
+		$x_start = 11;
+		
 		$headers = $data["headers"];
 		foreach($headers as $i => $h){
-			$x = 11 + $i;
+			$x = $x_start + $i;
 			
 			$sheet->setCellValueByColumnAndRow($x, 5, $h["day"]." ".$h["w_day"]);
 			//$sheet->getStyleByColumnAndRow($x, 5)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFFF00');
-			$sheet->getStyleByColumnAndRow($x, 5)->getFont()->setColor(new Color($h["color"]));
+			
+			if ($h["type"] === "H") $sheet->getStyleByColumnAndRow($x, 5)->getFont()->setColor(new Color($this->color_rgb["red"]));
 		}
 		
 		$v_center = Alignment::VERTICAL_CENTER;
@@ -280,12 +307,10 @@ class Attendance extends CI_Controller {
 			$sheet->setCellValueByColumnAndRow(5, $y, $emp->subsidiary);
 			$sheet->setCellValueByColumnAndRow(6, $y, $emp->organization);
 			
-			
 			$sheet->setCellValueByColumnAndRow(8, $y, $summary[$emp->employee_id]["tar"]." / ".$summary[$emp->employee_id]["tar_acc"]);
 			$sheet->setCellValueByColumnAndRow(9, $y, $summary[$emp->employee_id]["ove"]." / ".$summary[$emp->employee_id]["ove_acc"]);
 			
-			
-			for($c = 1; $c < 11; $c++){
+			for($c = 1; $c < $x_start; $c++){
 				$cl = $this->columnIndexToLetters($c);
 				$sheet->mergeCells($cl.$y.':'.$cl.($y + 1));
 				
@@ -293,31 +318,52 @@ class Attendance extends CI_Controller {
 			}
 			
 			foreach($dates as $idate => $d){
-				$x = 11 + $idate;
+				$x = $x_start + $idate;
 				$xl = $this->columnIndexToLetters($x);
 				
 				$aux = $mapping[$emp->employee_id][$d];
 				
-				if ($headers[$idate]["color_bt"] !== "danger"){
-					if (in_array($d, $vacation_emps[$emp->employee_id])){
-						$sheet->setCellValueByColumnAndRow($x, $y, "V");
+				if ($aux["type"] === "N"){
+					
+					$sheet->setCellValueByColumnAndRow($x, $y, $aux["type"]);
+					$sheet->setCellValueByColumnAndRow($x, $y + 1, $aux["type"]);
+					
+					if ($aux["e"] or $aux["l"]){
+						$sheet->setCellValueByColumnAndRow($x, $y, date("H:i", strtotime($aux["e"]["time"])));
+						$sheet->setCellValueByColumnAndRow($x, $y + 1, date("H:i", strtotime($aux["l"]["time"])));
+						
+						$color_e = ($aux["e"]["type"] === "T") ? $this->color_rgb["red"] : "";
+						$color_l = ($aux["l"]["type"] === "E") ? $this->color_rgb["red"] : "";
+						
+						$sheet->getStyleByColumnAndRow($x, $y)->getFont()->setColor(new Color($color_e));
+						$sheet->getStyleByColumnAndRow($x, $y + 1)->getFont()->setColor(new Color($color_l));
+					}else{//no mark
+						$sheet->setCellValueByColumnAndRow($x, $y, "No mark");
 						$sheet->mergeCells($xl.$y.':'.$xl.($y + 1));
 						$sheet->getStyle($xl.$y)->getAlignment()->setVertical($v_center);
+					}
+				}elseif ($aux["type"]){
+					$sheet->setCellValueByColumnAndRow($x, $y, $aux["type"]);
+					$sheet->mergeCells($xl.$y.':'.$xl.($y + 1));
+					$sheet->getStyle($xl.$y)->getAlignment()->setVertical($v_center);
+				}
+				
+				
+				/*
+				if ($headers[$idate]["color_bt"] !== "danger"){
+					if (in_array($d, $vacation_emps[$emp->employee_id])){
+						
 					}else{
 						if (array_key_exists("time", $aux["e"]) or array_key_exists("time", $aux["l"])){
-							$sheet->setCellValueByColumnAndRow($x, $y, date("H:i", strtotime($aux["e"]["time"])));
-							$sheet->setCellValueByColumnAndRow($x, $y + 1, date("H:i", strtotime($aux["l"]["time"])));
 							
-							$sheet->getStyleByColumnAndRow($x, $y)->getFont()->setColor(new Color($aux["e"]["color"]));
-							$sheet->getStyleByColumnAndRow($x, $y + 1)->getFont()->setColor(new Color($aux["l"]["color"]));
 						}else{
 							$sheet->setCellValueByColumnAndRow($x, $y, "N");
 							$sheet->mergeCells($xl.$y.':'.$xl.($y + 1));
 							$sheet->getStyle($xl.$y)->getAlignment()->setVertical($v_center);
 						}
 					}
-					
 				}
+				*/
 			}
 		}
 		
