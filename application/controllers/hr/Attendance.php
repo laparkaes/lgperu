@@ -27,6 +27,39 @@ class Attendance extends CI_Controller {
 		];
 	}
 	
+	public function set_attendance($period = null, $employee_id = null){
+		if (!$period) $period = date("Y-m");
+		$period = "2024-02";
+		$month = date("F", strtotime($period));
+		
+		//set dates
+		$red_days = ["Sat", "Sun"];//red calendar days
+		$red_dates = [];//red dates in array
+		$dates = [];//all dates of month
+		$headers = [];//day, day of the week
+		
+		$start = new DateTime(date('Y-m-01', strtotime($period)));
+		$last = new DateTime(date('Y-m-t', strtotime($period)));
+		$interval = new DateInterval('P1D');
+		
+		$now = clone $start;
+		while ($now <= $last) {
+			$dates[] = $now->format('Y-m-d');
+			if (in_array($now->format('D'), $red_days)){
+				$red_dates[] = $now->format('Y-m-d');
+				$type = "H";//holiday
+			}else $type = "N";//normal
+			
+			$headers[] = ["day" => $now->format('d'), "day_w" => $now->format('D'), "type" => $type];
+			$now->add($interval);
+		}
+		
+		echo $period; echo "<br/><br/>";
+		print_r($dates); echo "<br/><br/>";
+		print_r($red_dates); echo "<br/><br/>";
+		print_r($headers); echo "<br/><br/>";
+	}
+	
 	private function set_mapping($period){
 		if (!$period) $period = date("Y-m");
 		
