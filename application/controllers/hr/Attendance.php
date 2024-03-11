@@ -88,8 +88,6 @@ class Attendance extends CI_Controller {
 				$emp->absence_qty = 0;
 				$emp->tardiness_qty = 0;
 				$emp->tardiness_acc = "00:00";
-				$emp->overtime_qty = 0;
-				$emp->overtime_acc = "00:00";
 				
 				//set vacation date array
 				$w = [
@@ -112,7 +110,6 @@ class Attendance extends CI_Controller {
 				$vacation_dates = []; $vacation_exception = [];
 				$vacations = array_merge($vacations_t, $vacations_f);
 				foreach($vacations as $vac){
-					$emp->vacation_qty += $vac->day;
 					if ($vac->day < 1){
 						$type = $this->vac_m->unique_type("type_id", $vac->type_id);
 						
@@ -137,7 +134,7 @@ class Attendance extends CI_Controller {
 				/*
 				daily attendance types
 				N: normal
-				X: no mark
+				X: no mark(absence)
 				H: holiday
 				V: vacation
 				M: medical
@@ -147,8 +144,14 @@ class Attendance extends CI_Controller {
 				$emp->daily = [];
 				foreach($dates as $d){
 					if (in_array($d, $red_dates)) $emp->daily[$d] = ["type" => "H"];//holiday
-					elseif (in_array($d, $vacation_dates)) $emp->daily[$d] = ["type" => "V"];//vacation
-					else $emp->daily[$d] = ["type" => "X"];//no mark
+					elseif (in_array($d, $vacation_dates)){
+						$emp->vacation_qty++;
+						$emp->daily[$d] = ["type" => "V"];//vacation
+					}
+					else{
+						$emp->absence_qty++;
+						$emp->daily[$d] = ["type" => "X"];//no mark
+					}
 				}
 				
 				//load work hour and option records
@@ -165,6 +168,8 @@ class Attendance extends CI_Controller {
 				}else $whour_op = null;
 				
 				foreach($atts as $att){
+					$emp->absence_qty--;
+					
 					//update working hour option when out of range
 					if ($whour) if (strtotime($whour->date_to) < strtotime($att->date)){
 						$w = [
@@ -200,37 +205,64 @@ class Attendance extends CI_Controller {
 						$at_e = strtotime(date("H:i", strtotime($att->enter_time)));
 						$at_l = strtotime(date("H:i", strtotime($att->leave_time)));
 						
-						$diff_entr = $at_e - $wo_e;//ok if < 0
-						$diff_exit = $at_l - $wo_l;//ok if > 0
-						
-						if ($diff_entr > 0){
-							//need to check if emp has entrance exception
+						if ($at_e > $wo_e){//tardance
 							$emp->daily[$att->date]["entrance"]["result"] = "T";
+							
+							//need to check if emp has entrance exception
+							if (array_key_exists($att->date, $vacation_exception)){
+								if (array_key_exists(0, $vacation_exception[$att->date])){
+									$wo_e = strtotime(date("H:i", strtotime($vacation_exception[$att->date][0])));
+									if ($at_e < $wo_e){
+										$emp->daily[$att->date]["entrance"]["result"] = "V";
+										$emp->vacation_qty += 0.5;
+									}
+								}
+							}
+							
+							if ($emp->daily[$att->date]["entrance"]["result"] === "T"){
+								$emp->tardiness_qty++;
+								$emp->tardiness_acc = date("H:i", strtotime($emp->tardiness_acc) + $at_e - $wo_e);
+							}
 						}
 						
-						if ($diff_exit < 0){
-							//need to check if emp has exit exception
+						if ($at_l < $wo_l){//early exit
 							$emp->daily[$att->date]["exit"]["result"] = "E";
+							
+							//need to check if emp has exit exception
+							if (array_key_exists($att->date, $vacation_exception)){
+								if (array_key_exists(1, $vacation_exception[$att->date])){
+									$wo_l = strtotime(date("H:i", strtotime($vacation_exception[$att->date][1])));
+									if ($at_l > $wo_l){
+										$emp->daily[$att->date]["exit"]["result"] = "V";
+										$emp->vacation_qty += 0.5;
+									}
+								}
+							}
 						}
 					}
 				}
 				
 				
 				
+				
 				echo $emp->name."<br/>";
-				echo $emp->vacation_qty."<br/>";
+				
+				
+				echo "vacation_qty ".$emp->vacation_qty."<br/>";
+				echo "absence_qty ".$emp->absence_qty."<br/>";
+				echo "tardiness_qty ".$emp->tardiness_qty."<br/>";
+				echo "tardiness_acc ".$emp->tardiness_acc."<br/>";
+				
+				print_r($whour_op); echo "<br/><br/>";
 				print_r($vacation_exception); echo "<br/>";
-				foreach($emp->daily as $date => $val){
-					echo $date.": ";
-					print_r($val); echo "<br/>";
-				} 
+				foreach($emp->daily as $date => $val){echo $date.": "; print_r($val); echo "<br/>";} 
 				//echo $emp->vacation_qty."<br/>";
 				//print_r($vacation_dates); echo "<br/>";
 				//print_r($vacation_exception); echo "<br/>";
 				
 				//print_r($emp); echo "<br/><br/>";
 				//print_r($whour); echo "<br/><br/>";
-				//print_r($whour_op); echo "<br/><br/>";
+				
 				//print_r($vacation_dates); echo "<br/><br/>";
 				//print_r($atts); echo "<br/><br/>";
 				echo "<br/>";
