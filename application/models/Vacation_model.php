@@ -66,8 +66,8 @@ class Vacation_model extends CI_Model{
 	}
 	
 	/* type */
-	function unique_type($field, $type){
-		$this->db->where($field, $type);
+	function unique_type($field, $val){
+		$this->db->where($field, $val);
 		$query = $this->db->get($this->tablename."_type", 1, 0);
 		$result = $query->result();
 		if ($result) return $result[0]; else return null;

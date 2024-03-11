@@ -54,10 +54,195 @@ class Attendance extends CI_Controller {
 			$now->add($interval);
 		}
 		
-		echo $period; echo "<br/><br/>";
-		print_r($dates); echo "<br/><br/>";
-		print_r($red_dates); echo "<br/><br/>";
-		print_r($headers); echo "<br/><br/>";
+		//employee subsidiary, organization, office variable set
+		$subs = []; $subs_rec = $this->sub_m->all();
+		foreach($subs_rec as $sub) $subs[$sub->subsidiary_id] = $sub->subsidiary;
+		
+		$orgs = []; $orgs_rec = $this->org_m->all();
+		foreach($orgs_rec as $org) $orgs[$org->organization_id] = $org->organization;
+		
+		$offs = []; $offs_rec = $this->off_m->all();
+		foreach($offs_rec as $off) $offs[$off->office_id] = $off->office;
+		
+		//approved vacaction status record
+		$status_vac = $this->vac_m->unique_status("status", "Approved");
+		
+		//set employee array
+		$employees = [];
+		
+		if ($employee_id) $w = ["employee_id" => $employee_id]; else $w = null;
+		$employees_rec = $this->gen_m->filter("employee", true, $w, null, null, [["name", "asc"]]);
+		foreach($employees_rec as $emp){
+			$w = [
+				"employee_id" => $emp->employee_id,
+				"date>=" => $dates[0],
+				"date<=" => $dates[count($dates)-1],
+			];
+			$atts = $this->gen_m->filter("attendance", true, $w, null, null, [["date", "asc"]]);
+			if ($atts){
+				$emp->subsidiary = ($emp->subsidiary_id) ? $subs[$emp->subsidiary_id] : "";
+				$emp->organization = ($emp->organization_id) ? $orgs[$emp->organization_id] : "";
+				$emp->office = ($emp->office_id) ? $offs[$emp->office_id] : "";
+				
+				$emp->vacation_qty = 0;
+				$emp->absence_qty = 0;
+				$emp->tardiness_qty = 0;
+				$emp->tardiness_acc = "00:00";
+				$emp->overtime_qty = 0;
+				$emp->overtime_acc = "00:00";
+				
+				//set vacation date array
+				$w = [
+					"employee_id" => $emp->employee_id,
+					"status_id" => $status_vac->status_id,
+					"date_from <" => date('Y-m-01', strtotime($period)),
+					"date_to >=" => date('Y-m-01', strtotime($period)),
+					"date_to <=" =>date('Y-m-t', strtotime($period))
+				];
+				$vacations_t = $this->gen_m->filter("vacation", true, $w, null, null, [["date_to", "asc"]]);
+				
+				$w = [
+					"employee_id" => $emp->employee_id,
+					"status_id" => $status_vac->status_id,
+					"date_from >=" => date('Y-m-01', strtotime($period)),
+					"date_from <=" =>date('Y-m-t', strtotime($period))
+				];
+				$vacations_f = $this->gen_m->filter("vacation", true, $w, null, null, [["date_from", "asc"]]);
+				
+				$vacation_dates = []; $vacation_exception = [];
+				$vacations = array_merge($vacations_t, $vacations_f);
+				foreach($vacations as $vac){
+					$emp->vacation_qty += $vac->day;
+					if ($vac->day < 1){
+						$type = $this->vac_m->unique_type("type_id", $vac->type_id);
+						
+						//$vacation_exception["entrance", "exit"] as time in string
+						if (strpos($type->type, 'Morning') !== false) //half day - morning: entrance is 2pm
+							$vacation_exception[$vac->date_from] = ["14:00", null];
+						elseif (strpos($type->type, 'Afternoon') !== false) //half day - afternoon: exit is 2pm
+							$vacation_exception[$vac->date_from] = [null, "12:30"];
+					}else{
+						$start = new DateTime($vac->date_from);
+						$last = new DateTime($vac->date_to);
+						$interval = new DateInterval('P1D');//each one day
+						
+						$now = clone $start;
+						while ($now <= $last) {
+							if (!in_array($d, $red_dates)) $vacation_dates[] = $now->format('Y-m-d');
+							$now->add($interval);
+						}	
+					}
+				}//end vacations
+				
+				/*
+				daily attendance types
+				N: normal
+				X: no mark
+				H: holiday
+				V: vacation
+				M: medical
+				*/
+				
+				//set daily check list as no mark for all working days
+				$emp->daily = [];
+				foreach($dates as $d){
+					if (in_array($d, $red_dates)) $emp->daily[$d] = ["type" => "H"];//holiday
+					elseif (in_array($d, $vacation_dates)) $emp->daily[$d] = ["type" => "V"];//vacation
+					else $emp->daily[$d] = ["type" => "X"];//no mark
+				}
+				
+				//load work hour and option records
+				$w = [
+					"employee_id" => $emp->employee_id,
+					"date_from <=" => $dates[0],
+					"date_to >=" => $dates[0],
+				];
+				
+				$whour = $this->gen_m->filter("working_hour", true, $w);
+				if ($whour){
+					$whour = $whour[0];
+					$whour_op = $this->whour_m->unique_option("option_id", $whour->wh_option_id);
+				}else $whour_op = null;
+				
+				foreach($atts as $att){
+					//update working hour option when out of range
+					if ($whour) if (strtotime($whour->date_to) < strtotime($att->date)){
+						$w = [
+							"employee_id" => $emp->employee_id,
+							"date_from <=" => $att->date,
+							"date_to >=" => $att->date,
+						];
+						
+						$whour = $this->gen_m->filter("working_hour", true, $w);
+						if ($whour){
+							$whour = $whour[0];
+							$whour_op = $this->whour_m->unique_option("option_id", $whour->wh_option_id);
+						}else $whour_op = null;
+					}
+					
+					/*
+					access check types
+					O: ok
+					T: tardance
+					E: early exit
+					*/
+					
+					$emp->daily[$att->date] = [
+						"type" => "N",
+						"entrance" => ["time" => $att->enter_time, "result" => "O"],
+						"exit" => ["time" => $att->leave_time, "result" => "O"],
+					];
+					
+					if ($whour_op){
+						$wo_e = strtotime(date("H:i", strtotime($whour_op->entrance_time)));
+						$wo_l = strtotime(date("H:i", strtotime($whour_op->exit_time)));
+						
+						$at_e = strtotime(date("H:i", strtotime($att->enter_time)));
+						$at_l = strtotime(date("H:i", strtotime($att->leave_time)));
+						
+						$diff_entr = $at_e - $wo_e;//ok if < 0
+						$diff_exit = $at_l - $wo_l;//ok if > 0
+						
+						if ($diff_entr > 0){
+							//need to check if emp has entrance exception
+							$emp->daily[$att->date]["entrance"]["result"] = "T";
+						}
+						
+						if ($diff_exit < 0){
+							//need to check if emp has exit exception
+							$emp->daily[$att->date]["exit"]["result"] = "E";
+						}
+					}
+				}
+				
+				
+				
+				echo $emp->name."<br/>";
+				echo $emp->vacation_qty."<br/>";
+				print_r($vacation_exception); echo "<br/>";
+				foreach($emp->daily as $date => $val){
+					echo $date.": ";
+					print_r($val); echo "<br/>";
+				} 
+				//echo $emp->vacation_qty."<br/>";
+				//print_r($vacation_dates); echo "<br/>";
+				//print_r($vacation_exception); echo "<br/>";
+				
+				//print_r($emp); echo "<br/><br/>";
+				//print_r($whour); echo "<br/><br/>";
+				//print_r($whour_op); echo "<br/><br/>";
+				//print_r($vacation_dates); echo "<br/><br/>";
+				//print_r($atts); echo "<br/><br/>";
+				echo "<br/>";
+			}
+		}
+		
+		//echo $period; echo "<br/><br/>";
+		//print_r($dates); echo "<br/><br/>";
+		//print_r($red_dates); echo "<br/><br/>";
+		//print_r($headers); echo "<br/><br/>";
+		
+		
 	}
 	
 	private function set_mapping($period){
