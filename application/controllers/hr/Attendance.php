@@ -29,8 +29,8 @@ class Attendance extends CI_Controller {
 	
 	public function set_attendance($period = null, $employee_id = null){
 		if (!$period) $period = date("Y-m");
-		$period = "2024-02";
 		$month = date("F", strtotime($period));
+		$today = date("Y-m-d");
 		
 		//set dates
 		$red_days = ["Sat", "Sun"];//red calendar days
@@ -87,6 +87,7 @@ class Attendance extends CI_Controller {
 				$emp->vacation_qty = 0;
 				$emp->absence_qty = 0;
 				$emp->tardiness_qty = 0;
+				$emp->early_exit_qty = 0;
 				$emp->tardiness_acc = "00:00";
 				
 				//set vacation date array
@@ -145,13 +146,10 @@ class Attendance extends CI_Controller {
 				foreach($dates as $d){
 					if (in_array($d, $red_dates)) $emp->daily[$d] = ["type" => "H"];//holiday
 					elseif (in_array($d, $vacation_dates)){
-						$emp->vacation_qty++;
 						$emp->daily[$d] = ["type" => "V"];//vacation
-					}
-					else{
-						$emp->absence_qty++;
+					}elseif (strtotime($d) < strtotime($today)){
 						$emp->daily[$d] = ["type" => "X"];//no mark
-					}
+					}else $emp->daily[$d] = ["type" => ""];//not yet
 				}
 				
 				//load work hour and option records
@@ -168,8 +166,6 @@ class Attendance extends CI_Controller {
 				}else $whour_op = null;
 				
 				foreach($atts as $att){
-					$emp->absence_qty--;
-					
 					//update working hour option when out of range
 					if ($whour) if (strtotime($whour->date_to) < strtotime($att->date)){
 						$w = [
@@ -214,13 +210,11 @@ class Attendance extends CI_Controller {
 									$wo_e = strtotime(date("H:i", strtotime($vacation_exception[$att->date][0])));
 									if ($at_e < $wo_e){
 										$emp->daily[$att->date]["entrance"]["result"] = "V";
-										$emp->vacation_qty += 0.5;
 									}
 								}
 							}
 							
 							if ($emp->daily[$att->date]["entrance"]["result"] === "T"){
-								$emp->tardiness_qty++;
 								$emp->tardiness_acc = date("H:i", strtotime($emp->tardiness_acc) + $at_e - $wo_e);
 							}
 						}
@@ -234,7 +228,6 @@ class Attendance extends CI_Controller {
 									$wo_l = strtotime(date("H:i", strtotime($vacation_exception[$att->date][1])));
 									if ($at_l > $wo_l){
 										$emp->daily[$att->date]["exit"]["result"] = "V";
-										$emp->vacation_qty += 0.5;
 									}
 								}
 							}
@@ -242,39 +235,30 @@ class Attendance extends CI_Controller {
 					}
 				}
 				
+				foreach($emp->daily as $date => $val){
+					switch($val["type"]){
+						case "N": 
+							if ($val["entrance"]["result"] === "T") $emp->tardiness_qty++;
+							elseif ($val["entrance"]["result"] === "V") $emp->vacation_qty += 0.5;
+							
+							if ($val["exit"]["result"] === "E") $emp->early_exit_qty++;
+							else if ($val["exit"]["result"] === "V") $emp->vacation_qty += 0.5;
+							break;
+						case "X": $emp->absence_qty++; break;
+						case "V": $emp->vacation_qty++; break;
+					}
+				}
 				
-				
-				
-				echo $emp->name."<br/>";
-				
-				
-				echo "vacation_qty ".$emp->vacation_qty."<br/>";
-				echo "absence_qty ".$emp->absence_qty."<br/>";
-				echo "tardiness_qty ".$emp->tardiness_qty."<br/>";
-				echo "tardiness_acc ".$emp->tardiness_acc."<br/>";
-				
-				print_r($whour_op); echo "<br/><br/>";
-				print_r($vacation_exception); echo "<br/>";
-				foreach($emp->daily as $date => $val){echo $date.": "; print_r($val); echo "<br/>";} 
-				//echo $emp->vacation_qty."<br/>";
-				//print_r($vacation_dates); echo "<br/>";
-				//print_r($vacation_exception); echo "<br/>";
-				
-				//print_r($emp); echo "<br/><br/>";
-				//print_r($whour); echo "<br/><br/>";
-				
-				//print_r($vacation_dates); echo "<br/><br/>";
-				//print_r($atts); echo "<br/><br/>";
-				echo "<br/>";
+				$employees[] = clone $emp;
 			}
 		}
 		
-		//echo $period; echo "<br/><br/>";
-		//print_r($dates); echo "<br/><br/>";
-		//print_r($red_dates); echo "<br/><br/>";
-		//print_r($headers); echo "<br/><br/>";
-		
-		
+		return [
+			"month" => date("F", strtotime($period)),
+			"employees" => $employees,
+			"dates" => $dates,
+			"headers" => $headers,
+		];
 	}
 	
 	private function set_mapping($period){
@@ -491,16 +475,38 @@ class Attendance extends CI_Controller {
 	}
 
 	public function index(){
-		$ref_date = "2024-02";
+		$period = "2024-02";
 		
-		$data = $this->set_mapping($ref_date);
+		//$data = $this->set_mapping($period);
+		$data = $this->set_attendance($period);
 		$data["main"] = "hr/attendance/index";
 		
 		$this->load->view('layout', $data);
 	}
 	
 	public function export_monthly_report(){
-		$type = "error"; $msg = null; $url = "aaa";
+		$type = "error"; $msg = null; $url = "";
+		
+		$period = $this->input->post("period");
+		if (!$period) $period = date("Y-m");
+		
+		$period = "2024-02";
+		
+		$data = $this->set_attendance($period);
+		
+		$dates = $data["dates"];
+		$headers = $data["headers"];
+		
+		$employees = $data["employees"];
+		foreach($employees as $i => $emp){
+			print_r($emp);
+			
+			echo "<br/><br/>";
+		}
+	}
+	
+	public function export_monthly_report_(){
+		$type = "error"; $msg = null; $url = "";
 		
 		$period = $this->input->post("period");
 		if (!$period) $period = date("Y-m");
