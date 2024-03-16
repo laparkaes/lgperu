@@ -42,6 +42,7 @@
 									<th scope="col">Vac.</th>
 									<th scope="col">Abs.</th>
 									<th scope="col">Tard.</th>
+									<th scope="col">Tard.Acc.</th>
 									<th scope="col">E.Exit</th>
 									<?php foreach($headers as $h){ ?>
 									<th scope="col">
@@ -61,9 +62,10 @@
 									<td><?= $emp->subsidiary ?></td>
 									<td><div class="text-nowrap"><?= $emp->organization ?></div></td>
 									<td><div class="text-nowrap"><?= $emp->office ?></div></td>
-									<td><?= ($emp->vacation_qty > 0) ? number_format($emp->vacation_qty) : "" ?></td>
+									<td><?= ($emp->vacation_qty > 0) ? $emp->vacation_qty : "" ?></td>
 									<td><?= ($emp->absence_qty > 0) ? number_format($emp->absence_qty) : "" ?></td>
-									<td><?= ($emp->tardiness_qty > 0) ? number_format($emp->tardiness_qty)." / ".$emp->tardiness_acc : ""  ?></td>
+									<td><?= ($emp->tardiness_qty > 0) ? number_format($emp->tardiness_qty) : ""  ?></td>
+									<td><?= ($emp->tardiness_qty > 0) ? $emp->tardiness_acc : "" ?></td>
 									<td><?= ($emp->early_exit_qty > 0) ? number_format($emp->early_exit_qty) : "" ?></td>
 									<?php foreach($dates as $idate => $d){ ?>
 									<td>

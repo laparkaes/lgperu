@@ -474,6 +474,11 @@ class Attendance extends CI_Controller {
 		return $letters;
 	}
 
+	public function set_attendance_view(){
+		$data = $this->set_attendance("2024-02");
+		print_r($data);
+	}
+
 	public function index(){
 		$period = "2024-02";
 		
