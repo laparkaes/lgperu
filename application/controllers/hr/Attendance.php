@@ -23,6 +23,7 @@ class Attendance extends CI_Controller {
 		$this->load->model('attendance_model', 'att_m');
 		$this->nav_menu = ["hr", "attendance"];
 		$this->color_rgb = [
+			"green" => "198754",
 			"red" => "dc3545",
 		];
 	}
@@ -201,7 +202,9 @@ class Attendance extends CI_Controller {
 						$at_e = strtotime(date("H:i", strtotime($att->enter_time)));
 						$at_l = strtotime(date("H:i", strtotime($att->leave_time)));
 						
-						if ($at_e > $wo_e){//tardance
+						$no_holiday = (!in_array($att->date, $red_dates));
+						
+						if (($at_e > $wo_e) and ($no_holiday)){//tardance
 							$emp->daily[$att->date]["entrance"]["result"] = "T";
 							
 							//need to check if emp has entrance exception
@@ -215,11 +218,14 @@ class Attendance extends CI_Controller {
 							}
 							
 							if ($emp->daily[$att->date]["entrance"]["result"] === "T"){
-								$emp->tardiness_acc = date("H:i", strtotime($emp->tardiness_acc) + $at_e - $wo_e);
+								if (strtotime($emp->tardiness_acc) < strtotime("23:59"))
+									$emp->tardiness_acc = date("H:i", strtotime($emp->tardiness_acc) + $at_e - $wo_e);
+								
+								if (strtotime($emp->tardiness_acc) > strtotime("23:59")) $emp->tardiness_acc = "23:59";
 							}
 						}
 						
-						if ($at_l < $wo_l){//early exit
+						if (($at_l < $wo_l) and ($no_holiday)){//early exit
 							$emp->daily[$att->date]["exit"]["result"] = "E";
 							
 							//need to check if emp has exit exception
@@ -261,209 +267,6 @@ class Attendance extends CI_Controller {
 		];
 	}
 	
-	private function set_mapping($period){
-		if (!$period) $period = date("Y-m");
-		
-		//set header
-		$month = date("F", strtotime($period));
-		
-		$day_red = ["Sat", "Sun"];//red calendar days
-		$headers = [];//day, day of week, header color
-		$dates = [];//all dates of month
-		$dates_red = [];//red dates array
-		
-		$start = new DateTime(date('Y-m-01', strtotime($period)));
-		$last = new DateTime(date('Y-m-t', strtotime($period)));
-		$interval = new DateInterval('P1D');
-		
-		$now = clone $start;
-		while ($now <= $last) {
-			$dates[] = $now->format('Y-m-d');
-			if (in_array($now->format('D'), $day_red)){
-				$dates_red[] = $now->format('Y-m-d');
-				$type = "H";//holiday
-			}else $type = "N";//normal
-			
-			$headers[] = ["day" => $now->format('d'), "w_day" => $now->format('D'), "type" => $type];
-			$now->add($interval);
-		}
-		
-		//load all employees
-		$employees = $this->emp_m->all([["name", "asc"]]);
-		
-		//start vacations
-		$w = [
-			"date_from <" => date('Y-m-01', strtotime($period)),
-			"date_to >=" => date('Y-m-01', strtotime($period)),
-			"date_to <=" =>date('Y-m-t', strtotime($period))
-		];
-		$vacations_t = $this->gen_m->filter("vacation", true, $w, null, null, [["date_to", "asc"]]);
-		
-		$w = [
-			"date_from >=" => date('Y-m-01', strtotime($period)),
-			"date_from <=" =>date('Y-m-t', strtotime($period))
-		];
-		$vacations_f = $this->gen_m->filter("vacation", true, $w, null, null, [["date_from", "asc"]]);
-		
-		$vacation_emps = [];
-		$vacations = array_merge($vacations_t, $vacations_f);
-		foreach($vacations as $vac){
-			$start = new DateTime($vac->date_from);
-			$last = new DateTime($vac->date_to);
-			$interval = new DateInterval('P1D');//each one day
-			
-			$now = clone $start;
-			while ($now <= $last) {
-				$vacation_emps[$vac->employee_id][] = $now->format('Y-m-d');
-				$now->add($interval);
-			}
-		}//end vacations
-		
-		//employee subsidiary, organization, office variable set
-		$subs = []; $subs_rec = $this->sub_m->all();
-		foreach($subs_rec as $sub) $subs[$sub->subsidiary_id] = $sub->subsidiary;
-		
-		$orgs = []; $orgs_rec = $this->org_m->all();
-		foreach($orgs_rec as $org) $orgs[$org->organization_id] = $org->organization;
-		
-		$offs = []; $offs_rec = $this->off_m->all();
-		foreach($offs_rec as $off) $offs[$off->office_id] = $off->office;
-		
-		//set mapping for save daily information
-		$summary = $mapping = [];
-		foreach($employees as $key => $emp){
-			$emp->subsidiary = ($emp->subsidiary_id) ? $subs[$emp->subsidiary_id] : "";
-			$emp->organization = ($emp->organization_id) ? $orgs[$emp->organization_id] : "";
-			$emp->office = ($emp->office_id) ? $offs[$emp->office_id] : "";
-			
-			$summary[$emp->employee_id] = [
-				"abs" => 0,//absence qty
-				"tar" => 0,//tardiness qty
-				"tar_acc" => "00:00",//tardiness accumulate hour
-				"ove" => 0,//overtime qty
-				"ove_acc" => "00:00",//overtime accumulate hour
-				"vac" => 0,//vacacion qty
-			];
-			
-			//daily check data array => [date][enter/leave] = [time, color]
-			$mapping[$emp->employee_id] = [];
-			
-			$whour_op = null;
-			$whour_f = [
-				"employee_id" => $emp->employee_id,
-				"date_from <=" => $dates[0],
-				"date_to >=" => $dates[0],
-			];
-			
-			$whour = $this->gen_m->filter("working_hour", true, $whour_f);
-			if ($whour){
-				$whour = $whour[0];
-				$whour_op = $this->whour_m->unique_option("option_id", $whour->wh_option_id);
-			}
-			
-			$has_att = false;
-			foreach($dates as $idate => $d){
-				$mapping[$emp->employee_id][$d] = ["type" => null];
-				
-				//check if actual day require update working hour
-				if ($whour) if ($whour->date_to < $d){
-					$whour_f["date_from <="] = $whour_f["date_to >="] = $d;
-					$whour = $this->gen_m->filter("working_hour", true, $whour_f);
-					if ($whour){
-						$whour = $whour[0];
-						$whour_op = $this->whour_m->unique_option("option_id", $whour->wh_option_id);
-					}
-				}
-				
-				/*
-				access check types
-				T: tardance
-				E: early exit
-				
-				daily attendance types
-				N: normal
-				X: no mark
-				H: holiday
-				V: vacation
-				M: medical
-				*/
-				
-				$att = $this->gen_m->filter("attendance", true, ["employee_id" => $emp->employee_id, "date" => $d]);
-				if ($att){//attendance record exists
-					$mapping[$emp->employee_id][$d]["type"] = "N";
-				
-					$has_att = true;
-					$att = $att[0];
-					$mapping[$emp->employee_id][$d]["e"] = ["time" => $att->enter_time, "type" => ""];//enter
-					$mapping[$emp->employee_id][$d]["l"] = ["time" => $att->leave_time, "type" => ""];//leave
-					
-					if (($whour_op) and ($headers[$idate]["type"] !== "H")){//working hour record exists => evaluate if tardiness
-						$wo_e = strtotime(date("H:i", strtotime($whour_op->entrance_time)));
-						$wo_l = strtotime(date("H:i", strtotime($whour_op->exit_time)));
-						
-						$at_e = strtotime(date("H:i", strtotime($att->enter_time)));
-						$at_l = strtotime(date("H:i", strtotime($att->leave_time)));
-						
-						$diff_e = $at_e - $wo_e;
-						$diff_l = $at_l - $wo_l;
-					
-						if (0 < $diff_e){//tardance
-							$mapping[$emp->employee_id][$d]["e"]["type"] = "T";
-							$summary[$emp->employee_id]["tar"]++;
-							$summary[$emp->employee_id]["tar_acc"] = "1:00";
-						}
-							
-						if ($diff_l < 0){//early exit
-							$mapping[$emp->employee_id][$d]["l"]["type"] = "E";
-						}else{//overtime
-							$summary[$emp->employee_id]["ove"]++;
-							$summary[$emp->employee_id]["ove_acc"] = "1:00";
-						}
-					}
-				}else{//attendance record no exists
-					if ($headers[$idate]["type"] !== "H"){
-						//No mark is default
-						$mapping[$emp->employee_id][$d]["type"] = "X";
-						$mapping[$emp->employee_id][$d]["e"] = ["time" => null, "type" => ""];//enter
-						$mapping[$emp->employee_id][$d]["l"] = ["time" => null, "type" => ""];//leave
-						
-						//vacation
-						if (array_key_exists($emp->employee_id, $vacation_emps)){
-							if (in_array($d, $vacation_emps[$emp->employee_id])) 
-								$mapping[$emp->employee_id][$d]["type"] = "V";
-						}
-					}
-					
-					//else 
-				
-					/*
-					1. check if vacation exists
-					2. check if coorporation event exists
-					*/
-				}
-			}
-			
-			if (!$has_att) unset($employees[$key]);
-		}
-		
-		//employee array key clean working
-		$emp_arr = [];
-		foreach($employees as $e) $emp_arr[] = clone $e;
-		
-		$data = [
-			"month" => $month,
-			"headers" => $headers,
-			"dates" => $dates,
-			"dates_red" => $dates_red,
-			"employees" => $emp_arr,
-			"summary" => $summary,
-			"mapping" => $mapping,
-			"vacation_emps" => $vacation_emps,
-		];
-		
-		return $data;
-	}
-	
 	private function columnIndexToLetters($index) {
 		$letters = '';
 		while ($index > 0) {
@@ -482,7 +285,6 @@ class Attendance extends CI_Controller {
 	public function index(){
 		$period = "2024-02";
 		
-		//$data = $this->set_mapping($period);
 		$data = $this->set_attendance($period);
 		$data["main"] = "hr/attendance/index";
 		
@@ -499,26 +301,11 @@ class Attendance extends CI_Controller {
 		
 		$data = $this->set_attendance($period);
 		
-		$dates = $data["dates"];
 		$headers = $data["headers"];
-		
+		$dates = $data["dates"];
 		$employees = $data["employees"];
-		foreach($employees as $i => $emp){
-			print_r($emp);
-			
-			echo "<br/><br/>";
-		}
-	}
-	
-	public function export_monthly_report_(){
-		$type = "error"; $msg = null; $url = "";
 		
-		$period = $this->input->post("period");
-		if (!$period) $period = date("Y-m");
-		
-		$data = $this->set_mapping($period);
-		
-        $spreadsheet = new Spreadsheet();
+		$spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 		
 		//set report parameters
@@ -529,102 +316,93 @@ class Attendance extends CI_Controller {
 		$sheet->setCellValueByColumnAndRow(2, 3, date('Y-m-d H:i:s'));
 		
 		//set headers
-		$sheet->setCellValueByColumnAndRow(1, 5, 'Num');
-		$sheet->setCellValueByColumnAndRow(2, 5, 'Employee');
-		$sheet->setCellValueByColumnAndRow(3, 5, 'Code');
-		$sheet->setCellValueByColumnAndRow(4, 5, 'Location');
-		$sheet->setCellValueByColumnAndRow(5, 5, 'Subsidiary');
-		$sheet->setCellValueByColumnAndRow(6, 5, 'Organization');
+		$sheet->setCellValueByColumnAndRow(1, 5, '#');
+		$sheet->setCellValueByColumnAndRow(2, 5, 'Emp.Num');
+		$sheet->setCellValueByColumnAndRow(3, 5, 'Employee');
+		$sheet->setCellValueByColumnAndRow(4, 5, 'Subsidiary');
+		$sheet->setCellValueByColumnAndRow(5, 5, 'Organization');
+		$sheet->setCellValueByColumnAndRow(6, 5, 'Office');
 		$sheet->setCellValueByColumnAndRow(7, 5, 'Vacation');
-		$sheet->setCellValueByColumnAndRow(8, 5, 'Tardiness');
-		$sheet->setCellValueByColumnAndRow(9, 5, 'Overtime');
-		$sheet->setCellValueByColumnAndRow(10, 5, 'Absence');
+		$sheet->setCellValueByColumnAndRow(8, 5, 'Absence');
+		$sheet->setCellValueByColumnAndRow(9, 5, 'Tardiness');
+		$sheet->setCellValueByColumnAndRow(10, 5, 'Tard.Acc.');
+		$sheet->setCellValueByColumnAndRow(11, 5, 'Early Exit');
 		
-		$x_start = 11;
-		
-		$headers = $data["headers"];
-		foreach($headers as $i => $h){
+		$x_start = 12;
+		foreach($headers as $i => $h){//header structure: ["day", "day_w", "type"]
 			$x = $x_start + $i;
 			
-			$sheet->setCellValueByColumnAndRow($x, 5, $h["day"]." ".$h["w_day"]);
-			//$sheet->getStyleByColumnAndRow($x, 5)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFFF00');
-			
+			$sheet->setCellValueByColumnAndRow($x, 5, $h["day"]." ".$h["day_w"]);
 			if ($h["type"] === "H") $sheet->getStyleByColumnAndRow($x, 5)->getFont()->setColor(new Color($this->color_rgb["red"]));
 		}
 		
 		$v_center = Alignment::VERTICAL_CENTER;
-		
-		$summary = $data["summary"];
-		$vacation_emps = $data["vacation_emps"];
-		$dates = $data["dates"];
-		$mapping = $data["mapping"];
-		$employees = $data["employees"];//employee info from row 6
+		$y_start = 6;
 		foreach($employees as $i => $emp){
-			$y = ($i * 2) + 6;
+			$y = ($i * 2) + $y_start;
+			
 			$sheet->setCellValueByColumnAndRow(1, $y, $i + 1);
-			$sheet->setCellValueByColumnAndRow(2, $y, $emp->name);
-			$sheet->setCellValueByColumnAndRow(3, $y, $emp->employee_number);
-			$sheet->setCellValueByColumnAndRow(4, $y, $emp->office);
-			$sheet->setCellValueByColumnAndRow(5, $y, $emp->subsidiary);
-			$sheet->setCellValueByColumnAndRow(6, $y, $emp->organization);
+			$sheet->setCellValueByColumnAndRow(2, $y, $emp->employee_number);
+			$sheet->setCellValueByColumnAndRow(3, $y, $emp->name);
+			$sheet->setCellValueByColumnAndRow(4, $y, $emp->subsidiary);
+			$sheet->setCellValueByColumnAndRow(5, $y, $emp->organization);
+			$sheet->setCellValueByColumnAndRow(6, $y, $emp->office);
 			
-			$sheet->setCellValueByColumnAndRow(8, $y, $summary[$emp->employee_id]["tar"]." / ".$summary[$emp->employee_id]["tar_acc"]);
-			$sheet->setCellValueByColumnAndRow(9, $y, $summary[$emp->employee_id]["ove"]." / ".$summary[$emp->employee_id]["ove_acc"]);
-			
-			for($c = 1; $c < $x_start; $c++){
-				$cl = $this->columnIndexToLetters($c);
-				$sheet->mergeCells($cl.$y.':'.$cl.($y + 1));
-				
-				$sheet->getStyle($cl.$y)->getAlignment()->setVertical($v_center);
-			}
-			
+			$sheet->setCellValueByColumnAndRow(7, $y, ($emp->vacation_qty > 0) ? $emp->vacation_qty : "");
+			$sheet->setCellValueByColumnAndRow(8, $y, ($emp->absence_qty > 0) ? $emp->absence_qty : "");
+			$sheet->setCellValueByColumnAndRow(9, $y, ($emp->tardiness_qty > 0) ? $emp->tardiness_qty : "");
+			$sheet->setCellValueByColumnAndRow(10, $y, ($emp->tardiness_qty > 0) ? $emp->tardiness_acc : "");
+			$sheet->setCellValueByColumnAndRow(11, $y, ($emp->early_exit_qty > 0) ? $emp->early_exit_qty : "");
+
 			foreach($dates as $idate => $d){
 				$x = $x_start + $idate;
 				$xl = $this->columnIndexToLetters($x);
 				
-				$aux = $mapping[$emp->employee_id][$d];
-				
-				if ($aux["type"] === "N"){
-					
-					$sheet->setCellValueByColumnAndRow($x, $y, $aux["type"]);
-					$sheet->setCellValueByColumnAndRow($x, $y + 1, $aux["type"]);
-					
-					if ($aux["e"] or $aux["l"]){
-						$sheet->setCellValueByColumnAndRow($x, $y, date("H:i", strtotime($aux["e"]["time"])));
-						$sheet->setCellValueByColumnAndRow($x, $y + 1, date("H:i", strtotime($aux["l"]["time"])));
-						
-						$color_e = ($aux["e"]["type"] === "T") ? $this->color_rgb["red"] : "";
-						$color_l = ($aux["l"]["type"] === "E") ? $this->color_rgb["red"] : "";
-						
-						$sheet->getStyleByColumnAndRow($x, $y)->getFont()->setColor(new Color($color_e));
-						$sheet->getStyleByColumnAndRow($x, $y + 1)->getFont()->setColor(new Color($color_l));
-					}else{//no mark
-						$sheet->setCellValueByColumnAndRow($x, $y, "No mark");
-						$sheet->mergeCells($xl.$y.':'.$xl.($y + 1));
-						$sheet->getStyle($xl.$y)->getAlignment()->setVertical($v_center);
+				if ($emp->daily[$d]["type"] === "N"){
+					if ($emp->daily[$d]["entrance"]["result"] === "V"){ 
+						$en_color = $this->color_rgb["green"];
+						$en_val = $emp->daily[$d]["entrance"]["result"];
+					}else{
+						$en_color = ($emp->daily[$d]["entrance"]["result"] === "T") ? $this->color_rgb["red"] : ""; 
+						$en_val = date("H:i", strtotime($emp->daily[$d]["entrance"]["time"]));
 					}
-				}elseif ($aux["type"]){
-					$sheet->setCellValueByColumnAndRow($x, $y, $aux["type"]);
+					
+					if ($emp->daily[$d]["exit"]["result"] === "V"){ 
+						$ex_color = $this->color_rgb["green"];
+						$ex_val = $emp->daily[$d]["exit"]["result"];
+					}else{
+						$ex_color = ($emp->daily[$d]["exit"]["result"] === "E") ? $this->color_rgb["red"] : ""; 
+						$ex_val = date("H:i", strtotime($emp->daily[$d]["exit"]["time"]));
+					}
+					
+					//entrance value & color
+					$sheet->setCellValueByColumnAndRow($x, $y, $en_val);
+					$sheet->getStyleByColumnAndRow($x, $y)->getFont()->setColor(new Color($en_color));
+					
+					//exit value & color
+					$sheet->setCellValueByColumnAndRow($x, ($y + 1), $ex_val);
+					$sheet->getStyleByColumnAndRow($x, ($y + 1))->getFont()->setColor(new Color($ex_color));
+				}else{
+					switch($emp->daily[$d]["type"]){
+						case "X": $d_color = $this->color_rgb["red"]; break;
+						case "V": $d_color = $this->color_rgb["green"]; break;
+						default: $d_color = "";
+					}
+					
+					$sheet->setCellValueByColumnAndRow($x, $y, $emp->daily[$d]["type"]);
+					$sheet->getStyleByColumnAndRow($x, $y)->getFont()->setColor(new Color($d_color));
+					
 					$sheet->mergeCells($xl.$y.':'.$xl.($y + 1));
 					$sheet->getStyle($xl.$y)->getAlignment()->setVertical($v_center);
 				}
+			}
+
+			//merge cells of employee general info
+			for($c = 1; $c < $x_start; $c++){
+				$cl = $this->columnIndexToLetters($c);
 				
-				
-				/*
-				if ($headers[$idate]["color_bt"] !== "danger"){
-					if (in_array($d, $vacation_emps[$emp->employee_id])){
-						
-					}else{
-						if (array_key_exists("time", $aux["e"]) or array_key_exists("time", $aux["l"])){
-							
-						}else{
-							$sheet->setCellValueByColumnAndRow($x, $y, "N");
-							$sheet->mergeCells($xl.$y.':'.$xl.($y + 1));
-							$sheet->getStyle($xl.$y)->getAlignment()->setVertical($v_center);
-						}
-					}
-				}
-				*/
+				$sheet->mergeCells($cl.$y.':'.$cl.($y + 1));
+				$sheet->getStyle($cl.$y)->getAlignment()->setVertical($v_center);
 			}
 		}
 		

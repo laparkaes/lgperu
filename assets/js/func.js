@@ -1,4 +1,4 @@
-const base_url = "/lgperu/";
+const base_url = "/llamasys/";
 
 function ajax_form(dom, url){
 	var deferred = $.Deferred();

@@ -71,7 +71,7 @@
 									<td>
 										<?php if ($emp->daily[$d]["type"] === "N"){
 											if ($emp->daily[$d]["entrance"]["result"] === "V"){ 
-												$en_color = ""; 
+												$en_color = "success"; 
 												$en_val = $emp->daily[$d]["entrance"]["result"];
 											}else{
 												$en_color = ($emp->daily[$d]["entrance"]["result"] === "T") ? "danger" : ""; 
