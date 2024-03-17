@@ -91,13 +91,14 @@
 					</ul>
 					<div class="tab-content pt-2" id="myTabContent">
 						<div class="tab-pane fade show active" id="employee" role="tabpanel" aria-labelledby="employee-tab">
-							<div class="my-3">
-								<a href="<?= base_url() ?>form_file/employee.xlsx" download="employee_form.xlsx">Download employee upload file</a>
-							</div>
 							<form class="row g-3" id="form_uff_employee">
 								<div class="col-12">
-									<label class="form-label">Employee List File</label>
+									<label class="form-label">Employee File</label>
 									<input type="file" class="form-control" name="md_uff_file" accept=".xls,.xlsx">
+								</div>
+								<div class="col-12">
+									<label class="form-label">Password</label>
+									<input type="text" class="form-control" name="password">
 								</div>
 								<div class="text-end pt-3">
 									<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
