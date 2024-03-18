@@ -26,18 +26,6 @@ class General_model extends CI_Model{
 		return $result;
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
 	function unique($tablename, $field, $value, $check_valid = true){
 		$this->db->where($field, $value);
 		if ($check_valid) $this->db->where("valid", true);
@@ -50,6 +38,31 @@ class General_model extends CI_Model{
 		$this->db->insert($tablename, $data);
 		return $this->db->insert_id();
 	}
+	
+	function insert_m($tablename, $data){//multi insert
+		return $this->db->insert_batch($tablename, $data);
+	}
+	
+	function update($tablename, $filter, $data){
+		$this->db->where($filter);
+		return $this->db->update($tablename, $data);
+	}
+	
+	function update_multi($tablename, $data, $field){ 
+		return $this->db->update_batch($tablename, $data, $field);
+	}
+
+
+
+
+
+
+
+
+
+
+
+
 	
 	function filter_like($tablename, $field, $like = "", $limit = "", $offset = "", $check_valid = true){
 		if ($check_valid) $this->db->where("valid", true);
@@ -99,11 +112,6 @@ class General_model extends CI_Model{
 		$query = $this->db->get($tablename);
 		$result = $query->result();
 		return $result;
-	}
-	
-	function update($tablename, $filter, $data){
-		$this->db->where($filter);
-		return $this->db->update($tablename, $data);
 	}
 	
 	function delete($tablename, $filter){
@@ -235,17 +243,9 @@ class General_model extends CI_Model{
 		return $result;
 	}
 	
-	function insert_multi($tablename, $data){
-		return $this->db->insert_batch($tablename, $data);
-	}
-	
 	function update_($tablename, $field, $id, $data){ 
 		$this->db->where($field, $id);
 		return $this->db->update($tablename, $data);
-	}
-	
-	function update_multi($tablename, $data, $field){ 
-		return $this->db->update_batch($tablename, $data, $field);
 	}
 	
 	function delete_multi($tablename, $field, $values){
