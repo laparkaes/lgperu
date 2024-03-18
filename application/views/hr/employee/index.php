@@ -27,21 +27,27 @@
 				<div class="card-body">
 					<h5 class="card-title">List</h5>
 					<div class="table-responsive">
-						<table class="table align-middle">
+						<table class="table datatable align-middle">
 							<thead>
 								<tr>
 									<th scope="col" style="width: 80px;">#</th>
+									<th scope="col">Subsidiary</th>
 									<th scope="col">Organization</th>
-									<th scope="col">Emp. Num.</th>
+									<th scope="col">Department</th>
+									<th scope="col">Location</th>
+									<th scope="col">Emp.Num.</th>
 									<th scope="col">Name</th>
 									<th scope="col"></th>
 								</tr>
 							</thead>
 							<tbody>
-								<?php $base_i = ($page-1) * 30; foreach($employees as $i => $emp){ ?>
+								<?php foreach($employees as $i => $emp){ ?>
 								<tr>
-									<td><?= number_format($base_i + $i + 1) ?></td>
-									<td><?= $emp->subsidiary.($emp->office ? ".".$emp->office : "") ?><br/><?= $emp->organization  ?></td>
+									<td><?= number_format($i + 1) ?></td>
+									<td><?= $emp->subsidiary  ?></td>
+									<td><?= $emp->organization  ?></td>
+									<td><?= $emp->department  ?></td>
+									<td><?= $emp->location  ?></td>
 									<td><?= $emp->employee_number  ?></td>
 									<td><?= $emp->name  ?></td>
 									<td class="text-end">
@@ -53,16 +59,6 @@
 								<?php } ?>
 							</tbody>
 						</table>
-					</div>
-					<div class="btn-group" role="group" aria-label="paging">
-						<?php 
-						$f_url = $this->input->get();
-						foreach($paging as $p){
-						$f_url["page"] = $p[0]; ?>
-						<a href="<?= base_url() ?>hr/employee?<?= http_build_query($f_url) ?>" class="btn btn-<?= $p[2] ?>">
-							<?= $p[1] ?>
-						</a>
-						<?php } ?>
 					</div>
 				</div>
 			</div>

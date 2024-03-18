@@ -34,6 +34,14 @@ class General_model extends CI_Model{
 		if ($result) return $result[0]; else return null;
 	}
 	
+	function all($tablename, $orders = [], $limit = "", $offset = "", $check_valid = true){
+		if ($check_valid) $this->db->where("valid", true);
+		if ($orders) foreach($orders as $o) $this->db->order_by($o[0], $o[1]);
+		$query = $this->db->get($tablename, $limit, $offset);
+		$result = $query->result();
+		return $result;
+	}
+	
 	function insert($tablename, $data){
 		$this->db->insert($tablename, $data);
 		return $this->db->insert_id();
@@ -97,14 +105,6 @@ class General_model extends CI_Model{
 		if ($group_by) $this->db->group_by($group_by);
 		$query = $this->db->get($tablename);
 		return $query->num_rows();
-	}
-	
-	function all($tablename, $orders = [], $limit = "", $offset = "", $check_valid = true){
-		if ($check_valid) $this->db->where("valid", true);
-		if ($orders) foreach($orders as $o) $this->db->order_by($o[0], $o[1]);
-		$query = $this->db->get($tablename, $limit, $offset);
-		$result = $query->result();
-		return $result;
 	}
 	
 	function all_simple($tablename, $order_by, $order){

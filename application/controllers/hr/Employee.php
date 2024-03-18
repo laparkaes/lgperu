@@ -26,28 +26,42 @@ class Employee extends CI_Controller {
 	public function index(){
 		$page = $this->input->get("page"); if (!$page) $page = 1;
 		
-		$subs = [];
-		$subs_rec = $this->sub_m->all();
-		foreach($subs_rec as $sub) $subs[$sub->subsidiary_id] = $sub->subsidiary;
+		$locs = [];
+		$locs_rec = $this->gen_m->all("location");
+		foreach($locs_rec as $l) $locs[$l->location_id] = $l;
+		
+		$depts = [];
+		$depts_rec = $this->gen_m->all("department");
+		foreach($depts_rec as $d) $depts[$d->department_id] = $d;
 		
 		$orgs = [];
-		$orgs_rec = $this->org_m->all();
-		foreach($orgs_rec as $org) $orgs[$org->organization_id] = $org->organization;
+		$orgs_rec = $this->gen_m->all("organization");
+		foreach($orgs_rec as $o) $orgs[$o->organization_id] = $o;
 		
-		$offs = [];
-		$offs_rec = $this->off_m->all();
-		foreach($offs_rec as $off) $offs[$off->office_id] = $off->office;
+		$subs = [];
+		$subs_rec = $this->gen_m->all("subsidiary");
+		foreach($subs_rec as $s) $subs[$s->subsidiary_id] = $s;
 		
-		$employees = $this->emp_m->all([["name", "asc"]], 30, 30*($page-1));
+		$employees = $this->emp_m->all([["name", "asc"]]);
 		foreach($employees as $emp){
-			$emp->subsidiary = ($emp->subsidiary_id) ? $subs[$emp->subsidiary_id] : "";
-			$emp->organization = ($emp->organization_id) ? $orgs[$emp->organization_id] : "";
-			$emp->office = ($emp->office_id) ? $offs[$emp->office_id] : "";
+			if ($emp->department_id){
+				$dept = $depts[$emp->department_id];
+				$org = $orgs[$dept->organization_id];
+				$sub = $subs[$org->subsidiary_id];
+				
+				$emp->department = $dept->department;
+				$emp->organization = $org->organization;
+				$emp->subsidiary = $sub->subsidiary;
+			}else{
+				$emp->department = "";
+				$emp->organization = "";
+				$emp->subsidiary = "";
+			}
+			
+			$emp->location = ($emp->location_id) ? $locs[$emp->location_id]->location : "";
 		}
 		
 		$data = [
-			"paging" => $this->my_func->set_page($page, $this->emp_m->qty()),
-			"page" => $page,
 			"employees" => $employees,
 			"main" => "hr/employee/index",
 		];
@@ -147,6 +161,7 @@ class Employee extends CI_Controller {
 			['PR009180','2024-01-02','2024-01-02','1','All','2024-01-16'], ['PR009204','2024-01-02','2024-01-02','1','All','2023-12-06'], ['PR009105','2024-01-02','2024-01-02','1','All','2023-12-13'], ['PR009011','2024-01-02','2024-01-02','1','All','2023-12-13'], ['PR009249','2024-01-02','2024-01-02','1','All','2023-12-14'], ['PR008934','2024-01-02','2024-01-02','1','All','2024-01-16'], ['PR009103','2024-01-02','2024-01-02','1','All','2023-12-21'], ['PR009246','2024-01-02','2024-01-02','1','All','2023-12-22'], ['PR009027','2024-01-02','2024-01-02','1','All','2023-12-15'], ['PR008522','2024-01-02','2024-01-02','1','All','2023-12-12'], ['PR009109','2024-01-02','2024-01-02','1','All','2023-12-30'], ['PR008144','2024-01-02','2024-01-02','1','All','2023-11-28'], ['PR009174','2024-01-02','2024-01-02','1','All','2023-12-13'], ['PR008667','2024-01-02','2024-01-03','2','All','2023-12-15'], ['PR009200','2024-01-02','2024-01-03','2','All','2023-12-28'], ['PR009250','2024-01-02','2024-01-03','2','All','2023-12-27'], ['PR009243','2024-01-02','2024-01-03','2','All','2023-12-29'], ['PR009212','2024-01-02','2024-01-05','4','All','2023-12-06'], ['PR009206','2024-01-02','2024-01-05','4','All','2023-12-14'], ['PR009177','2024-01-02','2024-01-05','4','All','2023-12-21'], ['PR008809','2024-01-02','2024-01-05','4','All','2023-02-13'], ['PR009216','2024-01-02','2024-01-05','4','All','2023-12-19'], ['PR008941','2024-01-02','2024-01-05','4','All','2023-12-29'], ['PR008161','2024-01-02','2024-01-05','4','All','2023-12-20'], ['PR009070','2024-01-02','2024-01-05','4','All','2023-12-23'], ['PR009303','2024-01-02','2024-01-05','4','All','2023-12-14'], ['PR009184','2024-01-02','2024-01-05','4','All','2024-01-16'], ['PR009220','2024-01-02','2024-01-08','7','All','2023-12-14'], ['PR009132','2024-01-03','2024-01-03','1','All','2023-12-30'], ['PR009153','2024-01-04','2024-01-05','2','All','2024-01-03'], ['PR009210','2024-01-05','2024-01-05','1','All','2024-01-05'], ['PR001759','2024-01-05','2024-01-05','1','All','2024-01-05'], ['PR009207','2024-01-05','2024-01-05','1','All','2024-01-05'], ['PR008255','2024-01-08','2024-01-08','1','All','2024-01-06'], ['PR009212','2024-01-08','2024-01-08','1','All','2024-01-10'], ['PR009327','2024-01-08','2024-01-08','1','All','2024-01-05'], ['PR009207','2024-01-08','2024-01-08','1','All','2024-01-08'], ['PR008161','2024-01-08','2024-01-10','3','All','2023-12-20'], ['PR009291','2024-01-08','2024-01-12','5','All','2024-01-03'], ['PR009070','2024-01-08','2024-01-12','5','All','2023-12-23'], ['PR009174','2024-01-08','2024-01-12','5','All','2024-01-06'], ['PR009133','2024-01-09','2024-01-09','0.5','Morning','2024-01-08'], ['PR008978','2024-01-09','2024-01-10','2','All','2024-01-03'], ['PR009133','2024-01-10','2024-01-11','2','All','2024-01-08'], ['PR009242','2024-01-10','2024-01-12','3','All','2024-01-10'], ['PR009249','2024-01-11','2024-01-11','0.5','Afternoon','2024-01-09'], ['PR008161','2024-01-11','2024-01-12','2','All','2024-01-11'], ['PR009200','2024-01-12','2024-01-12','0.5','Morning','2024-01-04'], ['PR009250','2024-01-12','2024-01-12','0.5','Morning','2024-01-04'], ['PR009156','2024-01-12','2024-01-12','0.5','Afternoon','2024-01-13'], ['PR009172','2024-01-12','2024-01-12','0.5','Morning','2024-01-10'], ['PR009092','2024-01-12','2024-01-12','0.5','Morning','2024-01-13'], ['PR009212','2024-01-12','2024-01-12','1','All','2024-01-17'], ['PR009220','2024-01-12','2024-01-12','1','All','2024-01-12'], ['PR001100','2024-01-15','2024-01-15','1','All','2024-01-13'], ['PR009103','2024-01-15','2024-01-15','1','All','2023-12-21'], ['PR009201','2024-01-15','2024-01-15','1','All','2024-01-13'], ['PR009301','2024-01-15','2024-01-15','1','All','2024-01-03'], ['PR008522','2024-01-15','2024-01-16','2','All','2024-01-11'], ['PR009242','2024-01-15','2024-01-17','3','All','2024-01-10'], ['PR009015','2024-01-15','2024-01-17','3','All','2024-02-07'], ['PR008255','2024-01-15','2024-01-19','5','All','2024-01-13'], ['PR009252','2024-01-16','2024-01-16','0.5','Afternoon','2024-01-16'], ['PR009289','2024-01-16','2024-01-19','4','All','2024-01-13'], ['PR009207','2024-01-17','2024-01-19','3','All','2024-01-17'], ['PR009244','2024-01-18','2024-01-18','0.5','Afternoon','2024-01-18'], ['PR001759','2024-01-18','2024-01-18','1','All','2024-01-18'], ['PR009200','2024-01-19','2024-01-19','0.5','Afternoon','2024-01-09'], ['PR009254','2024-01-19','2024-01-19','0.5','Morning','2024-01-06'], ['PR009103','2024-01-19','2024-01-19','0.5','Afternoon','2024-01-19'], ['PR009177','2024-01-19','2024-01-19','0.5','Morning','2024-01-17'], ['PR009216','2024-01-19','2024-01-19','0.5','Morning','2024-02-07'], ['PR009132','2024-01-19','2024-01-19','0.5','Morning','2024-01-16'], ['PR009172','2024-01-19','2024-01-19','0.5','Morning','2024-01-18'], ['PR008997','2024-01-19','2024-01-19','1','All','2024-01-19'], ['PR009119','2024-01-22','2024-01-23','2','All','2024-01-18'], ['PR009132','2024-01-22','2024-01-23','2','All','2024-01-16'], ['PR009027','2024-01-25','2024-01-25','0.5','Morning','2024-01-25'], ['PR009092','2024-01-25','2024-01-25','0.5','Afternoon','2024-01-25'], ['PR008934','2024-01-25','2024-01-25','1','All','2024-01-24'], ['PR009177','2024-01-25','2024-01-25','1','All','2024-01-23'], ['PR009201','2024-01-25','2024-01-26','2','All','2024-01-25'], ['PR001759','2024-01-25','2024-01-31','7','All','2024-01-25'], ['PR009252','2024-01-26','2024-01-26','0.5','Afternoon','2024-01-26'], ['PR009321','2024-01-26','2024-01-26','1','All','2024-01-12'], ['PR009254','2024-01-26','2024-01-26','1','All','2024-01-25'], ['PR009319','2024-01-26','2024-01-26','1','All','2024-01-12'], ['PR009287','2024-01-29','2024-01-30','2','All','2024-01-17'], ['PR009172','2024-01-29','2024-01-30','2','All','2024-01-24'], ['PR009321','2024-01-29','2024-02-02','5','All','2024-01-12'], ['PR009257','2024-01-29','2024-02-02','5','All','2024-01-06'], ['PR009134','2024-01-29','2024-02-02','5','All','2024-02-07'], ['PR009070','2024-01-30','2024-01-30','1','All','2024-01-29'], ['PR008934','2024-01-31','2024-01-31','0.5','Afternoon','2024-01-31'], ['PR008208','2024-01-31','2024-01-31','1','All','2024-01-30'], ['PR009011','2024-02-01','2024-02-01','0.5','Afternoon','2024-02-01'], ['PR008997','2024-02-01','2024-02-05','5','All','2023-12-15'], ['PR009246','2024-02-01','2024-02-09','9','All','2023-12-22'], ['PR008667','2024-02-02','2024-02-02','1','All','2024-01-30'], ['PR009250','2024-02-02','2024-02-02','1','All','2024-01-30'], ['PR009216','2024-02-02','2024-02-02','1','All','2024-02-07'], ['PR009319','2024-02-02','2024-02-02','1','All','2024-01-30'], ['PR008941','2024-02-02','2024-02-06','5','All','2024-02-02'], ['PR009070','2024-02-05','2024-02-05','0.5','Morning','2024-02-05'], ['PR009174','2024-02-05','2024-02-05','1','All','2024-02-06'], ['PR009257','2024-02-05','2024-02-09','5','All','2024-01-06'], ['PR009133','2024-02-05','2024-02-09','5','All','2024-02-01'], ['PR009207','2024-02-05','2024-02-09','5','All','2024-02-05'], ['PR009027','2024-02-05','2024-02-16','12','All','2024-01-04'], ['PR009088','2024-02-06','2024-02-06','0.5','Afternoon','2024-02-07'], ['PR009319','2024-02-06','2024-02-06','0.5','Afternoon','2024-02-06'], ['PR009015','2024-02-06','2024-02-06','0.5','Afternoon','2024-02-06'], ['PR008255','2024-02-06','2024-02-07','2','All','2024-02-06'], ['PR008934','2024-02-07','2024-02-07','1','All','2024-02-07'], ['PR009011','2024-02-08','2024-02-08','1','All','2024-02-01'], ['PR009204','2024-02-09','2024-02-09','1','All','2024-01-23'], ['PR009212','2024-02-09','2024-02-09','1','All','2024-02-07'], ['PR009254','2024-02-12','2024-02-12','1','All','2024-01-31'], ['PR009248','2024-02-12','2024-02-13','2','All','2024-02-05'], ['PR008144','2024-02-12','2024-02-14','3','All','2024-02-06'], ['PR009257','2024-02-12','2024-02-16','5','All','2024-01-06'], ['PR009252','2024-02-13','2024-02-15','3','All','2024-02-08'], ['PR009254','2024-02-14','2024-02-14','0.5','Afternoon','2024-01-30'], ['PR009287','2024-02-14','2024-02-15','2','All','2024-01-17'], ['PR008978','2024-02-14','2024-02-16','3','All','2024-02-06'], ['PR009172','2024-02-15','2024-02-15','1','All','2024-02-09'], ['PR009204','2024-02-15','2024-02-16','2','All','2024-01-23'], ['PR009250','2024-02-15','2024-02-16','2','All','2024-01-23'], ['PR009011','2024-02-15','2024-02-21','7','All','2024-02-01'], ['PR009206','2024-02-16','2024-02-16','0.5','Morning','2024-01-16'], ['PR009015','2024-02-19','2024-02-21','3','All','2024-02-06'], ['PR009257','2024-02-19','2024-02-23','5','All','2024-01-06'], ['PR009206','2024-02-21','2024-02-21','0.5','Afternoon','2024-01-16'], ['PR008737','2024-02-21','2024-02-22','2','All','2024-02-09'], ['PR008978','2024-02-21','2024-02-23','3','All','2024-02-06'], ['PR009249','2024-02-22','2024-02-23','2','All','2024-02-09'], ['PR009172','2024-02-26','2024-02-26','1','All','2024-02-09'], ['PR008737','2024-03-04','2024-03-05','2','All','2024-02-09'], ['PR009287','2024-03-25','2024-03-25','1','All','2024-01-17'], ['PR009234','2024-03-25','2024-03-27','3','All','2024-02-06'], ['PR009220','2024-04-01','2024-04-01','1','All','2024-02-09'], ['PR009172','2024-04-15','2024-04-19','5','All','2024-02-09'], ['PR009088','2024-05-02','2024-05-03','2','All','2024-01-04'], ['PR009156','2024-05-02','2024-05-03','2','All','2024-02-03'], ['PR009088','2024-05-06','2024-05-07','2','All','2024-01-04'], ['PR009156','2024-05-06','2024-05-10','5','All','2024-02-03'], ['PR009327','2024-05-06','2024-05-10','5','All','2024-02-08'], ['PR009172','2024-05-13','2024-05-13','1','All','2024-02-09'], ['PR009206','2024-05-13','2024-05-17','5','All','2024-01-16'], ['PR009156','2024-05-13','2024-05-17','5','All','2024-02-05'], ['PR008737','2024-05-13','2024-05-17','5','All','2024-02-09'], ['PR009156','2024-05-20','2024-05-22','3','All','2024-02-03'], ['PR009337','2024-05-22','2024-05-24','3','All','2024-02-09'], ['PR009337','2024-05-27','2024-05-28','2','All','2024-02-09'], ['PR009172','2024-06-17','2024-06-17','1','All','2024-02-09'], ['PR009337','2024-07-15','2024-07-19','5','All','2024-02-09'], ['PR008737','2024-07-30','2024-07-31','2','All','2024-02-09'], ['PR008737','2024-08-01','2024-08-02','2','All','2024-02-09'], ['PR008737','2024-08-05','2024-08-05','1','All','2024-02-09'], ['PR008737','2024-08-07','2024-08-09','3','All','2024-02-09'], ['PR009220','2024-09-13','2024-09-23','11','All','2024-02-09'], ['PR009337','2024-09-30','2024-10-04','5','All','2024-02-09'], ['PR009088','2024-10-01','2024-10-04','4','All','2024-01-04'], ['PR009088','2024-10-07','2024-10-07','1','All','2024-01-04'], ['PR009088','2024-10-09','2024-10-11','3','All','2024-01-04'], ['PR008737','2024-10-14','2024-10-18','5','All','2024-02-09'], ['PR009088','2024-10-30','2024-10-31','2','All','2024-01-17'], ['PR009088','2024-11-04','2024-11-05','2','All','2024-01-17'], ['PR009337','2024-11-28','2024-11-29','2','All','2024-02-09'], ['PR008934','2024-12-02','2024-12-02','1','All','2023-12-14'], ['PR009337','2024-12-02','2024-12-06','5','All','2024-02-09'], ['PR009234','2024-12-23','2025-01-03','12','All','2024-02-06']
 		];
 		
+		$data = [];
 		foreach($vacations as $vac){
 			//load employee
 			$emp = $this->gen_m->unique("employee", "employee_number", $vac[0]);
@@ -154,187 +169,21 @@ class Employee extends CI_Controller {
 			//load type
 			$type = $this->gen_m->unique("vacation_type", "type", $vac[4]);
 			
-			$aux = [
+			if ($emp){
+				$aux = [
+					"type_id" => $type->type_id,
+					"employee_id" => $emp->employee_id,
+					"date_from" => $vac[1],
+					"date_to" => $vac[2],
+					"day_count" => $vac[3],
+					"register" => $vac[5],
+				];
+				if (!$this->gen_m->filter("vacation", true, $aux)) $data[] = $aux;
+			}
 			
-			];
-			print_r($vac); echo "<br/>";
-			print_r($emp); echo "<br/>";
-			print_r($type); echo "<br/>";
-			
-			echo "<br/>";
 		};
-	}
-	
-	public function upload_vacation_from_file(){
-		$type = "error"; $msg = null;
 		
-		$config = [
-			'upload_path'	=> './upload/',
-			'allowed_types'	=> 'xls|xlsx',
-			'max_size'		=> 10000,
-			'overwrite'		=> TRUE,
-			'file_name'		=> 'vacation',
-		];
-		$this->load->library('upload', $config);
-
-		if ($this->upload->do_upload('md_uff_file')){
-			$data = $this->upload->data();
-			$file_path = $data['full_path'];
-
-			$spreadsheet = IOFactory::load($file_path);
-			$sheet = $spreadsheet->getActiveSheet();
-			
-			$sheet->setCellValue('O1', 'Upload Result');
-			$sheet->getStyle('O')->getFill()->setFillType(Fill::FILL_SOLID);
-			$sheet->getStyle('O')->getFill()->getStartColor()->setARGB('FFFF00');
-			
-			$sheet->setCellValue('P1', 'Upload Time');
-			$sheet->getStyle('P')->getFill()->setFillType(Fill::FILL_SOLID);
-			$sheet->getStyle('P')->getFill()->getStartColor()->setARGB('FFFF00');
-			
-            $highestRow = $sheet->getHighestRow();
-            //$highestColumn = $sheet->getHighestColumn();
-			
-			$status = $this->vac_m->unique_status("status", "Approved");
-			$count = 0;
-            for ($row = 2; $row <= $highestRow; $row++){
-				$emp = $this->emp_m->unique("employee_number", trim($sheet->getCell('C'.$row)->getValue()));
-				if ($emp){
-					$from = $this->excel_date_to_php($sheet->getCell('G'.$row)->getValue());
-					$to = $this->excel_date_to_php($sheet->getCell('H'.$row)->getValue());
-					
-					$w = [
-						"status_id" => $status->status_id,
-						"employee_id" => $emp->employee_id,
-						"date_from <=" => $from,
-						"date_to >=" => $to,
-					];
-					
-					if (!$this->gen_m->filter("vacation", true, $w)){
-						$type = $this->vac_m->unique_type("type", str_replace(" (", "(", $sheet->getCell('J'.$row)->getValue()));
-						
-						$vac = [
-							"status_id" => $status->status_id,
-							"type_id" => $type->type_id,
-							"employee_id" => $emp->employee_id,
-							"date_from" => $from,
-							"date_to" => $to,
-							"day" => ($type->type === "All") ? $this->my_func->day_counter($from, $to) + 1 : 0.5,
-							"request" => $this->excel_date_to_php($sheet->getCell('M'.$row)->getValue()),
-						];
-						if ($this->vac_m->insert($vac)){
-							$count++;
-							$sheet->setCellValue('O'.$row, 'Success');
-							$sheet->setCellValue('P'.$row, date('Y-m-d H:i:s'));
-						}
-					}else{
-						$sheet->setCellValue('O'.$row, 'Duplicated');
-						$sheet->setCellValue('P'.$row, date('Y-m-d H:i:s'));
-					}
-				}else{
-					$sheet->setCellValue('O'.$row, 'No Employee');
-					$sheet->setCellValue('P'.$row, date('Y-m-d H:i:s'));
-				}
-            }
-			
-			$type = "success";
-			$msg = number_format($count)." new vacation(s) has been inserted.";
-			
-			$writer = new Xlsx($spreadsheet);
-			$writer->save($file_path);
-		}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
-		
-		header('Content-Type: application/json');
-		echo json_encode(["type" => $type, "msg" => $msg]);
-	}
-
-	public function upload_w_hour_from_file(){
-		$type = "error"; $msg = null;
-		
-		$config = [
-			'upload_path'	=> './upload/',
-			'allowed_types'	=> 'xls|xlsx',
-			'max_size'		=> 10000,
-			'overwrite'		=> TRUE,
-			'file_name'		=> 'working_hour',
-		];
-		$this->load->library('upload', $config);
-
-		if ($this->upload->do_upload('md_uff_file')){
-			$data = $this->upload->data();
-			$file_path = $data['full_path'];
-
-			$spreadsheet = IOFactory::load($file_path);
-			$sheet = $spreadsheet->getActiveSheet();
-			
-			$sheet->setCellValue('D1', 'Upload Result');
-			$sheet->getStyle('D')->getFill()->setFillType(Fill::FILL_SOLID);
-			$sheet->getStyle('D')->getFill()->getStartColor()->setARGB('FFFF00');
-			
-			$sheet->setCellValue('E1', 'Upload Time');
-			$sheet->getStyle('E')->getFill()->setFillType(Fill::FILL_SOLID);
-			$sheet->getStyle('E')->getFill()->getStartColor()->setARGB('FFFF00');
-			
-            $highestRow = $sheet->getHighestRow();
-            //$highestColumn = $sheet->getHighestColumn();
-			
-			$count = 0;
-            for ($row = 2; $row <= $highestRow; $row++){
-				$sheet->setCellValue('E'.$row, date('Y-m-d H:i:s'));
-				$emp = $this->emp_m->unique("employee_number", trim($sheet->getCell('A'.$row)->getValue()));
-				if ($emp){
-					//update employee office
-					$off = $this->off_m->unique("office", trim($sheet->getCell('B'.$row)->getValue()));
-					if ($off){
-						$this->emp_m->update(["employee_id" => $emp->employee_id], ["office_id" => $off->office_id]);
-						$sheet->setCellValue('D'.$row, 'Office Updated');
-					}
-					
-					//update_working hour
-					$w_hours = explode(" - ", trim($sheet->getCell('C'.$row)->getValue()));
-					$w_hour_op = $this->whour_m->filter_option($w_hours[0], $w_hours[1]);
-					if ($w_hour_op){
-						
-						$today = date("Y-m-d");
-						$tomorrow = date('Y-m-d', strtotime('+1 day'));
-						
-						$insert_new = true;
-						$w_hour_tomorrow = $this->whour_m->get_by_employee($emp->employee_id, $tomorrow);
-						if ($w_hour_tomorrow){
-							$date_from = $tomorrow;//change will be apply from tomorrow
-							
-							//this change is exclusive for working hour change
-							if ($w_hour_tomorrow->wh_option_id == $w_hour_op->option_id){
-								$insert_new = false;
-								$sheet->setCellValue('D'.$row, 'Success - No change');
-							}else $this->whour_m->update(["employee_id" => $emp->employee_id], ["date_to" => $today]);
-						}else $date_from = "1000-01-01";//in case of first working hour record
-						
-						if ($insert_new){
-							//new working hour record form tomorrow to 9999-12-31
-							$w_hour = [
-								"employee_id" => $emp->employee_id,
-								"wh_option_id" => $w_hour_op->option_id,
-								"date_from" => $date_from,
-								"date_to" => "9999-12-31",
-							];
-							if ($this->whour_m->insert($w_hour)){
-								$count++;
-								$sheet->setCellValue('D'.$row, 'Success');
-							}
-						}
-					}else $sheet->setCellValue('D'.$row, 'Error - No working hour option');
-				}else $sheet->setCellValue('D'.$row, 'Error - No Employee');
-            }
-			
-			$type = "success";
-			$msg = "Working hours has been updated.";
-			
-			$writer = new Xlsx($spreadsheet);
-			$writer->save($file_path);
-		}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
-		
-		header('Content-Type: application/json');
-		echo json_encode(["type" => $type, "msg" => $msg]);
+		if ($data) echo $this->gen_m->insert_m("vacation", $data)." new record(s).";
+		else echo "No record.";
 	}
 }
