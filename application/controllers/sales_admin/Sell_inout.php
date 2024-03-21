@@ -20,11 +20,78 @@ class Sell_inout extends CI_Controller {
 		];
 	}
 	
-	public function sell_in_excel($path = null){
-		$path = "upload/sales_admin/sell_in.xlsx";
+	private function get_customer($customer, $bill_to_code){
+		$cus = $this->gen_m->unique("customer", "bill_to_code", $bill_to_code);
+		if (!$cus){
+			$cus_id = $this->gen_m->insert("customer", ["customer" => $customer, "bill_to_code" => $bill_to_code]);
+			$cus = $this->gen_m->unique("customer", "customer_id", $cus_id);
+		}
 		
-		$spreadsheet = IOFactory::load($file_path);
+		return $cus;
+	}
+	
+	private function get_product($cat_id, $model){
+		$aux = ["category_id" => $cat_id, "model" => $model];
+		
+		$prod = $this->gen_m->filter("product", true, $aux);
+		if ($prod) $prod = $prod[0];
+		else{
+			$prod_id = $this->gen_m->insert("product", $aux);
+			$prod = $this->gen_m->unique("product", "product_id", $prod_id);
+		}
+		
+		return $prod;
+	}
+	
+	public function sell_in_excel($path = null){
+		$path = "./upload/sales_admin/sell_in.xlsx";
+		
+		$spreadsheet = IOFactory::load($path);
 		$sheet = $spreadsheet->getActiveSheet();
+		
+		$max_row = $sheet->getHighestRow();
+		$max_row = 100;
+		
+		//preparing product category id array
+		$cat_arr = [];
+		$cat_rec = $this->gen_m->all("product_category");
+		foreach($cat_rec as $cat) $cat_arr[$cat->category] = $cat;
+		
+		$data = [];
+		$count = 0;
+		for ($row = 2; $row <= $max_row; $row++){
+			$customer = $this->get_customer(trim($sheet->getCell('B'.$row)->getValue()), trim($sheet->getCell('C'.$row)->getValue()));
+			$product = $this->get_product($cat_arr[trim($sheet->getCell('A'.$row)->getValue())]->category_id, trim($sheet->getCell('D'.$row)->getValue()));
+			
+			print_r($cat_arr[trim($sheet->getCell('A'.$row)->getValue())]); echo "<br/>";
+			print_r($customer); echo "<br/>";
+			print_r($product); echo "<br/>";
+			
+			
+			$aux = [
+				"A" => trim($sheet->getCell('A'.$row)->getValue()),
+				"B" => trim($sheet->getCell('B'.$row)->getValue()),
+				"C" => trim($sheet->getCell('C'.$row)->getValue()),
+				"D" => trim($sheet->getCell('D'.$row)->getValue()),
+				"E" => date("Y-m-d", strtotime(trim($sheet->getCell('E'.$row)->getFormattedValue()))),
+				"F" => trim($sheet->getCell('F'.$row)->getValue()),
+				"G" => trim($sheet->getCell('G'.$row)->getValue()),
+				"H" => trim($sheet->getCell('H'.$row)->getValue()),
+				"I" => trim($sheet->getCell('I'.$row)->getValue()),
+				"J" => trim($sheet->getCell('J'.$row)->getValue()),
+				"K" => trim($sheet->getCell('K'.$row)->getValue()),
+			];
+			
+			print_r($aux); echo "<br/>";
+			
+			
+			
+			
+			echo "<br/>";
+			
+		}
+		
+		echo "<br/>read ok";
 	}
 	
 	public function index(){

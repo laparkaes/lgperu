@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.1.3
+-- version 5.2.0
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- 생성 시간: 24-03-20 23:52
--- 서버 버전: 10.4.24-MariaDB
--- PHP 버전: 7.4.29
+-- Generation Time: Mar 22, 2024 at 12:48 AM
+-- Server version: 10.4.27-MariaDB
+-- PHP Version: 7.4.33
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- 데이터베이스: `llamasys`
+-- Database: `llamasys`
 --
 
 -- --------------------------------------------------------
 
 --
--- 테이블 구조 `attendance`
+-- Table structure for table `attendance`
 --
 
 CREATE TABLE `attendance` (
@@ -34,10 +34,10 @@ CREATE TABLE `attendance` (
   `enter_time` time NOT NULL,
   `leave_time` time NOT NULL,
   `valid` tinyint(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
--- 테이블의 덤프 데이터 `attendance`
+-- Dumping data for table `attendance`
 --
 
 INSERT INTO `attendance` (`attendance_id`, `employee_id`, `date`, `enter_time`, `leave_time`, `valid`) VALUES
@@ -2412,7 +2412,38 @@ INSERT INTO `attendance` (`attendance_id`, `employee_id`, `date`, `enter_time`, 
 -- --------------------------------------------------------
 
 --
--- 테이블 구조 `department`
+-- Table structure for table `customer`
+--
+
+CREATE TABLE `customer` (
+  `customer_id` int(11) NOT NULL,
+  `customer` varchar(250) NOT NULL,
+  `bill_to_code` varchar(20) NOT NULL,
+  `registered` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `valid` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
+-- Dumping data for table `customer`
+--
+
+INSERT INTO `customer` (`customer_id`, `customer`, `bill_to_code`, `registered`, `valid`) VALUES
+(1, 'CENCOSUD RETAIL PERU S.A.', 'PE000801001B', '2024-03-21 23:13:10', 1),
+(2, 'CONECTA RETAIL S.A.', 'PE000991001B', '2024-03-21 23:13:10', 1),
+(3, 'ESTILOS S.R.L.', 'PE003887001B', '2024-03-21 23:13:10', 1),
+(4, 'IMPORTACIONES HIRAOKA S.A.C.', 'PE000815001B', '2024-03-21 23:13:10', 1),
+(5, 'IMPORTACIONES HIRAOKA S.A.C.', 'PE000816001B', '2024-03-21 23:13:10', 1),
+(6, 'IMPORTACIONES HIRAOKA S.A.C.', 'PE005375001B', '2024-03-21 23:13:10', 1),
+(7, 'REPRESENTACIONES VARGAS S.A.', 'PE000952001B', '2024-03-21 23:13:39', 1),
+(8, 'SAGA FALABELLA S A', 'PE000968001B', '2024-03-21 23:13:39', 1),
+(9, 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA', 'PE001351001B', '2024-03-21 23:13:39', 1),
+(10, 'TIENDAS PERUANAS SA', 'PE007152001B', '2024-03-21 23:13:39', 1),
+(11, 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.', 'PE000966001B', '2024-03-21 23:13:39', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `department`
 --
 
 CREATE TABLE `department` (
@@ -2420,10 +2451,10 @@ CREATE TABLE `department` (
   `organization_id` int(11) NOT NULL,
   `department` varchar(50) NOT NULL,
   `valid` tinyint(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
--- 테이블의 덤프 데이터 `department`
+-- Dumping data for table `department`
 --
 
 INSERT INTO `department` (`department_id`, `organization_id`, `department`, `valid`) VALUES
@@ -2477,7 +2508,7 @@ INSERT INTO `department` (`department_id`, `organization_id`, `department`, `val
 -- --------------------------------------------------------
 
 --
--- 테이블 구조 `employee`
+-- Table structure for table `employee`
 --
 
 CREATE TABLE `employee` (
@@ -2488,10 +2519,10 @@ CREATE TABLE `employee` (
   `name` varchar(150) NOT NULL,
   `is_supervised` tinyint(1) DEFAULT NULL,
   `valid` tinyint(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
--- 테이블의 덤프 데이터 `employee`
+-- Dumping data for table `employee`
 --
 
 INSERT INTO `employee` (`employee_id`, `location_id`, `department_id`, `employee_number`, `name`, `is_supervised`, `valid`) VALUES
@@ -2641,17 +2672,17 @@ INSERT INTO `employee` (`employee_id`, `location_id`, `department_id`, `employee
 -- --------------------------------------------------------
 
 --
--- 테이블 구조 `location`
+-- Table structure for table `location`
 --
 
 CREATE TABLE `location` (
   `location_id` int(11) NOT NULL,
   `location` varchar(15) NOT NULL,
   `valid` tinyint(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
--- 테이블의 덤프 데이터 `location`
+-- Dumping data for table `location`
 --
 
 INSERT INTO `location` (`location_id`, `location`, `valid`) VALUES
@@ -2662,7 +2693,7 @@ INSERT INTO `location` (`location_id`, `location`, `valid`) VALUES
 -- --------------------------------------------------------
 
 --
--- 테이블 구조 `organization`
+-- Table structure for table `organization`
 --
 
 CREATE TABLE `organization` (
@@ -2670,10 +2701,10 @@ CREATE TABLE `organization` (
   `subsidiary_id` int(11) NOT NULL,
   `organization` varchar(50) NOT NULL,
   `valid` tinyint(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
--- 테이블의 덤프 데이터 `organization`
+-- Dumping data for table `organization`
 --
 
 INSERT INTO `organization` (`organization_id`, `subsidiary_id`, `organization`, `valid`) VALUES
@@ -2697,17 +2728,98 @@ INSERT INTO `organization` (`organization_id`, `subsidiary_id`, `organization`, 
 -- --------------------------------------------------------
 
 --
--- 테이블 구조 `subsidiary`
+-- Table structure for table `product`
+--
+
+CREATE TABLE `product` (
+  `product_id` int(11) NOT NULL,
+  `category_id` int(11) NOT NULL,
+  `model` varchar(250) NOT NULL,
+  `valid` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
+-- Dumping data for table `product`
+--
+
+INSERT INTO `product` (`product_id`, `category_id`, `model`, `valid`) VALUES
+(1, 4, 'HBS-FN6.ABMSBK', 1),
+(2, 4, 'PM1.APERLLK', 1),
+(3, 4, 'SK1.APERLLK', 1),
+(4, 4, 'RL3.APERLLK', 1),
+(5, 4, 'TONE-FP5.CMEXLLK', 1),
+(6, 4, 'TONE-FP5W.CMEXLLK', 1),
+(7, 4, 'TONE-FP3.CMEXLLK', 1),
+(8, 4, 'TONE-FP9.CMEXLLK', 1),
+(9, 4, 'TONE-FP8.CMEXLLK', 1),
+(10, 4, 'HBS-FN7.ABMSBK', 1),
+(11, 4, 'HBS-FN7.ABMSWH', 1),
+(12, 4, 'TONE-FP9W.CMEXLLK', 1),
+(13, 4, 'TONE-FP8W.CMEXLLK', 1),
+(14, 5, 'CJ45.DPERLLK', 1),
+(15, 5, 'CK43.DPERLLK', 1),
+(16, 5, 'CL87.DPERLLK', 1),
+(17, 5, 'OL100.DPERLLK', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `product_category`
+--
+
+CREATE TABLE `product_category` (
+  `category_id` int(11) NOT NULL,
+  `group_id` int(11) NOT NULL,
+  `category` varchar(50) NOT NULL,
+  `valid` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
+-- Dumping data for table `product_category`
+--
+
+INSERT INTO `product_category` (`category_id`, `group_id`, `category`, `valid`) VALUES
+(1, 1, 'Washing Machine', 1),
+(2, 1, 'Cooking Appliance', 1),
+(3, 1, 'Refrigerator', 1),
+(4, 2, 'AO', 1),
+(5, 2, 'AV', 1),
+(6, 2, 'TV', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `product_group`
+--
+
+CREATE TABLE `product_group` (
+  `group_id` int(11) NOT NULL,
+  `group_name` varchar(30) NOT NULL,
+  `valid` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
+-- Dumping data for table `product_group`
+--
+
+INSERT INTO `product_group` (`group_id`, `group_name`, `valid`) VALUES
+(1, 'HA', 1),
+(2, 'HE', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `subsidiary`
 --
 
 CREATE TABLE `subsidiary` (
   `subsidiary_id` int(11) NOT NULL,
   `subsidiary` varchar(100) NOT NULL,
   `valid` tinyint(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
--- 테이블의 덤프 데이터 `subsidiary`
+-- Dumping data for table `subsidiary`
 --
 
 INSERT INTO `subsidiary` (`subsidiary_id`, `subsidiary`, `valid`) VALUES
@@ -2716,7 +2828,7 @@ INSERT INTO `subsidiary` (`subsidiary_id`, `subsidiary`, `valid`) VALUES
 -- --------------------------------------------------------
 
 --
--- 테이블 구조 `vacation`
+-- Table structure for table `vacation`
 --
 
 CREATE TABLE `vacation` (
@@ -2728,10 +2840,10 @@ CREATE TABLE `vacation` (
   `day_count` float NOT NULL,
   `register` timestamp NOT NULL DEFAULT current_timestamp(),
   `valid` tinyint(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
--- 테이블의 덤프 데이터 `vacation`
+-- Dumping data for table `vacation`
 --
 
 INSERT INTO `vacation` (`vacation_id`, `type_id`, `employee_id`, `date_from`, `date_to`, `day_count`, `register`, `valid`) VALUES
@@ -2910,17 +3022,17 @@ INSERT INTO `vacation` (`vacation_id`, `type_id`, `employee_id`, `date_from`, `d
 -- --------------------------------------------------------
 
 --
--- 테이블 구조 `vacation_type`
+-- Table structure for table `vacation_type`
 --
 
 CREATE TABLE `vacation_type` (
   `type_id` int(11) NOT NULL,
   `type` varchar(15) NOT NULL,
   `valid` tinyint(4) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
--- 테이블의 덤프 데이터 `vacation_type`
+-- Dumping data for table `vacation_type`
 --
 
 INSERT INTO `vacation_type` (`type_id`, `type`, `valid`) VALUES
@@ -2931,7 +3043,7 @@ INSERT INTO `vacation_type` (`type_id`, `type`, `valid`) VALUES
 -- --------------------------------------------------------
 
 --
--- 테이블 구조 `working_hour`
+-- Table structure for table `working_hour`
 --
 
 CREATE TABLE `working_hour` (
@@ -2942,10 +3054,10 @@ CREATE TABLE `working_hour` (
   `date_to` date NOT NULL,
   `register` timestamp NOT NULL DEFAULT current_timestamp(),
   `valid` tinyint(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
--- 테이블의 덤프 데이터 `working_hour`
+-- Dumping data for table `working_hour`
 --
 
 INSERT INTO `working_hour` (`working_hour_id`, `employee_id`, `wh_option_id`, `date_from`, `date_to`, `register`, `valid`) VALUES
@@ -3094,7 +3206,7 @@ INSERT INTO `working_hour` (`working_hour_id`, `employee_id`, `wh_option_id`, `d
 -- --------------------------------------------------------
 
 --
--- 테이블 구조 `working_hour_option`
+-- Table structure for table `working_hour_option`
 --
 
 CREATE TABLE `working_hour_option` (
@@ -3102,10 +3214,10 @@ CREATE TABLE `working_hour_option` (
   `entrance_time` time NOT NULL,
   `exit_time` time NOT NULL,
   `valid` tinyint(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
--- 테이블의 덤프 데이터 `working_hour_option`
+-- Dumping data for table `working_hour_option`
 --
 
 INSERT INTO `working_hour_option` (`option_id`, `entrance_time`, `exit_time`, `valid`) VALUES
@@ -3119,140 +3231,188 @@ INSERT INTO `working_hour_option` (`option_id`, `entrance_time`, `exit_time`, `v
 (8, '09:00:00', '18:30:00', 1);
 
 --
--- 덤프된 테이블의 인덱스
+-- Indexes for dumped tables
 --
 
 --
--- 테이블의 인덱스 `attendance`
+-- Indexes for table `attendance`
 --
 ALTER TABLE `attendance`
   ADD PRIMARY KEY (`attendance_id`);
 
 --
--- 테이블의 인덱스 `department`
+-- Indexes for table `customer`
+--
+ALTER TABLE `customer`
+  ADD PRIMARY KEY (`customer_id`);
+
+--
+-- Indexes for table `department`
 --
 ALTER TABLE `department`
   ADD PRIMARY KEY (`department_id`);
 
 --
--- 테이블의 인덱스 `employee`
+-- Indexes for table `employee`
 --
 ALTER TABLE `employee`
   ADD PRIMARY KEY (`employee_id`);
 
 --
--- 테이블의 인덱스 `location`
+-- Indexes for table `location`
 --
 ALTER TABLE `location`
   ADD PRIMARY KEY (`location_id`);
 
 --
--- 테이블의 인덱스 `organization`
+-- Indexes for table `organization`
 --
 ALTER TABLE `organization`
   ADD PRIMARY KEY (`organization_id`),
   ADD KEY `fk_org_sub` (`subsidiary_id`);
 
 --
--- 테이블의 인덱스 `subsidiary`
+-- Indexes for table `product`
+--
+ALTER TABLE `product`
+  ADD PRIMARY KEY (`product_id`);
+
+--
+-- Indexes for table `product_category`
+--
+ALTER TABLE `product_category`
+  ADD PRIMARY KEY (`category_id`);
+
+--
+-- Indexes for table `product_group`
+--
+ALTER TABLE `product_group`
+  ADD PRIMARY KEY (`group_id`);
+
+--
+-- Indexes for table `subsidiary`
 --
 ALTER TABLE `subsidiary`
   ADD PRIMARY KEY (`subsidiary_id`);
 
 --
--- 테이블의 인덱스 `vacation`
+-- Indexes for table `vacation`
 --
 ALTER TABLE `vacation`
   ADD PRIMARY KEY (`vacation_id`);
 
 --
--- 테이블의 인덱스 `vacation_type`
+-- Indexes for table `vacation_type`
 --
 ALTER TABLE `vacation_type`
   ADD PRIMARY KEY (`type_id`);
 
 --
--- 테이블의 인덱스 `working_hour`
+-- Indexes for table `working_hour`
 --
 ALTER TABLE `working_hour`
   ADD PRIMARY KEY (`working_hour_id`);
 
 --
--- 테이블의 인덱스 `working_hour_option`
+-- Indexes for table `working_hour_option`
 --
 ALTER TABLE `working_hour_option`
   ADD PRIMARY KEY (`option_id`);
 
 --
--- 덤프된 테이블의 AUTO_INCREMENT
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- 테이블의 AUTO_INCREMENT `attendance`
+-- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
   MODIFY `attendance_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2366;
 
 --
--- 테이블의 AUTO_INCREMENT `department`
+-- AUTO_INCREMENT for table `customer`
+--
+ALTER TABLE `customer`
+  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
+-- AUTO_INCREMENT for table `department`
 --
 ALTER TABLE `department`
   MODIFY `department_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
--- 테이블의 AUTO_INCREMENT `employee`
+-- AUTO_INCREMENT for table `employee`
 --
 ALTER TABLE `employee`
   MODIFY `employee_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=143;
 
 --
--- 테이블의 AUTO_INCREMENT `location`
+-- AUTO_INCREMENT for table `location`
 --
 ALTER TABLE `location`
   MODIFY `location_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- 테이블의 AUTO_INCREMENT `organization`
+-- AUTO_INCREMENT for table `organization`
 --
 ALTER TABLE `organization`
   MODIFY `organization_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
--- 테이블의 AUTO_INCREMENT `subsidiary`
+-- AUTO_INCREMENT for table `product`
+--
+ALTER TABLE `product`
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
+-- AUTO_INCREMENT for table `product_category`
+--
+ALTER TABLE `product_category`
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `product_group`
+--
+ALTER TABLE `product_group`
+  MODIFY `group_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `subsidiary`
 --
 ALTER TABLE `subsidiary`
   MODIFY `subsidiary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- 테이블의 AUTO_INCREMENT `vacation`
+-- AUTO_INCREMENT for table `vacation`
 --
 ALTER TABLE `vacation`
   MODIFY `vacation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=172;
 
 --
--- 테이블의 AUTO_INCREMENT `vacation_type`
+-- AUTO_INCREMENT for table `vacation_type`
 --
 ALTER TABLE `vacation_type`
   MODIFY `type_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
--- 테이블의 AUTO_INCREMENT `working_hour`aaa
+-- AUTO_INCREMENT for table `working_hour`
 --
 ALTER TABLE `working_hour`
   MODIFY `working_hour_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=142;
 
 --
--- 테이블의 AUTO_INCREMENT `working_hour_option`
+-- AUTO_INCREMENT for table `working_hour_option`
 --
 ALTER TABLE `working_hour_option`
   MODIFY `option_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
--- 덤프된 테이블의 제약사항
+-- Constraints for dumped tables
 --
 
 --
--- 테이블의 제약사항 `organization`
+-- Constraints for table `organization`
 --
 ALTER TABLE `organization`
   ADD CONSTRAINT `fk_org_sub` FOREIGN KEY (`subsidiary_id`) REFERENCES `subsidiary` (`subsidiary_id`) ON DELETE CASCADE ON UPDATE CASCADE;
