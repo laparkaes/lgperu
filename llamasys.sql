@@ -3236,7 +3236,7 @@ ALTER TABLE `vacation_type`
   MODIFY `type_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
--- 테이블의 AUTO_INCREMENT `working_hour`
+-- 테이블의 AUTO_INCREMENT `working_hour`aaa
 --
 ALTER TABLE `working_hour`
   MODIFY `working_hour_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=142;
