@@ -14,12 +14,6 @@ class Attendance extends CI_Controller {
 		parent::__construct();
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
-		$this->load->model('subsidiary_model', 'sub_m');
-		$this->load->model('organization_model', 'org_m');
-		$this->load->model('employee_model', 'emp_m');
-		$this->load->model('vacation_model', 'vac_m');
-		$this->load->model('office_model', 'off_m');
-		$this->load->model('working_hour_model', 'whour_m');
 		$this->load->model('attendance_model', 'att_m');
 		$this->nav_menu = ["hr", "attendance"];
 		$this->color_rgb = [
@@ -55,18 +49,22 @@ class Attendance extends CI_Controller {
 			$now->add($interval);
 		}
 		
-		//employee subsidiary, organization, office variable set
-		$subs = []; $subs_rec = $this->sub_m->all();
-		foreach($subs_rec as $sub) $subs[$sub->subsidiary_id] = $sub->subsidiary;
+		//employee subsidiary, organization, department and office variable set
+		$locs = [];
+		$locs_rec = $this->gen_m->all("location");
+		foreach($locs_rec as $l) $locs[$l->location_id] = $l;
 		
-		$orgs = []; $orgs_rec = $this->org_m->all();
-		foreach($orgs_rec as $org) $orgs[$org->organization_id] = $org->organization;
+		$depts = [];
+		$depts_rec = $this->gen_m->all("department");
+		foreach($depts_rec as $d) $depts[$d->department_id] = $d;
 		
-		$offs = []; $offs_rec = $this->off_m->all();
-		foreach($offs_rec as $off) $offs[$off->office_id] = $off->office;
+		$orgs = [];
+		$orgs_rec = $this->gen_m->all("organization");
+		foreach($orgs_rec as $o) $orgs[$o->organization_id] = $o;
 		
-		//approved vacaction status record
-		$status_vac = $this->vac_m->unique_status("status", "Approved");
+		$subs = [];
+		$subs_rec = $this->gen_m->all("subsidiary");
+		foreach($subs_rec as $s) $subs[$s->subsidiary_id] = $s;
 		
 		//set employee array
 		$employees = [];
@@ -81,9 +79,12 @@ class Attendance extends CI_Controller {
 			];
 			$atts = $this->gen_m->filter("attendance", true, $w, null, null, [["date", "asc"]]);
 			if ($atts){
-				$emp->subsidiary = ($emp->subsidiary_id) ? $subs[$emp->subsidiary_id] : "";
-				$emp->organization = ($emp->organization_id) ? $orgs[$emp->organization_id] : "";
-				$emp->office = ($emp->office_id) ? $offs[$emp->office_id] : "";
+				$emp->location = ($emp->location_id) ? $locs[$emp->location_id]->location : "";
+				if ($emp->department_id){
+					$emp->department = $depts[$emp->department_id]->department;
+					$emp->organization = $orgs[$depts[$emp->department_id]->organization_id]->organization;
+					$emp->subsidiary = $subs[$orgs[$depts[$emp->department_id]->organization_id]->subsidiary_id]->subsidiary;
+				}else $emp->department = $emp->organization = $emp->subsidiary = "";
 				
 				$emp->vacation_qty = 0;
 				$emp->absence_qty = 0;
@@ -94,7 +95,6 @@ class Attendance extends CI_Controller {
 				//set vacation date array
 				$w = [
 					"employee_id" => $emp->employee_id,
-					"status_id" => $status_vac->status_id,
 					"date_from <" => date('Y-m-01', strtotime($period)),
 					"date_to >=" => date('Y-m-01', strtotime($period)),
 					"date_to <=" =>date('Y-m-t', strtotime($period))
@@ -103,7 +103,6 @@ class Attendance extends CI_Controller {
 				
 				$w = [
 					"employee_id" => $emp->employee_id,
-					"status_id" => $status_vac->status_id,
 					"date_from >=" => date('Y-m-01', strtotime($period)),
 					"date_from <=" =>date('Y-m-t', strtotime($period))
 				];
@@ -112,8 +111,8 @@ class Attendance extends CI_Controller {
 				$vacation_dates = []; $vacation_exception = [];
 				$vacations = array_merge($vacations_t, $vacations_f);
 				foreach($vacations as $vac){
-					if ($vac->day < 1){
-						$type = $this->vac_m->unique_type("type_id", $vac->type_id);
+					if ($vac->day_count < 1){
+						$type = $this->gen_m->unique("vacation_type", "type_id", $vac->type_id);
 						
 						//$vacation_exception["entrance", "exit"] as time in string
 						if (strpos($type->type, 'Morning') !== false) //half day - morning: entrance is 2pm
@@ -163,7 +162,7 @@ class Attendance extends CI_Controller {
 				$whour = $this->gen_m->filter("working_hour", true, $w);
 				if ($whour){
 					$whour = $whour[0];
-					$whour_op = $this->whour_m->unique_option("option_id", $whour->wh_option_id);
+					$whour_op = $this->gen_m->unique("working_hour_option", "option_id", $whour->wh_option_id);
 				}else $whour_op = null;
 				
 				foreach($atts as $att){
@@ -178,7 +177,7 @@ class Attendance extends CI_Controller {
 						$whour = $this->gen_m->filter("working_hour", true, $w);
 						if ($whour){
 							$whour = $whour[0];
-							$whour_op = $this->whour_m->unique_option("option_id", $whour->wh_option_id);
+							$whour_op = $this->gen_m->unique("working_hour_option", "option_id", $whour->wh_option_id);
 						}else $whour_op = null;
 					}
 					
@@ -321,14 +320,15 @@ class Attendance extends CI_Controller {
 		$sheet->setCellValueByColumnAndRow(3, 5, 'Employee');
 		$sheet->setCellValueByColumnAndRow(4, 5, 'Subsidiary');
 		$sheet->setCellValueByColumnAndRow(5, 5, 'Organization');
-		$sheet->setCellValueByColumnAndRow(6, 5, 'Office');
-		$sheet->setCellValueByColumnAndRow(7, 5, 'Vacation');
-		$sheet->setCellValueByColumnAndRow(8, 5, 'Absence');
-		$sheet->setCellValueByColumnAndRow(9, 5, 'Tardiness');
-		$sheet->setCellValueByColumnAndRow(10, 5, 'Tard.Acc.');
-		$sheet->setCellValueByColumnAndRow(11, 5, 'Early Exit');
+		$sheet->setCellValueByColumnAndRow(6, 5, 'Department');
+		$sheet->setCellValueByColumnAndRow(7, 5, 'Location');
+		$sheet->setCellValueByColumnAndRow(8, 5, 'Vacation');
+		$sheet->setCellValueByColumnAndRow(9, 5, 'Absence');
+		$sheet->setCellValueByColumnAndRow(10, 5, 'Tardiness');
+		$sheet->setCellValueByColumnAndRow(11, 5, 'Tard.Acc.');
+		$sheet->setCellValueByColumnAndRow(12, 5, 'Early Exit');
 		
-		$x_start = 12;
+		$x_start = 13;
 		foreach($headers as $i => $h){//header structure: ["day", "day_w", "type"]
 			$x = $x_start + $i;
 			
@@ -346,13 +346,14 @@ class Attendance extends CI_Controller {
 			$sheet->setCellValueByColumnAndRow(3, $y, $emp->name);
 			$sheet->setCellValueByColumnAndRow(4, $y, $emp->subsidiary);
 			$sheet->setCellValueByColumnAndRow(5, $y, $emp->organization);
-			$sheet->setCellValueByColumnAndRow(6, $y, $emp->office);
+			$sheet->setCellValueByColumnAndRow(6, $y, $emp->department);
+			$sheet->setCellValueByColumnAndRow(7, $y, $emp->location);
 			
-			$sheet->setCellValueByColumnAndRow(7, $y, ($emp->vacation_qty > 0) ? $emp->vacation_qty : "");
-			$sheet->setCellValueByColumnAndRow(8, $y, ($emp->absence_qty > 0) ? $emp->absence_qty : "");
-			$sheet->setCellValueByColumnAndRow(9, $y, ($emp->tardiness_qty > 0) ? $emp->tardiness_qty : "");
-			$sheet->setCellValueByColumnAndRow(10, $y, ($emp->tardiness_qty > 0) ? $emp->tardiness_acc : "");
-			$sheet->setCellValueByColumnAndRow(11, $y, ($emp->early_exit_qty > 0) ? $emp->early_exit_qty : "");
+			$sheet->setCellValueByColumnAndRow(8, $y, ($emp->vacation_qty > 0) ? $emp->vacation_qty : "");
+			$sheet->setCellValueByColumnAndRow(9, $y, ($emp->absence_qty > 0) ? $emp->absence_qty : "");
+			$sheet->setCellValueByColumnAndRow(10, $y, ($emp->tardiness_qty > 0) ? $emp->tardiness_qty : "");
+			$sheet->setCellValueByColumnAndRow(11, $y, ($emp->tardiness_qty > 0) ? $emp->tardiness_acc : "");
+			$sheet->setCellValueByColumnAndRow(12, $y, ($emp->early_exit_qty > 0) ? $emp->early_exit_qty : "");
 
 			foreach($dates as $idate => $d){
 				$x = $x_start + $idate;
@@ -422,7 +423,7 @@ class Attendance extends CI_Controller {
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
 	}
 	
-	public function upload_device_file(){
+	public function upload_device_check(){
 		$type = "error"; $msg = null;
 		
 		$config = [
@@ -499,10 +500,10 @@ class Attendance extends CI_Controller {
             }
 			
 			foreach($atts as $emp_num => $emp){
-				$emp_rec = $this->emp_m->unique("employee_number", $emp_num);
+				$emp_rec = $this->gen_m->unique("employee", "employee_number", $emp_num);
 				if (!$emp_rec){
-					$this->emp_m->insert(["employee_number" => $emp_num, "name" => $emp["name"]]);
-					$emp_rec = $this->emp_m->unique("employee_number", $emp_num);
+					$this->gen_m->insert("employee", ["employee_number" => $emp_num, "name" => $emp["name"]]);
+					$emp_rec = $this->gen_m->unique("employee", "employee_number", $emp_num);
 				}
 				
 				$checks = $emp["check"];

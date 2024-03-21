@@ -3,7 +3,7 @@
 		<h1>Attendance</h1>
 		<nav>
 			<ol class="breadcrumb">
-				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Home</a></li>
+				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard?m=hr">HR</a></li>
 				<li class="breadcrumb-item active">Attendance</li>
 			</ol>
 		</nav>
@@ -38,7 +38,8 @@
 									<th scope="col">Employee</th>
 									<th scope="col">Subsidiary</th>
 									<th scope="col">Organization</th>
-									<th scope="col">Office</th>
+									<th scope="col">Department</th>
+									<th scope="col">Location</th>
 									<th scope="col">Vac.</th>
 									<th scope="col">Abs.</th>
 									<th scope="col">Tard.</th>
@@ -61,7 +62,8 @@
 									<td><div style="overflow: hidden; max-width: 150px; text-overflow: ellipsis;" class="text-nowrap" title="<?= $emp->name ?>"><?= $emp->name ?></div></td>
 									<td><?= $emp->subsidiary ?></td>
 									<td><div class="text-nowrap"><?= $emp->organization ?></div></td>
-									<td><div class="text-nowrap"><?= $emp->office ?></div></td>
+									<td><div class="text-nowrap"><?= $emp->department ?></div></td>
+									<td><div class="text-nowrap"><?= $emp->location ?></div></td>
 									<td><?= ($emp->vacation_qty > 0) ? $emp->vacation_qty : "" ?></td>
 									<td><?= ($emp->absence_qty > 0) ? number_format($emp->absence_qty) : "" ?></td>
 									<td><?= ($emp->tardiness_qty > 0) ? number_format($emp->tardiness_qty) : ""  ?></td>
@@ -165,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		e.preventDefault();
 		$("#form_exp_report .sys_msg").html("");
 		ajax_form_warning(this, "hr/attendance/export_monthly_report", "Do you want to export monthly attendance report?").done(function(res) {
-			//window.location.href = res.url;
+			window.location.href = res.url;
 			//alert();
 			//swal_redirection(res.type, res.msg, "hr/attendance");
 		});
@@ -174,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_uff_attendance").submit(function(e) {
 		e.preventDefault();
 		$("#form_uff_attendance .sys_msg").html("");
-		ajax_form_warning(this, "hr/attendance/upload_device_file", "Do you want to upload device check-in data from selected file?").done(function(res) {
+		ajax_form_warning(this, "hr/attendance/upload_device_check", "Do you want to upload device check-in data from selected file?").done(function(res) {
 			swal_redirection(res.type, res.msg, "hr/attendance");
 		});
 	});

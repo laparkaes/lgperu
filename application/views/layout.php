@@ -17,13 +17,12 @@
 	<link href="<?= base_url() ?>assets/vendor/simple-datatables/style.css" rel="stylesheet">
 	<link href="<?= base_url() ?>assets/css/style.css" rel="stylesheet">
 </head>
-<body>
+<body class="toggle-sidebar">
 	<header id="header" class="header fixed-top d-flex align-items-center">
 		<div class="d-flex align-items-center justify-content-between">
-			<a href="<?= base_url() ?>" class="logo d-flex align-items-center">
+			<a href="<?= base_url() ?>" class="logo d-flex align-items-center" style="width:auto;">
 				<img src="<?= base_url() ?>assets/img/logo-lg-100-44.svg" alt="">
 			</a>
-			<i class="bi bi-list toggle-sidebar-btn"></i>
 		</div>
 		<nav class="header-nav ms-auto">
 			<ul class="d-flex align-items-center">
@@ -147,49 +146,6 @@
 			</ul>
 		</nav>
 	</header>
-	<aside id="sidebar" class="sidebar">
-		<ul class="sidebar-nav" id="sidebar-nav">
-			<li class="nav-item">
-				<a class="nav-link <?= ($this->nav_menu[0] === "dashboard") ? "" : "collapsed" ?>" href="<?= base_url() ?>dashboard">
-					<i class="bi bi-grid"></i>
-					<span>Dashboard</span>
-				</a>
-			</li>
-			
-			<li class="nav-item">
-				<a class="nav-link <?= ($this->nav_menu[0] === "hr") ? "" : "collapsed" ?>" data-bs-target="#hr-nav" data-bs-toggle="collapse" href="#" aria-expanded="<?= ($this->nav_menu[0] === "hr") ? "true" : "false" ?>">
-					<i class="bi bi-person-rolodex"></i><span>HR</span><i class="bi bi-chevron-down ms-auto"></i>
-				</a>
-				<ul id="hr-nav" class="nav-content collapse <?= ($this->nav_menu[0] === "hr") ? "show" : "" ?>" data-bs-parent="#sidebar-nav">
-					<li>
-						<a href="<?= base_url() ?>hr/attendance" class="<?= ($this->nav_menu[1] === "attendance") ? "active" : "" ?>">
-							<i class="bi bi-circle"></i><span>Attendance</span>
-						</a>
-					</li>
-					<li>
-						<a href="<?= base_url() ?>hr/employee" class="<?= ($this->nav_menu[1] === "employee") ? "active" : "" ?>">
-							<i class="bi bi-circle"></i><span>Employee</span>
-						</a>
-					</li>
-				</ul>
-			</li>
-			<li class="nav-heading">Pages</li>
-
-			<li class="nav-item">
-				<a class="nav-link collapsed" href="users-profile.html">
-					<i class="bi bi-person"></i>
-					<span>Profile</span>
-				</a>
-			</li>
-			<li class="nav-item">
-				<a class="nav-link collapsed" href="pages-faq.html">
-					<i class="bi bi-question-circle"></i>
-					<span>F.A.Q</span>
-				</a>
-			</li>
-		</ul>
-	</aside>
-
 <main id="main" class="main">
 <?php $this->load->view($main); ?>
 </main><!-- End #main -->
