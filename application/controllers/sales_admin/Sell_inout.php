@@ -20,6 +20,13 @@ class Sell_inout extends CI_Controller {
 		];
 	}
 	
+	public function sell_in_excel($path = null){
+		$path = "upload/sales_admin/sell_in.xlsx";
+		
+		$spreadsheet = IOFactory::load($file_path);
+		$sheet = $spreadsheet->getActiveSheet();
+	}
+	
 	public function index(){
 		//$data = $this->set_attendance($period);
 		$data["main"] = "sales_admin/sell_inout/index";
@@ -33,9 +40,9 @@ class Sell_inout extends CI_Controller {
 		$type = $this->input->post("type");
 		
 		$config = [
-			'upload_path'	=> './upload/sales_admin',
+			'upload_path'	=> './upload/sales_admin/',
 			'allowed_types'	=> 'xls|xlsx|csv',
-			'max_size'		=> 10000,
+			'max_size'		=> 20000,
 			'overwrite'		=> TRUE,
 			'file_name'		=> 'sell_'.$type,
 		];
