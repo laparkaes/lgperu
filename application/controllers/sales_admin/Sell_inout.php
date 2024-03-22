@@ -43,6 +43,16 @@ class Sell_inout extends CI_Controller {
 		return $prod;
 	}
 	
+	private function get_invoice($invoice){
+		$inv = $this->gen_m->unique("invoice", "invoice", $invoice);
+		if (!$inv){
+			$inv_id = $this->gen_m->insert("invoice", ["invoice" => $invoice]);
+			$inv = $this->gen_m->unique("invoice", "invoice_id", $inv_id);
+		}
+		
+		return $inv;
+	}
+	
 	public function sell_in_excel($path = null){
 		$path = "./upload/sales_admin/sell_in.xlsx";
 		
@@ -50,7 +60,7 @@ class Sell_inout extends CI_Controller {
 		$sheet = $spreadsheet->getActiveSheet();
 		
 		$max_row = $sheet->getHighestRow();
-		$max_row = 100;
+		//$max_row = 100;
 		
 		//preparing product category id array
 		$cat_arr = [];
@@ -58,40 +68,39 @@ class Sell_inout extends CI_Controller {
 		foreach($cat_rec as $cat) $cat_arr[$cat->category] = $cat;
 		
 		$data = [];
-		$count = 0;
 		for ($row = 2; $row <= $max_row; $row++){
-			$customer = $this->get_customer(trim($sheet->getCell('B'.$row)->getValue()), trim($sheet->getCell('C'.$row)->getValue()));
-			$product = $this->get_product($cat_arr[trim($sheet->getCell('A'.$row)->getValue())]->category_id, trim($sheet->getCell('D'.$row)->getValue()));
-			
-			print_r($cat_arr[trim($sheet->getCell('A'.$row)->getValue())]); echo "<br/>";
-			print_r($customer); echo "<br/>";
-			print_r($product); echo "<br/>";
-			
-			
-			$aux = [
-				"A" => trim($sheet->getCell('A'.$row)->getValue()),
-				"B" => trim($sheet->getCell('B'.$row)->getValue()),
-				"C" => trim($sheet->getCell('C'.$row)->getValue()),
-				"D" => trim($sheet->getCell('D'.$row)->getValue()),
-				"E" => date("Y-m-d", strtotime(trim($sheet->getCell('E'.$row)->getFormattedValue()))),
-				"F" => trim($sheet->getCell('F'.$row)->getValue()),
-				"G" => trim($sheet->getCell('G'.$row)->getValue()),
-				"H" => trim($sheet->getCell('H'.$row)->getValue()),
-				"I" => trim($sheet->getCell('I'.$row)->getValue()),
-				"J" => trim($sheet->getCell('J'.$row)->getValue()),
-				"K" => trim($sheet->getCell('K'.$row)->getValue()),
-			];
-			
-			print_r($aux); echo "<br/>";
-			
-			
-			
-			
-			echo "<br/>";
-			
+			$order_qty = trim($sheet->getCell('H'.$row)->getValue());
+			if ($order_qty != 0){
+				$invoice = $this->get_invoice(trim($sheet->getCell('F'.$row)->getValue()));
+				$customer = $this->get_customer(trim($sheet->getCell('B'.$row)->getValue()), trim($sheet->getCell('C'.$row)->getValue()));
+				$product = $this->get_product($cat_arr[trim($sheet->getCell('A'.$row)->getValue())]->category_id, trim($sheet->getCell('D'.$row)->getValue()));
+				$currency = $this->gen_m->unique("currency", "currency", trim($sheet->getCell('G'.$row)->getValue()));
+				
+				$aux = [
+					"invoice_id" => ($invoice) ? $invoice->invoice_id : null,
+					"customer_id" => ($customer) ? $customer->customer_id : null,
+					"product_id" => ($product) ? $product->product_id : null,
+					"currency_id" => ($currency) ? $currency->currency_id : null,
+					"closed_date" => date("Y-m-d", strtotime(trim($sheet->getCell('E'.$row)->getFormattedValue()))),
+					"order_qty" => $order_qty,
+					"unit_selling_price" => trim($sheet->getCell('I'.$row)->getValue()),
+					"order_amount" => trim($sheet->getCell('J'.$row)->getValue()),
+					"order_amount_pen" => trim($sheet->getCell('K'.$row)->getValue()),
+				];
+				
+				print_r($aux); echo "<br/>";
+				if (!$this->gen_m->filter("sell_in", true, $aux)){
+					echo "added<br/>";
+					$data[] = $aux;
+				}else echo "skiped<br/>";
+			}
 		}
 		
-		echo "<br/>read ok";
+		$sell_in_qty = ($data) ? $this->gen_m->insert_m("sell_in", $data) : 0;
+		
+		print_r($data);
+		
+		echo "Read ok: ".$sell_in_qty;
 	}
 	
 	public function index(){
