@@ -54,6 +54,8 @@ class Sell_inout extends CI_Controller {
 	}
 	
 	public function sell_in_excel($path = null){
+		set_time_limit(0);
+		
 		$path = "./upload/sales_admin/sell_in.xlsx";
 		
 		$spreadsheet = IOFactory::load($path);
@@ -93,12 +95,12 @@ class Sell_inout extends CI_Controller {
 					echo "added<br/>";
 					$data[] = $aux;
 				}else echo "skiped<br/>";
+				
+				echo "<br/>";
 			}
 		}
 		
 		$sell_in_qty = ($data) ? $this->gen_m->insert_m("sell_in", $data) : 0;
-		
-		print_r($data);
 		
 		echo "Read ok: ".$sell_in_qty;
 	}
