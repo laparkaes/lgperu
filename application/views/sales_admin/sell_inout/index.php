@@ -147,19 +147,6 @@
 			<div class="modal-body">
 				<form class="row g-3" id="form_uff_sell_inout">
 					<div class="col-12">
-						<label class="form-label">Type</label>
-						<div class="form-control">
-							<div class="form-check form-check-inline">
-								<input class="form-check-input" type="radio" id="rd_sellin" value="in" name="type" checked>
-								<label class="form-check-label" for="rd_sellin">Sell-In</label>
-							</div>
-							<div class="form-check form-check-inline">
-								<input class="form-check-input" type="radio" id="rd_sellout" value="out" name="type">
-								<label class="form-check-label" for="rd_sellout">Sell-Out</label>
-							</div>
-						</div>
-					</div>
-					<div class="col-12">
 						<label class="form-label">File</label>
 						<input type="file" class="form-control" name="md_uff_file" accept=".xls,.xlsx,.csv">
 					</div>
@@ -192,5 +179,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			swal_redirection(res.type, res.msg, "sales_admin/sell_inout");
 		});
 	});
+	
 });
 </script>

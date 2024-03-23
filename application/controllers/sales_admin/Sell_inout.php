@@ -53,16 +53,8 @@ class Sell_inout extends CI_Controller {
 		return $inv;
 	}
 	
-	public function sell_in_excel($path = null){
-		set_time_limit(0);
-		
-		$path = "./upload/sales_admin/sell_in.xlsx";
-		
-		$spreadsheet = IOFactory::load($path);
-		$sheet = $spreadsheet->getActiveSheet();
-		
+	public function sell_in_excel($sheet){
 		$max_row = $sheet->getHighestRow();
-		//$max_row = 100;
 		
 		//preparing product category id array
 		$cat_arr = [];
@@ -90,19 +82,11 @@ class Sell_inout extends CI_Controller {
 					"order_amount_pen" => trim($sheet->getCell('K'.$row)->getValue()),
 				];
 				
-				print_r($aux); echo "<br/>";
-				if (!$this->gen_m->filter("sell_in", true, $aux)){
-					echo "added<br/>";
-					$data[] = $aux;
-				}else echo "skiped<br/>";
-				
-				echo "<br/>";
+				if (!$this->gen_m->filter("sell_in", true, $aux)) $data[] = $aux;
 			}
 		}
 		
-		$sell_in_qty = ($data) ? $this->gen_m->insert_m("sell_in", $data) : 0;
-		
-		echo "Read ok: ".$sell_in_qty;
+		return ($data) ? $this->gen_m->insert_m("sell_in", $data) : 0;
 	}
 	
 	public function index(){
@@ -113,26 +97,91 @@ class Sell_inout extends CI_Controller {
 	}
 	
 	public function upload_from_file(){
-		$type = "error"; $msg = null;
+		ini_set("memory_limit","1024M");
+		set_time_limit(0);
 		
-		$type = $this->input->post("type");
+		$type = "error"; $msg = null;
 		
 		$config = [
 			'upload_path'	=> './upload/sales_admin/',
 			'allowed_types'	=> 'xls|xlsx|csv',
 			'max_size'		=> 20000,
 			'overwrite'		=> TRUE,
-			'file_name'		=> 'sell_'.$type,
+			'file_name'		=> 'sell_inout',
 		];
 		$this->load->library('upload', $config);
 
 		if ($this->upload->do_upload('md_uff_file')){
-			return;
+			//check kind of file: sell-in or sell-out
 			$data = $this->upload->data();
 			$file_path = $data['full_path'];
 
 			$spreadsheet = IOFactory::load($file_path);
 			$sheet = $spreadsheet->getActiveSheet();
+			
+			$h = [
+				trim($sheet->getCell('A1')->getValue()),
+				trim($sheet->getCell('B1')->getValue()),
+				trim($sheet->getCell('C1')->getValue()),
+				trim($sheet->getCell('D1')->getValue()),
+				trim($sheet->getCell('E1')->getValue()),
+				trim($sheet->getCell('F1')->getValue()),
+				trim($sheet->getCell('G1')->getValue()),
+				trim($sheet->getCell('H1')->getValue()),
+				trim($sheet->getCell('I1')->getValue()),
+				trim($sheet->getCell('J1')->getValue()),
+				trim($sheet->getCell('K1')->getValue()),
+				trim($sheet->getCell('L1')->getValue()),
+				trim($sheet->getCell('M1')->getValue()),
+			];
+			
+			//determinate file type
+			$f_type = "";
+			
+			if (
+				($h[0] === "Product Level1 Name") and 
+				($h[1] === "Bill To Name") and 
+				($h[2] === "Bill To Code") and 
+				($h[3] === "Model") and 
+				($h[4] === "Closed Date") and 
+				($h[5] === "Invoice No.") and 
+				($h[6] === "Currency") and 
+				($h[7] === "Order Qty") and 
+				($h[8] === "Unit Selling  Price") and 
+				($h[9] === "Order Amount") and 
+				($h[10] === "Order Amount (PEN)") and 
+				($h[11] === "") and 
+				($h[12] === "")
+			) $f_type = "in";
+			
+			if (
+				($h[0] === "Year") and 
+				($h[1] === "Channel") and 
+				($h[2] === "Account") and 
+				($h[3] === "Customer Code") and 
+				($h[4] === "Division") and 
+				($h[5] === "Line") and 
+				($h[6] === "Week") and 
+				($h[7] === "Sunday") and 
+				($h[8] === "Model") and 
+				($h[9] === "Suffix") and 
+				($h[10] === "Units") and 
+				($h[11] === "Amount") and 
+				($h[12] === "Stock")
+			) $f_type = "out";
+			
+			switch($f_type){
+				case "in": 
+					$type = "success";
+					$msg = $this->sell_in_excel($sheet)." new records has been inserted to sell-in.";
+					break;
+				case "out": 
+					
+					$type = "success";
+					$msg = "23423 registros de sell-out fueron ingresados.";
+					break;
+				default: $msg = "Archivo adjunto no es de sell-in o de sell-out.";
+			}
 			
 			/*
 			$sheet->setCellValue('B1', 'Upload Result');
@@ -143,7 +192,7 @@ class Sell_inout extends CI_Controller {
 			$sheet->getStyle('C')->getFill()->setFillType(Fill::FILL_SOLID);
 			$sheet->getStyle('C')->getFill()->getStartColor()->setARGB('FFFF00');
 			*/
-			
+			/*
             $highestRow = $sheet->getHighestRow();
             //$highestColumn = $sheet->getHighestColumn();
 
@@ -176,7 +225,7 @@ class Sell_inout extends CI_Controller {
 						$date_split[1]: check time
 						$aux[0]: employee_number
 						$aux[1]: name
-						*/
+						/
 						
 						if (!array_key_exists($aux[0], $atts))
 							$atts[$aux[0]] = ["name" => "", "check" => []];
@@ -225,6 +274,7 @@ class Sell_inout extends CI_Controller {
 			
 			$type = "success";
 			$msg = "Check-in time upload result: ".number_format($new_qty)." new and ".number_format($upd_qty)." updated.";
+			*/
 		}else{
 			$error = array('error' => $this->upload->display_errors());
 			$msg = str_replace("p>", "div>", $this->upload->display_errors());
