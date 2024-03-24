@@ -21,8 +21,13 @@ class Sell_inout extends CI_Controller {
 	}
 	
 	public function index(){
-		//$data = $this->set_attendance($period);
-		$data["main"] = "sa/sell_inout/index";
+		
+		$data = [
+			"groups" => $this->gen_m->all("product_group", [["group_name", "asc"]]),
+			"categories" => $this->gen_m->all("product_category", [["category", "asc"]]),
+			"products" => $this->gen_m->all("product", [["model", "asc"]]),
+			"main" => "sa/sell_inout/index",
+		];
 		
 		$this->load->view('layout', $data);
 	}

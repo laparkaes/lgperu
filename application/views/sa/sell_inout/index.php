@@ -25,10 +25,17 @@
 </div>
 <section class="section">
 	<div class="row">
-		<div class="col">
+		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Sell In/Out</h5>
+					<h5 class="card-title">Filter</h5>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Sell-In</h5>
 					<div class="table-responsive">
 						<table class="table datatable align-middle">
 							<thead>
