@@ -29,6 +29,47 @@
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Filter</h5>
+					<form class="row g-3">
+						<div class="col-md-2">
+							<label class="form-label">Group</label>
+							<select class="form-select">
+								<option selected="">Choose...</option>
+								<option>...</option>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Category</label>
+							<select class="form-select">
+								<option selected="">Choose...</option>
+								<option>...</option>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Product</label>
+							<select class="form-select">
+								<option selected="">Choose...</option>
+								<option>...</option>
+							</select>
+						</div>
+						<div class="col-md-4">
+							<label class="form-label">Customer</label>
+							<select class="form-select">
+								<option selected="">Choose...</option>
+								<option>...</option>
+							</select>
+						</div>
+						<div class="col-md-1">
+							<label for="inputName5" class="form-label">From</label>
+							<input type="text" class="form-control" id="inputName5">
+						</div>
+						<div class="col-md-1">
+							<label for="inputName5" class="form-label">To</label>
+							<input type="text" class="form-control" id="inputName5">
+						</div>
+						<div class="text-center">
+							<button type="submit" class="btn btn-primary">Submit</button>
+						</div>
+					</form>
 				</div>
 			</div>
 		</div>
