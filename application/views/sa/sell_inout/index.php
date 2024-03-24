@@ -33,22 +33,28 @@
 						<div class="col-md-2">
 							<label class="form-label">Group</label>
 							<select class="form-select">
-								<option selected="">Choose...</option>
-								<option>...</option>
+								<option value="" selected="">Choose...</option>
+								<?php foreach($groups as $g){ ?>
+								<option value="<?= $g->group_id ?>"><?= $g->group_name ?></option>
+								<?php } ?>
 							</select>
 						</div>
 						<div class="col-md-2">
 							<label class="form-label">Category</label>
 							<select class="form-select">
-								<option selected="">Choose...</option>
-								<option>...</option>
+								<option value="" selected="">Choose...</option>
+								<?php foreach($categories as $c){ ?>
+								<option value="<?= $c->category_id ?>"><?= $c->category ?></option>
+								<?php } ?>
 							</select>
 						</div>
 						<div class="col-md-2">
 							<label class="form-label">Product</label>
 							<select class="form-select">
-								<option selected="">Choose...</option>
-								<option>...</option>
+								<option value="" selected="">Choose...</option>
+								<?php foreach($products as $p){ ?>
+								<option value="<?= $p->product_id ?>"><?= $p->model ?></option>
+								<?php } ?>
 							</select>
 						</div>
 						<div class="col-md-4">
