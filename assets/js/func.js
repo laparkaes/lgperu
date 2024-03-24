@@ -90,7 +90,20 @@ function swal_redirection(type, msg, move_to){
 			if (result.isConfirmed) if (type == "success") location.href = base_url + move_to;
 		});	
 	}
-	
+}
+
+function swal_open_tab(type, msg, url){
+	if (msg != ""){
+		Swal.fire({
+			title: type.toUpperCase() + " !!!",
+			icon: type,
+			html: msg,
+			confirmButtonText: "Confirm",
+			cancelButtonText: "Cancel",
+		}).then((result) => {
+			if (result.isConfirmed) if (type == "success") window.open(url, '_blank');
+		});	
+	}
 }
 
 
