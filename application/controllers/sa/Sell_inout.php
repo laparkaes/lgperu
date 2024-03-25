@@ -26,17 +26,59 @@ class Sell_inout extends CI_Controller {
 			"groups" => $this->gen_m->all("product_group", [["group_name", "asc"]]),
 			"categories" => $this->gen_m->all("product_category", [["category", "asc"]]),
 			"products" => $this->gen_m->all("product", [["model", "asc"]]),
+			"customers" => $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]),
 			"main" => "sa/sell_inout/index",
 		];
 		
 		$this->load->view('layout', $data);
 	}
 	
+	public function testing(){
+		$w = [
+			//"order_qty !=" => 0,
+			"customer_id" => 5,
+		];
+		
+		$groups = $this->gen_m->all("product_group", [["group_name", "asc"]]);
+		foreach($groups as $grp){
+			echo "Group: ".$grp->group_name."<br/>";
+			$categories = $this->gen_m->filter("product_category", true, ["group_id" => $grp->group_id]);
+			foreach($categories as $cat){
+				echo "Category: ".$cat->category."<br/>";
+				$products = $this->gen_m->filter("product", true, ["category_id" => $cat->category_id]);
+				foreach($products as $prd){
+					$w["product_id"] = $prd->product_id;
+					$sell_ins = $this->gen_m->filter("sell_in", true, $w, null, null, [["closed_date", "asc"]]);
+					if ($sell_ins){
+						echo "- ".$prd->model."<br/>";
+						echo "closed_date / invoice_id / order_qty / unit_selling_price / order_amount<br/>";
+						foreach($sell_ins as $in){
+							echo $in->closed_date." / ".$in->invoice_id." / ".$in->order_qty." / ".$in->unit_selling_price." / ".$in->order_amount."<br/>";
+						}
+						
+						echo "<br/><br/>";	
+					}
+				}
+				
+				echo "<br/><br/>";
+			}
+			
+			echo "<br/><br/>";
+		}
+		
+		
+		
+		
+		
+	}
+	
 	private function get_customer($customer, $bill_to_code){
 		$cus = $this->gen_m->unique("customer", "bill_to_code", $bill_to_code);
 		if (!$cus){
-			$cus_id = $this->gen_m->insert("customer", ["customer" => $customer, "bill_to_code" => $bill_to_code]);
-			$cus = $this->gen_m->unique("customer", "customer_id", $cus_id);
+			if ($bill_to_code){
+				$cus_id = $this->gen_m->insert("customer", ["customer" => $customer, "bill_to_code" => $bill_to_code]);
+				$cus = $this->gen_m->unique("customer", "customer_id", $cus_id);	
+			}
 		}
 		
 		return $cus;

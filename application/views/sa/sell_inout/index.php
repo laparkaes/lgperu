@@ -30,38 +30,46 @@
 				<div class="card-body">
 					<h5 class="card-title">Filter</h5>
 					<form class="row g-3">
+						<?php
+						$grp = $this->input->get("grp");
+						$cat = $this->input->get("cat");
+						$prd = $this->input->get("prd");
+						$cus = $this->input->get("cus");
+						?>
 						<div class="col-md-2">
 							<label class="form-label">Group</label>
-							<select class="form-select">
+							<select class="form-select" id="sl_group" name="grp">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($groups as $g){ ?>
-								<option value="<?= $g->group_id ?>"><?= $g->group_name ?></option>
+								<option value="<?= $g->group_id ?>" <?= ($grp == $g->group_id) ? "selected" : "" ?>><?= $g->group_name ?></option>
 								<?php } ?>
 							</select>
 						</div>
 						<div class="col-md-2">
 							<label class="form-label">Category</label>
-							<select class="form-select">
+							<select class="form-select" id="sl_category" name="cat">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($categories as $c){ ?>
-								<option value="<?= $c->category_id ?>"><?= $c->category ?></option>
+								<option class="g_all g_<?= $c->group_id ?> <?= ($grp == $c->group_id) ? "" : "d-none" ?>" <?= ($cat == $c->category_id) ? "selected" : "" ?> value="<?= $c->category_id ?>"><?= $c->category ?></option>
 								<?php } ?>
 							</select>
 						</div>
 						<div class="col-md-2">
 							<label class="form-label">Product</label>
-							<select class="form-select">
+							<select class="form-select" id="sl_product" name="prd">
 								<option value="" selected="">Choose...</option>
-								<?php foreach($products as $p){ ?>
-								<option value="<?= $p->product_id ?>"><?= $p->model ?></option>
-								<?php } ?>
+								<?php foreach($products as $p){ if ($p->category_id){ ?>
+								<option class="c_all c_<?= $p->category_id ?> <?= ($cat == $p->category_id) ? "" : "d-none" ?>" <?= ($prd == $p->product_id) ? "selected" : "" ?> value="<?= $p->product_id ?>"><?= $p->model ?></option>
+								<?php }} ?>
 							</select>
 						</div>
 						<div class="col-md-4">
 							<label class="form-label">Customer</label>
-							<select class="form-select">
-								<option selected="">Choose...</option>
-								<option>...</option>
+							<select class="form-select" name="cus">
+								<option value="" selected="">Choose...</option>
+								<?php foreach($customers as $c){ ?>
+								<option <?= ($cus == $c->customer_id) ? "selected" : "" ?> value="<?= $c->customer_id ?>"><?= $c->bill_to_code ?> - <?= $c->customer ?></option>
+								<?php } ?>
 							</select>
 						</div>
 						<div class="col-md-1">
@@ -216,6 +224,22 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+	$('#sl_group').change(function(){
+		$("#sl_category").val("");
+		$('#sl_category option.g_all').addClass('d-none');
+		$('#sl_category option.g_' + $(this).val()).removeClass('d-none');
+		
+		$("#sl_product").val("");
+		$('#sl_product option.c_all').addClass('d-none');
+    });
+	
+	$('#sl_category').change(function(){
+		$("#sl_product").val("");
+		$('#sl_product option.c_all').addClass('d-none');
+		$('#sl_product option.c_' + $(this).val()).removeClass('d-none');
+    });
+	
+	
 	$("#form_upload_sell_inout").submit(function(e) {
 		e.preventDefault();
 		$("#form_upload_sell_inout .sys_msg").html("");
