@@ -34,29 +34,101 @@ class Sell_inout extends CI_Controller {
 	}
 	
 	public function testing(){
-		$w = [
-			//"order_qty !=" => 0,
+		$row  = new stdClass;
+		$row->date = null;
+		$row->invoice_id = null;
+		$row->u_price = null;
+		$row->sell_in = null;
+		$row->sell_out = null;
+		$row->stock = null;
+		$row->stock_sell_out = null;
+		
+		$w_in = [
+			"order_qty !=" => -1,
 			"customer_id" => 5,
 		];
-		
+		echo "<style>table td{padding: 5px 10px;}</style>";
 		$groups = $this->gen_m->all("product_group", [["group_name", "asc"]]);
-		foreach($groups as $grp){
+		foreach($groups as $g_i => $grp){
 			echo "Group: ".$grp->group_name."<br/>";
 			$categories = $this->gen_m->filter("product_category", true, ["group_id" => $grp->group_id]);
 			foreach($categories as $cat){
-				echo "Category: ".$cat->category."<br/>";
+				echo "Category: ".$cat->category."<br/><br/>";
 				$products = $this->gen_m->filter("product", true, ["category_id" => $cat->category_id]);
 				foreach($products as $prd){
-					$w["product_id"] = $prd->product_id;
-					$sell_ins = $this->gen_m->filter("sell_in", true, $w, null, null, [["closed_date", "asc"]]);
+					$prod_arr = [];
+					
+					$w_in["product_id"] = $prd->product_id;
+					$sell_ins = $this->gen_m->filter("sell_in", true, $w_in, null, null, [["closed_date", "asc"]]);
 					if ($sell_ins){
-						echo "- ".$prd->model."<br/>";
-						echo "closed_date / invoice_id / order_qty / unit_selling_price / order_amount<br/>";
-						foreach($sell_ins as $in){
-							echo $in->closed_date." / ".$in->invoice_id." / ".$in->order_qty." / ".$in->unit_selling_price." / ".$in->order_amount."<br/>";
+						$w_out = [
+							"customer_id" => $w_in["customer_id"],
+							"product_id" => $w_in["product_id"],
+							"sunday_date >=" => ($sell_ins) ? $sell_ins[0]->closed_date : "2000-01-01",
+						];
+						$sell_outs = $this->gen_m->filter("sell_out", true, $w_out, null, null, [["sunday_date", "asc"]]);
+						
+						foreach($sell_ins as $i => $in){
+							$aux = clone $row;
+							$aux->date = $in->closed_date;
+							$aux->invoice_id = $in->invoice_id;
+							$aux->u_price = $in->unit_selling_price;
+							$aux->sell_in = $in->order_qty;
+							if (!$i) $aux->stock = ($sell_outs) ? $sell_outs[0]->stock + $sell_outs[0]->qty : 0;
+							
+							$prod_arr[] = clone $aux;
 						}
 						
-						echo "<br/><br/>";	
+						foreach($sell_outs as $out){
+							$aux = clone $row;
+							$aux->date = $out->sunday_date;
+							$aux->sell_out = $out->qty;
+							$aux->stock_sell_out = $out->stock;
+							
+							$prod_arr[] = clone $aux;
+						}
+						
+						usort($prod_arr, function($a, $b) {
+							return strtotime($a->date) > strtotime($b->date);
+						});
+						
+						echo "- ".$prd->model."<br/><br/>";
+						
+						echo "<table>";
+						echo "<tr><td>Date</td><td>Invoice ID</td><td>U/Price</td><td>Sell-In</td><td>Sell-Out</td><td>Stock</td><td>Stock Sell-Out</td><td>Result</td></tr>";
+						
+						foreach($prod_arr as $i => $pr){
+							if ($i){
+								if (($i == 1) and ($pr->sell_in)) $pr->stock = $prod_arr[$i-1]->stock;
+								else $pr->stock = $prod_arr[$i-1]->stock + $pr->sell_in - $pr->sell_out;
+							}
+							echo "<tr><td>".$pr->date."</td><td>".$pr->invoice_id."</td><td>".$pr->u_price."</td><td>".$pr->sell_in."</td><td>".$pr->sell_out."</td><td>".$pr->stock."</td><td>".$pr->stock_sell_out."</td><td>Result</td></tr>";
+							//print_r($pr); echo "<br/>";
+							
+						}
+						
+						echo "</table>";
+						/*
+						
+						echo "sell-in<br/>";
+						echo "<table>";
+						echo "<tr><td>closed_date</td><td>invoice_id</td><td>order_qty</td><td>unit_selling_price</td><td>order_amount</td></tr>";
+						foreach($sell_ins as $in){
+							echo "<tr><td>".$in->closed_date."</td><td>".$in->invoice_id."</td><td>".$in->order_qty."</td><td>".$in->unit_selling_price."</td><td>".$in->order_amount."</td></tr>";
+						}
+						echo "</table>";
+						echo "<br/>";	
+						echo "sell-out<br/>";
+						echo "<table>";
+						echo "<tr><td>sunday_date</td><td>qty<td>stock</td></tr>";
+						
+						foreach($sell_outs as $out){
+							echo "<tr><td>".$out->sunday_date."</td><td>".$out->qty."</td><td>".$out->stock."</td></tr>";
+						}
+						echo "</table>";
+						*/
+						
+						echo "<br/><br/>";
 					}
 				}
 				
@@ -64,6 +136,7 @@ class Sell_inout extends CI_Controller {
 			}
 			
 			echo "<br/><br/>";
+			if ($g_i > 0) break;
 		}
 		
 		
