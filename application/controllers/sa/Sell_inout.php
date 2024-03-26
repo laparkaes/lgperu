@@ -44,7 +44,7 @@ class Sell_inout extends CI_Controller {
 		
 		$w_in = [
 			"order_qty !=" => -1,
-			"customer_id" => 5,
+			"customer_id" => 9,
 		];
 		echo "<style>table td{padding: 5px 10px;}</style>";
 		$groups = $this->gen_m->all("product_group", [["group_name", "asc"]]);
@@ -66,6 +66,7 @@ class Sell_inout extends CI_Controller {
 							$aux->invoice_id = $in->invoice_id;
 							$aux->u_price = $in->unit_selling_price;
 							$aux->sell_in = $in->order_qty;
+							$aux->stock = 0;
 							
 							$prod_arr[] = clone $aux;
 						}
@@ -83,11 +84,6 @@ class Sell_inout extends CI_Controller {
 							$aux->stock = $out->stock;
 							
 							$prod_arr[] = clone $aux;
-							
-							if (!$i){
-								//$stock = 
-								echo "correr :".(count($prod_arr) - count($sell_ins))."<br/>";
-							}
 						}
 						
 						usort($prod_arr, function($a, $b) {
@@ -97,37 +93,90 @@ class Sell_inout extends CI_Controller {
 						//set first sell-in's stocks
 						foreach($prod_arr as $i => $pr){
 							if ($pr->sell_out){
-								$j = $i;
-								while($j > 0){
-									$prod_arr[$j-1]->stock = $prod_arr[$j]->stock + $prod_arr[$j]->sell_out - $prod_arr[$j]->sell_in;
+								$j = $i - 1;
+								while($j >= 0){
+									$prod_arr[$j]->stock = $prod_arr[$j+1]->stock + $prod_arr[$j+1]->sell_out - (($prod_arr[$j+1]->sell_in) ? $prod_arr[$j+1]->sell_in : 0);
 									$j--;
 								}
 								break;
 							}
 						}
 						
+						//set product range with invoice_id data
 						$ranges = [];
 						foreach($prod_arr as $i => $pr){
+							//calculate stock if this is sell-in record (stock = 0)
 							if ($pr->sell_in and !$pr->stock) $pr->stock = $prod_arr[$i-1]->stock + $pr->sell_in;
-							if ($i) $pr->diff = $pr->stock - $prod_arr[$i-1]->stock + $pr->sell_out - $pr->sell_in;
-							else $pr->diff = 0;
+							
+							//calculate diff between real and customer stock
+							if ($i and $pr->sell_out) $pr->diff = $pr->stock - $prod_arr[$i-1]->stock + $pr->sell_out - $pr->sell_in; else $pr->diff = 0;
 							
 							if ($pr->sell_in){
 								if ($i){
-									$l = $ranges[count($ranges) - 1]["u"];
-									$ranges[] = ["l" => ($l + 1), "u" => ($l + $pr->sell_in), "invoice_id" => $pr->invoice_id];
+									$ranges[] = ["gap" => $pr->sell_in, "invoice_id" => $pr->invoice_id];
 								}else{
-									$ranges[] = ["l" => 0, "u" => $pr->stock, "invoice_id" => null];
-									$ranges[] = ["l" => $pr->stock + 1, "u" => ($pr->stock + $pr->sell_in), "invoice_id" => $pr->invoice_id];
-								}	
+									$ranges[] = ["gap" => $pr->stock, "invoice_id" => null];
+									$ranges[] = ["gap" => $pr->sell_in, "invoice_id" => $pr->invoice_id];
+								}
 							}
 						}
 						
+						//cleasing ranges
+						
 						echo "- ".$prd->model."<br/><br/>";
 						
-						foreach($ranges as $r){
-							print_r($r); echo "<br/>";
+						echo "Brefore<br/>";
+						foreach($ranges as $i => $r){
+							echo $i." -------- "; print_r($r); echo "<br/>";
 						}
+						
+						
+						foreach($ranges as $i => $r){
+							$is_removed = false;
+							
+							if ($r["gap"] < 0){
+								$j = $i - 1;
+								while($j >= 0){
+									if (array_key_exists ($j, $ranges)) if ($ranges[$i]["gap"] == (-$ranges[$j]["gap"])){
+										$is_removed = true;
+										unset($ranges[$j]);
+										unset($ranges[$i]);
+										break;
+									}
+									$j--;
+								}
+								
+								if (!$is_removed){
+									//no encontered same abs value. need to discount from nearest range
+									$j = $i - 1;
+									$discount = abs($ranges[$i]["gap"]);//need to be zero
+									while(($discount > 0) and ($j >= 0)){
+										if (array_key_exists ($j, $ranges)){
+											if ($ranges[$j]["gap"] > $discount){
+												$ranges[$j]["gap"] -= $discount;
+												$discount = 0;
+												$is_removed = true;
+												unset ($ranges[$i]);
+											}else{//gap <= discount
+												$discount -= $ranges[$j]["gap"];
+												unset ($ranges[$j]);
+											}	
+										}
+										$j--;
+									}
+								}
+								
+								if (!$is_removed){
+									echo "<br/><br/>Need to work<br/><br/>";
+								}
+							}
+						}
+						
+						echo "<br/><br/><br/>After<br/>";
+						foreach($ranges as $i => $r){
+							echo $i." -------- "; print_r($r); echo "<br/>";
+						}
+						
 						
 						echo "<table>";
 						echo "<tr><td>Date</td><td>Invoice ID</td><td>U/Price</td><td>Sell-In</td><td>Sell-Out</td><td>Stock</td><td>Diff</td></tr>";
