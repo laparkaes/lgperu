@@ -41,7 +41,6 @@ class Sell_inout extends CI_Controller {
 		$row->sell_in = null;
 		$row->sell_out = null;
 		$row->stock = null;
-		$row->stock_sell_out = null;
 		
 		$w_in = [
 			"order_qty !=" => -1,
@@ -59,54 +58,82 @@ class Sell_inout extends CI_Controller {
 					$prod_arr = [];
 					
 					$w_in["product_id"] = $prd->product_id;
-					$sell_ins = $this->gen_m->filter("sell_in", true, $w_in, null, null, [["closed_date", "asc"]]);
+					$sell_ins = $this->gen_m->filter("sell_in", true, $w_in, null, null, [["closed_date", "asc"], ["order_amount", "desc"]]);
 					if ($sell_ins){
+						foreach($sell_ins as $in){
+							$aux = clone $row;
+							$aux->date = $in->closed_date;
+							$aux->invoice_id = $in->invoice_id;
+							$aux->u_price = $in->unit_selling_price;
+							$aux->sell_in = $in->order_qty;
+							
+							$prod_arr[] = clone $aux;
+						}
+						
 						$w_out = [
 							"customer_id" => $w_in["customer_id"],
 							"product_id" => $w_in["product_id"],
 							"sunday_date >=" => ($sell_ins) ? $sell_ins[0]->closed_date : "2000-01-01",
 						];
 						$sell_outs = $this->gen_m->filter("sell_out", true, $w_out, null, null, [["sunday_date", "asc"]]);
-						
-						foreach($sell_ins as $i => $in){
-							$aux = clone $row;
-							$aux->date = $in->closed_date;
-							$aux->invoice_id = $in->invoice_id;
-							$aux->u_price = $in->unit_selling_price;
-							$aux->sell_in = $in->order_qty;
-							if (!$i) $aux->stock = ($sell_outs) ? $sell_outs[0]->stock + $sell_outs[0]->qty : 0;
-							
-							$prod_arr[] = clone $aux;
-						}
-						
-						foreach($sell_outs as $out){
+						foreach($sell_outs as $i => $out){
 							$aux = clone $row;
 							$aux->date = $out->sunday_date;
 							$aux->sell_out = $out->qty;
-							$aux->stock_sell_out = $out->stock;
+							$aux->stock = $out->stock;
 							
 							$prod_arr[] = clone $aux;
+							
+							if (!$i){
+								//$stock = 
+								echo "correr :".(count($prod_arr) - count($sell_ins))."<br/>";
+							}
 						}
 						
 						usort($prod_arr, function($a, $b) {
 							return strtotime($a->date) > strtotime($b->date);
 						});
 						
-						echo "- ".$prd->model."<br/><br/>";
-						
-						echo "<table>";
-						echo "<tr><td>Date</td><td>Invoice ID</td><td>U/Price</td><td>Sell-In</td><td>Sell-Out</td><td>Stock</td><td>Stock Sell-Out</td><td>Result</td></tr>";
-						
+						//set first sell-in's stocks
 						foreach($prod_arr as $i => $pr){
-							if ($i){
-								if (($i == 1) and ($pr->sell_in)) $pr->stock = $prod_arr[$i-1]->stock;
-								else $pr->stock = $prod_arr[$i-1]->stock + $pr->sell_in - $pr->sell_out;
+							if ($pr->sell_out){
+								$j = $i;
+								while($j > 0){
+									$prod_arr[$j-1]->stock = $prod_arr[$j]->stock + $prod_arr[$j]->sell_out - $prod_arr[$j]->sell_in;
+									$j--;
+								}
+								break;
 							}
-							echo "<tr><td>".$pr->date."</td><td>".$pr->invoice_id."</td><td>".$pr->u_price."</td><td>".$pr->sell_in."</td><td>".$pr->sell_out."</td><td>".$pr->stock."</td><td>".$pr->stock_sell_out."</td><td>Result</td></tr>";
-							//print_r($pr); echo "<br/>";
-							
 						}
 						
+						$ranges = [];
+						foreach($prod_arr as $i => $pr){
+							if ($pr->sell_in and !$pr->stock) $pr->stock = $prod_arr[$i-1]->stock + $pr->sell_in;
+							if ($i) $pr->diff = $pr->stock - $prod_arr[$i-1]->stock + $pr->sell_out - $pr->sell_in;
+							else $pr->diff = 0;
+							
+							if ($pr->sell_in){
+								if ($i){
+									$l = $ranges[count($ranges) - 1]["u"];
+									$ranges[] = ["l" => ($l + 1), "u" => ($l + $pr->sell_in), "invoice_id" => $pr->invoice_id];
+								}else{
+									$ranges[] = ["l" => 0, "u" => $pr->stock, "invoice_id" => null];
+									$ranges[] = ["l" => $pr->stock + 1, "u" => ($pr->stock + $pr->sell_in), "invoice_id" => $pr->invoice_id];
+								}	
+							}
+						}
+						
+						echo "- ".$prd->model."<br/><br/>";
+						
+						foreach($ranges as $r){
+							print_r($r); echo "<br/>";
+						}
+						
+						echo "<table>";
+						echo "<tr><td>Date</td><td>Invoice ID</td><td>U/Price</td><td>Sell-In</td><td>Sell-Out</td><td>Stock</td><td>Diff</td></tr>";
+						foreach($prod_arr as $i => $pr){
+							echo "<tr><td>".$pr->date."</td><td>".$pr->invoice_id."</td><td>".$pr->u_price."</td><td>".$pr->sell_in."</td><td>".$pr->sell_out."</td><td>".$pr->stock."</td><td>".$pr->diff."</td></tr>";
+						}
 						echo "</table>";
 						/*
 						
