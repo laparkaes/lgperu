@@ -40,6 +40,7 @@ class Sell_inout extends CI_Controller {
 		$row->u_price = null;
 		$row->sell_in = null;
 		$row->sell_out = null;
+		$row->sell_out_stock_var = null;
 		$row->stock = null;
 		
 		$w_in = [
@@ -82,6 +83,8 @@ class Sell_inout extends CI_Controller {
 							$aux->date = $out->sunday_date;
 							$aux->sell_out = $out->qty;
 							$aux->stock = $out->stock;
+							$aux->sell_out_stock_var = ($i > 0) ? ($out->stock - $sell_outs[$i-1]->stock) : 0;
+							$aux->invoice_ids = [];
 							
 							$prod_arr[] = clone $aux;
 						}
@@ -125,12 +128,6 @@ class Sell_inout extends CI_Controller {
 						
 						echo "- ".$prd->model."<br/><br/>";
 						
-						echo "Brefore<br/>";
-						foreach($ranges as $i => $r){
-							echo $i." -------- "; print_r($r); echo "<br/>";
-						}
-						
-						
 						foreach($ranges as $i => $r){
 							$is_removed = false;
 							
@@ -166,9 +163,7 @@ class Sell_inout extends CI_Controller {
 									}
 								}
 								
-								if (!$is_removed){
-									echo "<br/><br/>Need to work<br/><br/>";
-								}
+								if (!$is_removed and !$i) unset($ranges[$i]);
 							}
 						}
 						
@@ -179,9 +174,9 @@ class Sell_inout extends CI_Controller {
 						
 						
 						echo "<table>";
-						echo "<tr><td>Date</td><td>Invoice ID</td><td>U/Price</td><td>Sell-In</td><td>Sell-Out</td><td>Stock</td><td>Diff</td></tr>";
+						echo "<tr><td>Date</td><td>Invoice ID</td><td>U/Price</td><td>Sell-In</td><td>Sell-Out</td><td>Stock</td><td>Sell-Out Stock Var</td><td>Diff</td></tr>";
 						foreach($prod_arr as $i => $pr){
-							echo "<tr><td>".$pr->date."</td><td>".$pr->invoice_id."</td><td>".$pr->u_price."</td><td>".$pr->sell_in."</td><td>".$pr->sell_out."</td><td>".$pr->stock."</td><td>".$pr->diff."</td></tr>";
+							echo "<tr><td>".$pr->date."</td><td>".$pr->invoice_id."</td><td>".$pr->u_price."</td><td>".$pr->sell_in."</td><td>".$pr->sell_out."</td><td>".$pr->stock."</td><td>".$pr->sell_out_stock_var."</td><td>".$pr->diff."</td></tr>";
 						}
 						echo "</table>";
 						/*
