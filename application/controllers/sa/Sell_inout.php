@@ -33,187 +33,161 @@ class Sell_inout extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	public function testing(){
+	public function get_sell_in_out($customer_id, $product_id){
 		$row  = new stdClass;
 		$row->date = null;
-		$row->invoice_id = null;
 		$row->u_price = null;
 		$row->sell_in = null;
 		$row->sell_out = null;
 		$row->sell_out_stock_var = null;
 		$row->stock = null;
+		$row->stock_total = null;
+		$row->invoice = null;
+		$row->invoices = [];
 		
 		$w_in = [
 			"order_qty !=" => -1,
-			"customer_id" => 9,
+			"customer_id" => $customer_id,
+			"product_id" => $product_id,
 		];
+		
+		//load sell-ins
+		$sell_ins = array_reverse($this->gen_m->filter("sell_in", true, $w_in, null, null, [["closed_date", "desc"], ["order_amount", "desc"]], 10)); //last 10 sell-ins
+		
+		//set first sell-out filter
+		$w_out = [
+			"customer_id" => $w_in["customer_id"],
+			"product_id" => $w_in["product_id"],
+			"sunday_date <" => ($sell_ins) ? $sell_ins[0]->closed_date : date("Y-m-d"),
+		];
+		$sell_out_first = $this->gen_m->filter("sell_out", true, $w_out, null, null, [["sunday_date", "desc"]], 1);
+		
+		//get sell-outs from first sell-out before first sell-in
+		unset($w_out["sunday_date <"]);
+		$w_out["sunday_date >="] = ($sell_out_first) ? $sell_out_first[0]->sunday_date : date("Y-m-d");
+		
+		$sell_outs = $this->gen_m->filter("sell_out", true, $w_out, null, null, [["sunday_date", "asc"]]);
+		
+		//invoice array
+		$invoices = [];
+		
+		//merge sell-in and Sell-Out
+		$inout = [];
+		
+		foreach($sell_ins as $in){
+			$aux = clone $row;
+			$aux->date = $in->closed_date;
+			$aux->invoice_id = $in->invoice_id;
+			$aux->u_price = $in->unit_selling_price;
+			$aux->sell_in = $in->order_qty;
+			
+			$inout[] = clone $aux;
+			
+			if ($aux->invoice_id) $invoices[$aux->invoice_id] = $this->gen_m->unique("invoice", "invoice_id", $aux->invoice_id);
+		}
+		
+		foreach($sell_outs as $i => $out){
+			$aux = clone $row;
+			$aux->date = $out->sunday_date;
+			$aux->sell_out = $out->qty;
+			$aux->stock = $out->stock;
+			$aux->sell_out_stock_var = ($i > 0) ? ($out->stock - $sell_outs[$i-1]->stock) : 0;
+			
+			$inout[] = clone $aux;
+		}
+
+		usort($inout, function($a, $b) {
+			return strtotime($a->date) > strtotime($b->date);
+		});
+		
+		$ranges = [];
+		if ($sell_outs) $ranges[] = ["qty" => $sell_outs[0]->stock, "invoice_id" => ""];
+		
+		foreach($inout as $i => $io){
+			if ($io->sell_in > 0){
+				$io->invoice = (($io->invoice_id > 0) ? $invoices[$io->invoice_id]->invoice : "");
+				$ranges[] = ["qty" => $io->sell_in, "invoice_id" => $io->invoice_id];
+				$io->stock = ($i > 0) ? $inout[$i-1]->stock + $io->sell_in : $io->sell_in;
+			}
+			
+			if ($i > 0){
+				$io->diff = $inout[$i-1]->stock - $io->stock - $io->sell_out + $io->sell_in;
+			}else $io->diff = 0;
+			
+			if ($io->sell_out > 0){
+				if ($i > 0){
+					$var = abs($io->sell_out);
+					foreach($ranges as $i_r => $r){
+						$ranges[$i_r]["qty"] = $r["qty"] - $var;
+						
+						if ($ranges[$i_r]["qty"] <= 0){
+							$var = abs($ranges[$i_r]["qty"]);
+							unset($ranges[$i_r]);
+						}else break;
+					}
+				}
+				
+				$io->stock_total = 0;
+				foreach($ranges as $r){
+					$io->stock_total += $r["qty"];
+					$io->invoices[] = ($r["invoice_id"] > 0) ? $invoices[$r["invoice_id"]]->invoice." (".$r["qty"].")" : "No Invoice (".$r["qty"].")";
+				}
+			}
+		}
+		
+		return array_reverse($inout);
+	}
+	
+	public function print_sell_in_out(){
+		
+		
+	}
+	
+	public function testing(){
 		echo "<style>table td{padding: 5px 10px;}</style>";
+		
 		$groups = $this->gen_m->all("product_group", [["group_name", "asc"]]);
 		foreach($groups as $g_i => $grp){
-			echo "Group: ".$grp->group_name."<br/>";
+			echo "Group: ".$grp->group_name."<br/><br/>";
 			$categories = $this->gen_m->filter("product_category", true, ["group_id" => $grp->group_id]);
 			foreach($categories as $cat){
 				echo "Category: ".$cat->category."<br/><br/>";
 				$products = $this->gen_m->filter("product", true, ["category_id" => $cat->category_id]);
 				foreach($products as $prd){
-					$prod_arr = [];
+					echo "Product: ".$prd->model."<br/><br/>";
+					echo "<table>";
+					echo "<tr><td>Date</td><td>U/Price</td><td>Sell-in</td><td>Sell-out</td><td>Stock</td><td>Sell-out Stock Var</td><td>Diff</td><td>Invoice</td><td>Invoices</td></tr>";
 					
-					$w_in["product_id"] = $prd->product_id;
-					$sell_ins = $this->gen_m->filter("sell_in", true, $w_in, null, null, [["closed_date", "asc"], ["order_amount", "desc"]]);
-					if ($sell_ins){
-						foreach($sell_ins as $in){
-							$aux = clone $row;
-							$aux->date = $in->closed_date;
-							$aux->invoice_id = $in->invoice_id;
-							$aux->u_price = $in->unit_selling_price;
-							$aux->sell_in = $in->order_qty;
-							$aux->stock = 0;
-							
-							$prod_arr[] = clone $aux;
-						}
-						
-						$w_out = [
-							"customer_id" => $w_in["customer_id"],
-							"product_id" => $w_in["product_id"],
-							"sunday_date >=" => ($sell_ins) ? $sell_ins[0]->closed_date : "2000-01-01",
-						];
-						$sell_outs = $this->gen_m->filter("sell_out", true, $w_out, null, null, [["sunday_date", "asc"]]);
-						foreach($sell_outs as $i => $out){
-							$aux = clone $row;
-							$aux->date = $out->sunday_date;
-							$aux->sell_out = $out->qty;
-							$aux->stock = $out->stock;
-							$aux->sell_out_stock_var = ($i > 0) ? ($out->stock - $sell_outs[$i-1]->stock) : 0;
-							$aux->invoice_ids = [];
-							
-							$prod_arr[] = clone $aux;
-						}
-						
-						usort($prod_arr, function($a, $b) {
-							return strtotime($a->date) > strtotime($b->date);
-						});
-						
-						//set first sell-in's stocks
-						foreach($prod_arr as $i => $pr){
-							if ($pr->sell_out){
-								$j = $i - 1;
-								while($j >= 0){
-									$prod_arr[$j]->stock = $prod_arr[$j+1]->stock + $prod_arr[$j+1]->sell_out - (($prod_arr[$j+1]->sell_in) ? $prod_arr[$j+1]->sell_in : 0);
-									$j--;
-								}
-								break;
-							}
-						}
-						
-						//set product range with invoice_id data
-						$ranges = [];
-						foreach($prod_arr as $i => $pr){
-							//calculate stock if this is sell-in record (stock = 0)
-							if ($pr->sell_in and !$pr->stock) $pr->stock = $prod_arr[$i-1]->stock + $pr->sell_in;
-							
-							//calculate diff between real and customer stock
-							if ($i and $pr->sell_out) $pr->diff = $pr->stock - $prod_arr[$i-1]->stock + $pr->sell_out - $pr->sell_in; else $pr->diff = 0;
-							
-							if ($pr->sell_in){
-								if ($i){
-									$ranges[] = ["gap" => $pr->sell_in, "invoice_id" => $pr->invoice_id];
-								}else{
-									$ranges[] = ["gap" => $pr->stock, "invoice_id" => null];
-									$ranges[] = ["gap" => $pr->sell_in, "invoice_id" => $pr->invoice_id];
-								}
-							}
-						}
-						
-						//cleasing ranges
-						
-						echo "- ".$prd->model."<br/><br/>";
-						
-						foreach($ranges as $i => $r){
-							$is_removed = false;
-							
-							if ($r["gap"] < 0){
-								$j = $i - 1;
-								while($j >= 0){
-									if (array_key_exists ($j, $ranges)) if ($ranges[$i]["gap"] == (-$ranges[$j]["gap"])){
-										$is_removed = true;
-										unset($ranges[$j]);
-										unset($ranges[$i]);
-										break;
-									}
-									$j--;
-								}
-								
-								if (!$is_removed){
-									//no encontered same abs value. need to discount from nearest range
-									$j = $i - 1;
-									$discount = abs($ranges[$i]["gap"]);//need to be zero
-									while(($discount > 0) and ($j >= 0)){
-										if (array_key_exists ($j, $ranges)){
-											if ($ranges[$j]["gap"] > $discount){
-												$ranges[$j]["gap"] -= $discount;
-												$discount = 0;
-												$is_removed = true;
-												unset ($ranges[$i]);
-											}else{//gap <= discount
-												$discount -= $ranges[$j]["gap"];
-												unset ($ranges[$j]);
-											}	
-										}
-										$j--;
-									}
-								}
-								
-								if (!$is_removed and !$i) unset($ranges[$i]);
-							}
-						}
-						
-						echo "<br/><br/><br/>After<br/>";
-						foreach($ranges as $i => $r){
-							echo $i." -------- "; print_r($r); echo "<br/>";
-						}
-						
-						
-						echo "<table>";
-						echo "<tr><td>Date</td><td>Invoice ID</td><td>U/Price</td><td>Sell-In</td><td>Sell-Out</td><td>Stock</td><td>Sell-Out Stock Var</td><td>Diff</td></tr>";
-						foreach($prod_arr as $i => $pr){
-							echo "<tr><td>".$pr->date."</td><td>".$pr->invoice_id."</td><td>".$pr->u_price."</td><td>".$pr->sell_in."</td><td>".$pr->sell_out."</td><td>".$pr->stock."</td><td>".$pr->sell_out_stock_var."</td><td>".$pr->diff."</td></tr>";
-						}
-						echo "</table>";
-						/*
-						
-						echo "sell-in<br/>";
-						echo "<table>";
-						echo "<tr><td>closed_date</td><td>invoice_id</td><td>order_qty</td><td>unit_selling_price</td><td>order_amount</td></tr>";
-						foreach($sell_ins as $in){
-							echo "<tr><td>".$in->closed_date."</td><td>".$in->invoice_id."</td><td>".$in->order_qty."</td><td>".$in->unit_selling_price."</td><td>".$in->order_amount."</td></tr>";
-						}
-						echo "</table>";
-						echo "<br/>";	
-						echo "sell-out<br/>";
-						echo "<table>";
-						echo "<tr><td>sunday_date</td><td>qty<td>stock</td></tr>";
-						
-						foreach($sell_outs as $out){
-							echo "<tr><td>".$out->sunday_date."</td><td>".$out->qty."</td><td>".$out->stock."</td></tr>";
-						}
-						echo "</table>";
-						*/
-						
-						echo "<br/><br/>";
+					//customer_id = 9 is supermercados mercados (plaza vea)
+					//product_id = 274 as test
+					
+					$inout = $this->get_sell_in_out(9, $prd->product_id);
+					foreach($inout as $io){
+						echo "<tr>";
+						echo "<td>".$io->date."</td>";
+						echo "<td>".$io->u_price."</td>";
+						echo "<td>".$io->sell_in."</td>";
+						echo "<td>".$io->sell_out."</td>";
+						echo "<td>".(($io->sell_out) ? $io->stock : "")."</td>";
+						echo "<td>".$io->sell_out_stock_var."</td>";
+						echo "<td>".$io->diff."</td>";
+						echo "<td>".$io->invoice."</td>";
+						echo "<td style='width: 300px;'>"; echo implode("<br/>", $io->invoices); if ($io->stock_total) echo "<br/>Total: ".$io->stock_total; echo "</td>";
+						echo "</tr>";
 					}
+					
+					echo "</table>";	
+					
+					break;	
 				}
 				
 				echo "<br/><br/>";
+				
 			}
 			
 			echo "<br/><br/>";
 			if ($g_i > 0) break;
 		}
-		
-		
-		
-		
-		
 	}
 	
 	private function get_customer($customer, $bill_to_code){
