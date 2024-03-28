@@ -36,7 +36,7 @@
 						$prd = $this->input->get("prd");
 						$cus = $this->input->get("cus");
 						?>
-						<div class="col-md-2">
+						<div class="col-lg-2 col-md-3">
 							<label class="form-label">Group</label>
 							<select class="form-select" id="sl_group" name="grp">
 								<option value="" selected="">Choose...</option>
@@ -45,7 +45,7 @@
 								<?php } ?>
 							</select>
 						</div>
-						<div class="col-md-2">
+						<div class="col-lg-2 col-md-3">
 							<label class="form-label">Category</label>
 							<select class="form-select" id="sl_category" name="cat">
 								<option value="" selected="">Choose...</option>
@@ -54,7 +54,7 @@
 								<?php } ?>
 							</select>
 						</div>
-						<div class="col-md-2">
+						<div class="col-lg-3 col-md-6">
 							<label class="form-label">Product</label>
 							<select class="form-select" id="sl_product" name="prd">
 								<option value="" selected="">Choose...</option>
@@ -63,7 +63,7 @@
 								<?php }} ?>
 							</select>
 						</div>
-						<div class="col-md-4">
+						<div class="col-lg-4 col-md-8">
 							<label class="form-label">Customer</label>
 							<select class="form-select" name="cus">
 								<option value="" selected="">Choose...</option>
@@ -72,16 +72,10 @@
 								<?php } ?>
 							</select>
 						</div>
-						<div class="col-md-1">
-							<label for="inputName5" class="form-label">From</label>
-							<input type="text" class="form-control" id="inputName5">
-						</div>
-						<div class="col-md-1">
-							<label for="inputName5" class="form-label">To</label>
-							<input type="text" class="form-control" id="inputName5">
-						</div>
-						<div class="text-center">
-							<button type="submit" class="btn btn-primary">Submit</button>
+						<div class="col-lg-1 col-md-4 flex-fill align-self-end">
+							<div class="d-grid gap-2">
+								<button type="submit" class="btn btn-primary">Submit</button>
+							</div>
 						</div>
 					</form>
 				</div>
