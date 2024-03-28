@@ -33,15 +33,16 @@ class Sell_inout extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	public function get_sell_in_out($customer_id, $product_id){
+	public function get_sell_inout($customer_id, $product_id){
 		$row  = new stdClass;
 		$row->date = null;
 		$row->u_price = null;
+		$row->currency = null;
 		$row->sell_in = null;
 		$row->sell_out = null;
-		$row->sell_out_stock_var = null;
-		$row->stock = null;
-		$row->stock_total = null;
+		$row->stock_customer = null;
+		$row->stock_lg = null;
+		$row->stock_diff = null;
 		$row->invoice = null;
 		$row->invoices = [];
 		
@@ -75,23 +76,30 @@ class Sell_inout extends CI_Controller {
 		$inout = [];
 		
 		foreach($sell_ins as $in){
+			$currency = $this->gen_m->unique("currency", "currency_id", $in->currency_id);
+			
 			$aux = clone $row;
 			$aux->date = $in->closed_date;
 			$aux->invoice_id = $in->invoice_id;
+			$aux->currency = $currency->simbol;
 			$aux->u_price = $in->unit_selling_price;
 			$aux->sell_in = $in->order_qty;
 			
 			$inout[] = clone $aux;
 			
-			if ($aux->invoice_id) $invoices[$aux->invoice_id] = $this->gen_m->unique("invoice", "invoice_id", $aux->invoice_id);
+			if ($aux->invoice_id){
+				$inv = $this->gen_m->unique("invoice", "invoice_id", $aux->invoice_id);
+				$inv->currency = $currency->simbol;
+				$inv->u_price = $in->unit_selling_price;
+				$invoices[$aux->invoice_id] = clone $inv;
+			}
 		}
 		
 		foreach($sell_outs as $i => $out){
 			$aux = clone $row;
 			$aux->date = $out->sunday_date;
 			$aux->sell_out = $out->qty;
-			$aux->stock = $out->stock;
-			$aux->sell_out_stock_var = ($i > 0) ? ($out->stock - $sell_outs[$i-1]->stock) : 0;
+			$aux->stock_customer = $out->stock;
 			
 			$inout[] = clone $aux;
 		}
@@ -107,12 +115,7 @@ class Sell_inout extends CI_Controller {
 			if ($io->sell_in > 0){
 				$io->invoice = (($io->invoice_id > 0) ? $invoices[$io->invoice_id]->invoice : "");
 				$ranges[] = ["qty" => $io->sell_in, "invoice_id" => $io->invoice_id];
-				$io->stock = ($i > 0) ? $inout[$i-1]->stock + $io->sell_in : $io->sell_in;
 			}
-			
-			if ($i > 0){
-				$io->diff = $inout[$i-1]->stock - $io->stock - $io->sell_out + $io->sell_in;
-			}else $io->diff = 0;
 			
 			if ($io->sell_out > 0){
 				if ($i > 0){
@@ -127,20 +130,48 @@ class Sell_inout extends CI_Controller {
 					}
 				}
 				
-				$io->stock_total = 0;
+				$io->stock_lg = 0;
 				foreach($ranges as $r){
-					$io->stock_total += $r["qty"];
-					$io->invoices[] = ($r["invoice_id"] > 0) ? $invoices[$r["invoice_id"]]->invoice." (".$r["qty"].")" : "No Invoice (".$r["qty"].")";
+					$io->stock_lg += $r["qty"];
+					$io->invoices[] = ($r["invoice_id"] > 0) ? ["qty" => $r["qty"], "invoice" => clone $invoices[$r["invoice_id"]]] : ["qty" => $r["qty"], "invoice" => null];
 				}
+				
+				$io->stock_diff = $io->stock_lg - $io->stock_customer;
 			}
 		}
 		
 		return array_reverse($inout);
 	}
 	
-	public function print_sell_in_out(){
+	public function print_sell_inout($inout){
+		echo "<table>";
+		echo "<tr><td>Date</td><td>U/Price</td><td>Sell-in</td><td>Sell-out</td><td>Stock Customer</td><td>Stock LG</td><td>Stock Diff</td><td>Invoice</td><td>Invoices</td></tr>";
 		
+		foreach($inout as $io){
+			echo "<tr>";
+			echo "<td>".$io->date."</td>";
+			echo "<td>".(($io->u_price > 0) ? $io->currency." ".number_format($io->u_price, 2) : "")."</td>";
+			echo "<td>".$io->sell_in."</td>";
+			echo "<td>".$io->sell_out."</td>";
+			echo "<td>".(($io->sell_out) ? $io->stock_customer : "")."</td>";
+			echo "<td>".$io->stock_lg."</td>";
+			echo "<td>".$io->stock_diff."</td>";
+			echo "<td>".$io->invoice."</td>";
+			echo "<td style='width: 300px;'>"; 
+			//set invoices
+			$aux = [];
+			foreach($io->invoices as $inv){
+				$i_aux = $inv["invoice"];
+				$i_code = ($i_aux) ? $i_aux->invoice : "No Invoice";
+				$i_price = ($i_aux) ? " * ".$i_aux->currency." ".number_format($i_aux->u_price, 2) : "";
+				$aux[] = $i_code." (".number_format($inv["qty"]).$i_price.")";
+			}
+			echo implode("<br/>", $aux);
+			echo "</td>";
+			echo "</tr>";
+		}
 		
+		echo "</table>";
 	}
 	
 	public function testing(){
@@ -155,34 +186,18 @@ class Sell_inout extends CI_Controller {
 				$products = $this->gen_m->filter("product", true, ["category_id" => $cat->category_id]);
 				foreach($products as $prd){
 					echo "Product: ".$prd->model."<br/><br/>";
-					echo "<table>";
-					echo "<tr><td>Date</td><td>U/Price</td><td>Sell-in</td><td>Sell-out</td><td>Stock</td><td>Sell-out Stock Var</td><td>Diff</td><td>Invoice</td><td>Invoices</td></tr>";
 					
 					//customer_id = 9 is supermercados mercados (plaza vea)
 					//product_id = 274 as test
 					
-					$inout = $this->get_sell_in_out(9, $prd->product_id);
-					foreach($inout as $io){
-						echo "<tr>";
-						echo "<td>".$io->date."</td>";
-						echo "<td>".$io->u_price."</td>";
-						echo "<td>".$io->sell_in."</td>";
-						echo "<td>".$io->sell_out."</td>";
-						echo "<td>".(($io->sell_out) ? $io->stock : "")."</td>";
-						echo "<td>".$io->sell_out_stock_var."</td>";
-						echo "<td>".$io->diff."</td>";
-						echo "<td>".$io->invoice."</td>";
-						echo "<td style='width: 300px;'>"; echo implode("<br/>", $io->invoices); if ($io->stock_total) echo "<br/>Total: ".$io->stock_total; echo "</td>";
-						echo "</tr>";
-					}
+					$inout = $this->get_sell_inout(9, $prd->product_id);
+					$this->print_sell_inout($inout);
 					
-					echo "</table>";	
-					
-					break;	
+					echo "<br/><br/>";
 				}
 				
 				echo "<br/><br/>";
-				
+				break;
 			}
 			
 			echo "<br/><br/>";
