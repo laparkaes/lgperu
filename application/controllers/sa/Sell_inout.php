@@ -132,32 +132,41 @@ class Sell_inout extends CI_Controller {
 	
 	public function index(){
 		
+		//filter($tablename, $valid = true, $w = null, $l = null, $w_in = null, $orders = [], $limit = "", $offset = "")
 		//grp=&cat=&prd=&cus=
 		
+		//just apply where in customer_id
+		$w = []; 
+		if ($this->input->get("cus")) $w["customer_id"] = $this->input->get("cus");
 		
-		$w_in = [
-			"product_id" => $this->input->get("prd"),
-			"customer_id" => $this->input->get("cus"),
-		];
+		//product_id have to work for where in
+		$product_ids = [];
+		if ($this->input->get("prd")) $product_ids[] = $this->input->get("prd");
+		elseif ($this->input->get("cat")){
+			$prods = $this->gen_m->filter("product", true, ["category_id" => $this->input->get("cat")]);
+			foreach($prods as $p) $product_ids[] = $p->product_id;
+		}elseif ($this->input->get("grp")){
+			$cats = $this->gen_m->filter("product_category", true, ["group_id" => $this->input->get("grp")]);
+			foreach($cats as $c){
+				$prods = $this->gen_m->filter("product", true, ["category_id" => $c->category_id]);
+				foreach($prods as $p) $product_ids[] = $p->product_id;
+			}
+		}
 		
-		$w_out = [
-			"product_id" => $this->input->get("prd"),
-			"customer_id" => $this->input->get("cus"),
-		];
-		
-		$sell_ins = $this->gen_m->filter("sell_in", true, $w_in, null, null, [["closed_date", "desc"], ["order_amount", "desc"]], 1000);
-		print_R($sell_ins);
-		$sell_outs = $this->gen_m->filter("sell_out", true, $w_out, null, null, [["sunday_date", "asc"]], 1000);
+		$w_in = []; 
+		if ($product_ids) $w_in[] = ["field" => "product_id", "values" => $product_ids];
 		
 		$data = [
 			"groups" => $this->gen_m->all("product_group", [["group_name", "asc"]]),
 			"categories" => $this->gen_m->all("product_category", [["category", "asc"]]),
 			"products" => $this->gen_m->all("product", [["model", "asc"]]),
 			"customers" => $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]),
+			"sell_ins" => $this->gen_m->filter("sell_in", true, $w, null, $w_in, [["closed_date", "desc"], ["order_amount", "asc"]], 1000),
+			"sell_outs" => $this->gen_m->filter("sell_out", true, $w, null, $w_in, [["sunday_date", "desc"]], 1000),
 			"main" => "sa/sell_inout/index",
 		];
 		
-		//$this->load->view('layout', $data);
+		$this->load->view('layout', $data);
 	}
 	
 	public function testing(){

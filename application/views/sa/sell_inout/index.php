@@ -67,9 +67,9 @@
 							<label class="form-label">Customer</label>
 							<select class="form-select" name="cus">
 								<option value="" selected="">Choose...</option>
-								<?php foreach($customers as $c){ ?>
+								<?php foreach($customers as $c){ if($c->bill_to_code){ ?>
 								<option <?= ($cus == $c->customer_id) ? "selected" : "" ?> value="<?= $c->customer_id ?>"><?= $c->bill_to_code ?> - <?= $c->customer ?></option>
-								<?php } ?>
+								<?php }} ?>
 							</select>
 						</div>
 						<div class="col-lg-1 col-md-4 flex-fill align-self-end">
@@ -85,6 +85,9 @@
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Sell-In</h5>
+					<div>
+					<?php print_r($sell_ins); ?>
+					</div>
 					<div class="table-responsive">
 						<table class="table datatable align-middle">
 							<thead>
