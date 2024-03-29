@@ -86,11 +86,26 @@
 				<div class="card-body">
 					<h5 class="card-title">Sell-In</h5>
 					<div>
-					<?php print_r($sell_ins); ?>
+					<?php print_r($sell_ins[0]); ?>
 					</div>
 					<div class="table-responsive">
 						<table class="table datatable align-middle">
 							<thead>
+							
+sell_in_id
+invoice_id
+customer_id
+product_id
+currency_id
+closed_date
+order_qty
+unit_selling_price
+order_amount
+order_amount_pen
+valid
+registered
+
+							
 								<tr>
 									<th scope="col" style="width: 80px;">#</th>
 									<th scope="col">Emp.Num.</th>

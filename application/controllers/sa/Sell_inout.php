@@ -131,10 +131,6 @@ class Sell_inout extends CI_Controller {
 	}
 	
 	public function index(){
-		
-		//filter($tablename, $valid = true, $w = null, $l = null, $w_in = null, $orders = [], $limit = "", $offset = "")
-		//grp=&cat=&prd=&cus=
-		
 		//just apply where in customer_id
 		$w = []; 
 		if ($this->input->get("cus")) $w["customer_id"] = $this->input->get("cus");
@@ -156,12 +152,36 @@ class Sell_inout extends CI_Controller {
 		$w_in = []; 
 		if ($product_ids) $w_in[] = ["field" => "product_id", "values" => $product_ids];
 		
+		//set up invoice array
+		$sell_ins = $this->gen_m->filter("sell_in", true, $w, null, $w_in, [["closed_date", "desc"], ["order_amount", "asc"]], 1000);
+		
+		$invoice_ids = [];
+		foreach($sell_ins as $in) $invoice_ids[] = $in->invoice_id;
+		
+		$invoice_ids = array_unique($invoice_ids);
+		$invoices = $this->gen_m->filter("invoice", true, null, null, [["field" => "invoice_id", "values" => $invoice_ids]]);
+		
+		$invoice_arr = [];
+		foreach($invoices as $inv) $invoice_arr[$inv->invoice_id] = $inv;
+		
+		//set up customer array
+		$customer_arr = [];
+		$customers = $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]);
+		foreach($customers as $cus) $customer_arr[$cus->customer_id] = $cus;
+		
+		//set up product array
+		$product_arr = [];
+		foreach($products as $prd) $product_arr[$prd->product_id] = $prd;
+		
 		$data = [
 			"groups" => $this->gen_m->all("product_group", [["group_name", "asc"]]),
 			"categories" => $this->gen_m->all("product_category", [["category", "asc"]]),
 			"products" => $this->gen_m->all("product", [["model", "asc"]]),
-			"customers" => $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]),
-			"sell_ins" => $this->gen_m->filter("sell_in", true, $w, null, $w_in, [["closed_date", "desc"], ["order_amount", "asc"]], 1000),
+			"customers" => $customers,
+			"customer_arr" => $customer_arr,
+			"invoice_arr" => $invoice_arr,
+			"product_arr" => $product_arr,
+			"sell_ins" => $sell_ins,
 			"sell_outs" => $this->gen_m->filter("sell_out", true, $w, null, $w_in, [["sunday_date", "desc"]], 1000),
 			"main" => "sa/sell_inout/index",
 		];
