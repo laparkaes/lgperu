@@ -68,7 +68,7 @@ class Sell_inout extends CI_Controller {
 			$aux = clone $row;
 			$aux->date = $in->closed_date;
 			$aux->invoice_id = $in->invoice_id;
-			$aux->currency = $currency->simbol;
+			$aux->currency = $currency->symbol;
 			$aux->u_price = $in->unit_selling_price;
 			$aux->sell_in = $in->order_qty;
 			
@@ -76,7 +76,7 @@ class Sell_inout extends CI_Controller {
 			
 			if ($aux->invoice_id){
 				$inv = $this->gen_m->unique("invoice", "invoice_id", $aux->invoice_id);
-				$inv->currency = $currency->simbol;
+				$inv->currency = $currency->symbol;
 				$inv->u_price = $in->unit_selling_price;
 				$invoices[$aux->invoice_id] = clone $inv;
 			}
@@ -152,6 +152,11 @@ class Sell_inout extends CI_Controller {
 		$w_in = []; 
 		if ($product_ids) $w_in[] = ["field" => "product_id", "values" => $product_ids];
 		
+		//set up currency array
+		$currency_arr = [];
+		$currencies = $this->gen_m->all("currency");
+		foreach($currencies as $curr) $currency_arr[$curr->currency_id] = $curr;
+		
 		//set up invoice array
 		$sell_ins = $this->gen_m->filter("sell_in", true, $w, null, $w_in, [["closed_date", "desc"], ["order_amount", "asc"]], 1000);
 		
@@ -159,7 +164,7 @@ class Sell_inout extends CI_Controller {
 		foreach($sell_ins as $in) $invoice_ids[] = $in->invoice_id;
 		
 		$invoice_ids = array_unique($invoice_ids);
-		$invoices = $this->gen_m->filter("invoice", true, null, null, [["field" => "invoice_id", "values" => $invoice_ids]]);
+		$invoices = ($invoice_ids) ? $this->gen_m->filter("invoice", true, null, null, [["field" => "invoice_id", "values" => $invoice_ids]]) : [];
 		
 		$invoice_arr = [];
 		foreach($invoices as $inv) $invoice_arr[$inv->invoice_id] = $inv;
@@ -170,17 +175,32 @@ class Sell_inout extends CI_Controller {
 		foreach($customers as $cus) $customer_arr[$cus->customer_id] = $cus;
 		
 		//set up product array
-		$product_arr = [];
-		foreach($products as $prd) $product_arr[$prd->product_id] = $prd;
+		$groups = $this->gen_m->all("product_group", [["group_name", "asc"]]);
+		$categories = $this->gen_m->all("product_category", [["category", "asc"]]);
+		$products = $this->gen_m->all("product", [["model", "asc"]]);
+		
+		$group_arr = $category_arr = $product_arr = [];
+		foreach($groups as $g) $group_arr[$g->group_id] = $g;
+		foreach($categories as $c) $category_arr[$c->category_id] = $c;
+		foreach($products as $p){
+			if ($p->category_id){
+				$p->category = $category_arr[$p->category_id]->category;
+				$p->group = $group_arr[$category_arr[$p->category_id]->group_id]->group_name;
+			}else $p->category = $p->group = "";
+			
+			
+			$product_arr[$p->product_id] = $p;
+		}
 		
 		$data = [
-			"groups" => $this->gen_m->all("product_group", [["group_name", "asc"]]),
-			"categories" => $this->gen_m->all("product_category", [["category", "asc"]]),
-			"products" => $this->gen_m->all("product", [["model", "asc"]]),
+			"groups" => $groups,
+			"categories" => $categories,
+			"products" => $products,
 			"customers" => $customers,
 			"customer_arr" => $customer_arr,
 			"invoice_arr" => $invoice_arr,
 			"product_arr" => $product_arr,
+			"currency_arr" => $currency_arr,
 			"sell_ins" => $sell_ins,
 			"sell_outs" => $this->gen_m->filter("sell_out", true, $w, null, $w_in, [["sunday_date", "desc"]], 1000),
 			"main" => "sa/sell_inout/index",

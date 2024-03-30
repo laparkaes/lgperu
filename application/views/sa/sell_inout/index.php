@@ -81,100 +81,39 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-6">
+		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Sell-In</h5>
-					<div>
-					<?php print_r($sell_ins[0]); ?>
-					</div>
 					<div class="table-responsive">
 						<table class="table datatable align-middle">
 							<thead>
-							
-sell_in_id
-invoice_id
-customer_id
-product_id
-currency_id
-closed_date
-order_qty
-unit_selling_price
-order_amount
-order_amount_pen
-valid
-registered
-
-							
 								<tr>
 									<th scope="col" style="width: 80px;">#</th>
-									<th scope="col">Emp.Num.</th>
-									<th scope="col">Employee</th>
-									<th scope="col">Subsidiary</th>
-									<th scope="col">Organization</th>
-									<th scope="col">Department</th>
-									<th scope="col">Location</th>
-									<th scope="col">Vac.</th>
-									<th scope="col">Abs.</th>
-									<th scope="col">Tard.</th>
-									<th scope="col">Tard.Acc.</th>
-									<th scope="col">E.Exit</th>
-									<?php foreach($headers as $h){ ?>
-									<th scope="col">
-										<div class="text-<?= ($h["type"] === "H") ? "danger" : "" ?>">
-											<?= $h["day"] ?><br/><?= $h["day_w"] ?>
-										</div>
-									</th>
-									<?php } ?>
+									<th scope="col">Date</th>
+									<th scope="col">Invoice</th>
+									<th scope="col">Customer</th>
+									<th scope="col">Category</th>
+									<th scope="col">Product</th>
+									<th scope="col">Qty</th>
+									<th scope="col"><div class="text-end">U/Price</div></th>
+									<th scope="col"><div class="text-end">Amount</div></th>
 								</tr>
 							</thead>
 							<tbody>
-								<?php foreach($employees as $i => $emp){ ?>
+								<?php foreach($sell_ins as $i => $in){ 
+									$curr = $currency_arr[$in->currency_id];
+									$pre = ($in->order_amount < 0) ? "-" : ""; ?>
 								<tr>
-									<td><?= number_format($i + 1) ?></td>
-									<td><?= $emp->employee_number ?></td>
-									<td><div style="overflow: hidden; max-width: 150px; text-overflow: ellipsis;" class="text-nowrap" title="<?= $emp->name ?>"><?= $emp->name ?></div></td>
-									<td><?= $emp->subsidiary ?></td>
-									<td><div class="text-nowrap"><?= $emp->organization ?></div></td>
-									<td><div class="text-nowrap"><?= $emp->department ?></div></td>
-									<td><div class="text-nowrap"><?= $emp->location ?></div></td>
-									<td><?= ($emp->vacation_qty > 0) ? $emp->vacation_qty : "" ?></td>
-									<td><?= ($emp->absence_qty > 0) ? number_format($emp->absence_qty) : "" ?></td>
-									<td><?= ($emp->tardiness_qty > 0) ? number_format($emp->tardiness_qty) : ""  ?></td>
-									<td><?= ($emp->tardiness_qty > 0) ? $emp->tardiness_acc : "" ?></td>
-									<td><?= ($emp->early_exit_qty > 0) ? number_format($emp->early_exit_qty) : "" ?></td>
-									<?php foreach($dates as $idate => $d){ ?>
-									<td>
-										<?php if ($emp->daily[$d]["type"] === "N"){
-											if ($emp->daily[$d]["entrance"]["result"] === "V"){ 
-												$en_color = "success"; 
-												$en_val = $emp->daily[$d]["entrance"]["result"];
-											}else{
-												$en_color = ($emp->daily[$d]["entrance"]["result"] === "T") ? "danger" : ""; 
-												$en_val = date("H:i", strtotime($emp->daily[$d]["entrance"]["time"]));
-											}
-											
-											if ($emp->daily[$d]["exit"]["result"] === "V"){ 
-												$ex_color = "success"; 
-												$ex_val = $emp->daily[$d]["exit"]["result"];
-											}else{
-												$ex_color = ($emp->daily[$d]["exit"]["result"] === "E") ? "danger" : ""; 
-												$ex_val = date("H:i", strtotime($emp->daily[$d]["exit"]["time"]));
-											}
-											?>
-										<div class="text-<?= $en_color ?>"><?= $en_val ?></div>
-										<div class="text-<?= $ex_color ?>"><?= $ex_val ?></div>
-										<?php }else{
-											if ($emp->daily[$d]["type"] === "X") $d_color = "danger";
-											elseif ($emp->daily[$d]["type"] === "V") $d_color = "success";
-											else $d_color = "";
-											?>
-										<div class="text-<?= $d_color ?>">
-											<?= $emp->daily[$d]["type"] ?>
-										</div>
-										<?php } ?>
-									</td>
-									<?php } ?>
+									<td class="text-nowrap"><?= number_format($i + 1) ?></td>
+									<td><?= $in->closed_date ?></td>
+									<td><?= $invoice_arr[$in->invoice_id]->invoice ?></td>
+									<td><?= $customer_arr[$in->customer_id]->customer ?></td>
+									<td><?= $product_arr[$in->product_id]->group." > ".$product_arr[$in->product_id]->category ?></td>
+									<td><?= $product_arr[$in->product_id]->model ?></td>
+									<td><?= number_format($in->order_qty) ?></td>
+									<td><div class="text-end"><?= $currency_arr[$in->currency_id]->symbol." ".number_format($in->unit_selling_price, 2) ?></div></td>
+									<td><div class="text-end"><?= $pre." ".$curr->symbol." ".number_format(abs($in->order_amount), 2).(($curr->currency !== "PEN") ? " ( ".$pre." ".$curr->symbol." ".number_format(abs($in->order_amount_pen), 2)." )" : "") ?></div></td>
 								</tr>
 								<?php } ?>
 							</tbody>
