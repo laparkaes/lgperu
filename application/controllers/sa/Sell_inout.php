@@ -152,11 +152,6 @@ class Sell_inout extends CI_Controller {
 		$w_in = []; 
 		if ($product_ids) $w_in[] = ["field" => "product_id", "values" => $product_ids];
 		
-		//set up currency array
-		$currency_arr = [];
-		$currencies = $this->gen_m->all("currency");
-		foreach($currencies as $curr) $currency_arr[$curr->currency_id] = $curr;
-		
 		//set up invoice array
 		$sell_ins = $this->gen_m->filter("sell_in", true, $w, null, $w_in, [["closed_date", "desc"], ["order_amount", "asc"]], 1000);
 		
@@ -179,6 +174,16 @@ class Sell_inout extends CI_Controller {
 		$categories = $this->gen_m->all("product_category", [["category", "asc"]]);
 		$products = $this->gen_m->all("product", [["model", "asc"]]);
 		
+		//set up channel array
+		$channel_arr = [];
+		$channels = $this->gen_m->all("sell_out_channel");
+		foreach($channels as $chan) $channel_arr[$chan->channel_id] = $chan;
+		
+		//set up currency array
+		$currency_arr = [];
+		$currencies = $this->gen_m->all("currency");
+		foreach($currencies as $curr) $currency_arr[$curr->currency_id] = $curr;
+		
 		$group_arr = $category_arr = $product_arr = [];
 		foreach($groups as $g) $group_arr[$g->group_id] = $g;
 		foreach($categories as $c) $category_arr[$c->category_id] = $c;
@@ -192,6 +197,8 @@ class Sell_inout extends CI_Controller {
 			$product_arr[$p->product_id] = $p;
 		}
 		
+		$sell_inouts = [];
+		
 		$data = [
 			"groups" => $groups,
 			"categories" => $categories,
@@ -201,8 +208,10 @@ class Sell_inout extends CI_Controller {
 			"invoice_arr" => $invoice_arr,
 			"product_arr" => $product_arr,
 			"currency_arr" => $currency_arr,
+			"channel_arr" => $channel_arr,
 			"sell_ins" => $sell_ins,
 			"sell_outs" => $this->gen_m->filter("sell_out", true, $w, null, $w_in, [["sunday_date", "desc"]], 1000),
+			"sell_inouts" => $sell_inouts,
 			"main" => "sa/sell_inout/index",
 		];
 		
@@ -252,13 +261,12 @@ class Sell_inout extends CI_Controller {
 				echo "Category: ".$cat->category."<br/><br/>";
 				$products = $this->gen_m->filter("product", true, ["category_id" => $cat->category_id]);
 				foreach($products as $prd){
-					echo "Product: ".$prd->model."<br/><br/>";
-					
 					//customer_id = 9 is supermercados mercados (plaza vea)
-					//product_id = 274 as test
-					
 					$inout = $this->get_sell_inout(9, $prd->product_id);
-					if ($inout) print_sell_inout($inout);
+					if ($inout){
+						echo "Product: ".$prd->model."<br/><br/>";
+						print_sell_inout($inout);
+					}
 					
 					echo "<br/><br/>";
 				}

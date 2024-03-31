@@ -144,6 +144,9 @@
 	classes: {
 		input: "form-control",
 		selector: "form-select",
+		top: "datatable-top px-0 py-2",
+		
+		// align-middle
 	},
 	labels: {
 		perPage: "",

@@ -81,44 +81,110 @@
 				</div>
 			</div>
 		</div>
+		<div class="col-md-12 pb-3">
+			<?php if ($sell_inouts){ ?>
+			<?php }else{ ?>
+			<div class="alert alert-primary alert-dismissible fade show text-center" role="alert">
+                Select customer and product category to make Sell-In/Out report.
+			</div>
+			<?php } ?>
+		</div>
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Sell-In</h5>
-					<div class="table-responsive">
-						<table class="table datatable align-middle">
-							<thead>
-								<tr>
-									<th scope="col" style="width: 80px;">#</th>
-									<th scope="col">Date</th>
-									<th scope="col">Invoice</th>
-									<th scope="col">Customer</th>
-									<th scope="col">Category</th>
-									<th scope="col">Product</th>
-									<th scope="col">Qty</th>
-									<th scope="col"><div class="text-end">U/Price</div></th>
-									<th scope="col"><div class="text-end">Amount</div></th>
-								</tr>
-							</thead>
-							<tbody>
-								<?php foreach($sell_ins as $i => $in){ 
-									$curr = $currency_arr[$in->currency_id];
-									$pre = ($in->order_amount < 0) ? "-" : ""; ?>
-								<tr>
-									<td class="text-nowrap"><?= number_format($i + 1) ?></td>
-									<td><?= $in->closed_date ?></td>
-									<td><?= $invoice_arr[$in->invoice_id]->invoice ?></td>
-									<td><?= $customer_arr[$in->customer_id]->customer ?></td>
-									<td><?= $product_arr[$in->product_id]->group." > ".$product_arr[$in->product_id]->category ?></td>
-									<td><?= $product_arr[$in->product_id]->model ?></td>
-									<td><?= number_format($in->order_qty) ?></td>
-									<td><div class="text-end"><?= $currency_arr[$in->currency_id]->symbol." ".number_format($in->unit_selling_price, 2) ?></div></td>
-									<td><div class="text-end"><?= $pre." ".$curr->symbol." ".number_format(abs($in->order_amount), 2).(($curr->currency !== "PEN") ? " ( ".$pre." ".$curr->symbol." ".number_format(abs($in->order_amount_pen), 2)." )" : "") ?></div></td>
-								</tr>
-								<?php } ?>
-							</tbody>
-						</table>
+					<h5 class="card-title">Lastest 1,000 records</h5>
+					<ul class="nav nav-tabs" id="myTab" role="tablist">
+						<li class="nav-item" role="presentation">
+							<button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Sell-In</button>
+						</li>
+						<li class="nav-item" role="presentation">
+							<button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false" tabindex="-1">Sell-Out</button>
+						</li>
+					</ul>
+					<div class="tab-content pt-3" id="myTabContent">
+						<div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+							<div class="table-responsive">
+								<table class="table datatable align-middle">
+									<thead>
+										<tr>
+											<th scope="col" style="width: 80px;">#</th>
+											<th scope="col">Date</th>
+											<th scope="col">Invoice</th>
+											<th scope="col">Customer</th>
+											<th scope="col">Bill to</th>
+											<th scope="col">Category</th>
+											<th scope="col">Model</th>
+											<th scope="col">Qty</th>
+											<th scope="col"><div class="text-end">U/Price</div></th>
+											<th scope="col"><div class="text-end">Amount</div></th>
+										</tr>
+									</thead>
+									<tbody>
+										<?php foreach($sell_ins as $i => $in){ 
+											$curr = $currency_arr[$in->currency_id];
+											$pre = ($in->order_amount < 0) ? "-" : ""; ?>
+										<tr>
+											<td class="text-nowrap"><?= number_format($i + 1) ?></td>
+											<td><?= $in->closed_date ?></td>
+											<td><?= $invoice_arr[$in->invoice_id]->invoice ?></td>
+											<td><?= $customer_arr[$in->customer_id]->customer ?></td>
+											<td><?= $customer_arr[$in->customer_id]->bill_to_code ?></td>
+											<td><?= $product_arr[$in->product_id]->group." > ".$product_arr[$in->product_id]->category ?></td>
+											<td><?= $product_arr[$in->product_id]->model ?></td>
+											<td><?= number_format($in->order_qty) ?></td>
+											<td><div class="text-end"><?= $currency_arr[$in->currency_id]->symbol." ".number_format($in->unit_selling_price, 2) ?></div></td>
+											<td><div class="text-end"><?= $pre." ".$curr->symbol." ".number_format(abs($in->order_amount), 2).(($curr->currency !== "PEN") ? " (".$pre." S/ ".number_format(abs($in->order_amount_pen), 2).")" : "") ?></div></td>
+										</tr>
+										<?php } ?>
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+							<div class="table-responsive">
+								<table class="table datatable align-middle">
+									<thead>
+										<tr>
+											<th scope="col" style="width: 80px;">#</th>
+											<th scope="col">Date</th>
+											<th scope="col">Customer</th>
+											<th scope="col">Bill to</th>
+											<th scope="col">Category</th>
+											<th scope="col">Model</th>
+											<th scope="col">Channel</th>
+											<th scope="col">Stock</th>
+											<th scope="col">Qty</th>
+											<th scope="col"><div class="text-end">Amount</div></th>
+										</tr>
+									</thead>
+									<tbody>
+										<?php foreach($sell_outs as $i => $out){ //sell-out always use PEN ?>
+										<tr>
+											<td class="text-nowrap"><?= number_format($i + 1) ?></td>
+											<td><?= $out->sunday_date ?></td>
+											<td><?= $customer_arr[$out->customer_id]->customer ?></td>
+											<td><?= $customer_arr[$out->customer_id]->bill_to_code ?></td>
+											<td><?= $product_arr[$out->product_id]->group." > ".$product_arr[$out->product_id]->category ?></td>
+											<td><?= $product_arr[$out->product_id]->model ?></td>
+											<td><?= $channel_arr[$out->channel_id]->channel ?></td>
+											<td><?= number_format($out->stock) ?></td>
+											<td><?= number_format($out->qty) ?></td>
+											<td><div class="text-end"><?= "S/ ".number_format($out->amount, 2) ?></div></td>
+										</tr>
+										<?php } ?>
+									</tbody>
+								</table>
+							</div>
+						</div>
 					</div>
+				</div>
+			</div>
+		
+		
+		
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Sell-In</h5>
 				</div>
 			</div>
 		</div> 
