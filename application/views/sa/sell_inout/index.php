@@ -81,28 +81,94 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-12 pb-3">
-			<?php if ($sell_inouts){ ?>
-			<?php }else{ ?>
-			<div class="alert alert-primary alert-dismissible fade show text-center" role="alert">
-                Select customer and product category to make Sell-In/Out report.
+		<div class="col-md-12">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Sell-In/Out Report</h5>
+					<?php if ($sell_inouts){ ?>
+					<ul class="nav nav-tabs nav-tabs-bordered" id="myTab" role="tablist">
+						<?php $a = "active"; $s = "selected"; foreach($sell_inouts as $io){ if ($io["ios"]){ ?>
+						<li class="nav-item" role="presentation">
+							<button class="nav-link <?= $a ?>" id="prd<?= $io["product_id"] ?>t-tab" data-bs-toggle="tab" data-bs-target="#prd<?= $io["product_id"] ?>t" type="button" role="tab" aria-controls="prd<?= $io["product_id"] ?>t" aria-selected=" <?= $s ?>"><?= $product_arr[$io["product_id"]]->model ?></button>
+						</li>
+						<?php $a = $s = ""; }} ?>
+					</ul>
+					<div class="tab-content pt-3">
+						<?php $a = "show active"; foreach($sell_inouts as $io){ if ($io["ios"]){ $ios = $io["ios"]; ?>
+						<div class="tab-pane fade <?= $a ?>" id="prd<?= $io["product_id"] ?>t" role="tabpanel" aria-labelledby="prd<?= $io["product_id"] ?>t-tab">
+							<div class="table-responsive">
+								<table class="table datatable align-middle">
+									<thead>
+										<tr>
+											<th scope="col" style="width: 80px;">#</th>
+											<th scope="col">Date</th>
+											<th scope="col">U/Price</th>
+											<th scope="col">Sell-in</th>
+											<th scope="col">Sell-out</th>
+											<th scope="col">Stock<br/>(Cust. / LG / Diff)</th>
+											<th scope="col">Alert</th>
+											<th scope="col">Invoice</th>
+											<th scope="col">Invoices</th>
+										</tr>
+									</thead>
+									<tbody>
+										<?php foreach($ios as $i => $i_io){ ?>
+										<tr>
+											<td class="text-nowrap"><?= number_format($i + 1) ?></td>
+											<td><?= $i_io->date ?></td>
+											<td><?= (($i_io->u_price > 0) ? $i_io->currency." ".number_format($i_io->u_price, 2) : "") ?></td>
+											<td><?= $i_io->sell_in ?></td>
+											<td><?= $i_io->sell_out ?></td>
+											<td><?= ($i_io->stock_customer) ? $i_io->stock_customer." / ".$i_io->stock_lg." / ".$i_io->stock_diff : "" ?></td>
+											<td>
+												<?php if ($i_io->sell_out){ switch(true){
+													case (abs($i_io->stock_diff) > 10) : $c = "text-danger"; break;
+													case (abs($i_io->stock_diff) > 5) : $c = "text-warning"; break;
+													default: $c = "text-success";
+												} ?>
+												<i class="bi bi-circle-fill <?= $c ?>"></i>
+												<?php } ?>
+											</td>
+											<td><?= $i_io->invoice ?></td>
+											<td>
+												<?php $aux = []; foreach($i_io->invoices as $inv){
+												$i_aux = $inv["invoice"];
+												$i_code = ($i_aux) ? $i_aux->invoice : "No Invoice";
+												$i_price = ($i_aux) ? " * ".$i_aux->currency." ".number_format($i_aux->u_price, 2) : "";
+												$aux[] = $i_code." (".number_format($inv["qty"]).$i_price.")";
+												} ?>
+												<?= implode("<br/>", $aux) ?>
+											</td>
+										</tr>
+										<?php } ?>
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<?php $a = ""; }} ?>
+					</div>
+					<?php }else{ ?>
+					<div class="alert alert-primary alert-dismissible fade show text-center mb-0" role="alert">
+						Select customer and product category at least to make Sell-In/Out report.
+					</div>
+					<?php } ?>
+				</div>
 			</div>
-			<?php } ?>
 		</div>
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Lastest 1,000 records</h5>
-					<ul class="nav nav-tabs" id="myTab" role="tablist">
+					<ul class="nav nav-tabs nav-tabs-bordered" role="tablist">
 						<li class="nav-item" role="presentation">
-							<button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Sell-In</button>
+							<button class="nav-link active" id="sell_in_t-tab" data-bs-toggle="tab" data-bs-target="#sell_in_t" type="button" role="tab" aria-controls="sell_in_t" aria-selected="true">Sell-In</button>
 						</li>
 						<li class="nav-item" role="presentation">
-							<button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false" tabindex="-1">Sell-Out</button>
+							<button class="nav-link" id="sell_out_t-tab" data-bs-toggle="tab" data-bs-target="#sell_out_t" type="button" role="tab" aria-controls="sell_out_t" aria-selected="false">Sell-Out</button>
 						</li>
 					</ul>
-					<div class="tab-content pt-3" id="myTabContent">
-						<div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+					<div class="tab-content pt-3">
+						<div class="tab-pane fade show active" id="sell_in_t" role="tabpanel" aria-labelledby="sell_in_t-tab">
 							<div class="table-responsive">
 								<table class="table datatable align-middle">
 									<thead>
@@ -140,7 +206,7 @@
 								</table>
 							</div>
 						</div>
-						<div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+						<div class="tab-pane fade" id="sell_out_t" role="tabpanel" aria-labelledby="sell_out_t-tab">
 							<div class="table-responsive">
 								<table class="table datatable align-middle">
 									<thead>
@@ -161,7 +227,7 @@
 										<?php foreach($sell_outs as $i => $out){ //sell-out always use PEN ?>
 										<tr>
 											<td class="text-nowrap"><?= number_format($i + 1) ?></td>
-											<td><?= $out->sunday_date ?></td>
+											<td><?= $out->date ?></td>
 											<td><?= $customer_arr[$out->customer_id]->customer ?></td>
 											<td><?= $customer_arr[$out->customer_id]->bill_to_code ?></td>
 											<td><?= $product_arr[$out->product_id]->group." > ".$product_arr[$out->product_id]->category ?></td>

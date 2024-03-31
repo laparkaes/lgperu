@@ -46,15 +46,15 @@ class Sell_inout extends CI_Controller {
 		$w_out = [
 			"customer_id" => $w_in["customer_id"],
 			"product_id" => $w_in["product_id"],
-			"sunday_date <" => ($sell_ins) ? $sell_ins[0]->closed_date : date("Y-m-d"),
+			"date <" => ($sell_ins) ? $sell_ins[0]->closed_date : date("Y-m-d"),
 		];
-		$sell_out_first = $this->gen_m->filter("sell_out", true, $w_out, null, null, [["sunday_date", "desc"]], 1);
+		$sell_out_first = $this->gen_m->filter("sell_out", true, $w_out, null, null, [["date", "desc"]], 1);
 		
 		//get sell-outs from first sell-out before first sell-in
-		unset($w_out["sunday_date <"]);
-		$w_out["sunday_date >="] = ($sell_out_first) ? $sell_out_first[0]->sunday_date : date("Y-m-d");
+		unset($w_out["date <"]);
+		$w_out["date >="] = ($sell_out_first) ? $sell_out_first[0]->date : date("Y-m-d");
 		
-		$sell_outs = $this->gen_m->filter("sell_out", true, $w_out, null, null, [["sunday_date", "asc"]]);
+		$sell_outs = $this->gen_m->filter("sell_out", true, $w_out, null, null, [["date", "asc"]]);
 		
 		//invoice array
 		$invoices = [];
@@ -84,7 +84,7 @@ class Sell_inout extends CI_Controller {
 		
 		foreach($sell_outs as $i => $out){
 			$aux = clone $row;
-			$aux->date = $out->sunday_date;
+			$aux->date = $out->date;
 			$aux->sell_out = $out->qty;
 			$aux->stock_customer = $out->stock;
 			
@@ -193,11 +193,17 @@ class Sell_inout extends CI_Controller {
 				$p->group = $group_arr[$category_arr[$p->category_id]->group_id]->group_name;
 			}else $p->category = $p->group = "";
 			
-			
 			$product_arr[$p->product_id] = $p;
 		}
 		
 		$sell_inouts = [];
+		if ($this->input->get("cat") and $this->input->get("cus")){
+			$customer_id = $this->input->get("cus");
+			foreach($product_ids as $prd_id){
+				$ios = $this->get_sell_inout($customer_id, $prd_id);
+				$sell_inouts[] = ["product_id" => $prd_id, "qty" => count($ios), "ios" => $ios];
+			}
+		}
 		
 		$data = [
 			"groups" => $groups,
@@ -210,7 +216,7 @@ class Sell_inout extends CI_Controller {
 			"currency_arr" => $currency_arr,
 			"channel_arr" => $channel_arr,
 			"sell_ins" => $sell_ins,
-			"sell_outs" => $this->gen_m->filter("sell_out", true, $w, null, $w_in, [["sunday_date", "desc"]], 1000),
+			"sell_outs" => $this->gen_m->filter("sell_out", true, $w, null, $w_in, [["date", "desc"]], 1000),
 			"sell_inouts" => $sell_inouts,
 			"main" => "sa/sell_inout/index",
 		];
@@ -377,7 +383,7 @@ class Sell_inout extends CI_Controller {
 					"customer_id" => ($customer) ? $customer->customer_id : null,
 					"product_id" => ($product) ? $product->product_id : null,
 					"channel_id" => $cha_arr[trim($sheet->getCell('B'.$row)->getFormattedValue())],
-					"sunday_date" => date("Y-m-d", strtotime(trim($sheet->getCell('H'.$row)->getFormattedValue()))),
+					"date" => date("Y-m-d", strtotime(trim($sheet->getCell('H'.$row)->getFormattedValue()))),
 					"qty" => $qty,
 					"amount" => trim($sheet->getCell('L'.$row)->getValue()),
 					"stock" => trim($sheet->getCell('M'.$row)->getValue()),
