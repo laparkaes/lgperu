@@ -7,6 +7,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
 class My_func{
 	
@@ -44,6 +45,8 @@ class My_func{
 		$url = "";
 		
 		if ($rows){
+			//foreach($rows as $r){ print_r($r); echo "<br/>"; }
+			
 			$spreadsheet = new Spreadsheet();
 			$sheet = $spreadsheet->getActiveSheet();
 			
@@ -57,7 +60,7 @@ class My_func{
 			
 			//set rows
 			$row_from = 5;
-			foreach($rows as $j => $row) foreach($row as $i => $r) $sheet->setCellValueByColumnAndRow(($i + 1), $row_from + $j, $r);
+			foreach($rows as $j => $row) foreach($row as $i => $r) $sheet->getCellByColumnAndRow(($i + 1), $row_from + $j)->setValueExplicit($r, DataType::TYPE_STRING);
 			
 			//save excel file to a temporary directory
 			$file_path = './upload/report/';

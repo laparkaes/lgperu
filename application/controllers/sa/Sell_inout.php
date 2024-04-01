@@ -97,6 +97,20 @@ class Sell_inout extends CI_Controller {
 			if ($io->sell_in > 0){
 				$io->invoice = (($io->invoice_id > 0) ? $invoices[$io->invoice_id]->invoice : "");
 				$ranges[] = ["qty" => $io->sell_in, "invoice_id" => $io->invoice_id];
+			}elseif ($io->sell_in < 0){
+				$ranges = array_reverse($ranges);//reverse ranges
+				
+				$var = abs($io->sell_in);
+				foreach($ranges as $i_r => $r){
+					$ranges[$i_r]["qty"] = $r["qty"] - $var;
+					
+					if ($ranges[$i_r]["qty"] <= 0){
+						$var = abs($ranges[$i_r]["qty"]);
+						unset($ranges[$i_r]);
+					}else break;
+				}
+				
+				$ranges = array_reverse($ranges);//reverse ranges to original
 			}
 			
 			if ($io->sell_out > 0){
@@ -257,6 +271,13 @@ class Sell_inout extends CI_Controller {
 		
 		echo "<style>table td{padding: 5px 10px;}</style>";
 		
+		$inout = $this->get_sell_inout(5, 274);
+		if ($inout){
+			//echo "Product: ".$prd->model."<br/><br/>";
+			print_sell_inout($inout);
+		}
+		
+		/*
 		$groups = $this->gen_m->all("product_group", [["group_name", "asc"]]);
 		foreach($groups as $g_i => $grp){
 			echo "Group: ".$grp->group_name."<br/><br/>";
@@ -282,6 +303,7 @@ class Sell_inout extends CI_Controller {
 			echo "<br/><br/>";
 			if ($g_i > 0) break;
 		}
+		*/
 	}
 	
 	private function get_customer($customer, $bill_to_code){
