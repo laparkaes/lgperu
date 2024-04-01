@@ -1,6 +1,13 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+
 class My_func{
 	
 	public function __construct(){
@@ -31,5 +38,36 @@ class My_func{
 
 		$interval = $date1->diff($date2);
 		return $interval->days;
+	}
+	
+	public function generate_excel_report($filename, $title, $header, $rows){
+		$url = "";
+		
+		if ($rows){
+			$spreadsheet = new Spreadsheet();
+			$sheet = $spreadsheet->getActiveSheet();
+			
+			//set report parameters
+			$sheet->setCellValueByColumnAndRow(1, 1, $title);
+			$sheet->setCellValueByColumnAndRow(1, 2, "Date");
+			$sheet->setCellValueByColumnAndRow(2, 2, date('Y-m-d H:i:s'));
+			
+			//set header
+			foreach($header as $i => $h) $sheet->setCellValueByColumnAndRow(($i + 1), 4, $h);
+			
+			//set rows
+			$row_from = 5;
+			foreach($rows as $j => $row) foreach($row as $i => $r) $sheet->setCellValueByColumnAndRow(($i + 1), $row_from + $j, $r);
+			
+			//save excel file to a temporary directory
+			$file_path = './upload/report/';
+			$writer = new Xlsx($spreadsheet);
+			$writer->save($file_path.$filename);
+			
+			//file url
+			$url = base_url()."upload/report/".$filename;	
+		}
+		
+		return $url;
 	}
 }

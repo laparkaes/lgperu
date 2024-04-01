@@ -89,7 +89,7 @@
 					<ul class="nav nav-tabs nav-tabs-bordered" id="myTab" role="tablist">
 						<?php $a = "active"; $s = "selected"; foreach($sell_inouts as $io){ if ($io["ios"]){ ?>
 						<li class="nav-item" role="presentation">
-							<button class="nav-link <?= $a ?>" id="prd<?= $io["product_id"] ?>t-tab" data-bs-toggle="tab" data-bs-target="#prd<?= $io["product_id"] ?>t" type="button" role="tab" aria-controls="prd<?= $io["product_id"] ?>t" aria-selected=" <?= $s ?>"><?= $product_arr[$io["product_id"]]->model ?></button>
+							<button class="nav-link <?= $a ?>" id="prd<?= $io["product_id"] ?>t-tab" data-bs-toggle="tab" data-bs-target="#prd<?= $io["product_id"] ?>t" type="button" role="tab" aria-controls="prd<?= $io["product_id"] ?>t" aria-selected=" <?= $s ?>"><?= $product_arr[$io["product_id"]]->model ?> (<?= $io["qty"] ?>)</button>
 						</li>
 						<?php $a = $s = ""; }} ?>
 					</ul>
@@ -119,9 +119,15 @@
 											<td><?= (($i_io->u_price > 0) ? $i_io->currency." ".number_format($i_io->u_price, 2) : "") ?></td>
 											<td><?= $i_io->sell_in ?></td>
 											<td><?= $i_io->sell_out ?></td>
-											<td><?= ($i_io->stock_customer) ? $i_io->stock_customer." / ".$i_io->stock_lg." / ".$i_io->stock_diff : "" ?></td>
 											<td>
-												<?php if ($i_io->sell_out){ switch(true){
+												<?php $aux = [];
+												$aux[] = $i_io->stock_customer ? $i_io->stock_customer : 0;
+												$aux[] = $i_io->stock_lg ? $i_io->stock_lg : 0;
+												$aux[] = $i_io->stock_diff ? $i_io->stock_diff : 0;
+												echo (($i_io->stock_customer) ? implode(" / ", $aux) : ""); ?>
+											</td>
+											<td>
+												<?php if ($i_io->sell_out > 0){ switch(true){
 													case (abs($i_io->stock_diff) > 10) : $c = "text-danger"; break;
 													case (abs($i_io->stock_diff) > 5) : $c = "text-warning"; break;
 													default: $c = "text-success";
@@ -245,31 +251,26 @@
 					</div>
 				</div>
 			</div>
-		
-		
-		
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Sell-In</h5>
-				</div>
-			</div>
 		</div> 
 	</div>
 </section>
 
 <div class="modal fade" id="md_exr" tabindex="-1" style="display: none;" aria-hidden="true">
-	<div class="modal-dialog">
+	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title">Export Report</h5>
+				<h5 class="modal-title">Sell-In/Out Report</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
 				<form class="row g-3" id="form_exp_report">
 					<div class="col-12">
-						<label class="form-label">Period</label>
-						<select class="form-select" name="period">
-							<option value="2024-02">2024-02</option>
+						<label class="form-label">Customer</label>
+						<select class="form-select" name="cus">
+							<option value="" selected="">Choose...</option>
+							<?php foreach($customers as $c){ if($c->bill_to_code){ ?>
+							<option <?= ($cus == $c->customer_id) ? "selected" : "" ?> value="<?= $c->customer_id ?>"><?= $c->bill_to_code ?> - <?= $c->customer ?></option>
+							<?php }} ?>
 						</select>
 					</div>
 					<div class="text-end pt-3">
@@ -328,22 +329,16 @@ document.addEventListener("DOMContentLoaded", () => {
 		$("#form_upload_sell_inout .sys_msg").html("");
 		ajax_form_warning(this, "sa/sell_inout/upload_sell_inout_file", "Do you upload data?").done(function(res) {
 			swal_open_tab(res.type, res.msg, res.url);
-			//window.location.href = res.url;
-			//alert();
-			//swal_redirection(res.type, res.msg, "hr/attendance");
 		});
 	});
-	
 	
 	$("#form_exp_report").submit(function(e) {
 		e.preventDefault();
 		$("#form_exp_report .sys_msg").html("");
-		ajax_form_warning(this, "hr/attendance/export_monthly_report", "Do you want to export monthly attendance report?").done(function(res) {
-			window.location.href = res.url;
-			//alert();
-			//swal_redirection(res.type, res.msg, "hr/attendance");
+		ajax_form_warning(this, "sa/sell_inout/exp_report", "Do you want to export sell-in/out report in excel?").done(function(res) {
+			swal(res.type, res.msg);
+			if (res.type == "success") window.location.href = res.url;
 		});
 	});
-	
 });
 </script>

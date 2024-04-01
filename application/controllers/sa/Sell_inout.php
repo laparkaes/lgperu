@@ -2,11 +2,6 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Color;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class Sell_inout extends CI_Controller {
 
@@ -204,6 +199,9 @@ class Sell_inout extends CI_Controller {
 				$sell_inouts[] = ["product_id" => $prd_id, "qty" => count($ios), "ios" => $ios];
 			}
 		}
+		usort($sell_inouts, function($a, $b) {
+			return $a["qty"] < $b["qty"];
+		});
 		
 		$data = [
 			"groups" => $groups,
@@ -482,6 +480,96 @@ class Sell_inout extends CI_Controller {
 			$url = base_url()."sa/sell_inout/process_sell_inout_file";
 			$msg = "File upload is done. Data saving will be started.";
 		}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
+	}
+
+	public function exp_report(){
+		$type = "error"; $msg = $url = ""; 
+		
+		$start_time = microtime(true);
+		
+		$header = [
+			"Customer",
+			"Bill To",
+			"Group",
+			"Category",
+			"Product Model",
+			"Date",
+			"U/Price",
+			"Sell-In",
+			"Sell-Out",
+			"Stock (Cust. / LG / Diff)",
+			"Alert",
+			"Invoice",
+			"Invoices",
+		];
+		
+		$rows = [];
+		
+		$customer = $this->gen_m->unique("customer", "customer_id", $this->input->post("cus"));
+		$customer_id = $customer->customer_id;
+		
+		$groups = $this->gen_m->all("product_group", [["group_name", "asc"]]);
+		foreach($groups as $g_i => $grp){
+			$categories = $this->gen_m->filter("product_category", true, ["group_id" => $grp->group_id]);
+			foreach($categories as $cat){
+				$products = $this->gen_m->filter("product", true, ["category_id" => $cat->category_id]);
+				foreach($products as $prd){
+					$inouts = $this->get_sell_inout($customer_id, $prd->product_id);
+					if ($inouts) foreach($inouts as $i => $i_io){
+						//stock data processing
+						$aux = [];
+						$aux[] = $i_io->stock_customer ? $i_io->stock_customer : 0;
+						$aux[] = $i_io->stock_lg ? $i_io->stock_lg : 0;
+						$aux[] = $i_io->stock_diff ? $i_io->stock_diff : 0;
+						$stock = (($i_io->stock_customer) ? implode(" / ", $aux) : "");
+						
+						//stock alert processing
+						if ($i_io->sell_out > 0){ 
+							switch(true){
+								case (abs($i_io->stock_diff) > 10) : $alert = "Danger"; break;
+								case (abs($i_io->stock_diff) > 5) : $alert = "Warning"; break;
+								default: $alert = "";
+							}
+						}else $alert = "";
+						
+						//invoices processing
+						$aux = []; 
+						foreach($i_io->invoices as $inv){
+							$i_aux = $inv["invoice"];
+							$i_code = ($i_aux) ? $i_aux->invoice : "No Invoice";
+							$i_price = ($i_aux) ? " * ".$i_aux->currency." ".number_format($i_aux->u_price, 2) : "";
+							$aux[] = $i_code." (".number_format($inv["qty"]).$i_price.")";
+						}
+						$invoices = implode(", ", $aux);
+						
+						$rows[] = [
+							$customer->customer,
+							$customer->bill_to_code,
+							$grp->group_name,
+							$cat->category,
+							$prd->model,
+							$i_io->date,
+							(($i_io->u_price > 0) ? $i_io->currency." ".number_format($i_io->u_price, 2) : ""),
+							$i_io->sell_in,
+							$i_io->sell_out,
+							$stock,
+							$alert,
+							$i_io->invoice,
+							$invoices,
+						];
+					}
+				}
+			}
+		}
+		
+		$url = $this->my_func->generate_excel_report("sell_in_out_report.xlsx", "Sell-In/Out Report", $header, $rows);
+		if ($rows){
+			$type = "success";
+			$msg = "Sell-In/Out report has been created. (".number_Format(microtime(true) - $start_time, 3)." sec)";
+		}else $msg = "No data to make report.";
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
