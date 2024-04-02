@@ -11,13 +11,11 @@ class My_pdf{
 		$parser = new \Smalot\PdfParser\Parser();
 		$pdf = $parser->parseFile($path);
 		
-		//print_r($pdf->getPages());
-		echo "<br/><br/><br/>";
-		echo $pdf->getPages()[0]->getText();
-		echo "<br/><br/><br/>";
-		echo $pdf->getPages()[1]->getText();
-		echo "<br/><br/><br/>";
+		$result = [];
 		
-		return $pdf->getText();
+		$pages = $pdf->getPages();
+		foreach($pages as $i => $p) $result[] = ["page" => ($i + 1), "text" => $pages[$i]->getText()];
+		
+		return $result;
 	}
 }
