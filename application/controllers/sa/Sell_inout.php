@@ -113,8 +113,8 @@ class Sell_inout extends CI_Controller {
 				$ranges = array_reverse($ranges);//reverse ranges to original
 			}
 			
-			if ($io->sell_out > 0){
-				if ($i > 0){
+			if ($i){
+				if ($io->sell_out > 0){
 					$var = abs($io->sell_out);
 					foreach($ranges as $i_r => $r){
 						$ranges[$i_r]["qty"] = $r["qty"] - $var;
@@ -124,16 +124,22 @@ class Sell_inout extends CI_Controller {
 							unset($ranges[$i_r]);
 						}else break;
 					}
+				}elseif ($io->sell_out < 0){
+					//use foreach because of array index
+					foreach($ranges as $i_r => $r){
+						$ranges[$i_r]["qty"] = $r["qty"] + abs($io->sell_out);
+						break;
+					}
 				}
-				
-				$io->stock_lg = 0;
-				foreach($ranges as $r){
-					$io->stock_lg += $r["qty"];
-					$io->invoices[] = ($r["invoice_id"] > 0) ? ["qty" => $r["qty"], "invoice" => clone $invoices[$r["invoice_id"]]] : ["qty" => $r["qty"], "invoice" => null];
-				}
-				
-				$io->stock_diff = $io->stock_lg - $io->stock_customer;
 			}
+			
+			$io->stock_lg = 0;
+			foreach($ranges as $r){
+				$io->stock_lg += $r["qty"];
+				$io->invoices[] = ($r["invoice_id"] > 0) ? ["qty" => $r["qty"], "invoice" => clone $invoices[$r["invoice_id"]]] : ["qty" => $r["qty"], "invoice" => null];
+			}
+			
+			$io->stock_diff = $io->sell_out ? $io->stock_lg - $io->stock_customer : null;
 		}
 		
 		return array_reverse($inout);

@@ -124,10 +124,10 @@
 												$aux[] = $i_io->stock_customer ? $i_io->stock_customer : 0;
 												$aux[] = $i_io->stock_lg ? $i_io->stock_lg : 0;
 												$aux[] = $i_io->stock_diff ? $i_io->stock_diff : 0;
-												echo (($i_io->stock_customer) ? implode(" / ", $aux) : ""); ?>
+												echo (($i_io->sell_out) ? implode(" / ", $aux) : ""); ?>
 											</td>
 											<td>
-												<?php if ($i_io->sell_out > 0){ switch(true){
+												<?php if ($i_io->sell_out){ switch(true){
 													case (abs($i_io->stock_diff) > 10) : $c = "text-danger"; break;
 													case (abs($i_io->stock_diff) > 5) : $c = "text-warning"; break;
 													default: $c = "text-success";
