@@ -45,7 +45,7 @@ class Sell_inout extends CI_Controller {
 		];
 		$sell_out_first = $this->gen_m->filter("sell_out", true, $w_out, null, null, [["date", "desc"]], 1);
 		
-		$dates = [strtotime('-2 months')];
+		$dates = [strtotime('-4 months')];
 		if ($sell_out_first) $dates[] = strtotime($sell_out_first[0]->date);
 		if ($sell_ins) $dates[] = strtotime($sell_ins[0]->closed_date);
 		
