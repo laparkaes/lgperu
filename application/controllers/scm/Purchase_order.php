@@ -15,11 +15,57 @@ class Purchase_order extends CI_Controller {
 		];
 	}
 	
-	private function hiraoka_original($rows){
-		foreach($rows as $r){
-			print_r($r); echo "<br/>";
+	private function hiraoka_original($rows_input){
+		$rows = [];
+		
+		$customer = trim($rows_input[4]);
+		$num_order = trim(explode(" ", $rows_input[5])[4]);
+		$address = trim($rows_input[16]).", ".trim($rows_input[17]);
+		
+		foreach($rows_input as $r){
+			$aux = explode(" ", $r);
+			$aux = array_values(array_filter($aux));
+			
+			
+			if (count($aux) > 6) if (is_numeric($aux[0])){
+				//print_r($r); echo "<br/>";
+				//print_r($aux); echo "<br/>";
+				//foreach($aux as $a) var_dump($a); echo "<br/>";
+				
+				//get last position of number and extract total amount
+				$aux_text = trim($aux[5]);
+				preg_match('/[a-z]+/i', $aux_text, $matches, PREG_OFFSET_CAPTURE);
+				$total = substr($aux_text, 0, $matches[0][1]);
+				$aux[5] = str_replace($total, "", $aux_text);
+				
+				$row = [];
+				$row[] = $customer;//customer
+				$row[] = $address;//address
+				$row[] = $num_order;//num order
+				$row[] = trim($aux[0]); unset($aux[0]);//num
+				$row[] = trim($aux[1]); unset($aux[1]);//code
+				$row[] = trim($aux[2]); unset($aux[2]);//unit
+				$row[] = trim($aux[3]); unset($aux[3]);//qty
+				$row[] = trim($aux[4]); unset($aux[4]);//unit Price
+				$row[] = $total;//total
+				
+				//clean aux => unset Pre-Distribucion
+				foreach($aux as $a_i => $a) if (is_numeric($a)) unset($aux[$a_i]);
+				
+				//merge aux with " " to make product desription string
+				$row[] = implode(" ", $aux);//desription
+				
+				//print_r($aux); echo "<br/>";
+				print_r($row); echo "<br/>";
+				//echo "<br/>";
+				
+				$rows[] = $row;
+			}
 		}
 		echo "<br/><br/>";
+		
+		
+		return $rows;
 	}
 	
 	private function pdf_to_excel($filename, $logic_type = "hiraoka_original"){
@@ -41,10 +87,27 @@ class Purchase_order extends CI_Controller {
 		
 		switch($logic_type){
 			case "hiraoka_original": 
-				$this->hiraoka_original($rows);
+				$rows = $this->hiraoka_original($rows);
 				break;
 			default:
 				echo "No type selected.";
+		}
+		
+		if ($rows){
+			$header = [
+				"Customer",
+				"Address",
+				"#Order",
+				"Num",
+				"Code",
+				"Unit",
+				"Qty",
+				"U/Price",
+				"Total",
+				"Description",
+			];
+			
+			$url = $this->my_func->generate_excel_report($filename.".xlsx", "Purchase order items PDF to Excel", $header, $rows);
 		}
 	}
 	

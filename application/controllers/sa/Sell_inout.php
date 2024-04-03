@@ -45,10 +45,17 @@ class Sell_inout extends CI_Controller {
 		];
 		$sell_out_first = $this->gen_m->filter("sell_out", true, $w_out, null, null, [["date", "desc"]], 1);
 		
-		//get sell-outs from first sell-out before first sell-in
-		unset($w_out["date <"]);
-		$w_out["date >="] = ($sell_out_first) ? $sell_out_first[0]->date : date("Y-m-d");
+		$dates = [strtotime('-2 months')];
+		if ($sell_out_first) $dates[] = strtotime($sell_out_first[0]->date);
+		if ($sell_ins) $dates[] = strtotime($sell_ins[0]->closed_date);
 		
+		$date_start = date("Y-m-d", min($dates));
+
+		//load real sell-in/out
+		unset($w_out["date <"]);
+		$w_in["closed_date >="] = $w_out["date >="] = $date_start;
+		
+		$sell_ins = $this->gen_m->filter("sell_in", true, $w_in, null, null, [["closed_date", "asc"], ["order_amount", "desc"]]);
 		$sell_outs = $this->gen_m->filter("sell_out", true, $w_out, null, null, [["date", "asc"]]);
 		
 		//invoice array
@@ -58,22 +65,24 @@ class Sell_inout extends CI_Controller {
 		$inout = [];
 		
 		foreach($sell_ins as $in){
-			$currency = $this->gen_m->unique("currency", "currency_id", $in->currency_id);
-			
-			$aux = clone $row;
-			$aux->date = $in->closed_date;
-			$aux->invoice_id = $in->invoice_id;
-			$aux->currency = $currency->symbol;
-			$aux->u_price = $in->unit_selling_price;
-			$aux->sell_in = $in->order_qty;
-			
-			$inout[] = clone $aux;
-			
-			if ($aux->invoice_id){
-				$inv = $this->gen_m->unique("invoice", "invoice_id", $aux->invoice_id);
-				$inv->currency = $currency->symbol;
-				$inv->u_price = $in->unit_selling_price;
-				$invoices[$aux->invoice_id] = clone $inv;
+			if ($in->closed_date > (($sell_outs) ? $sell_outs[0]->date : date("Y-m-d"))){
+				$currency = $this->gen_m->unique("currency", "currency_id", $in->currency_id);
+				
+				$aux = clone $row;
+				$aux->date = $in->closed_date;
+				$aux->invoice_id = $in->invoice_id;
+				$aux->currency = $currency->symbol;
+				$aux->u_price = $in->unit_selling_price;
+				$aux->sell_in = $in->order_qty;
+				
+				$inout[] = clone $aux;
+				
+				if ($aux->invoice_id){
+					$inv = $this->gen_m->unique("invoice", "invoice_id", $aux->invoice_id);
+					$inv->currency = $currency->symbol;
+					$inv->u_price = $in->unit_selling_price;
+					$invoices[$aux->invoice_id] = clone $inv;
+				}
 			}
 		}
 		
