@@ -45,21 +45,29 @@ class My_func{
 		$url = "";
 		
 		if ($rows){
+			$row_now = 1;
 			//foreach($rows as $r){ print_r($r); echo "<br/>"; }
 			
 			$spreadsheet = new Spreadsheet();
 			$sheet = $spreadsheet->getActiveSheet();
 			
-			//set report parameters
-			$sheet->setCellValueByColumnAndRow(1, 1, $title);
-			$sheet->setCellValueByColumnAndRow(1, 2, "Date");
-			$sheet->setCellValueByColumnAndRow(2, 2, date('Y-m-d H:i:s'));
+			if ($title){
+				//set report parameters
+				$sheet->setCellValueByColumnAndRow(1, $row_now, $title);
+				
+				$row_now++;
+				$sheet->setCellValueByColumnAndRow(1, $row_now, "Date");
+				$sheet->setCellValueByColumnAndRow(2, $row_now, date('Y-m-d H:i:s'));
+				
+				$row_now = $row_now + 2;
+			}
+			
 			
 			//set header
-			foreach($header as $i => $h) $sheet->setCellValueByColumnAndRow(($i + 1), 4, $h);
+			foreach($header as $i => $h) $sheet->setCellValueByColumnAndRow(($i + 1), $row_now, $h);
 			
 			//set rows
-			$row_from = 5;
+			$row_from = $row_now + 1;
 			foreach($rows as $j => $row) foreach($row as $i => $r) $sheet->getCellByColumnAndRow(($i + 1), $row_from + $j)->setValueExplicit($r, DataType::TYPE_STRING);
 			
 			//save excel file to a temporary directory
