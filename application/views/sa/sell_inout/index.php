@@ -36,7 +36,7 @@
 						$prd = $this->input->get("prd");
 						$cus = $this->input->get("cus");
 						?>
-						<div class="col-lg-2 col-md-3">
+						<div class="col-md-3">
 							<label class="form-label">Group</label>
 							<select class="form-select" id="sl_group" name="grp">
 								<option value="" selected="">Choose...</option>
@@ -45,7 +45,7 @@
 								<?php } ?>
 							</select>
 						</div>
-						<div class="col-lg-2 col-md-3">
+						<div class="col-md-3">
 							<label class="form-label">Category</label>
 							<select class="form-select" id="sl_category" name="cat">
 								<option value="" selected="">Choose...</option>
@@ -54,7 +54,7 @@
 								<?php } ?>
 							</select>
 						</div>
-						<div class="col-lg-3 col-md-6">
+						<div class="col-md-3">
 							<label class="form-label">Product</label>
 							<select class="form-select" id="sl_product" name="prd">
 								<option value="" selected="">Choose...</option>
@@ -63,12 +63,12 @@
 								<?php }} ?>
 							</select>
 						</div>
-						<div class="col-lg-4 col-md-8">
+						<div class="col-md-3">
 							<label class="form-label">Customer</label>
 							<select class="form-select" name="cus">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($customers as $c){ if($c->bill_to_code){ ?>
-								<option <?= ($cus == $c->customer_id) ? "selected" : "" ?> value="<?= $c->customer_id ?>"><?= $c->bill_to_code ?> - <?= $c->customer ?></option>
+								<option <?= ($cus == $c->customer_id) ? "selected" : "" ?> value="<?= $c->customer_id ?>">[<?= $c->bill_to_code ?>] <?= $c->customer ?></option>
 								<?php }} ?>
 							</select>
 						</div>

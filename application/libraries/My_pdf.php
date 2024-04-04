@@ -11,11 +11,19 @@ class My_pdf{
 		$parser = new \Smalot\PdfParser\Parser();
 		$pdf = $parser->parseFile($path);
 		
-		$result = [];
+		$rows = [];
 		
 		$pages = $pdf->getPages();
-		foreach($pages as $i => $p) $result[] = ["page" => ($i + 1), "text" => $pages[$i]->getText()];
+		foreach($pages as $i => $p){
+			$text = $pages[$i]->getText();
+			
+			$lines = explode("\n", $text);
+			$lines = array_values(array_filter($lines));
+			foreach($lines as $line) $line = trim($line);
+			
+			$rows = array_merge($rows, $lines);
+		}
 		
-		return $result;
+		return $rows;
 	}
 }

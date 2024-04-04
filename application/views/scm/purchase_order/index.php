@@ -13,31 +13,36 @@
 <section class="section">
 	<div class="row">
 		<div class="col-md-12">
+			<?php if ($url) $alert_type = "success"; else $alert_type = "warning"; ?>
+			<div class="alert alert-<?= $alert_type ?> alert-dismissible fade show text-center" role="alert">
+                <div><?= $msg ?></div>
+				<?php if ($url){ ?><div class="mt-3"><a href="<?= $url ?>" class="btn btn-success">Download Excel</a></div><?php } ?>
+			</div>
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">PDF to Excel</h5>
-					<form class="row g-3" id="form_convert_po">
-						<div class="col-md-6 col-12">
+					<form class="row g-3" method="post">
+						<div class="col-md-3 col-12">
+							<label class="form-label">PDF File</label>
+							<input type="file" class="form-control" name="pdf_file">
+						</div>
+						<div class="col-md-3 col-12">
 							<label class="form-label">PDF Template</label>
-							<select class="form-select" name="type">
+							<select class="form-select" name="po_pdf">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($purchase_order_pdfs as $p){ ?>
 								<option value="<?= $p->pdf_id ?>"><?= $p->pdf ?></option>
 								<?php } ?>
 							</select>
 						</div>
-						<div class="col-md-3 col-6">
-							<label class="form-label">Customer</label>
-							<select class="form-select" name="type">
+						<div class="col-md-6">
+							<label class="form-label">Ship to</label>
+							<select class="form-select" id="sl_ship_to" name="ship_to">
 								<option value="" selected="">Choose...</option>
-								<?php foreach($customers as $c){ if($c->bill_to_code){ ?>
-								<option value="<?= $c->customer_id ?>"><?= $c->bill_to_code ?> - <?= $c->customer ?></option>
+								<?php foreach($ship_tos as $s){ if($s->ship_to_code){ ?>
+								<option value="<?= $s->ship_to_id ?>" class="c_all c_<?= $s->customer_id ?>"><?= $s->op ?></option>
 								<?php }} ?>
 							</select>
-						</div>
-						<div class="col-md-3 col-6">
-							<label class="form-label">Ship to</label>
-							<input type="text" class="form-control" name="Ship_to">
 						</div>
 						<div class="col-12 pt-3 text-center">
 							<button type="submit" class="btn btn-primary">Submit</button>
@@ -50,6 +55,8 @@
 </section>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+	
+	/*
 	$('#sl_group').change(function(){
 		$("#sl_category").val("");
 		$('#sl_category option.g_all').addClass('d-none');
@@ -57,12 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		
 		$("#sl_product").val("");
 		$('#sl_product option.c_all').addClass('d-none');
-    });
-	
-	$('#sl_category').change(function(){
-		$("#sl_product").val("");
-		$('#sl_product option.c_all').addClass('d-none');
-		$('#sl_product option.c_' + $(this).val()).removeClass('d-none');
     });
 	
 	
@@ -82,5 +83,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			if (res.type == "success") window.location.href = res.url;
 		});
 	});
+	*/
 });
 </script>

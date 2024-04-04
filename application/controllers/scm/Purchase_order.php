@@ -15,21 +15,19 @@ class Purchase_order extends CI_Controller {
 		];
 	}
 	
-	private function hiraoka_original($rows_input, $bill_to, $ship_to){
-		$customer = $this->gen_m->unique("customer", "bill_to_code", $bill_to);
-		//$ship_to = $this->gen_m->filter("customer_ship_to", true, ["customer_id" => $customer->customer_id, "ship_to" => $ship_to]);
-		$ship_to = null;
-		
+	private function hiraoka_original($rows_input, $ship_to){
 		$rows = [];
 		
-		$ruc = str_replace("RUC: ", "", trim($rows_input[3]));
-		$customer = $customer->customer;
-		$num_order = trim(explode(" ", $rows_input[5])[4]);
-		$issue_date = trim($rows_input[14]);
-		$end_date = trim($rows_input[15]);
-		$address = $ship_to ? $ship_to->address : trim($rows_input[16]).", ".trim($rows_input[17]);
-		$payment = trim($rows_input[18]);
-		$currency = "S/";
+		$po_num = trim(explode(" ", $rows_input[5])[4]);
+		
+		$aux = explode("/", trim($rows_input[14]));
+		$issue_date = $aux[2].$aux[1].$aux[0];
+		
+		$aux = explode("/", trim($rows_input[15]));
+		$arrival_date = $aux[2].$aux[1].$aux[0];
+		
+		//$payment = trim($rows_input[18]);
+		$currency = "PEN";
 		
 		foreach($rows_input as $r){
 			$aux = array_values(array_filter(explode(" ", $r)));
@@ -55,29 +53,41 @@ class Purchase_order extends CI_Controller {
 				
 				//set row
 				$row = [];
-				$row[] = $ruc;//Razon Social
-				$row[] = $customer;//Customer Name
-				$row[] = $num_order;//Customer PO No
-				$row[] = $end_date;//Customer PO End Date
-				$row[] = $issue_date;//Customer PO Issue Date
-				$row[] = $address;//Customer Shop Code
-				$row[] = $address;//Customer Shop Name
+				$row[] = $po_num;//Customer PO No.
+				$row[] = $ship_to->ship_to_code;//Ship To
 				$row[] = $currency;//Currency
-				$row[] = $end_date;//Request Arrival Date
-				$row[] = $code;//Customer Model Code
-				$row[] = null;//LG Model Code
-				$row[] = null;//LG Model Code.Suffix
-				$row[] = $description;//Customer Model Description
-				$row[] = $qty;//Qty
-				$row[] = str_replace(",", "", $unit_price);//Unit Price
-				$row[] = null;//Descuento
-				$row[] = str_replace(",", "", $total);//Total
-				$row[] = null;//EAN/UP C Code
-				$row[] = $payment;//Payment Days
-				$row[] = null;//Payment Terms
+				$row[] = $arrival_date;//Request Arrival Date(YYYYMMDD)
+				//$row[] = $code." ** ".$description;//Model
+				$row[] = $description;//Model
+				$row[] = $qty;//Quantity
+				$row[] = str_replace(",", "", $unit_price);//Unit Selling Price
+				$row[] = null;//Warehouse
+				$row[] = null;//Payterm
 				$row[] = null;//Shipping Remark
-				$row[] = null;//Picking Remark
 				$row[] = null;//Invoice Remark
+				$row[] = null;//Customer RAD(YYYYMMDD)
+				$row[] = $issue_date;//Customer PO Date(YYYYMMDD)
+				$row[] = null;//H Flag
+				$row[] = null;//OP Code
+				$row[] = null;//Country
+				$row[] = null;//Postal Code
+				$row[] = null;//Address1
+				$row[] = null;//Address2
+				$row[] = null;//Address3
+				$row[] = null;//Address4
+				$row[] = null;//City
+				$row[] = null;//State
+				$row[] = null;//Province
+				$row[] = null;//County
+				$row[] = $ship_to->customer->customer;//Consumer Name
+				$row[] = null;//Consumer Phone No.
+				$row[] = null;//Receiver Name
+				$row[] = null;//Receiver Phone No.
+				$row[] = null;//Freight Charge
+				$row[] = null;//Freight Term
+				$row[] = null;//Price Condition
+				$row[] = null;//Picking Remark
+				$row[] = null;//Shipping Method
 				
 				$rows[] = $row;
 			}
@@ -86,71 +96,92 @@ class Purchase_order extends CI_Controller {
 		return $rows;
 	}
 	
-	private function pdf_to_excel($filename, $logic_type, $bill_to, $ship_to){
+	private function pdf_to_excel($filename, $po_pdf, $ship_to){
 		$url = ""; $rows = [];
 		
 		$this->load->library('my_pdf');
-		$contents = $this->my_pdf->to_text("./test_files/scm/".$filename.".pdf");
-		foreach($contents as $content){
-			$page = $content["page"];
-			$text = $content["text"];
-			
-			$lines = explode("\n", $text);
-			$lines = array_values(array_filter($lines));
-			foreach($lines as $line) $line = trim($line);
-			
-			$rows = array_merge($rows, $lines);
-		}
+		$rows = $this->my_pdf->to_text($filename);
 		
-		switch($logic_type){
+		switch($po_pdf->code){
 			case "hiraoka_original": 
-				$rows = $this->hiraoka_original($rows, $bill_to, $ship_to);
+				$rows = $this->hiraoka_original($rows, $ship_to);
 				break;
-			default:
-				echo "No type selected.";
 		}
 		
 		if ($rows){
 			$header = [
-				"Razon Social",
-				"Customer Name",
-				"Customer PO No",
-				"Customer PO End Date",
-				"Customer PO Issue Date",
-				"Customer Shop Code",
-				"Customer Shop Name",
+				"Customer PO No.",
+				"Ship To",
 				"Currency",
-				"Request Arrival Date",
-				"Customer Model Code",
-				"LG Model Code",
-				"LG Model Code.Suffix",
-				"Customer Model Description",
-				"Qty",
-				"Unit Price",
-				"Descuento",
-				"Total",
-				"EAN/UP C Code",
-				"Payment Days",
-				"Payment Terms",
+				"Request Arrival Date(YYYYMMDD)",
+				"Model",
+				"Quantity",
+				"Unit Selling Price",
+				"Warehouse",
+				"Payterm",
 				"Shipping Remark",
-				"Picking Remark",
 				"Invoice Remark",
+				"Customer RAD(YYYYMMDD)",
+				"Customer PO Date(YYYYMMDD)",
+				"H Flag",
+				"OP Code",
+				"Country",
+				"Postal Code",
+				"Address1",
+				"Address2",
+				"Address3",
+				"Address4",
+				"City",
+				"State",
+				"Province",
+				"County",
+				"Consumer Name",
+				"Consumer Phone No.",
+				"Receiver Name",
+				"Receiver Phone No.",
+				"Freight Charge",
+				"Freight Term",
+				"Price Condition",
+				"Picking Remark",
+				"Shipping Method",
 			];
 			
 			//make excel without title
-			$url = $this->my_func->generate_excel_report($filename.".xlsx", null, $header, $rows);
+			$url = $this->my_func->generate_excel_report("scm_po.xlsx", null, $header, $rows);
 		}
 		
 		return $url;
 	}
 	
 	public function index(){
+		$url = ""; $msg = "Enter all parameters to convert PDF to Excel.";
 		
-		//for($i = 0; $i < 2; $i++) echo $this->pdf_to_excel("test_hiraoka".$i, "hiraoka_original", "PE000816001B", "815VS-S")."<br/>";
+		$pdf_file = $this->input->post("pdf_file"); $pdf_file = "./test_files/scm/test_hiraoka1.pdf";
+		$po_pdf = $this->gen_m->unique("purchase_order_pdf", "pdf_id", $this->input->post("po_pdf"));
+		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", $this->input->post("ship_to"));
+		
+		if ($pdf_file and $po_pdf and $ship_to){
+			$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
+			$url = $this->pdf_to_excel($pdf_file, $po_pdf, $ship_to);
+			if ($url) $msg = "You can download excel file clicking below button.";
+		}
+		
+		$ship_tos = $this->gen_m->all("customer_ship_to", [["ship_to_code", "asc"], ["address", "asc"]]);
+		foreach($ship_tos as $s){
+			$cus = $this->gen_m->unique("customer", "customer_id", $s->customer_id);
+			$s->op = $cus->customer." ** ".$cus->bill_to_code." ** ".$s->ship_to_code." ** ".$s->address;
+			
+		}
+		
+		usort($ship_tos, function($a, $b) {
+			return strcmp($a->op, $b->op);
+		});
 		
 		$data = [
+			"msg" => $msg,
+			"url" => $url,
 			"purchase_order_pdfs" => $this->gen_m->all("purchase_order_pdf", [["pdf", "asc"]]),
-			"customers" => $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]),
+			"ship_tos" => $ship_tos,
 			"main" => "scm/purchase_order/index",
 		];
 		
