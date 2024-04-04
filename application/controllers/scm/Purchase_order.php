@@ -31,17 +31,10 @@ class Purchase_order extends CI_Controller {
 		$payment = trim($rows_input[18]);
 		$currency = "S/";
 		
-		//print_r($rows_input); echo "<br/>";
 		foreach($rows_input as $r){
-			$aux = explode(" ", $r);
-			$aux = array_values(array_filter($aux));
-			//print_r($aux); echo "<br/>";
+			$aux = array_values(array_filter(explode(" ", $r)));
 			
 			if (count($aux) > 6) if (is_numeric($aux[0])){
-				//print_r($r); echo "<br/>";
-				//print_r($aux); echo "<br/>";
-				//foreach($aux as $a) var_dump($a); echo "<br/>";
-				
 				//get last position of number and extract total amount
 				$aux_text = trim($aux[5]);
 				preg_match('/[a-z]+/i', $aux_text, $matches, PREG_OFFSET_CAPTURE);
@@ -86,19 +79,15 @@ class Purchase_order extends CI_Controller {
 				$row[] = null;//Picking Remark
 				$row[] = null;//Invoice Remark
 				
-				print_r($row); echo "<br/>";
-				
 				$rows[] = $row;
 			}
 		}
-		echo "<br/><br/>";
 		
 		return $rows;
 	}
 	
-	private function pdf_to_excel($filename, $logic_type = "hiraoka_original", $bill_to = "PE000816001B", $ship_to = "815VS-S"){
-		echo $filename." ========================<br/>";
-		$rows = [];
+	private function pdf_to_excel($filename, $logic_type, $bill_to, $ship_to){
+		$url = ""; $rows = [];
 		
 		$this->load->library('my_pdf');
 		$contents = $this->my_pdf->to_text("./test_files/scm/".$filename.".pdf");
@@ -148,19 +137,23 @@ class Purchase_order extends CI_Controller {
 				"Invoice Remark",
 			];
 			
-			//$url = $this->my_func->generate_excel_report($filename.".xlsx", "Purchase order items PDF to Excel", $header, $rows);
+			//make excel without title
 			$url = $this->my_func->generate_excel_report($filename.".xlsx", null, $header, $rows);
 		}
+		
+		return $url;
 	}
 	
 	public function index(){
 		
-		for($i = 0; $i < 2; $i++) $this->pdf_to_excel("test_hiraoka".$i);
+		//for($i = 0; $i < 2; $i++) echo $this->pdf_to_excel("test_hiraoka".$i, "hiraoka_original", "PE000816001B", "815VS-S")."<br/>";
 		
 		$data = [
-			"main" => "sa/sell_inout/index",
+			"purchase_order_pdfs" => $this->gen_m->all("purchase_order_pdf", [["pdf", "asc"]]),
+			"customers" => $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]),
+			"main" => "scm/purchase_order/index",
 		];
 		
-		//$this->load->view('layout', $data);
+		$this->load->view('layout', $data);
 	}
 }
