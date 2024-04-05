@@ -91,7 +91,7 @@
 						<?php $a = "show active"; foreach($sell_inouts as $io){ if ($io["ios"]){ $ios = $io["ios"]; ?>
 						<div class="tab-pane fade <?= $a ?>" id="prd<?= $io["product_id"] ?>t" role="tabpanel" aria-labelledby="prd<?= $io["product_id"] ?>t-tab">
 							<div class="table-responsive">
-								<table class="table datatable align-middle">
+								<table class="table align-middle">
 									<thead>
 										<tr>
 											<th scope="col" style="width: 80px;">#</th>
@@ -103,6 +103,7 @@
 											<th scope="col">Alert</th>
 											<th scope="col">Invoice</th>
 											<th scope="col">Invoices</th>
+											<th scope="col">Avg Price</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -131,14 +132,23 @@
 											</td>
 											<td><?= $i_io->invoice ?></td>
 											<td>
-												<?php $aux = []; foreach($i_io->invoices as $inv){
-												$i_aux = $inv["invoice"];
-												$i_code = ($i_aux) ? $i_aux->invoice : "No Invoice";
-												$i_price = ($i_aux) ? " * ".$i_aux->currency." ".number_format($i_aux->u_price, 2) : "";
-												$aux[] = $i_code." (".number_format($inv["qty"]).$i_price.")";
-												} ?>
-												<?= implode("<br/>", $aux) ?>
+												
+												<?php 
+												$count = 0; 
+												foreach($i_io->invoices as $inv){
+													$i_aux = $inv["invoice"];
+													$i_code = ($i_aux) ? $i_aux->invoice : "No Invoice";
+													$i_price = ($i_aux) ? " * ".$i_aux->currency." ".number_format($i_aux->u_price, 2) : "";
+													$row = $i_code." (".number_format($inv["qty"]).$i_price.")"; ?>
+												<div class="<?= ($count) ? "d-none ln_inv ln_inv_".$i : "" ?>">
+													<?= $row ?>
+													<?php if ((!$count) and (count($i_io->invoices) > 1)){ ?>
+														<i class="bi bi-caret-down-square ms-1 ctrl_inv" id="ctrl_<?= $i ?>"></i>
+													<?php } ?>
+												</div>
+												<?php $count++;} ?>
 											</td>
+											<td><?= (($i_io->price_avg > 0) ? "S/ ".number_format($i_io->price_avg, 2) : "") ?></td>
 										</tr>
 										<?php } ?>
 									</tbody>
@@ -315,6 +325,23 @@ document.addEventListener("DOMContentLoaded", () => {
 		$("#sl_product").val("");
 		$('#sl_product option.c_all').addClass('d-none');
 		$('#sl_product option.c_' + $(this).val()).removeClass('d-none');
+    });
+	
+	$('.ctrl_inv').click(function(){
+		var ln_i = $(this).attr("id").replace("ctrl_", "");
+		
+		$(".ln_inv").addClass("d-none");
+		if ($(this).hasClass("bi-caret-down-square")){//open list
+			$(".ctrl_inv").removeClass("bi-caret-up-square");
+			$(".ctrl_inv").addClass("bi-caret-down-square");
+		
+			$(".ln_inv_" + ln_i).removeClass("d-none");
+			$(this).removeClass("bi-caret-down-square");
+			$(this).addClass("bi-caret-up-square");
+		}else{//close list
+			$(this).removeClass("bi-caret-up-square");
+			$(this).addClass("bi-caret-down-square");
+		}
     });
 	
 	

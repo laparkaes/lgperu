@@ -27,6 +27,7 @@ class Sell_inout extends CI_Controller {
 		$row->stock_diff = null;
 		$row->invoice = null;
 		$row->invoices = [];
+		$row->price_avg = null;
 		
 		$w_in = [
 			"order_qty !=" => -1,
@@ -149,6 +150,17 @@ class Sell_inout extends CI_Controller {
 			}
 			
 			$io->stock_diff = $io->sell_out ? $io->stock_lg - $io->stock_customer : null;
+			
+			$aux_qty = 0;
+			$aux_amount = 0;
+			foreach($io->invoices as $inv){
+				if ($inv["invoice"]){
+					$aux_qty += $inv["qty"];
+					$aux_amount += $inv["qty"] * $inv["invoice"]->u_price;
+				}
+			}
+			
+			$io->price_avg = ($aux_qty > 0) ? $aux_amount / $aux_qty : 0;
 		}
 		
 		return array_reverse($inout);
@@ -522,7 +534,7 @@ class Sell_inout extends CI_Controller {
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
 	}
 
-	public function exp_report(){
+	 function exp_report(){
 		$type = "error"; $msg = $url = ""; 
 		
 		$start_time = microtime(true);
@@ -537,10 +549,13 @@ class Sell_inout extends CI_Controller {
 			"U/Price",
 			"Sell-In",
 			"Sell-Out",
-			"Stock (Cust. / LG / Diff)",
+			"Stock Customer",
+			"Stock LG",
+			"Stock Diff",
 			"Alert",
 			"Invoice",
 			"Invoices",
+			"Avg Price",
 		];
 		
 		$rows = [];
@@ -556,13 +571,6 @@ class Sell_inout extends CI_Controller {
 				foreach($products as $prd){
 					$inouts = $this->get_sell_inout($customer_id, $prd->product_id);
 					if ($inouts) foreach($inouts as $i => $i_io){
-						//stock data processing
-						$aux = [];
-						$aux[] = $i_io->stock_customer ? $i_io->stock_customer : 0;
-						$aux[] = $i_io->stock_lg ? $i_io->stock_lg : 0;
-						$aux[] = $i_io->stock_diff ? $i_io->stock_diff : 0;
-						$stock = (($i_io->stock_customer) ? implode(" / ", $aux) : "");
-						
 						//stock alert processing
 						if ($i_io->sell_out > 0){ 
 							switch(true){
@@ -592,10 +600,13 @@ class Sell_inout extends CI_Controller {
 							(($i_io->u_price > 0) ? $i_io->currency." ".number_format($i_io->u_price, 2) : ""),
 							$i_io->sell_in,
 							$i_io->sell_out,
-							$stock,
+							$i_io->sell_out ? $i_io->stock_customer : "",
+							$i_io->sell_out ? $i_io->stock_lg : "",
+							$i_io->sell_out ? $i_io->stock_diff : "",
 							$alert,
 							$i_io->invoice,
 							$invoices,
+							(($i_io->price_avg > 0) ? "S/ ".number_format($i_io->price_avg, 2) : ""),
 						];
 					}
 				}
