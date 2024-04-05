@@ -11,8 +11,6 @@ class Dashboard extends CI_Controller {
 		}
 		
 		$data = [
-			"title" => "Human Resource",
-			"access" => ["attendance", "employee"],
 			"main" => "dashboard/".$module,
 		];
 		

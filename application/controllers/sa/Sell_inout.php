@@ -504,7 +504,7 @@ class Sell_inout extends CI_Controller {
 		$type = "error"; $url = ""; $msg = "";
 		
 		$config = [
-			'upload_path'	=> './upload/sales_admin/',
+			'upload_path'	=> './upload/sa/',
 			'allowed_types'	=> 'xls|xlsx|csv',
 			'max_size'		=> 20000,
 			'overwrite'		=> TRUE,
