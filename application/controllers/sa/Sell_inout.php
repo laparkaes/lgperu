@@ -435,7 +435,7 @@ class Sell_inout extends CI_Controller {
 		ini_set("memory_limit","1024M");
 		set_time_limit(0);
 		
-		$spreadsheet = IOFactory::load("./upload/sales_admin/sell_inout.xlsx");
+		$spreadsheet = IOFactory::load("./upload/sa/sell_inout.xlsx");
 		$sheet = $spreadsheet->getActiveSheet();
 		
 		$h = [
