@@ -153,24 +153,42 @@ class Purchase_order extends CI_Controller {
 		return $url;
 	}
 	
+	public function convert_po(){
+		$type = "error"; $msg = $url = "";
+		
+		$config = [
+			'upload_path'	=> './upload/scm/',
+			'allowed_types'	=> 'pdf',
+			'max_size'		=> 20000,
+			'overwrite'		=> TRUE,
+			'file_name'		=> 'scm_po',
+		];
+		$this->load->library('upload', $config);
+
+		if ($this->upload->do_upload('pdf_file')){
+			$pdf_file = './upload/scm/scm_po.pdf';
+			$po_pdf = $this->gen_m->unique("purchase_order_pdf", "pdf_id", $this->input->post("po_pdf"));
+			$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", $this->input->post("ship_to"));
+			
+			if ($po_pdf and $ship_to){
+				$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
+				$url = $this->pdf_to_excel($pdf_file, $po_pdf, $ship_to);
+				if ($url){
+					$type = "success";
+					$msg = "PO conversion is completed.";
+				}else $msg = "An error occurred. Please try again.";	
+			}else $msg = "You must select PO template and customer ship to.";
+		}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
+	}
+	
 	public function index(){
-		$url = ""; $msg = "Enter all parameters to convert PDF to Excel.";
-		
-		$pdf_file = $this->input->post("pdf_file"); $pdf_file = "./test_files/scm/test_hiraoka1.pdf";
-		$po_pdf = $this->gen_m->unique("purchase_order_pdf", "pdf_id", $this->input->post("po_pdf"));
-		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", $this->input->post("ship_to"));
-		
-		if ($pdf_file and $po_pdf and $ship_to){
-			$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
-			$url = $this->pdf_to_excel($pdf_file, $po_pdf, $ship_to);
-			if ($url) $msg = "You can download excel file clicking below button.";
-		}
-		
 		$ship_tos = $this->gen_m->all("customer_ship_to", [["ship_to_code", "asc"], ["address", "asc"]]);
 		foreach($ship_tos as $s){
 			$cus = $this->gen_m->unique("customer", "customer_id", $s->customer_id);
 			$s->op = $cus->customer." ** ".$cus->bill_to_code." ** ".$s->ship_to_code." ** ".$s->address;
-			
 		}
 		
 		usort($ship_tos, function($a, $b) {
@@ -178,8 +196,6 @@ class Purchase_order extends CI_Controller {
 		});
 		
 		$data = [
-			"msg" => $msg,
-			"url" => $url,
 			"purchase_order_pdfs" => $this->gen_m->all("purchase_order_pdf", [["pdf", "asc"]]),
 			"ship_tos" => $ship_tos,
 			"main" => "scm/purchase_order/index",

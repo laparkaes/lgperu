@@ -13,15 +13,10 @@
 <section class="section">
 	<div class="row">
 		<div class="col-md-12">
-			<?php if ($url) $alert_type = "success"; else $alert_type = "warning"; ?>
-			<div class="alert alert-<?= $alert_type ?> alert-dismissible fade show text-center" role="alert">
-                <div><?= $msg ?></div>
-				<?php if ($url){ ?><div class="mt-3"><a href="<?= $url ?>" class="btn btn-success">Download Excel</a></div><?php } ?>
-			</div>
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">PDF to Excel</h5>
-					<form class="row g-3" method="post">
+					<form class="row g-3" id="form_convert_po">
 						<div class="col-md-3 col-12">
 							<label class="form-label">PDF File</label>
 							<input type="file" class="form-control" name="pdf_file">
@@ -44,8 +39,10 @@
 								<?php }} ?>
 							</select>
 						</div>
-						<div class="col-12 pt-3 text-center">
-							<button type="submit" class="btn btn-primary">Submit</button>
+						<div class="col-md-12 flex-fill align-self-end">
+							<div class="d-grid gap-2">
+								<button type="submit" class="btn btn-primary">Submit</button>
+							</div>
 						</div>
 					</form>
 				</div>
@@ -55,6 +52,13 @@
 </section>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+	$("#form_convert_po").submit(function(e) {
+		e.preventDefault();
+		$("#form_convert_po .sys_msg").html("");
+		ajax_form_warning(this, "scm/purchase_order/convert_po", "Do you want to convert PO to Excel?").done(function(res) {
+			swal_open_tab(res.type, res.msg, res.url);
+		});
+	});
 	
 	/*
 	$('#sl_group').change(function(){
@@ -67,13 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 	
 	
-	$("#form_upload_sell_inout").submit(function(e) {
-		e.preventDefault();
-		$("#form_upload_sell_inout .sys_msg").html("");
-		ajax_form_warning(this, "sa/sell_inout/upload_sell_inout_file", "Do you upload data?").done(function(res) {
-			swal_open_tab(res.type, res.msg, res.url);
-		});
-	});
 	
 	$("#form_exp_report").submit(function(e) {
 		e.preventDefault();
