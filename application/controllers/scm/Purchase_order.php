@@ -175,7 +175,7 @@ class Purchase_order extends CI_Controller {
 				$url = $this->pdf_to_excel($pdf_file, $po_pdf, $ship_to);
 				if ($url){
 					$type = "success";
-					$msg = "PO conversion is completed.";
+					$msg = "PO conversion is completed.aaaa";
 				}else $msg = "An error occurred. Please try again.";	
 			}else $msg = "You must select PO template and customer ship to.";
 		}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
