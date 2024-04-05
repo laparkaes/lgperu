@@ -15,12 +15,6 @@
 		<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#md_uff">
 			<i class="bi bi-upload"></i>
 		</button>
-		<a href="#" type="button" class="btn btn-success">
-			<i class="bi bi-search"></i>
-		</a>
-		<a href="#" type="button" class="btn btn-success">
-			<i class="bi bi-plus-lg"></i>
-		</a>
 	</div>
 </div>
 <section class="section">
@@ -336,8 +330,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		e.preventDefault();
 		$("#form_exp_report .sys_msg").html("");
 		ajax_form_warning(this, "sa/sell_inout/exp_report", "Do you want to export sell-in/out report in excel?").done(function(res) {
-			swal(res.type, res.msg);
-			if (res.type == "success") window.location.href = res.url;
+			if (res.type == "success") swal_open_tab(res.type, res.msg, res.url);
+			else swal(res.type, res.msg);
 		});
 	});
 });
