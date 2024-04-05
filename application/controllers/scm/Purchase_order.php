@@ -85,6 +85,7 @@ class Purchase_order extends CI_Controller {
 				$description = implode(" ", $aux);//desription
 				
 				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
+				print_r($prod_sku);
 				$prod = $this->gen_m->unique("product", "product_id", $prod_sku->product_id);
 				
 				$model = ($prod) ? $prod->model : "";
