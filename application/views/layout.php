@@ -27,10 +27,6 @@
 		<nav class="header-nav ms-auto">
 			<ul class="d-flex align-items-center">
 				<li class="nav-item dropdown">
-					<a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
-						<i class="bi bi-bell"></i>
-						<span class="badge bg-primary badge-number">4</span>
-					</a>
 					<ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications">
 						<li class="dropdown-header">
 						  You have 4 new notifications
@@ -146,12 +142,11 @@
 			</ul>
 		</nav>
 	</header>
-<main id="main" class="main">
-<?php $this->load->view($main); ?>
-</main><!-- End #main -->
+	<main id="main" class="main">
+	<?php $this->load->view($main); ?>
+	</main><!-- End #main -->
 
-<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
-
+	<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 	
 	<script src="<?= base_url() ?>assets/vendor/jquery-3.7.0.min.js"></script>
 	<script src="<?= base_url() ?>assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
