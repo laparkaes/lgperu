@@ -15,7 +15,7 @@ class Auth extends CI_Controller {
 	}
 	
 	public function login(){
-		
+		if ($this->session->userdata('logged_in')) redirect("/dashboard");
 		
 		//$data = ["password" => password_hash("1234567890a", PASSWORD_BCRYPT)];
 		
@@ -28,6 +28,17 @@ class Auth extends CI_Controller {
 		$employee = $this->gen_m->unique("employee", "ep_mail", $this->input->post("ep_mail"));
 		if ($employee){
 			if (password_verify($this->input->post("password"), $employee->password)){
+				
+				$employee->location = ($employee->location_id) ? $this->gen_m->unique("location", "location_id", $employee->location_id)->location : "-";
+				$employee->department = ($employee->department_id) ? $this->gen_m->unique("department", "department_id", $employee->department_id)->department : "-";
+				
+				unset($employee->location_id);
+				unset($employee->department_id);
+				unset($employee->password);
+				unset($employee->is_supervised);
+				unset($employee->valid);
+				
+				
 				$session_data = array(
 					"emp" => $employee,
 					"logged_in" => true
