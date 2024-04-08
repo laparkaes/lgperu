@@ -271,7 +271,7 @@ class Purchase_order extends CI_Controller {
 		switch($po_template->code){
 			case "conecta_excel": $rows = $this->conecta_excel($filename, $ship_to); break;
 		}
-		
+		print_r($rows);
 		if ($rows){
 			$header = [
 				"Customer PO No.",
