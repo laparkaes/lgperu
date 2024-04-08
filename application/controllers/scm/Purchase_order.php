@@ -200,13 +200,13 @@ class Purchase_order extends CI_Controller {
 		return $rows;
 	}
 	
-	private function pdf_to_excel($filename, $po_pdf, $ship_to){
+	private function pdf_to_excel($filename, $po_template, $ship_to){
 		$url = ""; $rows = [];
 		
 		$this->load->library('my_pdf');
 		$rows = $this->my_pdf->to_text($filename);
 		
-		switch($po_pdf->code){
+		switch($po_template->code){
 			case "hiraoka_pre": $rows = $this->hiraoka_pre($rows, $ship_to); break;
 			case "hiraoka_sku": $rows = $this->hiraoka_sku($rows, $ship_to); break;
 		}
@@ -258,11 +258,11 @@ class Purchase_order extends CI_Controller {
 	
 	public function test(){
 		$filename = './test_files/scm/hiraoka_sku/hiraoka_sku2.pdf';
-		$po_pdf = $this->gen_m->unique("purchase_order_pdf", "pdf_id", 2);//hiraoka sku
+		$po_template = $this->gen_m->unique("purchase_order_pdf", "pdf_id", 2);//hiraoka sku
 		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 1);//hiraoka
 		$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
 		
-		echo $this->pdf_to_excel($filename, $po_pdf, $ship_to);
+		echo $this->pdf_to_excel($filename, $po_template, $ship_to);
 	}
 	
 	public function convert_po(){
@@ -283,12 +283,12 @@ class Purchase_order extends CI_Controller {
 			
 			
 			$po_file = './upload/scm/po_file.pdf';
-			$po_pdf = $this->gen_m->unique("purchase_order_pdf", "pdf_id", $this->input->post("po_pdf"));
+			$po_template = $this->gen_m->unique("purchase_order_pdf", "pdf_id", $this->input->post("po_template"));
 			$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", $this->input->post("ship_to"));
 			
-			if ($po_pdf and $ship_to){
+			if ($po_template and $ship_to){
 				$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
-				$url = $this->pdf_to_excel($po_file, $po_pdf, $ship_to);
+				$url = $this->pdf_to_excel($po_file, $po_template, $ship_to);
 				if ($url){
 					$type = "success";
 					$msg = "PO conversion is completed.";

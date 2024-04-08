@@ -20,11 +20,11 @@
 					<form class="row g-3" id="form_convert_po">
 						<div class="col-md-3 col-12">
 							<label class="form-label">PDF File</label>
-							<input type="file" class="form-control" name="pdf_file">
+							<input type="file" class="form-control" name="po_file">
 						</div>
 						<div class="col-md-3 col-12">
 							<label class="form-label">PDF Template</label>
-							<select class="form-select" name="po_file">
+							<select class="form-select" name="po_template">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($purchase_order_pdfs as $p){ ?>
 								<option value="<?= $p->pdf_id ?>"><?= $p->pdf ?></option>
