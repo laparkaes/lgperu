@@ -78,7 +78,7 @@ class Purchase_order extends CI_Controller {
 				
 				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
 				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
-				$model = ($prod) ? $prod->model : "";
+				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
 				
 				$rows[] = [
 					$po_num,//Customer PO No.
