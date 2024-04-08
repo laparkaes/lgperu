@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-//use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class Purchase_order extends CI_Controller {
 
@@ -80,44 +80,42 @@ class Purchase_order extends CI_Controller {
 				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
 				$model = ($prod) ? $prod->model : "";
 				
-				//set row
-				$row = [];
-				$row[] = $po_num;//Customer PO No.
-				$row[] = $ship_to->ship_to_code;//Ship To
-				$row[] = $currency;//Currency
-				$row[] = $arrival_date;//Request Arrival Date(YYYYMMDD)
-				$row[] = $model;//Model
-				$row[] = $qty;//Quantity
-				$row[] = str_replace(",", "", $unit_price);//Unit Selling Price
-				$row[] = null;//Warehouse
-				$row[] = null;//Payterm
-				$row[] = null;//Shipping Remark
-				$row[] = null;//Invoice Remark
-				$row[] = null;//Customer RAD(YYYYMMDD)
-				$row[] = $issue_date;//Customer PO Date(YYYYMMDD)
-				$row[] = null;//H Flag
-				$row[] = null;//OP Code
-				$row[] = null;//Country
-				$row[] = null;//Postal Code
-				$row[] = null;//Address1
-				$row[] = null;//Address2
-				$row[] = null;//Address3
-				$row[] = null;//Address4
-				$row[] = null;//City
-				$row[] = null;//State
-				$row[] = null;//Province
-				$row[] = null;//County
-				$row[] = $ship_to->customer->customer;//Consumer Name
-				$row[] = null;//Consumer Phone No.
-				$row[] = null;//Receiver Name
-				$row[] = null;//Receiver Phone No.
-				$row[] = null;//Freight Charge
-				$row[] = null;//Freight Term
-				$row[] = null;//Price Condition
-				$row[] = null;//Picking Remark
-				$row[] = null;//Shipping Method
-				
-				$rows[] = $row;
+				$rows[] = [
+					$po_num,//Customer PO No.
+					$ship_to->ship_to_code,//Ship To
+					$currency,//Currency
+					$arrival_date,//Request Arrival Date(YYYYMMDD)
+					$model,//Model
+					$qty,//Quantity
+					str_replace(",", "", $unit_price),//Unit Selling Price
+					null,//Warehouse
+					null,//Payterm
+					null,//Shipping Remark
+					null,//Invoice Remark
+					null,//Customer RAD(YYYYMMDD)
+					$issue_date,//Customer PO Date(YYYYMMDD)
+					null,//H Flag
+					null,//OP Code
+					null,//Country
+					null,//Postal Code
+					null,//Address1
+					null,//Address2
+					null,//Address3
+					null,//Address4
+					null,//City
+					null,//State
+					null,//Province
+					null,//County
+					$ship_to->customer->customer,//Consumer Name
+					null,//Consumer Phone No.
+					null,//Receiver Name
+					null,//Receiver Phone No.
+					null,//Freight Charge
+					null,//Freight Term
+					null,//Price Condition
+					null,//Picking Remark
+					null,//Shipping Method
+				];
 			}
 		}
 		
@@ -154,44 +152,42 @@ class Purchase_order extends CI_Controller {
 				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
 				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
 				
-				//set row
-				$row = [];
-				$row[] = $po_num;//Customer PO No.
-				$row[] = $ship_to->ship_to_code;//Ship To
-				$row[] = $currency;//Currency
-				$row[] = $arrival_date;//Request Arrival Date(YYYYMMDD)
-				$row[] = $model;//Model
-				$row[] = $qty;//Quantity
-				$row[] = str_replace(",", "", $unit_price);//Unit Selling Price
-				$row[] = null;//Warehouse
-				$row[] = null;//Payterm
-				$row[] = null;//Shipping Remark
-				$row[] = null;//Invoice Remark
-				$row[] = null;//Customer RAD(YYYYMMDD)
-				$row[] = $issue_date;//Customer PO Date(YYYYMMDD)
-				$row[] = null;//H Flag
-				$row[] = null;//OP Code
-				$row[] = null;//Country
-				$row[] = null;//Postal Code
-				$row[] = null;//Address1
-				$row[] = null;//Address2
-				$row[] = null;//Address3
-				$row[] = null;//Address4
-				$row[] = null;//City
-				$row[] = null;//State
-				$row[] = null;//Province
-				$row[] = null;//County
-				$row[] = $ship_to->customer->customer;//Consumer Name
-				$row[] = null;//Consumer Phone No.
-				$row[] = null;//Receiver Name
-				$row[] = null;//Receiver Phone No.
-				$row[] = null;//Freight Charge
-				$row[] = null;//Freight Term
-				$row[] = null;//Price Condition
-				$row[] = null;//Picking Remark
-				$row[] = null;//Shipping Method
-				
-				$rows[] = $row;
+				$rows[] = [
+					$po_num,//Customer PO No.
+					$ship_to->ship_to_code,//Ship To
+					$currency,//Currency
+					$arrival_date,//Request Arrival Date(YYYYMMDD)
+					$model,//Model
+					$qty,//Quantity
+					str_replace(",", "", $unit_price),//Unit Selling Price
+					null,//Warehouse
+					null,//Payterm
+					null,//Shipping Remark
+					null,//Invoice Remark
+					null,//Customer RAD(YYYYMMDD)
+					$issue_date,//Customer PO Date(YYYYMMDD)
+					null,//H Flag
+					null,//OP Code
+					null,//Country
+					null,//Postal Code
+					null,//Address1
+					null,//Address2
+					null,//Address3
+					null,//Address4
+					null,//City
+					null,//State
+					null,//Province
+					null,//County
+					$ship_to->customer->customer,//Consumer Name
+					null,//Consumer Phone No.
+					null,//Receiver Name
+					null,//Receiver Phone No.
+					null,//Freight Charge
+					null,//Freight Term
+					null,//Price Condition
+					null,//Picking Remark
+					null,//Shipping Method
+				];
 				
 				$prod_num++;
 			}
@@ -203,7 +199,60 @@ class Purchase_order extends CI_Controller {
 	public function conecta_excel($filename, $ship_to){
 		$rows = [];
 		
-		$rows[] = ["sadfasffsd", "123123", "asfsadf"];
+		$spreadsheet = IOFactory::load($filename);
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		$max_row = $sheet->getHighestRow();
+		
+		for ($row = 2; $row <= $max_row; $row++){
+			$aux = explode("-", trim($sheet->getCell('G'.$row)->getValue()));
+			$issue_date = $aux[0].$aux[1].$aux[2];
+			
+			$aux = explode("-", trim($sheet->getCell('H'.$row)->getValue()));
+			$arrival_date = $aux[0].$aux[1].$aux[2];
+			
+			$sku = trim($sheet->getCell('K'.$row)->getValue());
+			$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
+			$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
+			$model = ($prod) ? $prod->model : "No SKU: ".$sku;
+			
+			$rows[] = [
+				trim($sheet->getCell('A'.$row)->getValue()),//Customer PO No.
+				$ship_to->ship_to_code,//Ship To
+				trim($sheet->getCell('I'.$row)->getValue()),//Currency
+				$arrival_date,//Request Arrival Date(YYYYMMDD)
+				$model,//Model
+				trim($sheet->getCell('U'.$row)->getValue()),//Quantity
+				trim($sheet->getCell('R'.$row)->getValue()),//Unit Selling Price
+				null,//Warehouse
+				null,//Payterm
+				null,//Shipping Remark
+				null,//Invoice Remark
+				null,//Customer RAD(YYYYMMDD)
+				$issue_date,//Customer PO Date(YYYYMMDD)
+				null,//H Flag
+				null,//OP Code
+				null,//Country
+				null,//Postal Code
+				null,//Address1
+				null,//Address2
+				null,//Address3
+				null,//Address4
+				null,//City
+				null,//State
+				null,//Province
+				null,//County
+				$ship_to->customer->customer,//Consumer Name
+				null,//Consumer Phone No.
+				null,//Receiver Name
+				null,//Receiver Phone No.
+				null,//Freight Charge
+				null,//Freight Term
+				null,//Price Condition
+				null,//Picking Remark
+				null,//Shipping Method
+			];
+		}
 		
 		return $rows;
 	}
@@ -317,12 +366,20 @@ class Purchase_order extends CI_Controller {
 	}
 	
 	public function test(){
+		/*
 		$filename = './test_files/scm/hiraoka_sku/hiraoka_sku2.pdf';
 		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 2);//hiraoka sku
 		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 1);//hiraoka
 		$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
 		
 		echo $this->pdf_to_excel($filename, $po_template, $ship_to);
+		*/
+		$filename = './test_files/scm/conecta/conecta2.xls';
+		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 3);//conecta excel
+		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 3);//conecta
+		$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
+		
+		echo $this->excel_to_excel($filename, $po_template, $ship_to);
 	}
 	
 	public function convert_po(){
