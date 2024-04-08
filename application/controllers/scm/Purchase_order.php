@@ -279,16 +279,41 @@ class Purchase_order extends CI_Controller {
 
 		if ($this->upload->do_upload('po_file')){
 			$result = $this->upload->data();
-			print_r($result);
+			//print_r($result);
+			/*
+			Array
+			(
+				[file_name] => po_file.pdf
+				[file_type] => application/pdf
+				[file_path] => C:/xampp_lg/htdocs/llamasys/upload/scm/
+				[full_path] => C:/xampp_lg/htdocs/llamasys/upload/scm/po_file.pdf
+				[raw_name] => po_file
+				[orig_name] => po_file.pdf
+				[client_name] => test_hiraoka5.pdf
+				[file_ext] => .pdf
+				[file_size] => 106.61
+				[is_image] => 
+				[image_width] => 
+				[image_height] => 
+				[image_type] => 
+				[image_size_str] => 
+			)
+			*/
 			
-			
-			$po_file = './upload/scm/po_file.pdf';
+			$po_file = './upload/scm/po_file'.$result["file_ext"];
 			$po_template = $this->gen_m->unique("purchase_order_pdf", "pdf_id", $this->input->post("po_template"));
 			$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", $this->input->post("ship_to"));
 			
 			if ($po_template and $ship_to){
 				$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
-				$url = $this->pdf_to_excel($po_file, $po_template, $ship_to);
+				
+				switch($result["file_ext"]){
+					case ".pdf": $url = $this->pdf_to_excel($po_file, $po_template, $ship_to); break;
+					case ".xlsx": $url = $this->excel_to_excel($po_file, $po_template, $ship_to); break;
+					case ".xls": $url = $this->excel_to_excel($po_file, $po_template, $ship_to); break;
+					case ".csv": $url = $this->excel_to_excel($po_file, $po_template, $ship_to); break;
+				}
+				
 				if ($url){
 					$type = "success";
 					$msg = "PO conversion is completed.";
