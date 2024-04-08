@@ -359,7 +359,7 @@ class Purchase_order extends CI_Controller {
 			*/
 			
 			$po_file = './upload/scm/po_file'.$result["file_ext"];
-			$po_template = $this->gen_m->unique("purchase_order_template", "pdf_id", $this->input->post("po_template"));
+			$po_template = $this->gen_m->unique("purchase_order_template", "template_id", $this->input->post("po_template"));
 			$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", $this->input->post("ship_to"));
 			
 			if ($po_template and $ship_to){
