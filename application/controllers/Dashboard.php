@@ -12,19 +12,4 @@ class Dashboard extends CI_Controller {
 		
 		$this->load->view('layout', $data);
 	}
-
-
-	public function index1(){
-		$module = $this->input->get("m");
-		if (!$module){
-			//load account module
-			$module = "hr";
-		}
-		
-		$data = [
-			"main" => "dashboard/".$module,
-		];
-		
-		$this->load->view('layout', $data);
-	}
 }

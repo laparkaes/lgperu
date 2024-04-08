@@ -24,7 +24,7 @@
 						</div>
 						<div class="col-md-3 col-12">
 							<label class="form-label">PDF Template</label>
-							<select class="form-select" name="po_pdf">
+							<select class="form-select" name="po_file">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($purchase_order_pdfs as $p){ ?>
 								<option value="<?= $p->pdf_id ?>"><?= $p->pdf ?></option>

@@ -270,21 +270,25 @@ class Purchase_order extends CI_Controller {
 		
 		$config = [
 			'upload_path'	=> './upload/scm/',
-			'allowed_types'	=> 'pdf',
+			'allowed_types'	=> 'pdf|xls|xlsx|csv',
 			'max_size'		=> 20000,
 			'overwrite'		=> TRUE,
-			'file_name'		=> 'scm_po',
+			'file_name'		=> 'po_file',
 		];
 		$this->load->library('upload', $config);
 
-		if ($this->upload->do_upload('pdf_file')){
-			$pdf_file = './upload/scm/scm_po.pdf';
+		if ($this->upload->do_upload('po_file')){
+			$result = $this->upload->data();
+			print_r($result);
+			
+			
+			$po_file = './upload/scm/po_file.pdf';
 			$po_pdf = $this->gen_m->unique("purchase_order_pdf", "pdf_id", $this->input->post("po_pdf"));
 			$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", $this->input->post("ship_to"));
 			
 			if ($po_pdf and $ship_to){
 				$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
-				$url = $this->pdf_to_excel($pdf_file, $po_pdf, $ship_to);
+				$url = $this->pdf_to_excel($po_file, $po_pdf, $ship_to);
 				if ($url){
 					$type = "success";
 					$msg = "PO conversion is completed.";
