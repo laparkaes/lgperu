@@ -26,8 +26,8 @@
 							<label class="form-label">PDF Template</label>
 							<select class="form-select" name="po_template">
 								<option value="" selected="">Choose...</option>
-								<?php foreach($purchase_order_pdfs as $p){ ?>
-								<option value="<?= $p->pdf_id ?>"><?= $p->pdf ?></option>
+								<?php foreach($purchase_order_temps as $t){ ?>
+								<option value="<?= $t->template_id ?>"><?= $t->template ?></option>
 								<?php } ?>
 							</select>
 						</div>

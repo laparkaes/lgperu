@@ -152,7 +152,7 @@ class Purchase_order extends CI_Controller {
 				
 				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
 				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
-				$model = ($prod) ? $prod->model : "";
+				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
 				
 				//set row
 				$row = [];
@@ -196,6 +196,12 @@ class Purchase_order extends CI_Controller {
 				$prod_num++;
 			}
 		}
+		
+		return $rows;
+	}
+	
+	public function $this->conecta_excel($filename, $ship_to){
+		$rows = [];
 		
 		return $rows;
 	}
@@ -256,9 +262,61 @@ class Purchase_order extends CI_Controller {
 		return $url;
 	}
 	
+	private function excel_to_excel($filename, $po_template, $ship_to){
+		$url = ""; $rows = [];
+		
+		switch($po_template->code){
+			case "conecta_excel": $rows = $this->conecta_excel($filename, $ship_to); break;
+		}
+		
+		if ($rows){
+			$header = [
+				"Customer PO No.",
+				"Ship To",
+				"Currency",
+				"Request Arrival Date(YYYYMMDD)",
+				"Model",
+				"Quantity",
+				"Unit Selling Price",
+				"Warehouse",
+				"Payterm",
+				"Shipping Remark",
+				"Invoice Remark",
+				"Customer RAD(YYYYMMDD)",
+				"Customer PO Date(YYYYMMDD)",
+				"H Flag",
+				"OP Code",
+				"Country",
+				"Postal Code",
+				"Address1",
+				"Address2",
+				"Address3",
+				"Address4",
+				"City",
+				"State",
+				"Province",
+				"County",
+				"Consumer Name",
+				"Consumer Phone No.",
+				"Receiver Name",
+				"Receiver Phone No.",
+				"Freight Charge",
+				"Freight Term",
+				"Price Condition",
+				"Picking Remark",
+				"Shipping Method",
+			];
+			
+			//make excel without title
+			$url = $this->my_func->generate_excel_report("scm_po.xlsx", null, $header, $rows);
+		}
+		
+		return $url;
+	}
+	
 	public function test(){
 		$filename = './test_files/scm/hiraoka_sku/hiraoka_sku2.pdf';
-		$po_template = $this->gen_m->unique("purchase_order_pdf", "pdf_id", 2);//hiraoka sku
+		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 2);//hiraoka sku
 		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 1);//hiraoka
 		$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
 		
@@ -301,7 +359,7 @@ class Purchase_order extends CI_Controller {
 			*/
 			
 			$po_file = './upload/scm/po_file'.$result["file_ext"];
-			$po_template = $this->gen_m->unique("purchase_order_pdf", "pdf_id", $this->input->post("po_template"));
+			$po_template = $this->gen_m->unique("purchase_order_template", "pdf_id", $this->input->post("po_template"));
 			$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", $this->input->post("ship_to"));
 			
 			if ($po_template and $ship_to){
@@ -337,7 +395,7 @@ class Purchase_order extends CI_Controller {
 		});
 		
 		$data = [
-			"purchase_order_pdfs" => $this->gen_m->all("purchase_order_pdf", [["pdf", "asc"]]),
+			"purchase_order_temps" => $this->gen_m->all("purchase_order_template", [["template", "asc"]]),
 			"ship_tos" => $ship_tos,
 			"main" => "scm/purchase_order/index",
 		];
