@@ -61,7 +61,6 @@ class Purchase_order extends CI_Controller {
 		$aux = explode("/", trim($rows_input[15]));
 		$arrival_date = $aux[2].$aux[1].$aux[0];
 		
-		//$payment = trim($rows_input[18]);
 		$currency = "PEN";
 		
 		foreach($rows_input as $r){
@@ -71,20 +70,11 @@ class Purchase_order extends CI_Controller {
 				//get last position of number and extract total amount
 				$aux_text = trim($aux[5]);
 				preg_match('/[a-z]+/i', $aux_text, $matches, PREG_OFFSET_CAPTURE);
+				
 				$total = substr($aux_text, 0, $matches[0][1]);
-				$aux[5] = str_replace($total, "", $aux_text);
-				
-				$sku = trim($aux[1]); unset($aux[1]);
-				$num = trim($aux[0]); unset($aux[0]);
-				$unit = trim($aux[2]); unset($aux[2]);
-				$qty = trim($aux[3]); unset($aux[3]);
-				$unit_price = trim($aux[4]); unset($aux[4]);
-				
-				//clean aux => unset Pre-Distribucion
-				foreach($aux as $a_i => $a) if (is_numeric($a)) unset($aux[$a_i]);
-				
-				//merge aux with " " to make product desription string
-				$description = implode(" ", $aux);//desription
+				$sku = trim($aux[1]);
+				$qty = trim($aux[3]);
+				$unit_price = trim($aux[4]);
 				
 				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
 				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
@@ -96,7 +86,6 @@ class Purchase_order extends CI_Controller {
 				$row[] = $ship_to->ship_to_code;//Ship To
 				$row[] = $currency;//Currency
 				$row[] = $arrival_date;//Request Arrival Date(YYYYMMDD)
-				//$row[] = $sku." ".$description;//
 				$row[] = $model;//Model
 				$row[] = $qty;//Quantity
 				$row[] = str_replace(",", "", $unit_price);//Unit Selling Price
@@ -135,6 +124,82 @@ class Purchase_order extends CI_Controller {
 		return $rows;
 	}
 	
+	public function hiraoka_sku($rows_input, $ship_to){
+		$rows = [];
+		
+		$po_num = trim(explode(" ", $rows_input[5])[4]);
+		
+		$aux = explode("/", trim($rows_input[14]));
+		$issue_date = $aux[2].$aux[1].$aux[0];
+		
+		$aux = explode("/", trim($rows_input[15]));
+		$arrival_date = $aux[2].$aux[1].$aux[0];
+		
+		$currency = "PEN";
+		
+		$prod_num = 1;
+		foreach($rows_input as $i => $r){
+			$aux = array_values(array_filter(explode(" ", $r)));
+			if (count($aux) > 6) if (is_numeric($aux[0])){
+				//get last position of number and extract total amount
+				$aux_text = trim($aux[4]);
+				preg_match('/[a-z]+/i', $aux_text, $matches, PREG_OFFSET_CAPTURE);
+				
+				$total = substr($aux_text, 0, $matches[0][1]);
+				$sku = substr(trim($aux[0]), strlen((string)$prod_num));//need to work with sku = [num][sku] => need to extract num value
+				$qty = trim($aux[2]);
+				$unit_price = trim($aux[3]);
+				
+				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
+				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
+				$model = ($prod) ? $prod->model : "";
+				
+				//set row
+				$row = [];
+				$row[] = $po_num;//Customer PO No.
+				$row[] = $ship_to->ship_to_code;//Ship To
+				$row[] = $currency;//Currency
+				$row[] = $arrival_date;//Request Arrival Date(YYYYMMDD)
+				$row[] = $model;//Model
+				$row[] = $qty;//Quantity
+				$row[] = str_replace(",", "", $unit_price);//Unit Selling Price
+				$row[] = null;//Warehouse
+				$row[] = null;//Payterm
+				$row[] = null;//Shipping Remark
+				$row[] = null;//Invoice Remark
+				$row[] = null;//Customer RAD(YYYYMMDD)
+				$row[] = $issue_date;//Customer PO Date(YYYYMMDD)
+				$row[] = null;//H Flag
+				$row[] = null;//OP Code
+				$row[] = null;//Country
+				$row[] = null;//Postal Code
+				$row[] = null;//Address1
+				$row[] = null;//Address2
+				$row[] = null;//Address3
+				$row[] = null;//Address4
+				$row[] = null;//City
+				$row[] = null;//State
+				$row[] = null;//Province
+				$row[] = null;//County
+				$row[] = $ship_to->customer->customer;//Consumer Name
+				$row[] = null;//Consumer Phone No.
+				$row[] = null;//Receiver Name
+				$row[] = null;//Receiver Phone No.
+				$row[] = null;//Freight Charge
+				$row[] = null;//Freight Term
+				$row[] = null;//Price Condition
+				$row[] = null;//Picking Remark
+				$row[] = null;//Shipping Method
+				
+				$rows[] = $row;
+				
+				$prod_num++;
+			}
+		}
+		
+		return $rows;
+	}
+	
 	private function pdf_to_excel($filename, $po_pdf, $ship_to){
 		$url = ""; $rows = [];
 		
@@ -142,9 +207,8 @@ class Purchase_order extends CI_Controller {
 		$rows = $this->my_pdf->to_text($filename);
 		
 		switch($po_pdf->code){
-			case "hiraoka_pre": 
-				$rows = $this->hiraoka_pre($rows, $ship_to);
-				break;
+			case "hiraoka_pre": $rows = $this->hiraoka_pre($rows, $ship_to); break;
+			case "hiraoka_sku": $rows = $this->hiraoka_sku($rows, $ship_to); break;
 		}
 		
 		if ($rows){
@@ -190,6 +254,15 @@ class Purchase_order extends CI_Controller {
 		}
 		
 		return $url;
+	}
+	
+	public function test(){
+		$filename = './test_files/scm/hiraoka_sku/hiraoka_sku2.pdf';
+		$po_pdf = $this->gen_m->unique("purchase_order_pdf", "pdf_id", 2);//hiraoka sku
+		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 1);//hiraoka
+		$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
+		
+		echo $this->pdf_to_excel($filename, $po_pdf, $ship_to);
 	}
 	
 	public function convert_po(){
