@@ -200,7 +200,7 @@ class Purchase_order extends CI_Controller {
 		return $rows;
 	}
 	
-	public function $this->conecta_excel($filename, $ship_to){
+	public function conecta_excel($filename, $ship_to){
 		$rows = [];
 		
 		return $rows;
