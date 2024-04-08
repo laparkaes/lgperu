@@ -203,7 +203,7 @@ class Purchase_order extends CI_Controller {
 	public function conecta_excel($filename, $ship_to){
 		$rows = [];
 		
-		$rows[] = "sadfasffsd";
+		$rows[] = ["sadfasffsd", "123123", "asfsadf"];
 		
 		return $rows;
 	}
@@ -267,7 +267,6 @@ class Purchase_order extends CI_Controller {
 	private function excel_to_excel($filename, $po_template, $ship_to){
 		$url = ""; $rows = [];
 		
-		echo "ola";
 		switch($po_template->code){
 			case "conecta_excel": $rows = $this->conecta_excel($filename, $ship_to); break;
 		}
