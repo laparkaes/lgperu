@@ -50,7 +50,7 @@ class Purchase_order extends CI_Controller {
 		echo "Fin";
 	}
 	
-	private function hiraoka_original($rows_input, $ship_to){
+	private function hiraoka_pre($rows_input, $ship_to){
 		$rows = [];
 		
 		$po_num = trim(explode(" ", $rows_input[5])[4]);
@@ -142,8 +142,8 @@ class Purchase_order extends CI_Controller {
 		$rows = $this->my_pdf->to_text($filename);
 		
 		switch($po_pdf->code){
-			case "hiraoka_original": 
-				$rows = $this->hiraoka_original($rows, $ship_to);
+			case "hiraoka_pre": 
+				$rows = $this->hiraoka_pre($rows, $ship_to);
 				break;
 		}
 		

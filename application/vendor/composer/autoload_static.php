@@ -12,6 +12,10 @@ class ComposerStaticInit752af880aaab3e228623dec6a9a59474
     );
 
     public static $prefixLengthsPsr4 = array (
+        't' => 
+        array (
+            'thiagoalessio\\TesseractOCR\\' => 27,
+        ),
         'Z' => 
         array (
             'ZipStream\\' => 10,
@@ -39,6 +43,10 @@ class ComposerStaticInit752af880aaab3e228623dec6a9a59474
     );
 
     public static $prefixDirsPsr4 = array (
+        'thiagoalessio\\TesseractOCR\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/thiagoalessio/tesseract_ocr/src',
+        ),
         'ZipStream\\' => 
         array (
             0 => __DIR__ . '/..' . '/maennchen/zipstream-php/src',
