@@ -85,9 +85,12 @@
 		$("#form_change_password").submit(function(e) {
 			e.preventDefault();
 			$("#form_change_password .sys_msg").html("");
-			ajax_form(this, "auth/change_password_process").done(function(res) {
-				if (res.type == "success") window.location.href = res.url;
-				else swal(res.type, res.msg);
+			ajax_form_warning(this, "auth/change_password_process", "You must log in again after changing your password.").done(function(res) {
+				swal_redirection(res.type, res.msg, res.url);
+				
+				
+				//if (res.type == "success") window.location.href = res.url;
+				//else swal(res.type, res.msg);
 			});
 		});
 	});

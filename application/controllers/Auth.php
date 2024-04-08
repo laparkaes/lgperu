@@ -34,7 +34,6 @@ class Auth extends CI_Controller {
 				unset($employee->is_supervised);
 				unset($employee->valid);
 				
-				
 				$session_data = array(
 					"emp" => $employee,
 					"logged_in" => true
@@ -66,6 +65,22 @@ class Auth extends CI_Controller {
 	}
 	
 	public function change_password_process(){
-		echo "hola";
+		$type = "error"; $msg = $url = "";
+		
+		if ($this->input->post("password_n") === $this->input->post("password_c")){
+			$employee = $this->gen_m->unique("employee", "employee_id", $this->session->userdata('emp')->employee_id);
+			if (password_verify($this->input->post("password"), $employee->password)){
+				if ($this->gen_m->update("employee", ["employee_id" => $employee->employee_id], ["password" => password_hash($this->input->post("password_n"), PASSWORD_BCRYPT)])){
+					$this->session->sess_destroy();
+					
+					$type = "success";
+					$msg = "Password changed. Please login again.";
+					$url = "auth/login";
+				}else $msg = "Internal error. Try again.";
+			}else $msg = "Password error.";
+		}else $msg = "Password confirm error.";
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
 	}
 }
