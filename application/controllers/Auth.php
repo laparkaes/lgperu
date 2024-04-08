@@ -5,13 +5,9 @@ class Auth extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
+		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
-	}
-	
-	public function index(){
-		//$this->load->view('welcome_message');
-		echo "hola soy Ricardo";
 	}
 	
 	public function login(){
@@ -48,14 +44,28 @@ class Auth extends CI_Controller {
 				
 				$type = "success";
 				$msg = "Welcome!";
-				$url = "dashboard";
+				$url = base_url()."dashboard";
 			}else $msg = "Wrong password.";
 		}else $msg = "Employee doesn't exists.";
-		
 		
 		//$msg = password_hash("1234567890a", PASSWORD_BCRYPT);
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
+	}
+	
+	public function logout(){
+		$this->session->sess_destroy();
+		redirect("/", 'refresh');
+	}
+	
+	public function change_password(){
+		if (!$this->session->userdata('logged_in')) redirect("/auth/login");
+		
+		$this->load->view('auth/change_password');
+	}
+	
+	public function change_password_process(){
+		echo "hola";
 	}
 }

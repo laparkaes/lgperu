@@ -3,7 +3,8 @@
 		<h1>Attendance</h1>
 		<nav>
 			<ol class="breadcrumb">
-				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard?m=hr">HR</a></li>
+				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
+				<li class="breadcrumb-item">HR</li>
 				<li class="breadcrumb-item active">Attendance</li>
 			</ol>
 		</nav>

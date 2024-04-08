@@ -114,7 +114,19 @@ function swal_open_tab(type, msg, url){
 	}
 }
 
-
+function swal_warning_redirect(msg, move_to){
+	if (msg != ""){
+		Swal.fire({
+			title: "Warning !!!",
+			icon: "warning",
+			html: msg,
+			confirmButtonText: "Confirm",
+			cancelButtonText: "Cancel",
+		}).then((result) => {
+			if (result.isConfirmed) location.href = base_url + move_to;
+		});	
+	}
+}
 
 
 

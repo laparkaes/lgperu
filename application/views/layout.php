@@ -26,113 +26,29 @@
 		</div>
 		<nav class="header-nav ms-auto">
 			<ul class="d-flex align-items-center">
-				<li class="nav-item dropdown">
-					<ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications">
-						<li class="dropdown-header">
-						  You have 4 new notifications
-						  <a href="#"><span class="badge rounded-pill bg-primary p-2 ms-2">View all</span></a>
-						</li>
-						<li>
-						  <hr class="dropdown-divider">
-						</li>
-
-						<li class="notification-item">
-						  <i class="bi bi-exclamation-circle text-warning"></i>
-						  <div>
-							<h4>Lorem Ipsum</h4>
-							<p>Quae dolorem earum veritatis oditseno</p>
-							<p>30 min. ago</p>
-						  </div>
-						</li>
-
-						<li>
-						  <hr class="dropdown-divider">
-						</li>
-
-						<li class="notification-item">
-						  <i class="bi bi-x-circle text-danger"></i>
-						  <div>
-							<h4>Atque rerum nesciunt</h4>
-							<p>Quae dolorem earum veritatis oditseno</p>
-							<p>1 hr. ago</p>
-						  </div>
-						</li>
-
-						<li>
-						  <hr class="dropdown-divider">
-						</li>
-
-						<li class="notification-item">
-						  <i class="bi bi-check-circle text-success"></i>
-						  <div>
-							<h4>Sit rerum fuga</h4>
-							<p>Quae dolorem earum veritatis oditseno</p>
-							<p>2 hrs. ago</p>
-						  </div>
-						</li>
-
-						<li>
-						  <hr class="dropdown-divider">
-						</li>
-
-						<li class="notification-item">
-						  <i class="bi bi-info-circle text-primary"></i>
-						  <div>
-							<h4>Dicta reprehenderit</h4>
-							<p>Quae dolorem earum veritatis oditseno</p>
-							<p>4 hrs. ago</p>
-						  </div>
-						</li>
-
-						<li>
-						  <hr class="dropdown-divider">
-						</li>
-						<li class="dropdown-footer">
-						  <a href="#">Show all notifications</a>
-						</li>
-					</ul>
-				</li>
 				<li class="nav-item dropdown pe-3">
 					<a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-						<span class="dropdown-toggle ps-2">K. Anderson</span>
+						<i class="bi bi-person-circle" style="font-size: 2em;"></i><span class="dropdown-toggle ps-2"><?= $this->session->userdata('emp')->name ?></span>
 					</a>
 					<ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
 						<li class="dropdown-header">
-							<h6>Kevin Anderson</h6>
-							<span>Web Designer</span>
+							<h6><?= $this->session->userdata('emp')->department ?></h6>
+							<span><?= $this->session->userdata('emp')->employee_number ?></span>
 						</li>
 						<li>
 							<hr class="dropdown-divider">
 						</li>
 						<li>
-							<a class="dropdown-item d-flex align-items-center" href="users-profile.html">
-								<i class="bi bi-person"></i>
-								<span>My Profile</span>
+							<a class="dropdown-item d-flex align-items-center" href="<?= base_url() ?>auth/change_password">
+								<i class="bi bi-lock"></i>
+								<span>Change Password</span>
 							</a>
 						</li>
 						<li>
 							<hr class="dropdown-divider">
 						</li>
 						<li>
-							<a class="dropdown-item d-flex align-items-center" href="users-profile.html">
-								<i class="bi bi-gear"></i>
-								<span>Account Settings</span>
-							</a>
-						</li>
-						<li>
-							<hr class="dropdown-divider">
-						</li>
-						<li>
-							<a class="dropdown-item d-flex align-items-center" href="pages-faq.html">
-								<i class="bi bi-question-circle"></i>
-								<span>Need Help?</span>
-							</a>
-						</li>
-						<li>
-							<hr class="dropdown-divider">
-						</li>
-						<li>
-							<a class="dropdown-item d-flex align-items-center" href="#">
+							<a class="dropdown-item d-flex align-items-center" id="btn_logout" href="#">
 								<i class="bi bi-box-arrow-right"></i>
 								<span>Sign Out</span>
 							</a>
@@ -155,5 +71,12 @@
 	<script src="<?= base_url() ?>assets/vendor/simple-datatables/simple-datatables.js"></script>
 	<script src="<?= base_url() ?>assets/js/main.js"></script>
 	<script src="<?= base_url() ?>assets/js/func.js"></script>
+	<script>
+	document.addEventListener("DOMContentLoaded", () => {
+		$('#btn_logout').click(function(){
+			swal_warning_redirect("Are you sure to leave?", "auth/logout");
+		});
+	});
+	</script>
 </body>
 </html>

@@ -3,7 +3,8 @@
 		<h1>Sell-In/Out</h1>
 		<nav>
 			<ol class="breadcrumb">
-				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard?m=sa">Sales Admin</a></li>
+				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
+				<li class="breadcrumb-item">SA</li>
 				<li class="breadcrumb-item active">Sell-In/Out</li>
 			</ol>
 		</nav>

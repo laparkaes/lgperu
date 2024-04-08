@@ -3,7 +3,8 @@
 		<h1>Purchase Order</h1>
 		<nav>
 			<ol class="breadcrumb">
-				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard?m=scm">Supply Chain Management</a></li>
+				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
+				<li class="breadcrumb-item">SCM</li>
 				<li class="breadcrumb-item active">Purchase Order</li>
 			</ol>
 		</nav>
