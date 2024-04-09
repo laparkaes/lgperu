@@ -45,7 +45,10 @@
 											</div>
 										</div>
 										<div class="col-12">
-											<label class="form-label">Password</label>
+											<div class="d-flex justify-content-between">
+												<label class="form-label">Password</label>
+												<span>(Default: 1234567890a)</span>
+											</div>
 											<input type="password" class="form-control" name="password" required>
 										</div>
 										<div class="col-12">
