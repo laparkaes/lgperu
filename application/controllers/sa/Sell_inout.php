@@ -208,8 +208,13 @@ class Sell_inout extends CI_Controller {
 		foreach($customers as $cus) $customer_arr[$cus->customer_id] = $cus;
 		
 		//set up product array
-		$groups = $this->gen_m->all("product_group", [["group_name", "asc"]]);
-		$categories = $this->gen_m->all("product_category", [["category", "asc"]]);
+		$lines = [
+			"line_z" => $this->gen_m->filter("product_line", true, ["level" => 0], null, null, [["line", "asc"]]),
+			"line_i" => $this->gen_m->filter("product_line", true, ["level" => 1], null, null, [["line", "asc"]]),
+			"line_ii" => $this->gen_m->filter("product_line", true, ["level" => 2], null, null, [["line", "asc"]]),
+			"line_iii" => $this->gen_m->filter("product_line", true, ["level" => 3], null, null, [["line", "asc"]]),
+			"line_iv" => $this->gen_m->filter("product_line", true, ["level" => 4], null, null, [["line", "asc"]]),
+		];
 		$products = $this->gen_m->all("product", [["model", "asc"]]);
 		
 		//set up channel array
@@ -247,8 +252,7 @@ class Sell_inout extends CI_Controller {
 		});
 		
 		$data = [
-			"groups" => $groups,
-			"categories" => $categories,
+			"lines" => $lines,
 			"products" => $products,
 			"customers" => $customers,
 			"customer_arr" => $customer_arr,
