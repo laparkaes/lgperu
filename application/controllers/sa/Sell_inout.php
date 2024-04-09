@@ -305,34 +305,6 @@ class Sell_inout extends CI_Controller {
 			//echo "Product: ".$prd->model."<br/><br/>";
 			print_sell_inout($inout);
 		}
-		
-		/*
-		$groups = $this->gen_m->all("product_group", [["group_name", "asc"]]);
-		foreach($groups as $g_i => $grp){
-			echo "Group: ".$grp->group_name."<br/><br/>";
-			$categories = $this->gen_m->filter("product_category", true, ["group_id" => $grp->group_id]);
-			foreach($categories as $cat){
-				echo "Category: ".$cat->category."<br/><br/>";
-				$products = $this->gen_m->filter("product", true, ["category_id" => $cat->category_id]);
-				foreach($products as $prd){
-					//customer_id = 9 is supermercados mercados (plaza vea)
-					$inout = $this->get_sell_inout(9, $prd->product_id);
-					if ($inout){
-						echo "Product: ".$prd->model."<br/><br/>";
-						print_sell_inout($inout);
-					}
-					
-					echo "<br/><br/>";
-				}
-				
-				echo "<br/><br/>";
-				break;
-			}
-			
-			echo "<br/><br/>";
-			if ($g_i > 0) break;
-		}
-		*/
 	}
 	
 	private function get_customer($customer, $bill_to_code){
