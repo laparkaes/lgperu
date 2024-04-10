@@ -26,39 +26,15 @@
 					<h5 class="card-title">Filter</h5>
 					<form class="row g-3">
 						<?php
-						$grp = $this->input->get("grp");
-						$cat = $this->input->get("cat");
-						$prd = $this->input->get("prd");
 						$cus = $this->input->get("cus");
+						$lz = $this->input->get("lz");
+						$li = $this->input->get("li");
+						$lii = $this->input->get("lii");
+						$liii = $this->input->get("liii");
+						$liv = $this->input->get("liv");
+						$prd = $this->input->get("prd");
 						?>
-						<div class="col-md-3">
-							<label class="form-label">Group</label>
-							<select class="form-select" id="sl_group" name="grp">
-								<option value="" selected="">Choose...</option>
-								<?php foreach($groups as $g){ ?>
-								<option value="<?= $g->group_id ?>" <?= ($grp == $g->group_id) ? "selected" : "" ?>><?= $g->group_name ?></option>
-								<?php } ?>
-							</select>
-						</div>
-						<div class="col-md-3">
-							<label class="form-label">Category</label>
-							<select class="form-select" id="sl_category" name="cat">
-								<option value="" selected="">Choose...</option>
-								<?php foreach($categories as $c){ ?>
-								<option class="g_all g_<?= $c->group_id ?> <?= ($grp == $c->group_id) ? "" : "d-none" ?>" <?= ($cat == $c->category_id) ? "selected" : "" ?> value="<?= $c->category_id ?>"><?= $c->category ?></option>
-								<?php } ?>
-							</select>
-						</div>
-						<div class="col-md-3">
-							<label class="form-label">Product</label>
-							<select class="form-select" id="sl_product" name="prd">
-								<option value="" selected="">Choose...</option>
-								<?php foreach($products as $p){ if ($p->category_id){ ?>
-								<option class="c_all c_<?= $p->category_id ?> <?= ($cat == $p->category_id) ? "" : "d-none" ?>" <?= ($prd == $p->product_id) ? "selected" : "" ?> value="<?= $p->product_id ?>"><?= $p->model ?></option>
-								<?php }} ?>
-							</select>
-						</div>
-						<div class="col-md-3">
+						<div class="col-md-12">
 							<label class="form-label">Customer</label>
 							<select class="form-select" name="cus">
 								<option value="" selected="">Choose...</option>
@@ -67,7 +43,68 @@
 								<?php }} ?>
 							</select>
 						</div>
-						<div class="col-lg-1 col-md-4 flex-fill align-self-end">
+						<div class="col-md-3">
+							<label class="form-label">Division</label>
+							<select class="form-select" id="sl_lz" name="lz">
+								<option value="" selected="">Choose...</option>
+								<?php foreach($lvl_z as $l){ $s = ($lz == $l->line_id) ? "selected" : ""; ?>
+								<option value="<?= $l->line_id ?>" <?= $s ?>><?= $l->line ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-md-3">
+							<label class="form-label">Level 1</label>
+							<select class="form-select" id="sl_li" name="li">
+								<option value="" selected="">Choose...</option>
+								<?php foreach($lvl_i as $l){ $d = ($lz == $l->parent_id) ? "" : "d-none"; $s = ($li == $l->line_id) ? "selected" : ""; ?>
+								<option class="sl_li sl_lz_<?= $l->parent_id ?> <?= $d ?>" value="<?= $l->line_id ?>" <?= $s ?>><?= $l->line ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Level 2</label>
+							<select class="form-select" id="sl_lii" name="lii">
+								<option value="" selected="">Choose...</option>
+								<?php foreach($lvl_ii as $l){ $d = ($li == $l->parent_id) ? "" : "d-none"; $s = ($lii == $l->line_id) ? "selected" : ""; ?>
+								<option class="sl_lii sl_li_<?= $l->parent_id ?> <?= $d ?>" value="<?= $l->line_id ?>" <?= ($lii == $l->line_id) ? "selected" : "" ?>><?= $l->line ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Level 3</label>
+							<select class="form-select" id="sl_liii" name="liii">
+								<option value="" selected="">Choose...</option>
+								<?php foreach($lvl_iii as $l){ $d = ($lii == $l->parent_id) ? "" : "d-none"; $s = ($liii == $l->line_id) ? "selected" : ""; ?>
+								<option class="sl_liii sl_lii_<?= $l->parent_id ?> <?= $d ?>" value="<?= $l->line_id ?>" <?= ($liii == $l->line_id) ? "selected" : "" ?>><?= $l->line ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Level 4</label>
+							<select class="form-select" id="sl_liv" name="liv">
+								<option value="" selected="">Choose...</option>
+								<?php foreach($lvl_iv as $l){ $d = ($liii == $l->parent_id) ? "" : "d-none"; $s = ($liv == $l->line_id) ? "selected" : ""; ?>
+								<option class="sl_liv sl_liii_<?= $l->parent_id ?> <?= $d ?>" value="<?= $l->line_id ?>" <?= ($liv == $l->line_id) ? "selected" : "" ?>><?= $l->line ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-md-6">
+							<label class="form-label">Product</label>
+							<select class="form-select" id="sl_prd" name="prd">
+								<option value="" selected="">Choose...</option>
+								<?php foreach($products as $p){ if ($p->line_id){
+									if ($liv) $d = $liv == $p->lvl_iv_id ? "" : "d-none";
+									elseif ($liii) $d = $liii == $p->lvl_iii_id ? "" : "d-none";
+									elseif ($lii) $d = $lii == $p->lvl_ii_id ? "" : "d-none";
+									elseif ($li) $d = $li == $p->lvl_i_id ? "" : "d-none";
+									elseif ($lz) $d = $lz == $p->lvl_z_id ? "" : "d-none";
+									else $d = "d-none";
+									?>
+								<option class="sl_prd prl_<?= $p->lvl_z_id ?> prl_<?= $p->lvl_i_id ?> prl_<?= $p->lvl_ii_id ?> prl_<?= $p->lvl_iii_id ?> prl_<?= $p->lvl_iv_id ?> <?= $d ?>" <?= ($prd == $p->product_id) ? "selected" : "" ?> value="<?= $p->product_id ?>"><?= $p->model ?></option>
+								<?php }} ?>
+							</select>
+						</div>
+						<div class="col-md-6 flex-fill align-self-end">
 							<div class="d-grid gap-2">
 								<button type="submit" class="btn btn-primary">Submit</button>
 							</div>
@@ -313,19 +350,50 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-	$('#sl_group').change(function(){
-		$("#sl_category").val("");
-		$('#sl_category option.g_all').addClass('d-none');
-		$('#sl_category option.g_' + $(this).val()).removeClass('d-none');
+	$('#sl_lz').change(function(){
+		$("#sl_li").val("");
+		$('#sl_li option.sl_li').addClass('d-none');
+		$('#sl_li option.sl_lz_' + $(this).val()).removeClass('d-none');
 		
-		$("#sl_product").val("");
-		$('#sl_product option.c_all').addClass('d-none');
+		$("#sl_lii").val(""); $('#sl_lii option.sl_li').addClass('d-none');
+		$("#sl_liii").val(""); $('#sl_liii option.sl_lii').addClass('d-none');
+		$("#sl_liv").val(""); $('#sl_liv option.sl_liii').addClass('d-none');
+		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
     });
 	
-	$('#sl_category').change(function(){
-		$("#sl_product").val("");
-		$('#sl_product option.c_all').addClass('d-none');
-		$('#sl_product option.c_' + $(this).val()).removeClass('d-none');
+	$('#sl_li').change(function(){
+		$("#sl_lii").val("");
+		$('#sl_lii option.sl_lii').addClass('d-none');
+		$('#sl_lii option.sl_li_' + $(this).val()).removeClass('d-none');
+		
+		$("#sl_liii").val(""); $('#sl_liii option.sl_lii').addClass('d-none');
+		$("#sl_liv").val(""); $('#sl_liv option.sl_liii').addClass('d-none');
+		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
+    });
+	
+	$('#sl_lii').change(function(){
+		$("#sl_liii").val("");
+		$('#sl_liii option.sl_liii').addClass('d-none');
+		$('#sl_liii option.sl_lii_' + $(this).val()).removeClass('d-none');
+		
+		$("#sl_liv").val(""); $('#sl_liv option.sl_liii').addClass('d-none');
+		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
+    });
+	
+	$('#sl_liii').change(function(){
+		$("#sl_liv").val("");
+		$('#sl_liv option.sl_liv').addClass('d-none');
+		$('#sl_liv option.sl_liii_' + $(this).val()).removeClass('d-none');
+		
+		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
+    });
+	
+	$('#sl_liv').change(function(){
+		$("#sl_prd").val("");
+		$('#sl_prd option.sl_prd').addClass('d-none');
+		$('#sl_prd option.sl_liv_' + $(this).val()).removeClass('d-none');
+		
+		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
     });
 	
 	$('.ctrl_inv').click(function(){

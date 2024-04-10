@@ -218,29 +218,35 @@ class Sell_inout extends CI_Controller {
 		foreach($currencies as $curr) $currency_arr[$curr->currency_id] = $curr;
 		
 		//set up line array
-		$line_arr = [];
-		$line_z = $this->gen_m->filter("product_line", true, ["level" => 0], null, null, [["line", "asc"]]);
-		$line_i = $this->gen_m->filter("product_line", true, ["level" => 1], null, null, [["line", "asc"]]);
-		$line_ii = $this->gen_m->filter("product_line", true, ["level" => 2], null, null, [["line", "asc"]]);
-		$line_iii = $this->gen_m->filter("product_line", true, ["level" => 3], null, null, [["line", "asc"]]);
-		$line_iv = $this->gen_m->filter("product_line", true, ["level" => 4], null, null, [["line", "asc"]]);
+		$lvl_arr = [];
+		$lvl_z = $this->gen_m->filter("product_line", true, ["level" => 0], null, null, [["line", "asc"]]);
+		$lvl_i = $this->gen_m->filter("product_line", true, ["level" => 1], null, null, [["line", "asc"]]);
+		$lvl_ii = $this->gen_m->filter("product_line", true, ["level" => 2], null, null, [["line", "asc"]]);
+		$lvl_iii = $this->gen_m->filter("product_line", true, ["level" => 3], null, null, [["line", "asc"]]);
+		$lvl_iv = $this->gen_m->filter("product_line", true, ["level" => 4], null, null, [["line", "asc"]]);
 		
-		foreach($line_z as $l) $line_arr[$l->line_id] = $l;
-		foreach($line_i as $l) $line_arr[$l->line_id] = $l;
-		foreach($line_ii as $l) $line_arr[$l->line_id] = $l;
-		foreach($line_iii as $l) $line_arr[$l->line_id] = $l;
-		foreach($line_iv as $l) $line_arr[$l->line_id] = $l;
+		foreach($lvl_z as $l) $lvl_arr[$l->line_id] = $l;
+		foreach($lvl_i as $l) $lvl_arr[$l->line_id] = $l;
+		foreach($lvl_ii as $l) $lvl_arr[$l->line_id] = $l;
+		foreach($lvl_iii as $l) $lvl_arr[$l->line_id] = $l;
+		foreach($lvl_iv as $l) $lvl_arr[$l->line_id] = $l;
 		
 		//set up product array
 		$products = $this->gen_m->all("product", [["model", "asc"]]);
 		foreach($products as $p){
 			if ($p->line_id){
-				$line_iv = $line_arr[$p->line_id];
-				$line_iii = $line_arr[$line_iv->parent_id];
-				$line_ii = $line_arr[$line_iii->parent_id];
-				$line_i = $line_arr[$line_ii->parent_id];
-				$p->lines = $line_i->line; //implode(" > ", [$line_i->line, $line_ii->line]);
-			}else $p->lines = "";
+				$p_lvl_iv = $lvl_arr[$p->line_id];
+				$p_lvl_iii = $lvl_arr[$p_lvl_iv->parent_id];
+				$p_lvl_ii = $lvl_arr[$p_lvl_iii->parent_id];
+				$p_lvl_i = $lvl_arr[$p_lvl_ii->parent_id];
+				
+				$p->lines = $p_lvl_i->line; //implode(" > ", [$lvl_i->line, $lvl_ii->line]);
+				$p->lvl_z_id = $p_lvl_i->parent_id;
+				$p->lvl_i_id = $p_lvl_i->line_id;
+				$p->lvl_ii_id = $p_lvl_ii->line_id;
+				$p->lvl_iii_id = $p_lvl_iii->line_id;
+				$p->lvl_iv_id = $p_lvl_iv->line_id;
+			}else $p->lines = $p->lvl_z_id = $p->lvl_i_id = $p->lvl_ii_id = $p->lvl_iii_id = $p->lvl_iv_id = "";
 			
 			$product_arr[$p->product_id] = $p;
 		}
@@ -258,11 +264,11 @@ class Sell_inout extends CI_Controller {
 		});
 		
 		$data = [
-			"line_z" => $line_z,
-			"line_i" => $line_i,
-			"line_ii" => $line_ii,
-			"line_iii" => $line_iii,
-			"line_iv" => $line_iv,
+			"lvl_z" => $lvl_z,
+			"lvl_i" => $lvl_i,
+			"lvl_ii" => $lvl_ii,
+			"lvl_iii" => $lvl_iii,
+			"lvl_iv" => $lvl_iv,
 			"products" => $products,
 			"customers" => $customers,
 			"customer_arr" => $customer_arr,

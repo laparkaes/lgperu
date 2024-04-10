@@ -16,14 +16,14 @@
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">PDF to Excel</h5>
+					<h5 class="card-title">PO to Excel</h5>
 					<form class="row g-3" id="form_convert_po">
 						<div class="col-md-3 col-12">
-							<label class="form-label">PDF File</label>
+							<label class="form-label">PO File</label>
 							<input type="file" class="form-control" name="po_file">
 						</div>
 						<div class="col-md-3 col-12">
-							<label class="form-label">PDF Template</label>
+							<label class="form-label">Template</label>
 							<select class="form-select" name="po_template">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($purchase_order_temps as $t){ ?>
