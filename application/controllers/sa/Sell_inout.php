@@ -333,20 +333,6 @@ class Sell_inout extends CI_Controller {
 		return $cus;
 	}
 	
-	private function get_product($cat_id, $model){
-		$aux = ["model" => $model];
-		
-		$prod = $this->gen_m->filter("product", true, $aux);
-		if ($prod) $prod = $prod[0];
-		else{
-			$aux["category_id"] = $cat_id;
-			$prod_id = $this->gen_m->insert("product", $aux);
-			$prod = $this->gen_m->unique("product", "product_id", $prod_id);
-		}
-		
-		return $prod;
-	}
-	
 	private function get_invoice($invoice){
 		$inv = $this->gen_m->unique("invoice", "invoice", $invoice);
 		if (!$inv){
@@ -372,24 +358,27 @@ class Sell_inout extends CI_Controller {
 		for ($row = 2; $row <= $max_row; $row++){
 			$order_qty = trim($sheet->getCell('H'.$row)->getValue());
 			if ($order_qty != 0){
-				$invoice = $this->get_invoice(trim($sheet->getCell('F'.$row)->getValue()));
-				$customer = $this->get_customer(trim($sheet->getCell('B'.$row)->getValue()), trim($sheet->getCell('C'.$row)->getValue()));
-				$product = $this->get_product($cat_arr[trim($sheet->getCell('A'.$row)->getValue())], trim($sheet->getCell('D'.$row)->getValue()));
-				$currency = $this->gen_m->unique("currency", "currency", trim($sheet->getCell('G'.$row)->getValue()));
-				
-				$aux = [
-					"invoice_id" => ($invoice) ? $invoice->invoice_id : null,
-					"customer_id" => ($customer) ? $customer->customer_id : null,
-					"product_id" => ($product) ? $product->product_id : null,
-					"currency_id" => ($currency) ? $currency->currency_id : null,
-					"closed_date" => date("Y-m-d", strtotime(trim($sheet->getCell('E'.$row)->getFormattedValue()))),
-					"order_qty" => $order_qty,
-					"unit_selling_price" => trim($sheet->getCell('I'.$row)->getValue()),
-					"order_amount" => trim($sheet->getCell('J'.$row)->getValue()),
-					"order_amount_pen" => trim($sheet->getCell('K'.$row)->getValue()),
-				];
-				
-				if (!$this->gen_m->filter("sell_in", true, $aux)) $data[] = $aux;
+				$model = trim($sheet->getCell('D'.$row)->getValue());
+				$product = $this->gen_m->unique("product", "model", $model);
+				if ($product){
+					$invoice = $this->get_invoice(trim($sheet->getCell('F'.$row)->getValue()));
+					$customer = $this->get_customer(trim($sheet->getCell('B'.$row)->getValue()), trim($sheet->getCell('C'.$row)->getValue()));
+					$currency = $this->gen_m->unique("currency", "currency", trim($sheet->getCell('G'.$row)->getValue()));
+					
+					$aux = [
+						"invoice_id" => ($invoice) ? $invoice->invoice_id : null,
+						"customer_id" => ($customer) ? $customer->customer_id : null,
+						"product_id" => ($product) ? $product->product_id : null,
+						"currency_id" => ($currency) ? $currency->currency_id : null,
+						"closed_date" => date("Y-m-d", strtotime(trim($sheet->getCell('E'.$row)->getFormattedValue()))),
+						"order_qty" => $order_qty,
+						"unit_selling_price" => trim($sheet->getCell('I'.$row)->getValue()),
+						"order_amount" => trim($sheet->getCell('J'.$row)->getValue()),
+						"order_amount_pen" => trim($sheet->getCell('K'.$row)->getValue()),
+					];
+					
+					if (!$this->gen_m->filter("sell_in", true, $aux)) $data[] = $aux;
+				}else echo "No model registered: ".$model."<br/>";
 			}
 		}
 		
@@ -411,20 +400,23 @@ class Sell_inout extends CI_Controller {
 		for ($row = 2; $row <= $max_row; $row++){
 			$qty = trim($sheet->getCell('K'.$row)->getValue());
 			if ($qty != 0){
-				$customer = $this->get_customer(trim($sheet->getCell('C'.$row)->getValue()), trim($sheet->getCell('D'.$row)->getValue()));
-				$product = $this->get_product(null, trim($sheet->getCell('J'.$row)->getValue()));
-				
-				$aux = [
-					"customer_id" => ($customer) ? $customer->customer_id : null,
-					"product_id" => ($product) ? $product->product_id : null,
-					"channel_id" => $cha_arr[trim($sheet->getCell('B'.$row)->getFormattedValue())],
-					"date" => date("Y-m-d", strtotime(trim($sheet->getCell('H'.$row)->getFormattedValue()))),
-					"qty" => $qty,
-					"amount" => trim($sheet->getCell('L'.$row)->getValue()),
-					"stock" => trim($sheet->getCell('M'.$row)->getValue()),
-				];
-				
-				if (!$this->gen_m->filter("sell_out", true, $aux)) $data[] = $aux;
+				$model = trim($sheet->getCell('J'.$row)->getValue());
+				$product = $this->gen_m->unique("product", "model", $model);
+				if ($product){
+					$customer = $this->get_customer(trim($sheet->getCell('C'.$row)->getValue()), trim($sheet->getCell('D'.$row)->getValue()));
+					
+					$aux = [
+						"customer_id" => ($customer) ? $customer->customer_id : null,
+						"product_id" => ($product) ? $product->product_id : null,
+						"channel_id" => $cha_arr[trim($sheet->getCell('B'.$row)->getFormattedValue())],
+						"date" => date("Y-m-d", strtotime(trim($sheet->getCell('H'.$row)->getFormattedValue()))),
+						"qty" => $qty,
+						"amount" => trim($sheet->getCell('L'.$row)->getValue()),
+						"stock" => trim($sheet->getCell('M'.$row)->getValue()),
+					];
+					
+					if (!$this->gen_m->filter("sell_out", true, $aux)) $data[] = $aux;
+				}else echo "No model registered: ".$model."<br/>";
 			}
 		}
 		
