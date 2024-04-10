@@ -239,7 +239,7 @@ class Sell_inout extends CI_Controller {
 				$line_iii = $line_arr[$line_iv->parent_id];
 				$line_ii = $line_arr[$line_iii->parent_id];
 				$line_i = $line_arr[$line_ii->parent_id];
-				$p->lines = implode(" > ", [$line_i->line, $line_ii->line]);
+				$p->lines = $line_i->line; //implode(" > ", [$line_i->line, $line_ii->line]);
 			}else $p->lines = "";
 			
 			$product_arr[$p->product_id] = $p;
