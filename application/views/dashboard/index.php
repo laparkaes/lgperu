@@ -13,7 +13,7 @@
 											<i class="bi bi-receipt"></i>
 										</div>
 										<div class="ps-3">
-											<a href="<?= base_url() ?>sa/sell_inout"><h6>Sales In/Out</h6></a>
+											<a href="<?= base_url() ?>sa/sell_inout"><h6>Sell In/Out</h6></a>
 											<span class="text-muted small pt-2">Follow up customer stocks</span>
 										</div>
 									</div>

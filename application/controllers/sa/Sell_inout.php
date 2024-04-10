@@ -349,11 +349,6 @@ class Sell_inout extends CI_Controller {
 		$max_row = $sheet->getHighestRow();
 		//$max_row = 2000;
 		
-		//preparing product category id array
-		$cat_arr = [];
-		$cat_rec = $this->gen_m->all("product_category");
-		foreach($cat_rec as $cat) $cat_arr[$cat->category] = $cat->category_id;
-		
 		$data = [];
 		for ($row = 2; $row <= $max_row; $row++){
 			$order_qty = trim($sheet->getCell('H'.$row)->getValue());
