@@ -207,16 +207,6 @@ class Sell_inout extends CI_Controller {
 		$customers = $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]);
 		foreach($customers as $cus) $customer_arr[$cus->customer_id] = $cus;
 		
-		//set up product array
-		$lines = [
-			"line_z" => $this->gen_m->filter("product_line", true, ["level" => 0], null, null, [["line", "asc"]]),
-			"line_i" => $this->gen_m->filter("product_line", true, ["level" => 1], null, null, [["line", "asc"]]),
-			"line_ii" => $this->gen_m->filter("product_line", true, ["level" => 2], null, null, [["line", "asc"]]),
-			"line_iii" => $this->gen_m->filter("product_line", true, ["level" => 3], null, null, [["line", "asc"]]),
-			"line_iv" => $this->gen_m->filter("product_line", true, ["level" => 4], null, null, [["line", "asc"]]),
-		];
-		$products = $this->gen_m->all("product", [["model", "asc"]]);
-		
 		//set up channel array
 		$channel_arr = [];
 		$channels = $this->gen_m->all("sell_out_channel");
@@ -227,14 +217,30 @@ class Sell_inout extends CI_Controller {
 		$currencies = $this->gen_m->all("currency");
 		foreach($currencies as $curr) $currency_arr[$curr->currency_id] = $curr;
 		
-		$group_arr = $category_arr = $product_arr = [];
-		foreach($groups as $g) $group_arr[$g->group_id] = $g;
-		foreach($categories as $c) $category_arr[$c->category_id] = $c;
+		//set up line array
+		$line_arr = [];
+		$line_z = $this->gen_m->filter("product_line", true, ["level" => 0], null, null, [["line", "asc"]]);
+		$line_i = $this->gen_m->filter("product_line", true, ["level" => 1], null, null, [["line", "asc"]]);
+		$line_ii = $this->gen_m->filter("product_line", true, ["level" => 2], null, null, [["line", "asc"]]);
+		$line_iii = $this->gen_m->filter("product_line", true, ["level" => 3], null, null, [["line", "asc"]]);
+		$line_iv = $this->gen_m->filter("product_line", true, ["level" => 4], null, null, [["line", "asc"]]);
+		
+		foreach($line_z as $l) $line_arr[$l->line_id] = $l;
+		foreach($line_i as $l) $line_arr[$l->line_id] = $l;
+		foreach($line_ii as $l) $line_arr[$l->line_id] = $l;
+		foreach($line_iii as $l) $line_arr[$l->line_id] = $l;
+		foreach($line_iv as $l) $line_arr[$l->line_id] = $l;
+		
+		//set up product array
+		$products = $this->gen_m->all("product", [["model", "asc"]]);
 		foreach($products as $p){
-			if ($p->category_id){
-				$p->category = $category_arr[$p->category_id]->category;
-				$p->group = $group_arr[$category_arr[$p->category_id]->group_id]->group_name;
-			}else $p->category = $p->group = "";
+			if ($p->line_id){
+				$line_iv = $line_arr[$p->line_id];
+				$line_iii = $line_arr[$line_iv->parent_id];
+				$line_ii = $line_arr[$line_iii->parent_id];
+				$line_i = $line_arr[$line_ii->parent_id];
+				$p->lines = implode(" > ", [$line_i->line, $line_ii->line]);
+			}else $p->lines = "";
 			
 			$product_arr[$p->product_id] = $p;
 		}
@@ -252,7 +258,11 @@ class Sell_inout extends CI_Controller {
 		});
 		
 		$data = [
-			"lines" => $lines,
+			"line_z" => $line_z,
+			"line_i" => $line_i,
+			"line_ii" => $line_ii,
+			"line_iii" => $line_iii,
+			"line_iv" => $line_iv,
 			"products" => $products,
 			"customers" => $customers,
 			"customer_arr" => $customer_arr,

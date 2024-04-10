@@ -189,7 +189,7 @@
 											<th scope="col">Invoice</th>
 											<th scope="col">Customer</th>
 											<th scope="col">Bill to</th>
-											<th scope="col">Category</th>
+											<th scope="col">Line</th>
 											<th scope="col">Model</th>
 											<th scope="col">Qty</th>
 											<th scope="col"><div class="text-end">U/Price</div></th>
@@ -206,7 +206,7 @@
 											<td><?= $invoice_arr[$in->invoice_id]->invoice ?></td>
 											<td><?= $customer_arr[$in->customer_id]->customer ?></td>
 											<td><?= $customer_arr[$in->customer_id]->bill_to_code ?></td>
-											<td><?= $product_arr[$in->product_id]->group." > ".$product_arr[$in->product_id]->category ?></td>
+											<td><?= $product_arr[$in->product_id]->lines ?></td>
 											<td><?= $product_arr[$in->product_id]->model ?></td>
 											<td><?= number_format($in->order_qty) ?></td>
 											<td><div class="text-end"><?= $currency_arr[$in->currency_id]->symbol." ".number_format($in->unit_selling_price, 2) ?></div></td>
@@ -226,7 +226,7 @@
 											<th scope="col">Date</th>
 											<th scope="col">Customer</th>
 											<th scope="col">Bill to</th>
-											<th scope="col">Category</th>
+											<th scope="col">Line</th>
 											<th scope="col">Model</th>
 											<th scope="col">Channel</th>
 											<th scope="col">Stock</th>
@@ -241,7 +241,7 @@
 											<td><?= $out->date ?></td>
 											<td><?= $customer_arr[$out->customer_id]->customer ?></td>
 											<td><?= $customer_arr[$out->customer_id]->bill_to_code ?></td>
-											<td><?= $product_arr[$out->product_id]->group." > ".$product_arr[$out->product_id]->category ?></td>
+											<td><?= $product_arr[$out->product_id]->lines ?></td>
 											<td><?= $product_arr[$out->product_id]->model ?></td>
 											<td><?= $channel_arr[$out->channel_id]->channel ?></td>
 											<td><?= number_format($out->stock) ?></td>
