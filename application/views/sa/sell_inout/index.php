@@ -350,6 +350,16 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+	function set_selects(){
+		var lvl_z = $('#sl_lz').val();
+		var lvl_i = $('#sl_li').val();
+		var lvl_ii = $('#sl_lii').val();
+		var lvl_iii = $('#sl_liii').val();
+		var lvl_iv = $('#sl_liv').val();
+		
+		alert(lvl_z + " " + lvl_i + " " + lvl_ii + " " + lvl_iii + " " + lvl_iv);
+	}
+	
 	$('#sl_lz').change(function(){
 		$("#sl_li").val("");
 		$('#sl_li option.sl_li').addClass('d-none');
@@ -389,11 +399,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 	
 	$('#sl_liv').change(function(){
+		set_selects();
+		/*
 		$("#sl_prd").val("");
 		$('#sl_prd option.sl_prd').addClass('d-none');
 		$('#sl_prd option.sl_liv_' + $(this).val()).removeClass('d-none');
 		
 		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
+		*/
     });
 	
 	$('.ctrl_inv').click(function(){
