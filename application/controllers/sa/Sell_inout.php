@@ -712,8 +712,7 @@ class Sell_inout extends CI_Controller {
 							echo "Level IV --- "; print_r($lvliv); echo "<br/>";
 							$prods = $this->gen_m->filter("product", true, ["line_id" => $lvliv->line_id]);
 							foreach($prods as $prod){
-								print_r($prod);
-								echo "<br/>";
+								print_r($prod); echo "<br/>";
 							}
 							echo "<br/>";
 						}	
