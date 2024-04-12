@@ -314,7 +314,7 @@ class Sell_inout extends CI_Controller {
 		}
 		
 		$sell_inouts = [];
-		if ($lz and $li and $this->input->get("cus")){
+		if ($lz and $li and $lii and $this->input->get("cus")){
 			$customer_id = $this->input->get("cus");
 			foreach($product_ids as $prd_id){
 				$ios = $this->get_sell_inout($customer_id, $prd_id);
@@ -577,7 +577,9 @@ class Sell_inout extends CI_Controller {
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
 	}
 
-	 function exp_report(){
+	public function exp_report(){
+		set_time_limit(0);
+		
 		$type = "error"; $msg = $url = ""; 
 		
 		$start_time = microtime(true);
@@ -585,9 +587,12 @@ class Sell_inout extends CI_Controller {
 		$header = [
 			"Customer",
 			"Bill To",
-			"Group",
-			"Category",
-			"Product Model",
+			"Division",
+			"Line 1",
+			"Line 2",
+			"Line 3",
+			"Line 4",
+			"Model",
 			"Date",
 			"U/Price",
 			"Sell-In",
@@ -606,177 +611,84 @@ class Sell_inout extends CI_Controller {
 		$customer = $this->gen_m->unique("customer", "customer_id", $this->input->post("cus"));
 		$customer_id = $customer->customer_id;
 		
-		$groups = $this->gen_m->all("product_group", [["group_name", "asc"]]);
-		foreach($groups as $g_i => $grp){
-			$categories = $this->gen_m->filter("product_category", true, ["group_id" => $grp->group_id]);
-			foreach($categories as $cat){
-				$products = $this->gen_m->filter("product", true, ["category_id" => $cat->category_id]);
-				foreach($products as $prd){
-					$inouts = $this->get_sell_inout($customer_id, $prd->product_id);
-					if ($inouts) foreach($inouts as $i => $i_io){
-						//stock alert processing
-						if ($i_io->sell_out > 0){ 
-							switch(true){
-								case (abs($i_io->stock_diff) > 10) : $alert = "Danger"; break;
-								case (abs($i_io->stock_diff) > 5) : $alert = "Warning"; break;
-								default: $alert = "";
+		$lz = $this->input->post("lz");
+		$li = $this->input->post("li");
+		
+		if ($customer and $lz and $li){
+			$lvlzs = $this->gen_m->filter("product_line", true, ["level" => 0]);
+			foreach($lvlzs as $lvlz){
+				if ($lvlz->line_id == $lz){
+					$lvlis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvlz->line_id]);
+					foreach($lvlis as $lvli){
+						if ($lvli->line_id == $li){
+							$lvliis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvli->line_id]);
+							foreach($lvliis as $lvlii){
+								$lvliiis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvlii->line_id]);
+								foreach($lvliiis as $lvliii){
+									$lvlivs = $this->gen_m->filter("product_line", true, ["parent_id" => $lvliii->line_id]);
+									foreach($lvlivs as $lvliv){
+										$prods = $this->gen_m->filter("product", true, ["line_id" => $lvliv->line_id]);
+										foreach($prods as $prod){
+											$inouts = $this->get_sell_inout($customer_id, $prod->product_id);
+											if ($inouts) foreach($inouts as $i => $i_io){
+												//stock alert processing
+												if ($i_io->sell_out > 0){ 
+													switch(true){
+														case (abs($i_io->stock_diff) > 10) : $alert = "Danger"; break;
+														case (abs($i_io->stock_diff) > 5) : $alert = "Warning"; break;
+														default: $alert = "";
+													}
+												}else $alert = "";
+												
+												//invoices processing
+												$aux = []; 
+												foreach($i_io->invoices as $inv){
+													$i_aux = $inv["invoice"];
+													$i_code = ($i_aux) ? $i_aux->invoice : "No Invoice";
+													$i_price = ($i_aux) ? " * ".$i_aux->currency." ".number_format($i_aux->u_price, 2) : "";
+													$aux[] = $i_code." (".number_format($inv["qty"]).$i_price.")";
+												}
+												$invoices = implode(", ", $aux);
+												
+												$rows[] = [
+													$customer->customer,
+													$customer->bill_to_code,
+													$lvlz->line,
+													$lvli->line,
+													$lvlii->line,
+													$lvliii->line,
+													$lvliv->line,
+													$prod->model,
+													$i_io->date,
+													(($i_io->u_price > 0) ? $i_io->currency." ".number_format($i_io->u_price, 2) : ""),
+													$i_io->sell_in,
+													$i_io->sell_out,
+													$i_io->sell_out ? $i_io->stock_customer : "",
+													$i_io->sell_out ? $i_io->stock_lg : "",
+													$i_io->sell_out ? $i_io->stock_diff : "",
+													$alert,
+													$i_io->invoice,
+													$invoices,
+													(($i_io->price_avg > 0) ? "S/ ".number_format($i_io->price_avg, 2) : ""),
+												];
+											}
+										}
+									}
+								}
 							}
-						}else $alert = "";
-						
-						//invoices processing
-						$aux = []; 
-						foreach($i_io->invoices as $inv){
-							$i_aux = $inv["invoice"];
-							$i_code = ($i_aux) ? $i_aux->invoice : "No Invoice";
-							$i_price = ($i_aux) ? " * ".$i_aux->currency." ".number_format($i_aux->u_price, 2) : "";
-							$aux[] = $i_code." (".number_format($inv["qty"]).$i_price.")";
 						}
-						$invoices = implode(", ", $aux);
-						
-						$rows[] = [
-							$customer->customer,
-							$customer->bill_to_code,
-							$grp->group_name,
-							$cat->category,
-							$prd->model,
-							$i_io->date,
-							(($i_io->u_price > 0) ? $i_io->currency." ".number_format($i_io->u_price, 2) : ""),
-							$i_io->sell_in,
-							$i_io->sell_out,
-							$i_io->sell_out ? $i_io->stock_customer : "",
-							$i_io->sell_out ? $i_io->stock_lg : "",
-							$i_io->sell_out ? $i_io->stock_diff : "",
-							$alert,
-							$i_io->invoice,
-							$invoices,
-							(($i_io->price_avg > 0) ? "S/ ".number_format($i_io->price_avg, 2) : ""),
-						];
 					}
 				}
 			}
-		}
-		
-		$url = $this->my_func->generate_excel_report("sell_in_out_report.xlsx", "Sell-In/Out Report", $header, $rows);
-		if ($rows){
-			$type = "success";
-			$msg = "Sell-In/Out report has been created. (".number_Format(microtime(true) - $start_time, 3)." sec)";
-		}else $msg = "No data to make report.";
+			
+			$url = $this->my_func->generate_excel_report("sell_in_out_report.xlsx", null, $header, $rows);
+			if ($rows){
+				$type = "success";
+				$msg = "Sell-In/Out report has been created. (".number_Format(microtime(true) - $start_time, 3)." sec)";
+			}else $msg = "No data to make report.";
+		}else $msg = "Select customer, product division and product line 1 to generate report.";
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
-	}
-	
-	public function repo(){
-		$start_time = microtime(true);
-		
-		$header = [
-			"Customer",
-			"Bill To",
-			"Group",
-			"Category",
-			"Product Model",
-			"Date",
-			"U/Price",
-			"Sell-In",
-			"Sell-Out",
-			"Stock Customer",
-			"Stock LG",
-			"Stock Diff",
-			"Alert",
-			"Invoice",
-			"Invoices",
-			"Avg Price",
-		];
-		
-		$rows = [];
-		
-		$customer = $this->gen_m->unique("customer", "customer_id", 17);//promart
-		$customer_id = $customer->customer_id;
-		
-		print_r($customer); echo "<br/><br/>";
-		
-		$lvlzs = $this->gen_m->filter("product_line", true, ["level" => 0]);
-		foreach($lvlzs as $lvlz){
-			echo "Level Zero --- "; print_r($lvlz); echo "<br/>";
-			$lvlis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvlz->line_id]);
-			foreach($lvlis as $lvli){
-				echo "Level I --- "; print_r($lvli); echo "<br/>";
-				$lvliis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvli->line_id]);
-				foreach($lvliis as $lvlii){
-					echo "Level II --- "; print_r($lvlii); echo "<br/>";
-					$lvliiis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvlii->line_id]);
-					foreach($lvliiis as $lvliii){
-						echo "Level III --- "; print_r($lvlii); echo "<br/>";
-						$lvlivs = $this->gen_m->filter("product_line", true, ["parent_id" => $lvliii->line_id]);
-						foreach($lvlivs as $lvliv){
-							echo "Level IV --- "; print_r($lvliv); echo "<br/>";
-							$prods = $this->gen_m->filter("product", true, ["line_id" => $lvliv->line_id]);
-							foreach($prods as $prod){
-								print_r($prod); echo "<br/>";
-							}
-							echo "<br/>";
-						}	
-						echo "<br/>";
-					}
-					echo "<br/>";
-				}	
-				echo "<br/>";
-			}
-			echo "<br/>";
-		} 
-		
-		
-		$groups = $this->gen_m->all("product_group", [["group_name", "asc"]]);
-		foreach($groups as $g_i => $grp){
-			$categories = $this->gen_m->filter("product_category", true, ["group_id" => $grp->group_id]);
-			foreach($categories as $cat){
-				$products = $this->gen_m->filter("product", true, ["category_id" => $cat->category_id]);
-				foreach($products as $prd){
-					break;
-					$inouts = $this->get_sell_inout($customer_id, $prd->product_id);
-					if ($inouts) foreach($inouts as $i => $i_io){
-						//stock alert processing
-						if ($i_io->sell_out > 0){ 
-							switch(true){
-								case (abs($i_io->stock_diff) > 10) : $alert = "Danger"; break;
-								case (abs($i_io->stock_diff) > 5) : $alert = "Warning"; break;
-								default: $alert = "";
-							}
-						}else $alert = "";
-						
-						//invoices processing
-						$aux = []; 
-						foreach($i_io->invoices as $inv){
-							$i_aux = $inv["invoice"];
-							$i_code = ($i_aux) ? $i_aux->invoice : "No Invoice";
-							$i_price = ($i_aux) ? " * ".$i_aux->currency." ".number_format($i_aux->u_price, 2) : "";
-							$aux[] = $i_code." (".number_format($inv["qty"]).$i_price.")";
-						}
-						$invoices = implode(", ", $aux);
-						
-						$rows[] = [
-							$customer->customer,
-							$customer->bill_to_code,
-							$grp->group_name,
-							$cat->category,
-							$prd->model,
-							$i_io->date,
-							(($i_io->u_price > 0) ? $i_io->currency." ".number_format($i_io->u_price, 2) : ""),
-							$i_io->sell_in,
-							$i_io->sell_out,
-							$i_io->sell_out ? $i_io->stock_customer : "",
-							$i_io->sell_out ? $i_io->stock_lg : "",
-							$i_io->sell_out ? $i_io->stock_diff : "",
-							$alert,
-							$i_io->invoice,
-							$invoices,
-							(($i_io->price_avg > 0) ? "S/ ".number_format($i_io->price_avg, 2) : ""),
-						];
-					}
-				}
-			}
-		}
-		
-		echo "Sell-In/Out report has been created. (".number_Format(microtime(true) - $start_time, 3)." sec)";
 	}
 }

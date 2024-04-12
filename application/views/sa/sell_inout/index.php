@@ -53,7 +53,7 @@
 							</select>
 						</div>
 						<div class="col-md-3">
-							<label class="form-label">Level 1</label>
+							<label class="form-label">Line 1</label>
 							<select class="form-select" id="sl_li" name="li">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($lvl_i as $l){ $d = ($lz == $l->parent_id) ? "" : "d-none"; $s = ($li == $l->line_id) ? "selected" : ""; ?>
@@ -62,7 +62,7 @@
 							</select>
 						</div>
 						<div class="col-md-2">
-							<label class="form-label">Level 2</label>
+							<label class="form-label">Line 2</label>
 							<select class="form-select" id="sl_lii" name="lii">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($lvl_ii as $l){ $d = ($li == $l->parent_id) ? "" : "d-none"; $s = ($lii == $l->line_id) ? "selected" : ""; ?>
@@ -71,7 +71,7 @@
 							</select>
 						</div>
 						<div class="col-md-2">
-							<label class="form-label">Level 3</label>
+							<label class="form-label">Line 3</label>
 							<select class="form-select" id="sl_liii" name="liii">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($lvl_iii as $l){ $d = ($lii == $l->parent_id) ? "" : "d-none"; $s = ($liii == $l->line_id) ? "selected" : ""; ?>
@@ -80,7 +80,7 @@
 							</select>
 						</div>
 						<div class="col-md-2">
-							<label class="form-label">Level 4</label>
+							<label class="form-label">Line 4</label>
 							<select class="form-select" id="sl_liv" name="liv">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($lvl_iv as $l){ $d = ($liii == $l->parent_id) ? "" : "d-none"; $s = ($liv == $l->line_id) ? "selected" : ""; ?>
@@ -113,6 +113,75 @@
 				</div>
 			</div>
 		</div>
+		<?php if ($sell_inouts){
+			$high_t = $sell_inouts[0]["qty"];
+			$high_b = $high_t * 0.5;
+			$medium_t = $high_b;
+			$medium_b = $high_t * 0.25;
+			$low_t = $medium_b;
+			$low_b = 0;
+			
+			$arr_h = $arr_m = $arr_l = [];
+			
+			foreach($sell_inouts as $io) switch(true){
+				case (($high_t >= $io["qty"]) and ($io["qty"] > $high_b)): $arr_h[] = $product_arr[$io["product_id"]]->model; break;
+				case (($medium_t >= $io["qty"]) and ($io["qty"] > $medium_b)): $arr_m[] = $product_arr[$io["product_id"]]->model; break;
+				case (($low_t >= $io["qty"]) and ($io["qty"] > $low_b)): $arr_l[] = $product_arr[$io["product_id"]]->model; break;
+			}
+			
+			sort($arr_h);
+			sort($arr_m);
+			sort($arr_l);
+		?>
+		<div class="col-md-4">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">High</h5>
+					<div class="overflow-auto bl_move" style="max-height: 300px;">
+						<?php if ($arr_h){ ?>
+						<ul class="list-group">
+							<?php foreach($arr_h as $a){ ?>
+							<li class="list-group-item"><?= $a ?></li>
+							<?php } ?>
+						</ul>
+						<?php }else echo "No data"; ?>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Medium</h5>
+					<div class="overflow-auto bl_move" style="max-height: 300px;">
+						<?php if ($arr_m){ ?>
+						<ul class="list-group">
+							<?php foreach($arr_m as $a){ ?>
+							<li class="list-group-item"><?= $a ?></li>
+							<?php } ?>
+						</ul>
+						<?php }else echo "No data"; ?>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Low</h5>
+					<div class="overflow-auto bl_move" style="max-height: 300px;">
+						<?php if ($arr_l){ ?>
+						<ul class="list-group">
+							<?php foreach($arr_l as $a){ ?>
+							<li class="list-group-item"><?= $a ?></li>
+							<?php } ?>
+						</ul>
+						<?php }else echo "No data"; ?>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php } ?>
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
@@ -197,7 +266,7 @@
 					</div>
 					<?php }else{ ?>
 					<div class="alert alert-primary alert-dismissible fade show text-center mb-0" role="alert">
-						Select customer and product category at least to make Sell-In/Out report.
+						Select customer, product division and line 1 at least to make Sell-In/Out table.
 					</div>
 					<?php } ?>
 				</div>
@@ -315,6 +384,24 @@
 							<?php }} ?>
 						</select>
 					</div>
+					<div class="col-md-6">
+						<label class="form-label">Division</label>
+						<select class="form-select" id="sl_lz_report" name="lz">
+							<option value="" selected="">Choose...</option>
+							<?php foreach($lvl_z as $l){ $s = ($lz == $l->line_id) ? "selected" : ""; ?>
+							<option value="<?= $l->line_id ?>" <?= $s ?>><?= $l->line ?></option>
+							<?php } ?>
+						</select>
+					</div>
+					<div class="col-md-6">
+						<label class="form-label">Line 1</label>
+						<select class="form-select" id="sl_li_report" name="li">
+							<option value="" selected="">Choose...</option>
+							<?php foreach($lvl_i as $l){ $d = ($lz == $l->parent_id) ? "" : "d-none"; $s = ($li == $l->line_id) ? "selected" : ""; ?>
+							<option class="sl_li sl_lz_<?= $l->parent_id ?> <?= $d ?>" value="<?= $l->line_id ?>" <?= $s ?>><?= $l->line ?></option>
+							<?php } ?>
+						</select>
+					</div>
 					<div class="text-end pt-3">
 						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 						<button type="submit" class="btn btn-primary">Export</button>
@@ -350,6 +437,11 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+	if ($(".bl_move").length > 0){
+		var height_n = Math.max($(".bl_move")[0].clientHeight, $(".bl_move")[1].clientHeight, $(".bl_move")[2].clientHeight);
+		$(".bl_move").height(height_n);
+	}
+	
 	$('#sl_lz').change(function(){
 		$("#sl_li").val(""); $('#sl_li option.sl_li').addClass('d-none'); $('#sl_li option.sl_lz_' + $(this).val()).removeClass('d-none');
 		$("#sl_lii").val(""); $('#sl_lii option.sl_lii').addClass('d-none');
@@ -378,6 +470,10 @@ document.addEventListener("DOMContentLoaded", () => {
 	
 	$('#sl_liv').change(function(){
 		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
+    });
+	
+	$('#sl_lz_report').change(function(){
+		$("#sl_li_report").val(""); $('#sl_li_report option.sl_li').addClass('d-none'); $('#sl_li_report option.sl_lz_' + $(this).val()).removeClass('d-none');
     });
 	
 	$('.ctrl_inv').click(function(){
