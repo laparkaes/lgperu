@@ -66,7 +66,7 @@
 		<div class="col-md-8">
 			<div class="card">
 				<div class="card-body pb-0">
-					<h5 class="card-title">AR & AP - Account to Receive & to Pay</h5>
+					<h5 class="card-title">AR - Account to Receive</h5>
 					<div class="row">
 						<div class="col-md-6">
 							<div class="card info-card sales-card pb-0">
