@@ -122,7 +122,7 @@ class Purchase_order extends CI_Controller {
 		return $rows;
 	}
 	
-	public function hiraoka_sku($rows_input, $ship_to){
+	private function hiraoka_sku($rows_input, $ship_to){
 		$rows = [];
 		
 		$po_num = trim(explode(" ", $rows_input[5])[4]);
@@ -196,6 +196,16 @@ class Purchase_order extends CI_Controller {
 		return $rows;
 	}
 	
+	private function estilos_dist($rows_input, $ship_to){
+		$rows = [];
+		
+		foreach($rows_input as $i => $r){
+			print_R($r); echo "<br/>";
+			echo json_encode($r); echo "<br/>";
+			echo "<br/>";
+		}
+	}
+	
 	public function conecta_excel($filename, $ship_to){
 		$rows = [];
 		
@@ -266,6 +276,7 @@ class Purchase_order extends CI_Controller {
 		switch($po_template->code){
 			case "hiraoka_pre": $rows = $this->hiraoka_pre($rows, $ship_to); break;
 			case "hiraoka_sku": $rows = $this->hiraoka_sku($rows, $ship_to); break;
+			case "estilos_dist": $rows = $this->estilos_dist($rows, $ship_to); break;
 		}
 		
 		if ($rows){
@@ -366,20 +377,23 @@ class Purchase_order extends CI_Controller {
 	}
 	
 	public function test(){
-		/*
-		$filename = './test_files/scm/hiraoka_sku/hiraoka_sku2.pdf';
-		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 2);//hiraoka sku
-		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 1);//hiraoka
+		/* pdf to excel
+		*/
+		$filename = './test_files/scm_po_estilos/dist/OE 229857.pdf';
+		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 4);//estilos sku
+		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 5);//estilos
 		$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
 		
 		echo $this->pdf_to_excel($filename, $po_template, $ship_to);
-		*/
+		
+		/* excel to excel
 		$filename = './test_files/scm/conecta/conecta2.xls';
 		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 3);//conecta excel
 		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 3);//conecta
 		$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
 		
 		echo $this->excel_to_excel($filename, $po_template, $ship_to);
+		*/
 	}
 	
 	public function convert_po(){
