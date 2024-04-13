@@ -136,7 +136,7 @@
 		<div class="col-md-4">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">High</h5>
+					<h5 class="card-title">High Rotation</h5>
 					<div class="overflow-auto bl_move" style="max-height: 300px;">
 						<?php if ($arr_h){ ?>
 						<ul class="list-group">
