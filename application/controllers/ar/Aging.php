@@ -23,7 +23,7 @@ class Aging extends CI_Controller {
 	}
 	
 	private function data_process(){
-		$result = [];
+		$start_time = microtime(true);
 		
 		$currencies = $this->gen_m->only("ar_aging", "currency");
 		$ar_classes = $this->gen_m->only("ar_aging", "ar_class");
@@ -42,8 +42,6 @@ class Aging extends CI_Controller {
 				foreach($payterms as $payterm){
 					$w["payterm"] = $payterm->payterm;
 					
-					$row = ["row_info" => [$curr->currency, $cus_num->cus_num, $cus_name, $payterm->payterm]];
-					
 					$arr_class = []; 
 					$has_value = false;
 					foreach($ar_classes as $ar_class){
@@ -54,37 +52,67 @@ class Aging extends CI_Controller {
 							$w["aging_day >="] = $range[0];
 							$w["aging_day <="] = $range[1];
 							
-							$balance = $this->gen_m->sum("ar_aging", "balance", $w)->balance;
-							$arr_class[$ar_class->ar_class][] = $balance;
+							$balance = $this->gen_m->sum("ar_aging", "balance", $w)->balance; if (!$balance) $balance = 0;
+							$arr_class[$ar_class->ar_class][] = $balance/1000;
 							if ($balance) $has_value = true;
 						}
 						
 					}
-					$row = array_merge($row, $arr_class);
-					if ($has_value) $rows[] = $row;
+					
+					if ($has_value){
+						$row = [$curr->currency, $cus_num->cus_num, $cus_name, $payterm->payterm];
+						
+						$row[] = " ";
+						$aux = $arr_class["Invoice"];
+						foreach($aux as $a) $row[] = $a;
+						
+						$row[] = " ";
+						$aux = $arr_class["Credit Memo"];
+						foreach($aux as $a) $row[] = $a;
+						
+						$row[] = " ";
+						$aux = $arr_class["Chargeback"];
+						foreach($aux as $a) $row[] = $a;
+						
+						$rows[] = $row;
+					}
 				}
 			}
 		}
-		echo "<br/><br/>";
 		
-		foreach($rows as $row){
-			//print_r($row);
-			print_r($row["row_info"]); echo "<br/>";
-			echo "---- Chargeback "; print_r($row["Chargeback"]); echo "<br/>";
-			echo "---- Credit Memo "; print_r($row["Credit Memo"]); echo "<br/>";
-			echo "---- Invoice "; print_r($row["Invoice"]); echo "<br/>";
-			
-			echo "<br/>";
-		}
+		/* row structure
+			Row info --------		Invoice --------		Credit Memo --------		Chargeback --------
+			0: currency				4: current				14: current					24: current
+			1: cus_num				5: 1~7 days				15: 1~7 days				25: 1~7 days
+			2: cus_name				6: 8~15 days			16: 8~15 days				26: 8~15 days
+			3: payterm				7: 16~30 days			17: 16~30 days				27: 16~30 days
+									8: 31~45 days			18: 31~45 days				28: 31~45 days
+									9: 46~60 days			19: 46~60 days				29: 46~60 days
+									10: 61~90 days			20: 61~90 days				30: 61~90 days
+									11: 91~180 days			21: 91~180 days				31: 91~180 days
+									12: 181~360 days		22: 181~360 days			32: 181~360 days
+									13: 361+ days			23: 361+ days				33: 361+ days */
 		
-		echo "<br/><br/>";
-		/*
-		$agings = $this->gen_m->filter("ar_aging", true);
-		foreach($agings as $ag){
-			print_r($ag); echo "<br/>";
-			
-		}
-		*/
+		//sort by current invoice amount
+		usort($rows, function($a, $b) {
+			if (!strcmp($a[0], $b[0])) return ($a[5] < $b[5]);
+			else return strcmp($a[0], $b[0]);
+		});
+		
+		$header = [
+			"Currency", "Customer Header Number", "Customer Header Name", "Payterm",
+			"[Invoice]", "Current", "1 ~ 7 Days", "8 ~ 15 Days", "16 ~ 30 Days", "31 ~ 45 Days", "46 ~ 60 Days", "61 ~ 90 Days", "91 ~ 180 Days", "181 ~ 360 Days", "361+ Days",
+			"[Credit Memo]", "Current", "1 ~ 7 Days", "8 ~ 15 Days", "16 ~ 30 Days", "31 ~ 45 Days", "46 ~ 60 Days", "61 ~ 90 Days", "91 ~ 180 Days", "181 ~ 360 Days", "361+ Days",
+			"[Chargeback]", "Current", "1 ~ 7 Days", "8 ~ 15 Days", "16 ~ 30 Days", "31 ~ 45 Days", "46 ~ 60 Days", "61 ~ 90 Days", "91 ~ 180 Days", "181 ~ 360 Days", "361+ Days",
+		];
+		
+		//need to make chart based on $rows
+		
+		$result = [
+			"url" => $this->my_func->generate_excel_report("ar_aging_report_converted.xlsx", null, $header, $rows),
+			"charts" => [],
+			"runtime" => number_Format(microtime(true) - $start_time, 2),
+		];
 		
 		return $result;
 	}
@@ -191,16 +219,17 @@ class Aging extends CI_Controller {
 				($h[20] === "AR Balance(Book)")
 			){
 				$data = $this->conversion($sheet);
-				if ($data){
+				if ($data["url"]){
 					$type = "success";
-					$url = "upload/ar_aging_report_converted.xlsx";
-					$msg = "Report conversion is done.";	
+					$url = $data["url"];
+					$charts = $data["charts"];
+					$msg = "Report conversion is done. (".$data["runtime"]. "sec)";	
 				}else $msg = "No data to process.";
 			}else $msg = "Wrong data file.";
 		}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
 		
 		header('Content-Type: application/json');
-		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url, "data" => $data]);
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
 	}
 	
 	

@@ -47,12 +47,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		$("#form_upload_data .sys_msg").html("");
 		ajax_form_warning(this, "ar/aging/upload_data", "Do you want to upload data file and make charts?").done(function(res) {
 			if (res.type == "success"){
-				console.log(res.data);
-				alert(res.msg);
-				//swal_redirection(res.type, res.msg, res.url);
+				swal_open_tab(res.type, res.msg, res.url);
+				//make chart
 			}else swal(res.type, res.msg);
-			//
-			
 		});
 	});
 	

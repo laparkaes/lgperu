@@ -68,7 +68,9 @@ class My_func{
 			
 			//set rows
 			$row_from = $row_now + 1;
-			foreach($rows as $j => $row) foreach($row as $i => $r) $sheet->getCellByColumnAndRow(($i + 1), $row_from + $j)->setValueExplicit($r, DataType::TYPE_STRING);
+			foreach($rows as $j => $row) 
+				foreach($row as $i => $r) 
+					$sheet->getCellByColumnAndRow(($i + 1), $row_from + $j)->setValueExplicit($r, DataType::TYPE_STRING);
 			
 			//save excel file to a temporary directory
 			$file_path = './upload/report/';
