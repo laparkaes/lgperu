@@ -15,7 +15,6 @@ class Aging extends CI_Controller {
 	
 	
 	public function index(){
-		
 		$data = [
 			"main" => "ar/aging/index",
 		];
@@ -23,13 +22,186 @@ class Aging extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
+	private function data_process(){
+		$result = [];
+		
+		$currencies = $this->gen_m->only("ar_aging", "currency");
+		$ar_classes = $this->gen_m->only("ar_aging", "ar_class");
+		$cus_nums = $this->gen_m->only("ar_aging", "cus_num");
+		$ranges = [[-99999, 0], [1, 7], [8, 15], [16, 30], [31, 45], [46, 60], [61, 90], [91, 180], [181, 360], [361, 9999]];
+		
+		$rows = $w = [];
+		foreach($currencies as $curr){
+			$w["currency"] = $curr->currency;
+
+			foreach($cus_nums as $cus_num){
+				$w["cus_num"] = $cus_num->cus_num;
+				$cus_name = $this->gen_m->unique("ar_aging", "cus_num", $cus_num->cus_num)->cus_h_name;
+
+				$payterms = $this->gen_m->only("ar_aging", "payterm", ["currency" => $curr->currency, "cus_num" => $cus_num->cus_num]);
+				foreach($payterms as $payterm){
+					$w["payterm"] = $payterm->payterm;
+					
+					$row = ["row_info" => [$curr->currency, $cus_num->cus_num, $cus_name, $payterm->payterm]];
+					
+					$arr_class = []; 
+					$has_value = false;
+					foreach($ar_classes as $ar_class){
+						$w["ar_class"] = $ar_class->ar_class;
+						
+						$arr_class[$ar_class->ar_class] = [];
+						foreach($ranges as $range){
+							$w["aging_day >="] = $range[0];
+							$w["aging_day <="] = $range[1];
+							
+							$balance = $this->gen_m->sum("ar_aging", "balance", $w)->balance;
+							$arr_class[$ar_class->ar_class][] = $balance;
+							if ($balance) $has_value = true;
+						}
+						
+					}
+					$row = array_merge($row, $arr_class);
+					if ($has_value) $rows[] = $row;
+				}
+			}
+		}
+		echo "<br/><br/>";
+		
+		foreach($rows as $row){
+			//print_r($row);
+			print_r($row["row_info"]); echo "<br/>";
+			echo "---- Chargeback "; print_r($row["Chargeback"]); echo "<br/>";
+			echo "---- Credit Memo "; print_r($row["Credit Memo"]); echo "<br/>";
+			echo "---- Invoice "; print_r($row["Invoice"]); echo "<br/>";
+			
+			echo "<br/>";
+		}
+		
+		echo "<br/><br/>";
+		/*
+		$agings = $this->gen_m->filter("ar_aging", true);
+		foreach($agings as $ag){
+			print_r($ag); echo "<br/>";
+			
+		}
+		*/
+		
+		return $result;
+	}
 	
+	public function test(){
+		$result = $this->data_process();
+		print_r($result);
+	}
 	
+	private function conversion($sheet){
+		$this->gen_m->delete("ar_aging", ["valid" => true]);
+		
+		$max_row = $sheet->getHighestRow();
+		
+		$data = [];
+		for ($row = 2; $row <= $max_row; $row++){
+			$cus_num = trim($sheet->getCell('A'.$row)->getValue());
+			if ($cus_num){
+				$data[] = [
+					"cus_num" => $cus_num,
+					"cus_h_name" => trim($sheet->getCell('B'.$row)->getValue()),
+					"ar_class" => trim($sheet->getCell('G'.$row)->getValue()),
+					"payterm" => trim($sheet->getCell('L'.$row)->getValue()),
+					"currency" => trim($sheet->getCell('N'.$row)->getValue()),
+					"balance" => trim($sheet->getCell('O'.$row)->getValue()),
+					"aging_day" => trim($sheet->getCell('R'.$row)->getValue()),
+				];				
+			}
+		}
+		
+		$result = [];
+		if ($this->gen_m->insert_m("ar_aging", $data)) $result = $this->data_process();
+		
+		return $result;
+	}
 	
-	
-	
-	
-	
+	public function upload_data(){
+		ini_set("memory_limit","1024M");
+		set_time_limit(0);
+			
+		$type = "error"; $url = ""; $msg = ""; $data = [];
+		
+		$config = [
+			'upload_path'	=> './upload/',
+			'allowed_types'	=> 'xls|xlsx|csv',
+			'max_size'		=> 20000,
+			'overwrite'		=> TRUE,
+			'file_name'		=> 'ar_aging_report',
+		];
+		$this->load->library('upload', $config);
+
+		if ($this->upload->do_upload('datafile')){
+			$spreadsheet = IOFactory::load("./upload/".$this->upload->data('file_name'));
+			$sheet = $spreadsheet->getActiveSheet();
+			
+			$h = [
+				trim($sheet->getCell('A1')->getValue()),
+				trim($sheet->getCell('B1')->getValue()),
+				trim($sheet->getCell('C1')->getValue()),
+				trim($sheet->getCell('D1')->getValue()),
+				trim($sheet->getCell('E1')->getValue()),
+				trim($sheet->getCell('F1')->getValue()),
+				trim($sheet->getCell('G1')->getValue()),
+				trim($sheet->getCell('H1')->getValue()),
+				trim($sheet->getCell('I1')->getValue()),
+				trim($sheet->getCell('J1')->getValue()),
+				trim($sheet->getCell('K1')->getValue()),
+				trim($sheet->getCell('L1')->getValue()),
+				trim($sheet->getCell('M1')->getValue()),
+				trim($sheet->getCell('N1')->getValue()),
+				trim($sheet->getCell('O1')->getValue()),
+				trim($sheet->getCell('P1')->getValue()),
+				trim($sheet->getCell('Q1')->getValue()),
+				trim($sheet->getCell('R1')->getValue()),
+				trim($sheet->getCell('S1')->getValue()),
+				trim($sheet->getCell('T1')->getValue()),
+				trim($sheet->getCell('U1')->getValue()),
+			];
+			
+			//determinate file type
+			$f_type = "";
+			
+			if (
+				($h[0] === "Customer Header Number") and 
+				($h[1] === "Customer Header Name") and 
+				($h[2] === "Customer Code") and 
+				($h[3] === "Customer Name") and 
+				($h[4] === "Collector NO") and 
+				($h[5] === "Salesperson Name") and 
+				($h[6] === "AR Class Name") and 
+				($h[7] === "Trx Number") and 
+				($h[8] === "Invoice NO") and 
+				($h[9] === "Aging Bucket NO") and 
+				($h[10] === "Aging Bucket Name") and 
+				($h[11] === "AR Payment Terms Desc") and 
+				($h[12] === "AR Type Name") and 
+				($h[13] === "Transaction Currency Code") and 
+				($h[14] === "AR Balance") and 
+				($h[15] === "Due YYYYMMDD") and 
+				($h[16] === "Reference NO") and 
+				($h[17] === "Aging Day") and 
+				($h[18] === "Additional Aging Bucket") and 
+				($h[19] === "AR Balance(USD)") and 
+				($h[20] === "AR Balance(Book)")
+			){
+				$data = $this->conversion($sheet);
+				if ($data){
+					$type = "success";
+					$url = "upload/ar_aging_report_converted.xlsx";
+					$msg = "Report conversion is done.";	
+				}else $msg = "No data to process.";
+			}else $msg = "Wrong data file.";
+		}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url, "data" => $data]);
+	}
 	
 	
 	///////////////////////////////

@@ -59,7 +59,29 @@ class General_model extends CI_Model{
 	function update_multi($tablename, $data, $field){ 
 		return $this->db->update_batch($tablename, $data, $field);
 	}
-
+	
+	function delete($tablename, $filter){
+		$this->db->where($filter);
+		return $this->db->delete($tablename);
+	}
+	
+	function only($tablename, $field, $where = null){
+		$this->db->select($field);
+		if ($where) $this->db->where($where);
+		$this->db->group_by($field);
+		$this->db->order_by($field, "asc");
+		$query = $this->db->get($tablename);
+		$result = $query->result();
+		return $result;
+	}
+	
+	function sum($tablename, $col, $filter = null){
+		$this->db->select_sum($col);
+		if ($filter) $this->db->where($filter);
+		$query = $this->db->get($tablename);
+		$result = $query->result();
+		return $result[0];
+	}
 
 
 
@@ -109,28 +131,6 @@ class General_model extends CI_Model{
 	
 	function all_simple($tablename, $order_by, $order){
 		$this->db->order_by($order_by, $order);
-		$query = $this->db->get($tablename);
-		$result = $query->result();
-		return $result;
-	}
-	
-	function delete($tablename, $filter){
-		$this->db->where($filter);
-		return $this->db->delete($tablename);
-	}
-	
-	function sum($tablename, $col, $filter = null){
-		$this->db->select_sum($col);
-		if ($filter) $this->db->where($filter);
-		$query = $this->db->get($tablename);
-		$result = $query->result();
-		return $result[0];
-	}
-	
-	function only($tablename, $field, $where = null){
-		$this->db->select($field);
-		if ($where) $this->db->where($where);
-		$this->db->group_by($field);
 		$query = $this->db->get($tablename);
 		$result = $query->result();
 		return $result;
