@@ -30,10 +30,19 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-12">
-			<div class="card d-none" id="cd_charts">
+		<div class="col-md-6">
+			<div class="card" id="cd_charts">
 				<div class="card-body">
-					<h5 class="card-title">Charts</h5>
+					<h5 class="card-title">PEN</h5>
+					
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="card" id="cd_charts">
+				<div class="card-body">
+					<h5 class="card-title">USD</h5>
+					
 				</div>
 			</div>
 		</div>
@@ -48,7 +57,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		ajax_form_warning(this, "ar/aging/upload_data", "Do you want to upload data file and make charts?").done(function(res) {
 			if (res.type == "success"){
 				swal_open_tab(res.type, res.msg, res.url);
-				//make chart
+				//make tables
+				
 			}else swal(res.type, res.msg);
 		});
 	});

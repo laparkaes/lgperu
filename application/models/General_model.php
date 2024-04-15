@@ -65,6 +65,10 @@ class General_model extends CI_Model{
 		return $this->db->delete($tablename);
 	}
 	
+	function truncate($tablename){
+		return $this->db->truncate($tablename);
+	}
+	
 	function only($tablename, $field, $where = null){
 		$this->db->select($field);
 		if ($where) $this->db->where($where);
