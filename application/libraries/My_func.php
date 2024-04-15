@@ -73,7 +73,7 @@ class My_func{
 					$sheet->getCellByColumnAndRow(($i + 1), $row_from + $j)->setValueExplicit($r, DataType::TYPE_STRING);
 			
 			//save excel file to a temporary directory
-			$file_path = './upload/report/';
+			$file_path = './upload/';
 			$writer = new Xlsx($spreadsheet);
 			$writer->save($file_path.$filename);
 			
