@@ -100,13 +100,13 @@ class Aging extends CI_Controller {
 			else return strcmp($a[0], $b[0]);
 		});
 		
-		$legend_data = ["Invoice", "Credit Memo", "Chargeback"];
+		$y_data = ["Invoice", "Credit Memo", "Chargeback"];
 		$x_data = ["Current", "1~7 Days", "8~15 Days", "16~30 Days", "31~45 Days", "46~60 Days", "61+ Days"];
 		$values = [];
 		
-		foreach($legend_data as $ld){
+		foreach($y_data as $yd){
 			foreach($x_data as $xd){
-				$values[$ld][$xd] = 0;
+				$values[$yd][$xd] = 0;
 			}
 		}
 		
@@ -115,35 +115,38 @@ class Aging extends CI_Controller {
 			switch($r[0]){
 				case "PEN": 
 					$i = 4;
-					foreach($legend_data as $ld){
+					foreach($y_data as $yd){
 						$i++; //pass space char
-						$values_pen[$ld]["Current"] += $r[$i]; $i++;
-						$values_pen[$ld]["1~7 Days"] += $r[$i]; $i++;
-						$values_pen[$ld]["8~15 Days"] += $r[$i]; $i++;
-						$values_pen[$ld]["16~30 Days"] += $r[$i]; $i++;
-						$values_pen[$ld]["31~45 Days"] += $r[$i]; $i++;
-						$values_pen[$ld]["46~60 Days"] += $r[$i]; $i++;
-						$values_pen[$ld]["61+ Days"] += $r[$i] + $r[$i+1] + $r[$i+2] + $r[$i+3]; $i = $i + 4;
+						$values_pen[$yd]["Current"] += $r[$i]; $i++;
+						$values_pen[$yd]["1~7 Days"] += $r[$i]; $i++;
+						$values_pen[$yd]["8~15 Days"] += $r[$i]; $i++;
+						$values_pen[$yd]["16~30 Days"] += $r[$i]; $i++;
+						$values_pen[$yd]["31~45 Days"] += $r[$i]; $i++;
+						$values_pen[$yd]["46~60 Days"] += $r[$i]; $i++;
+						$values_pen[$yd]["61+ Days"] += $r[$i] + $r[$i+1] + $r[$i+2] + $r[$i+3]; $i = $i + 4;
 					}
 					break;
 				case "USD": 
 					$i = 4;
-					foreach($legend_data as $ld){
+					foreach($y_data as $yd){
 						$i++; //pass space char
-						$values_usd[$ld]["Current"] += $r[$i]; $i++;
-						$values_usd[$ld]["1~7 Days"] += $r[$i]; $i++;
-						$values_usd[$ld]["8~15 Days"] += $r[$i]; $i++;
-						$values_usd[$ld]["16~30 Days"] += $r[$i]; $i++;
-						$values_usd[$ld]["31~45 Days"] += $r[$i]; $i++;
-						$values_usd[$ld]["46~60 Days"] += $r[$i]; $i++;
-						$values_usd[$ld]["61+ Days"] += $r[$i] + $r[$i+1] + $r[$i+2] + $r[$i+3]; $i = $i + 4;
+						$values_usd[$yd]["Current"] += $r[$i]; $i++;
+						$values_usd[$yd]["1~7 Days"] += $r[$i]; $i++;
+						$values_usd[$yd]["8~15 Days"] += $r[$i]; $i++;
+						$values_usd[$yd]["16~30 Days"] += $r[$i]; $i++;
+						$values_usd[$yd]["31~45 Days"] += $r[$i]; $i++;
+						$values_usd[$yd]["46~60 Days"] += $r[$i]; $i++;
+						$values_usd[$yd]["61+ Days"] += $r[$i] + $r[$i+1] + $r[$i+2] + $r[$i+3]; $i = $i + 4;
 					}
 					break;
 			}
 		}
 		
+		foreach($values_pen as $i => $lvl_1) foreach($lvl_1 as $j => $lvl_2) $values_pen[$i][$j] = number_format(abs($lvl_2), 2);
+		foreach($values_usd as $i => $lvl_1) foreach($lvl_1 as $j => $lvl_2) $values_usd[$i][$j] = number_format(abs($lvl_2), 2);
+		
 		//need to make chart based on $rows
-		$summaries = [
+		$data = [
 			"pen" => $values_pen,
 			"usd" => $values_usd,
 		];
@@ -157,16 +160,11 @@ class Aging extends CI_Controller {
 		
 		$result = [
 			"url" => $this->my_func->generate_excel_report("ar_aging_report_converted.xlsx", null, $header, $rows),
-			"summaries" => $summaries,
+			"data" => $data,
 			"runtime" => number_Format(microtime(true) - $start_time, 2),
 		];
 		
 		return $result;
-	}
-	
-	public function test(){
-		$result = $this->data_process();
-		print_R($result["summaries"]);
 	}
 	
 	private function conversion($sheet){
@@ -268,14 +266,12 @@ class Aging extends CI_Controller {
 				$data = $this->conversion($sheet);
 				if ($data["url"]){
 					$type = "success";
-					$url = $data["url"];
-					$summaries = $data["summaries"];
 					$msg = "Report conversion is done. (".$data["runtime"]. "sec)";	
 				}else $msg = "No data to process.";
 			}else $msg = "Wrong data file.";
 		}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
 		
 		header('Content-Type: application/json');
-		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
+		echo json_encode(["type" => $type, "msg" => $msg, "data" => $data]);
 	}
 }

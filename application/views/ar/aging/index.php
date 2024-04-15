@@ -31,18 +31,46 @@
 			</div>
 		</div>
 		<div class="col-md-6">
-			<div class="card" id="cd_charts">
+			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">PEN</h5>
-					
+					<h5 class="card-title">Total: K PEN</h5>
+					<table class="table">
+						<thead>
+							<tr>
+								<th scope="col">AR Type</th>
+								<th scope="col">Current</th>
+								<th scope="col">1~7 Days</th>
+								<th scope="col">8~15 Days</th>
+								<th scope="col">16~30 Days</th>
+								<th scope="col">31~45 Days</th>
+								<th scope="col">46~60 Days</th>
+								<th scope="col">61+ Days</th>
+							</tr>
+						</thead>
+						<tbody class="text-end" id="tb_pen"></tbody>
+					</table>
 				</div>
 			</div>
 		</div>
 		<div class="col-md-6">
-			<div class="card" id="cd_charts">
+			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">USD</h5>
-					
+					<h5 class="card-title">Total: K USD</h5>
+					<table class="table">
+						<thead>
+							<tr>
+								<th scope="col">AR Type</th>
+								<th scope="col">Current</th>
+								<th scope="col">1~7 Days</th>
+								<th scope="col">8~15 Days</th>
+								<th scope="col">16~30 Days</th>
+								<th scope="col">31~45 Days</th>
+								<th scope="col">46~60 Days</th>
+								<th scope="col">61+ Days</th>
+							</tr>
+						</thead>
+						<tbody class="text-end" id="tb_usd"></tbody>
+					</table>
 				</div>
 			</div>
 		</div>
@@ -53,12 +81,24 @@
 document.addEventListener("DOMContentLoaded", () => {
 	$("#form_upload_data").submit(function(e) {
 		e.preventDefault();
+		$("#tb_pen").html("");
+		$("#tb_usd").html("");
+		
 		$("#form_upload_data .sys_msg").html("");
-		ajax_form_warning(this, "ar/aging/upload_data", "Do you want to upload data file and make charts?").done(function(res) {
+		ajax_form_warning(this, "ar/aging/upload_data", "Do you want to upload data file and make summary report?").done(function(res) {
 			if (res.type == "success"){
-				swal_open_tab(res.type, res.msg, res.url);
+				swal_open_tab(res.type, res.msg, res.data.url);
 				//make tables
+				var data_pen = res.data.data.pen;
+				var data_usd = res.data.data.usd;
 				
+				$("#tb_pen").append('<tr><td class="text-start">Invoice</td><td>' + data_pen["Invoice"]["Current"] + '</td><td>' + data_pen["Invoice"]["1~7 Days"] + '</td><td>' + data_pen["Invoice"]["8~15 Days"] + '</td><td>' + data_pen["Invoice"]["16~30 Days"] + '</td><td>' + data_pen["Invoice"]["31~45 Days"] + '</td><td>' + data_pen["Invoice"]["46~60 Days"] + '</td><td>' + data_pen["Invoice"]["61+ Days"] + '</td></tr>');
+				$("#tb_pen").append('<tr><td class="text-start">Credit Memo</td><td>' + data_pen["Credit Memo"]["Current"] + '</td><td>' + data_pen["Credit Memo"]["1~7 Days"] + '</td><td>' + data_pen["Credit Memo"]["8~15 Days"] + '</td><td>' + data_pen["Credit Memo"]["16~30 Days"] + '</td><td>' + data_pen["Credit Memo"]["31~45 Days"] + '</td><td>' + data_pen["Credit Memo"]["46~60 Days"] + '</td><td>' + data_pen["Credit Memo"]["61+ Days"] + '</td></tr>');
+				$("#tb_pen").append('<tr><td class="text-start">Chargeback</td><td>' + data_pen["Chargeback"]["Current"] + '</td><td>' + data_pen["Chargeback"]["1~7 Days"] + '</td><td>' + data_pen["Chargeback"]["8~15 Days"] + '</td><td>' + data_pen["Chargeback"]["16~30 Days"] + '</td><td>' + data_pen["Chargeback"]["31~45 Days"] + '</td><td>' + data_pen["Chargeback"]["46~60 Days"] + '</td><td>' + data_pen["Chargeback"]["61+ Days"] + '</td></tr>');
+				
+				$("#tb_usd").append('<tr><td class="text-start">Invoice</td><td>' + data_usd["Invoice"]["Current"] + '</td><td>' + data_usd["Invoice"]["1~7 Days"] + '</td><td>' + data_usd["Invoice"]["8~15 Days"] + '</td><td>' + data_usd["Invoice"]["16~30 Days"] + '</td><td>' + data_usd["Invoice"]["31~45 Days"] + '</td><td>' + data_usd["Invoice"]["46~60 Days"] + '</td><td>' + data_usd["Invoice"]["61+ Days"] + '</td></tr>');
+				$("#tb_usd").append('<tr><td class="text-start">Credit Memo</td><td>' + data_usd["Credit Memo"]["Current"] + '</td><td>' + data_usd["Credit Memo"]["1~7 Days"] + '</td><td>' + data_usd["Credit Memo"]["8~15 Days"] + '</td><td>' + data_usd["Credit Memo"]["16~30 Days"] + '</td><td>' + data_usd["Credit Memo"]["31~45 Days"] + '</td><td>' + data_usd["Credit Memo"]["46~60 Days"] + '</td><td>' + data_usd["Credit Memo"]["61+ Days"] + '</td></tr>');
+				$("#tb_usd").append('<tr><td class="text-start">Chargeback</td><td>' + data_usd["Chargeback"]["Current"] + '</td><td>' + data_usd["Chargeback"]["1~7 Days"] + '</td><td>' + data_usd["Chargeback"]["8~15 Days"] + '</td><td>' + data_usd["Chargeback"]["16~30 Days"] + '</td><td>' + data_usd["Chargeback"]["31~45 Days"] + '</td><td>' + data_usd["Chargeback"]["46~60 Days"] + '</td><td>' + data_usd["Chargeback"]["61+ Days"] + '</td></tr>');
 			}else swal(res.type, res.msg);
 		});
 	});
