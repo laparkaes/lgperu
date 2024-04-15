@@ -490,7 +490,7 @@ class Sell_inout extends CI_Controller {
 		ini_set("memory_limit","1024M");
 		set_time_limit(0);
 		
-		$spreadsheet = IOFactory::load("./upload/sa/sell_inout.xlsx");
+		$spreadsheet = IOFactory::load("./upload/sa_sell_inout.xlsx");
 		$sheet = $spreadsheet->getActiveSheet();
 		
 		$h = [
@@ -559,11 +559,11 @@ class Sell_inout extends CI_Controller {
 		$type = "error"; $url = ""; $msg = "";
 		
 		$config = [
-			'upload_path'	=> './upload/sa/',
+			'upload_path'	=> './upload/',
 			'allowed_types'	=> 'xls|xlsx|csv',
 			'max_size'		=> 20000,
 			'overwrite'		=> TRUE,
-			'file_name'		=> 'sell_inout',
+			'file_name'		=> 'sa_sell_inout',
 		];
 		$this->load->library('upload', $config);
 
@@ -681,7 +681,7 @@ class Sell_inout extends CI_Controller {
 				}
 			}
 			
-			$url = $this->my_func->generate_excel_report("sell_in_out_report.xlsx", null, $header, $rows);
+			$url = $this->my_func->generate_excel_report("sa_sell_in_out_report.xlsx", null, $header, $rows);
 			if ($rows){
 				$type = "success";
 				$msg = "Sell-In/Out report has been created. (".number_Format(microtime(true) - $start_time, 3)." sec)";
