@@ -22,7 +22,7 @@ class Aging extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	private function data_process($tc = 3.8){
+	private function data_process($tc = 3.8, $to_currency = "usd"){
 		$start_time = microtime(true);
 		
 		$ar_classes = ["Invoice", "Credit Memo", "Chargeback"];
@@ -34,13 +34,13 @@ class Aging extends CI_Controller {
 		$rows = $w = [];
 		foreach($cus_nums as $cus_num){
 			$cus = $this->gen_m->unique("ar_aging", "cus_num", $cus_num->cus_num);
-			$row = [$cus->cus_num, $cus->cus_h_name];
+			$row = [$cus->cus_num, $cus->cus_h_name];[0,1]
 			
 			$w["cus_num"] = $cus->cus_num;
 			foreach($ar_classes as $ar_class){
 				$w["ar_class"] = $ar_class;
 				
-				$row[] = " ";
+				$row[] = " "; //[2] Invoice, [13] Credit Note, [24] Chargeback
 				foreach($ranges as $range){
 					$w["aging_day >="] = $range[0];
 					$w["aging_day <="] = $range[1];
@@ -53,7 +53,7 @@ class Aging extends CI_Controller {
 					$pen = $this->gen_m->sum("ar_aging", "balance", $w)->balance; 
 					$pen = $pen ? $pen/1000 : 0;
 					
-					$row[] = $usd + ($pen / $tc);
+					$row[] = $to_currency === "usd" ? $usd + ($pen / $tc) : ($usd * $tc) + $pen;
 				}
 			}	
 			
@@ -230,9 +230,14 @@ class Aging extends CI_Controller {
 	}
 	
 	public function test(){
-		$result = $this->data_process(3.8);
+		$result = $this->data_process(3.8, "usd");
+		$rows = $result["rows"];
+		foreach($rows as $row){
+			print_r($row);
+			echo "<br/><br/>";
+		}
 		
-		print_r($result);
+		echo $result["runtime"];
 	}
 	
 	private function conversion($sheet){
