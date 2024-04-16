@@ -22,7 +22,70 @@ class Aging extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	private function data_process(){
+	private function data_process($tc = 3.8){
+		$start_time = microtime(true);
+		
+		$ar_classes = ["Invoice", "Credit Memo", "Chargeback"];
+		$cus_nums = $this->gen_m->only("ar_aging", "cus_num");
+		$ranges = [[-99999, 0], [1, 7], [8, 15], [16, 30], [31, 45], [46, 60], [61, 90], [91, 180], [181, 360], [361, 9999]];
+		
+		//$values_pen = $values_usd = [];
+		
+		$rows = $w = [];
+		foreach($cus_nums as $cus_num){
+			$cus = $this->gen_m->unique("ar_aging", "cus_num", $cus_num->cus_num);
+			$row = [$cus->cus_num, $cus->cus_h_name];
+			
+			$w["cus_num"] = $cus->cus_num;
+			foreach($ar_classes as $ar_class){
+				$w["ar_class"] = $ar_class;
+				
+				$row[] = " ";
+				foreach($ranges as $range){
+					$w["aging_day >="] = $range[0];
+					$w["aging_day <="] = $range[1];
+					
+					$w["currency"] = "USD";
+					$usd = $this->gen_m->sum("ar_aging", "balance", $w)->balance; 
+					$usd = $usd ? $usd/1000 : 0;
+					
+					$w["currency"] = "PEN";
+					$pen = $this->gen_m->sum("ar_aging", "balance", $w)->balance; 
+					$pen = $pen ? $pen/1000 : 0;
+					
+					$row[] = $usd + ($pen / $tc);
+				}
+			}	
+			
+			$rows[] = $row;
+		}
+		
+		usort($rows, function($a, $b) {
+			if ($a[3] != $b[3]) return ($a[3] < $b[3]);
+			else return ($a[4] < $b[4]);
+		});
+		
+		foreach($rows as $i => $row){
+			foreach($row as $j => $r) $rows[$i][$j] = is_numeric($r) ? number_format($r, 2) : $r;
+		}
+		
+		$header = [
+			"Customer Header Number", "Customer Header Name",
+			"[Invoice]", "Current", "1 ~ 7 Days", "8 ~ 15 Days", "16 ~ 30 Days", "31 ~ 45 Days", "46 ~ 60 Days", "61 ~ 90 Days", "91 ~ 180 Days", "181 ~ 360 Days", "361+ Days",
+			"[Credit Memo]", "Current", "1 ~ 7 Days", "8 ~ 15 Days", "16 ~ 30 Days", "31 ~ 45 Days", "46 ~ 60 Days", "61 ~ 90 Days", "91 ~ 180 Days", "181 ~ 360 Days", "361+ Days",
+			"[Chargeback]", "Current", "1 ~ 7 Days", "8 ~ 15 Days", "16 ~ 30 Days", "31 ~ 45 Days", "46 ~ 60 Days", "61 ~ 90 Days", "91 ~ 180 Days", "181 ~ 360 Days", "361+ Days",
+		];
+		
+		$result = [
+			"url" => $this->my_func->generate_excel_report("ar_aging_report_converted.xlsx", null, $header, $rows),
+			"rows" => $rows,
+			"runtime" => number_Format(microtime(true) - $start_time, 2),
+		];
+		
+		return $result;
+	}
+	
+	private function data_process_(){
 		$start_time = microtime(true);
 		
 		$currencies = $this->gen_m->only("ar_aging", "currency");
@@ -56,7 +119,6 @@ class Aging extends CI_Controller {
 							$arr_class[$ar_class->ar_class][] = $balance/1000;
 							if ($balance) $has_value = true;
 						}
-						
 					}
 					
 					if ($has_value){
@@ -165,6 +227,12 @@ class Aging extends CI_Controller {
 		];
 		
 		return $result;
+	}
+	
+	public function test(){
+		$result = $this->data_process(3.8);
+		
+		print_r($result);
 	}
 	
 	private function conversion($sheet){
