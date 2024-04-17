@@ -22,7 +22,7 @@ class Aging extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	private function data_process($tc = 3.8, $to_currency = "usd"){
+	private function data_process($er, $to_currency){
 		$start_time = microtime(true);
 		
 		$ar_classes = ["Invoice", "Credit Memo", "Chargeback"];
@@ -34,7 +34,7 @@ class Aging extends CI_Controller {
 		$rows = $w = [];
 		foreach($cus_nums as $cus_num){
 			$cus = $this->gen_m->unique("ar_aging", "cus_num", $cus_num->cus_num);
-			$row = [$cus->cus_num, $cus->cus_h_name];[0,1]
+			$row = [$cus->cus_num, $cus->cus_h_name];
 			
 			$w["cus_num"] = $cus->cus_num;
 			foreach($ar_classes as $ar_class){
@@ -53,7 +53,7 @@ class Aging extends CI_Controller {
 					$pen = $this->gen_m->sum("ar_aging", "balance", $w)->balance; 
 					$pen = $pen ? $pen/1000 : 0;
 					
-					$row[] = $to_currency === "usd" ? $usd + ($pen / $tc) : ($usd * $tc) + $pen;
+					$row[] = $to_currency === "usd" ? $usd + ($pen / $er) : ($usd * $er) + $pen;
 				}
 			}	
 			
@@ -240,7 +240,7 @@ class Aging extends CI_Controller {
 		echo $result["runtime"];
 	}
 	
-	private function conversion($sheet){
+	private function conversion($sheet, $er = 3.8, $to_currency = "usd"){
 		$this->gen_m->truncate("ar_aging");
 		
 		$max_row = $sheet->getHighestRow();
@@ -262,7 +262,7 @@ class Aging extends CI_Controller {
 		}
 		
 		$result = [];
-		if ($this->gen_m->insert_m("ar_aging", $data)) $result = $this->data_process();
+		if ($this->gen_m->insert_m("ar_aging", $data)) $result = $this->data_process($er, $to_currency);
 		
 		return $result;
 	}
@@ -336,7 +336,10 @@ class Aging extends CI_Controller {
 				($h[19] === "AR Balance(USD)") and 
 				($h[20] === "AR Balance(Book)")
 			){
-				$data = $this->conversion($sheet);
+				$er = $this->input->post("er"); if (!$er) $er = 3.8;
+				$curr = $this->input->post("curr"); if (!$curr) $curr = "usd";
+				
+				$data = $this->conversion($sheet, $er, $curr);
 				if ($data["url"]){
 					$type = "success";
 					$msg = "Report conversion is done. (".$data["runtime"]. "sec)";	

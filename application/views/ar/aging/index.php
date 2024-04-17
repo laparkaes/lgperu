@@ -17,7 +17,18 @@
 				<div class="card-body">
 					<h5 class="card-title">Data</h5>
 					<form class="row g-3" id="form_upload_data">
-						<div class="col-md-10">
+						<div class="col-md-2">
+							<label class="form-label">Currency</label>
+							<select class="form-select" name="curr">
+								<option value="usd">USD</option>
+								<option value="pen">PEN</option>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Exchange Rate</label>
+							<input class="form-control" type="number" name="er" value="3.8" step="0.001">
+						</div>
+						<div class="col-md-6">
 							<label class="form-label">File</label>
 							<input class="form-control" type="file" name="datafile">
 						</div>
@@ -30,47 +41,86 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-6">
+		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Total: K PEN</h5>
-					<table class="table">
-						<thead>
-							<tr>
-								<th scope="col">AR Type</th>
-								<th scope="col">Current</th>
-								<th scope="col">1~7 Days</th>
-								<th scope="col">8~15 Days</th>
-								<th scope="col">16~30 Days</th>
-								<th scope="col">31~45 Days</th>
-								<th scope="col">46~60 Days</th>
-								<th scope="col">61+ Days</th>
-							</tr>
-						</thead>
-						<tbody class="text-end" id="tb_pen"></tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-6">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Total: K USD</h5>
-					<table class="table">
-						<thead>
-							<tr>
-								<th scope="col">AR Type</th>
-								<th scope="col">Current</th>
-								<th scope="col">1~7 Days</th>
-								<th scope="col">8~15 Days</th>
-								<th scope="col">16~30 Days</th>
-								<th scope="col">31~45 Days</th>
-								<th scope="col">46~60 Days</th>
-								<th scope="col">61+ Days</th>
-							</tr>
-						</thead>
-						<tbody class="text-end" id="tb_usd"></tbody>
-					</table>
+					<h5 class="card-title">Summary</h5>
+					<ul class="nav nav-tabs" role="tablist">
+						<li class="nav-item" role="presentation">
+							<button class="nav-link active" id="inv-tab" data-bs-toggle="tab" data-bs-target="#inv" type="button" role="tab" aria-controls="inv" aria-selected="true">Invoice</button>
+						</li>
+						<li class="nav-item" role="presentation">
+							<button class="nav-link" id="cre-tab" data-bs-toggle="tab" data-bs-target="#cre" type="button" role="tab" aria-controls="cre" aria-selected="false" tabindex="-1">Credit Memo</button>
+						</li>
+						<li class="nav-item" role="presentation">
+							<button class="nav-link" id="cha-tab" data-bs-toggle="tab" data-bs-target="#cha" type="button" role="tab" aria-controls="cha" aria-selected="false" tabindex="-1">Chargeback</button>
+						</li>
+					</ul>
+					<div class="tab-content pt-2" id="myTabContent">
+						<div class="tab-pane fade show active" id="inv" role="tabpanel" aria-labelledby="inv-tab">
+							<table class="table">
+								<thead>
+									<tr>
+										<th scope="col">Number</th>
+										<th scope="col">Customer</th>
+										<th scope="col">Current</th>
+										<th scope="col">1~7 Days</th>
+										<th scope="col">8~15 Days</th>
+										<th scope="col">16~30 Days</th>
+										<th scope="col">31~45 Days</th>
+										<th scope="col">46~60 Days</th>
+										<th scope="col">61~90 Days</th>
+										<th scope="col">91~180 Days</th>
+										<th scope="col">181~360 Days</th>
+										<th scope="col">361+ Days</th>
+									</tr>
+								</thead>
+								<tbody class="text-end" id="tb_inv"></tbody>
+							</table>
+						</div>
+						<div class="tab-pane fade" id="cre" role="tabpanel" aria-labelledby="cre-tab">
+							<table class="table">
+								<thead>
+									<tr>
+										<th scope="col">Number</th>
+										<th scope="col">Customer</th>
+										<th scope="col">Current</th>
+										<th scope="col">1~7 Days</th>
+										<th scope="col">8~15 Days</th>
+										<th scope="col">16~30 Days</th>
+										<th scope="col">31~45 Days</th>
+										<th scope="col">46~60 Days</th>
+										<th scope="col">61~90 Days</th>
+										<th scope="col">91~180 Days</th>
+										<th scope="col">181~360 Days</th>
+										<th scope="col">361+ Days</th>
+									</tr>
+								</thead>
+								<tbody class="text-end" id="tb_cre"></tbody>
+							</table>
+						</div>
+						<div class="tab-pane fade" id="cha" role="tabpanel" aria-labelledby="cha-tab">
+							<table class="table">
+								<thead>
+									<tr>
+										<th scope="col">Number</th>
+										<th scope="col">Customer</th>
+										<th scope="col">Current</th>
+										<th scope="col">1~7 Days</th>
+										<th scope="col">8~15 Days</th>
+										<th scope="col">16~30 Days</th>
+										<th scope="col">31~45 Days</th>
+										<th scope="col">46~60 Days</th>
+										<th scope="col">61~90 Days</th>
+										<th scope="col">91~180 Days</th>
+										<th scope="col">181~360 Days</th>
+										<th scope="col">361+ Days</th>
+									</tr>
+								</thead>
+								<tbody class="text-end" id="tb_cha"></tbody>
+							</table>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -81,95 +131,24 @@
 document.addEventListener("DOMContentLoaded", () => {
 	$("#form_upload_data").submit(function(e) {
 		e.preventDefault();
-		$("#tb_pen").html("");
-		$("#tb_usd").html("");
+		$("#tb_inv").html("");
+		$("#tb_cre").html("");
+		$("#tb_cha").html("");
 		
 		$("#form_upload_data .sys_msg").html("");
 		ajax_form_warning(this, "ar/aging/upload_data", "Do you want to upload data file and make summary report?").done(function(res) {
 			if (res.type == "success"){
 				swal_open_tab(res.type, res.msg, res.data.url);
+				
 				//make tables
-				var data_pen = res.data.data.pen;
-				var data_usd = res.data.data.usd;
-				
-				$("#tb_pen").append('<tr><td class="text-start">Invoice</td><td>' + data_pen["Invoice"]["Current"] + '</td><td>' + data_pen["Invoice"]["1~7 Days"] + '</td><td>' + data_pen["Invoice"]["8~15 Days"] + '</td><td>' + data_pen["Invoice"]["16~30 Days"] + '</td><td>' + data_pen["Invoice"]["31~45 Days"] + '</td><td>' + data_pen["Invoice"]["46~60 Days"] + '</td><td>' + data_pen["Invoice"]["61+ Days"] + '</td></tr>');
-				$("#tb_pen").append('<tr><td class="text-start">Credit Memo</td><td>' + data_pen["Credit Memo"]["Current"] + '</td><td>' + data_pen["Credit Memo"]["1~7 Days"] + '</td><td>' + data_pen["Credit Memo"]["8~15 Days"] + '</td><td>' + data_pen["Credit Memo"]["16~30 Days"] + '</td><td>' + data_pen["Credit Memo"]["31~45 Days"] + '</td><td>' + data_pen["Credit Memo"]["46~60 Days"] + '</td><td>' + data_pen["Credit Memo"]["61+ Days"] + '</td></tr>');
-				$("#tb_pen").append('<tr><td class="text-start">Chargeback</td><td>' + data_pen["Chargeback"]["Current"] + '</td><td>' + data_pen["Chargeback"]["1~7 Days"] + '</td><td>' + data_pen["Chargeback"]["8~15 Days"] + '</td><td>' + data_pen["Chargeback"]["16~30 Days"] + '</td><td>' + data_pen["Chargeback"]["31~45 Days"] + '</td><td>' + data_pen["Chargeback"]["46~60 Days"] + '</td><td>' + data_pen["Chargeback"]["61+ Days"] + '</td></tr>');
-				
-				$("#tb_usd").append('<tr><td class="text-start">Invoice</td><td>' + data_usd["Invoice"]["Current"] + '</td><td>' + data_usd["Invoice"]["1~7 Days"] + '</td><td>' + data_usd["Invoice"]["8~15 Days"] + '</td><td>' + data_usd["Invoice"]["16~30 Days"] + '</td><td>' + data_usd["Invoice"]["31~45 Days"] + '</td><td>' + data_usd["Invoice"]["46~60 Days"] + '</td><td>' + data_usd["Invoice"]["61+ Days"] + '</td></tr>');
-				$("#tb_usd").append('<tr><td class="text-start">Credit Memo</td><td>' + data_usd["Credit Memo"]["Current"] + '</td><td>' + data_usd["Credit Memo"]["1~7 Days"] + '</td><td>' + data_usd["Credit Memo"]["8~15 Days"] + '</td><td>' + data_usd["Credit Memo"]["16~30 Days"] + '</td><td>' + data_usd["Credit Memo"]["31~45 Days"] + '</td><td>' + data_usd["Credit Memo"]["46~60 Days"] + '</td><td>' + data_usd["Credit Memo"]["61+ Days"] + '</td></tr>');
-				$("#tb_usd").append('<tr><td class="text-start">Chargeback</td><td>' + data_usd["Chargeback"]["Current"] + '</td><td>' + data_usd["Chargeback"]["1~7 Days"] + '</td><td>' + data_usd["Chargeback"]["8~15 Days"] + '</td><td>' + data_usd["Chargeback"]["16~30 Days"] + '</td><td>' + data_usd["Chargeback"]["31~45 Days"] + '</td><td>' + data_usd["Chargeback"]["46~60 Days"] + '</td><td>' + data_usd["Chargeback"]["61+ Days"] + '</td></tr>');
+				var rows = res.data.rows;
+				rows.forEach((item) => {
+					$("#tb_inv").append('<tr><td class="text-start">' + item[0] + '</td><td class="text-start">' + item[1] + '</td><td>' + item[3] + '</td><td>' + item[4] + '</td><td>' + item[5] + '</td><td>' + item[6] + '</td><td>' + item[7] + '</td><td>' + item[8] + '</td><td>' + item[9] + '</td><td>' + item[10] + '</td><td>' + item[11] + '</td><td>' + item[12] + '</td></tr>');
+					$("#tb_cre").append('<tr><td class="text-start">' + item[0] + '</td><td class="text-start">' + item[1] + '</td><td>' + item[14] + '</td><td>' + item[15] + '</td><td>' + item[16] + '</td><td>' + item[17] + '</td><td>' + item[18] + '</td><td>' + item[19] + '</td><td>' + item[20] + '</td><td>' + item[21] + '</td><td>' + item[22] + '</td><td>' + item[23] + '</td></tr>');
+					$("#tb_cha").append('<tr><td class="text-start">' + item[0] + '</td><td class="text-start">' + item[1] + '</td><td>' + item[25] + '</td><td>' + item[26] + '</td><td>' + item[27] + '</td><td>' + item[28] + '</td><td>' + item[29] + '</td><td>' + item[30] + '</td><td>' + item[31] + '</td><td>' + item[32] + '</td><td>' + item[33] + '</td><td>' + item[34] + '</td></tr>');
+				});
 			}else swal(res.type, res.msg);
 		});
 	});
-	
-	/*
-	if ($(".bl_move").length > 0){
-		var height_n = Math.max($(".bl_move")[0].clientHeight, $(".bl_move")[1].clientHeight, $(".bl_move")[2].clientHeight);
-		$(".bl_move").height(height_n);
-	}
-	
-	$('#sl_lz').change(function(){
-		$("#sl_li").val(""); $('#sl_li option.sl_li').addClass('d-none'); $('#sl_li option.sl_lz_' + $(this).val()).removeClass('d-none');
-		$("#sl_lii").val(""); $('#sl_lii option.sl_lii').addClass('d-none');
-		$("#sl_liii").val(""); $('#sl_liii option.sl_liii').addClass('d-none');
-		$("#sl_liv").val(""); $('#sl_liv option.sl_liv').addClass('d-none');
-		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
-    });
-	
-	$('#sl_li').change(function(){
-		$("#sl_lii").val(""); $('#sl_lii option.sl_lii').addClass('d-none'); $('#sl_lii option.sl_li_' + $(this).val()).removeClass('d-none');
-		$("#sl_liii").val(""); $('#sl_liii option.sl_liii').addClass('d-none');
-		$("#sl_liv").val(""); $('#sl_liv option.sl_liv').addClass('d-none');
-		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
-    });
-	
-	$('#sl_lii').change(function(){
-		$("#sl_liii").val(""); $('#sl_liii option.sl_liii').addClass('d-none'); $('#sl_liii option.sl_lii_' + $(this).val()).removeClass('d-none');
-		$("#sl_liv").val(""); $('#sl_liv option.sl_liv').addClass('d-none');
-		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
-    });
-	
-	$('#sl_liii').change(function(){
-		$("#sl_liv").val(""); $('#sl_liv option.sl_liv').addClass('d-none'); $('#sl_liv option.sl_liii_' + $(this).val()).removeClass('d-none');
-		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
-    });
-	
-	$('#sl_liv').change(function(){
-		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
-    });
-	
-	$('#sl_lz_report').change(function(){
-		$("#sl_li_report").val(""); $('#sl_li_report option.sl_li').addClass('d-none'); $('#sl_li_report option.sl_lz_' + $(this).val()).removeClass('d-none');
-    });
-	
-	$('.ctrl_inv').click(function(){
-		var ln_i = $(this).attr("id").replace("ctrl_", "");
-		
-		$(".ln_inv").addClass("d-none");
-		if ($(this).hasClass("bi-caret-down-square")){//open list
-			$(".ctrl_inv").removeClass("bi-caret-up-square");
-			$(".ctrl_inv").addClass("bi-caret-down-square");
-		
-			$(".ln_inv_" + ln_i).removeClass("d-none");
-			$(this).removeClass("bi-caret-down-square");
-			$(this).addClass("bi-caret-up-square");
-		}else{//close list
-			$(this).removeClass("bi-caret-up-square");
-			$(this).addClass("bi-caret-down-square");
-		}
-    });
-	
-	
-	$("#form_upload_sell_inout").submit(function(e) {
-		e.preventDefault();
-		$("#form_upload_sell_inout .sys_msg").html("");
-		ajax_form_warning(this, "sa/sell_inout/upload_sell_inout_file", "Do you upload data?").done(function(res) {
-			swal_open_tab(res.type, res.msg, res.url);
-		});
-	});
-	
-	
-	*/
 });
 </script>
