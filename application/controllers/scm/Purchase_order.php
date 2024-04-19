@@ -201,8 +201,34 @@ class Purchase_order extends CI_Controller {
 		
 		foreach($rows_input as $i => $r){
 			print_R($r); echo "<br/>";
-			echo json_encode($r); echo "<br/>";
-			echo "<br/>";
+			//echo json_encode($r); echo "<br/>";
+			//echo "<br/>";
+		}
+	}
+	
+	private function estilos_sku($rows_input, $ship_to){
+		$rows = [];
+		
+		$po_num = trim(explode(" ", $rows_input[0])[5]);
+		echo $po_num;
+		$aux = explode("/", trim(str_replace("Se recepciona desde:", "", $rows_input[15])));
+		$issue_date = $aux[2].$aux[1].$aux[0];
+		
+		$aux = explode("/", trim($rows_input[14][3]));
+		$arrival_date = $aux[2].$aux[1].$aux[0];
+		
+		$currency = "PEN";
+		
+		echo $po_num." ".$issue_date." ".$arrival_date;
+		echo "<br/>"; echo "<br/>";
+		
+		foreach($rows_input as $i => $r){
+			//print_R($r); echo "<br/>";
+			//echo json_encode($r); echo "<br/>";
+			//echo "<br/>";
+			
+			$aux = array_values(array_filter(explode(" ", $r)));
+			echo $i." ====> ";print_r($aux); echo "<br/>";
 		}
 	}
 	
@@ -277,6 +303,7 @@ class Purchase_order extends CI_Controller {
 			case "hiraoka_pre": $rows = $this->hiraoka_pre($rows, $ship_to); break;
 			case "hiraoka_sku": $rows = $this->hiraoka_sku($rows, $ship_to); break;
 			case "estilos_dist": $rows = $this->estilos_dist($rows, $ship_to); break;
+			case "estilos_sku": $rows = $this->estilos_sku($rows, $ship_to); break;
 		}
 		
 		if ($rows){
@@ -379,8 +406,8 @@ class Purchase_order extends CI_Controller {
 	public function test(){
 		/* pdf to excel
 		*/
-		$filename = './test_files/scm_po_estilos/dist/OE 229857.pdf';
-		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 4);//estilos sku
+		$filename = './test_files/scm_po_estilos/normal/OC 230769.pdf';
+		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 5);//estilos sku
 		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 5);//estilos
 		$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
 		
