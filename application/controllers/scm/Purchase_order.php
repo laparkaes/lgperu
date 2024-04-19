@@ -209,12 +209,12 @@ class Purchase_order extends CI_Controller {
 	private function estilos_sku($rows_input, $ship_to){
 		$rows = [];
 		
-		$po_num = trim(explode(" ", $rows_input[0])[5]);
-		echo $po_num;
+		$po_num = trim(array_values(array_filter(explode(" ", $rows_input[0])))[5]);
+		
 		$aux = explode("/", trim(str_replace("Se recepciona desde:", "", $rows_input[15])));
 		$issue_date = $aux[2].$aux[1].$aux[0];
 		
-		$aux = explode("/", trim($rows_input[14][3]));
+		$aux = explode("/", trim(str_replace(":", "", explode(" ", $rows_input[14])[3])));
 		$arrival_date = $aux[2].$aux[1].$aux[0];
 		
 		$currency = "PEN";

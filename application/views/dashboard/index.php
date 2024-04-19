@@ -43,7 +43,7 @@
 											<i class="bi bi-box-arrow-right"></i>
 										</div>
 										<div class="ps-3">
-											<a href="<?= base_url() ?>som/sku"><h6>Sell Out Upload</h6></a>
+											<a href="<?= base_url() ?>som/sell_out_upload"><h6>Sell Out Upload</h6></a>
 											<span class="text-muted small pt-2">Upload sell out information from customers</span>
 										</div>
 									</div>
