@@ -71,6 +71,9 @@ class Migration extends CI_Controller {
 					$this->gen_m->insert("product", ["line_id" => $line_iv->line_id, "model" => $p[5]]);
 					echo "created ----- ".$p[5]."<br/>";
 				}
+			}else{
+				$this->gen_m->insert("product", ["line_id" => null, "model" => $p[5]]);
+				echo "created without line ----- ".$p[5]."<br/>";
 			}
 		}
 		

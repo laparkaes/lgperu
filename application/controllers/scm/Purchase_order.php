@@ -219,17 +219,51 @@ class Purchase_order extends CI_Controller {
 		
 		$currency = "PEN";
 		
-		echo $po_num." ".$issue_date." ".$arrival_date;
-		echo "<br/>"; echo "<br/>";
-		
 		foreach($rows_input as $i => $r){
-			//print_R($r); echo "<br/>";
-			//echo json_encode($r); echo "<br/>";
-			//echo "<br/>";
+			$r = str_replace("\t", " ", $r);
+			$r = str_replace(". .", " ", $r);
+			$r = str_replace("NINGUNA", " ", $r);
+			$r = str_replace("LG", " ", $r);
 			
 			$aux = array_values(array_filter(explode(" ", $r)));
-			echo $i." ====> ";print_r($aux); echo "<br/>";
+			
+			if (is_numeric($aux[0]) and (count($aux) > 9)){
+				$sku = (int)$aux[0];
+				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
+				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
+				
+				//Estilos PO includes LG model in aux[6]
+				$model = ($prod) ? $prod->model : $aux[6];//"No SKU: ".$sku; 
+				$qty = (int)trim($aux[2]);
+				$unit_price = str_replace(",", "", $aux[7]);
+				$total = $unit_price * $qty;
+				
+				echo $model; echo "<br/>";
+				echo $qty; echo "<br/>";
+				echo $unit_price; echo "<br/>";
+				echo $total; echo "<br/>";
+				
+				/*
+				$total = substr($aux_text, 0, $matches[0][1]);
+				$sku = substr(trim($aux[0]), strlen((string)$prod_num));//need to work with sku = [num][sku] => need to extract num value
+				
+				$unit_price = trim($aux[3]);
+				
+				*/
+				
+				echo $i." ====> ";
+				print_r($aux); echo "<br/>";
+				//var_dump($aux); echo "<br/>";
+				echo "<br/>";	
+			}
+			
 		}
+		
+		echo "<br/>"; echo "<br/>";
+		echo "po_num: ".$po_num."<br/>";
+		echo "issue_date: ".$issue_date."<br/>";
+		echo "arrival_date: ".$arrival_date;
+		
 	}
 	
 	public function conecta_excel($filename, $ship_to){
