@@ -186,7 +186,6 @@ class Purchase_order extends CI_Controller {
 
 			$numeric = $no_numeric = [];
 			if (is_numeric($aux[0]) and (count($aux) > 9)){
-				print_r($aux);
 				foreach($aux as $a) if (is_numeric(str_replace(",", "", $a))) $numeric[] = $a; else $no_numeric[] = $a;
 				
 				$sku = (int)$numeric[0];
@@ -413,16 +412,16 @@ class Purchase_order extends CI_Controller {
 	}
 	
 	public function test(){
-		return;//just activate when you need to test conversion
+		//return;//just activate when you need to test conversion
 		
 		/* pdf to excel 
-		$filename = './test_files/scm_po_estilos/normal/OC 230769.pdf';
+		*/
+		$filename = './test_files/scm_po_estilos/normal/OC 229859.pdf';
 		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 4);//estilos sku
 		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 5);//estilos
 		$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
 		
 		echo $this->pdf_to_excel($filename, $po_template, $ship_to);
-		*/
 		
 		/* excel to excel
 		$filename = './test_files/scm/conecta/conecta2.xls';
@@ -435,7 +434,7 @@ class Purchase_order extends CI_Controller {
 	}
 	
 	public function convert_po(){
-		//ini_set('display_errors', 0);
+		ini_set('display_errors', 0);
 		
 		$type = "error"; $msg = $url = "";
 		
