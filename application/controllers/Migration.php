@@ -11,6 +11,8 @@ class Migration extends CI_Controller {
 		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
+		
+		set_time_limit(0);
 	}
 	
 	public function go(){
@@ -80,26 +82,83 @@ class Migration extends CI_Controller {
 		echo "Fin";
 	}
 
-	public function sku(){
-		$cus_arr = json_decode('["BELIA","CHANCAFE","CHASKY SHOP","CHAUCA DE YATACO","CODISA ELECTRONIC S.A.C.","COMERCIAL AF QUINTO","COMERCIAL COUNTRY","COMPUDISKETT S.R.L.","CONECTA RETAIL","COOLBOX","CORPORACION ROCIO","CREDIVARGAS","DELEXPORT E.I.R.L.","DELTRON","DERRAMA MAGISTERIAL","EH INVERSIONES","ELEKTRA","ENTEL","ESTILOS","GRUPO MERPES PERU S.A.C.","HIRAOKA","IMPORT NOTEBOOK","IMPORTACIONES KAMASA","IMPORTACIONES LABAN PERU S.A.C.","INGRAM","INTCOMEX PERU  S.A.C.","INTEGRA RETAIL","INVERSIONES MUNDO VISION S.A.C","JUAN PABLO MORI E.I.R.L.","MANZANARES S.A.C.","MAXIMA INTERNACIONAL S.A.","METRO","MI NEGOCIO","NEXSYS DEL PERU S.R.L.","OBS","OECHSLE","PARIS","PC LINK","PLAZA VEA","PROMART","PROMOTICK S.A.C.","REPRESENTACIONES KING S.A.C.","RIPLEY","RUBI","SAGA","SODIMAC","SUMINISTROS ENERGETICOS INTEGRALES PERU S.A.C.","TAI LOY S.A.","TIENDAS ORO VERDE S.A.C.","TOTTUS"]');
-		print_r($cus_arr);
+	private function customer_som(){
+		echo "Start SOM Customer data migration. ------------------------------------<br/>";
 		
+		$cus_arr = json_decode('[["PE008078001B","BELIA"],["PE008017001B","CHANCAFE"],["PE008312001B","CHANCAFE"],["PE008197001B","CHASKY SHOP"],["PE008236001B","CHAUCA DE YATACO"],["PE002403001B","CODISA ELECTRONIC S.A.C."],["PE007433001B","COMERCIAL AF QUINTO"],["PE000717001B","COMERCIAL COUNTRY"],["PE002194001B","COMPUDISKETT S.R.L."],["PE000991001B","CONECTA RETAIL"],["PE008104001B","CONECTA RETAIL"],["PE004562001B","COOLBOX"],["PE007150001B","CORPORACION ROCIO"],["PE000952001B","CREDIVARGAS"],["PE008239001B","DELEXPORT E.I.R.L."],["PE002897001B","DELTRON"],["PE000759001B","DERRAMA MAGISTERIAL"],["PE007173001B","EH INVERSIONES"],["PE001034001B","ELEKTRA"],["PE006345001B","ENTEL"],["PE003887001B","ESTILOS"],["PE008303001B","GRUPO MERPES PERU S.A.C."],["PE000816001B","HIRAOKA"],["PE008294001B","IMPORT NOTEBOOK"],["PE001037001B","IMPORTACIONES KAMASA"],["PE007608001B","IMPORTACIONES LABAN PERU S.A.C."],["PE000984001B","INGRAM"],["PE001097001B","INTCOMEX PERU  S.A.C."],["PE008204001B","INTEGRA RETAIL"],["PE006226001B","INVERSIONES MUNDO VISION S.A.C"],["PE000853001B","JUAN PABLO MORI E.I.R.L."],["PE000888001B","MANZANARES S.A.C."],["PE008453001B","MAXIMA INTERNACIONAL S.A."],["PE000801001B","METRO"],["PE004102001B","MI NEGOCIO"],["PE004725001B","NEXSYS DEL PERU S.R.L."],["PE008292001B","OBS"],["PE007152001B","OECHSLE"],["PE000801002B","PARIS"],["PE001839001B","PC LINK"],["PE001351001B","PLAZA VEA"],["PE008158001B","PROMART"],["PE006934001B","PROMOTICK S.A.C."],["PE004704001B","REPRESENTACIONES KING S.A.C."],["PE000966001B","RIPLEY"],["PE000820001B","RUBI"],["PE000968001B","SAGA"],["PE006374001B","SODIMAC"],["PE008207001B","SUMINISTROS ENERGETICOS INTEGRALES PERU S.A.C."],["PE008248001B","TAI LOY S.A."],["PE006810001B","TIENDAS ORO VERDE S.A.C."],["PE004467001B","TOTTUS"]]');
+		foreach($cus_arr as $item){
+			$cus = $this->gen_m->unique("customer", "bill_to_code", $item[0]);
+			
+			if ($cus){
+				echo "<div style='width: 150px; display: inline-block;'>";
+				if (strpos($cus->customer, $item[1]) !== false){
+					echo "Ok";
+				} else {
+					echo "No";
+					
+					//update customer name including som's customer name in ()
+					$this->gen_m->update("customer", ["customer_id" => $cus->customer_id], ["customer" => $cus->customer." (".$item[1].")"]);
+				}
+				
+				echo " ========> </div><div style='width: 600px; display: inline-block;'>".$item[1]."</div> ========> ".$cus->customer;
+			}else{
+				echo "<div style='width: 300px; display: inline-block;'>NEW !!!</div> ========> ".implode(" --- ", $item);
+				$this->gen_m->insert("customer", ["customer" => $item[1], "bill_to_code" => $item[0]]);
+			}
+			echo "<br/>";
+		}
+		echo "Fin SOM Customer data migration. ------------------------------------";
+	}
+
+	private function get_som_customers(){
+		$cus_ids = [];
+		$cus_arr = json_decode('["BELIA","CHANCAFE","CHASKY SHOP","CHAUCA DE YATACO","CODISA ELECTRONIC S.A.C.","COMERCIAL AF QUINTO","COMERCIAL COUNTRY","COMPUDISKETT S.R.L.","CONECTA RETAIL","COOLBOX","CORPORACION ROCIO","CREDIVARGAS","DELEXPORT E.I.R.L.","DELTRON","DERRAMA MAGISTERIAL","EH INVERSIONES","ELEKTRA","ENTEL","ESTILOS","GRUPO MERPES PERU S.A.C.","HIRAOKA","IMPORT NOTEBOOK","IMPORTACIONES KAMASA","IMPORTACIONES LABAN PERU S.A.C.","INGRAM","INTCOMEX PERU  S.A.C.","INTEGRA RETAIL","INVERSIONES MUNDO VISION S.A.C","JUAN PABLO MORI E.I.R.L.","MANZANARES S.A.C.","MAXIMA INTERNACIONAL S.A.","METRO","MI NEGOCIO","NEXSYS DEL PERU S.R.L.","OBS","OECHSLE","PARIS","PC LINK","PLAZA VEA","PROMART","PROMOTICK S.A.C.","REPRESENTACIONES KING S.A.C.","RIPLEY","RUBI","SAGA","SODIMAC","SUMINISTROS ENERGETICOS INTEGRALES PERU S.A.C.","TAI LOY S.A.","TIENDAS ORO VERDE S.A.C.","TOTTUS"]');
+		foreach($cus_arr as $item){
+			$aux = [];
+			
+			$customers = $this->gen_m->filter("customer", true, null, [["field" => "customer", "values" => [$item]]]);
+			foreach($customers as $c) $aux[] = $c->customer_id;
+			
+			$cus_ids[$item] = $aux;
+		}
+		
+		return $cus_ids;
+	}
+
+	public function sku(){
+		$this->customer_som();//secure all customers are registed
 		echo "<br/><br/><br/>";
 		
-		$rows = [];
+		$cus_ids = $this->get_som_customers();
 		
-		$spreadsheet = IOFactory::load('./test_files/som_sku/All_SKUs_cleared.xlsx');
+		$spreadsheet = IOFactory::load('./test_files/som_sku/SKUs List with biil to code.xlsx');
+		$spreadsheet->setActiveSheetIndex(0);
 		$sheet = $spreadsheet->getActiveSheet();
 		
 		$max_row = $sheet->getHighestRow();
 		
 		for ($row = 2; $row <= $max_row; $row++){
 			$cus = trim($sheet->getCell('A'.$row)->getValue());
-			$cus_sku = trim($sheet->getCell('B'.$row)->getValue());
-			$lg_model = trim($sheet->getCell('C'.$row)->getValue());
 			
-			echo $cus." ".$cus_sku." ".$lg_model."<br/>";
-			if ($row > 10) break;
+			if (array_key_exists($cus, $cus_ids)) {
+				$cus_sku = trim($sheet->getCell('C'.$row)->getValue());
+				$lg_model = trim($sheet->getCell('D'.$row)->getValue());
+				
+				$ids = $cus_ids[$cus];
+				foreach($ids as $id){
+					$prod = $this->gen_m->unique("product", "model", $lg_model);
+					if ($prod) $prod_id = $prod->product_id;
+					else $prod_id = $this->gen_m->insert("product", ["model" => $lg_model]);
+					
+					$aux = ["product_id" => $prod_id, "customer_id" => $id, "sku" => $cus_sku];
+					if (!$this->gen_m->filter("product_sku", true, $aux)){
+						$this->gen_m->insert("product_sku", $aux);
+						echo $cus." --- ".$cus_sku." --- ".$lg_model." created!!! [".implode(", ", $aux)."]<br/>";
+					}
+				}
+			}
+
+			//if ($row > 100) break;
 		}
 	}
 
