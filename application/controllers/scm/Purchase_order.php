@@ -435,7 +435,7 @@ class Purchase_order extends CI_Controller {
 	}
 	
 	public function convert_po(){
-		ini_set('display_errors', 0);
+		//ini_set('display_errors', 0);
 		
 		$type = "error"; $msg = $url = "";
 		
