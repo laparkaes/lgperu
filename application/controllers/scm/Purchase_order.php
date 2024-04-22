@@ -186,7 +186,7 @@ class Purchase_order extends CI_Controller {
 
 			$numeric = $no_numeric = [];
 			if (is_numeric($aux[0]) and (count($aux) > 9)){
-				
+				print_r($aux);
 				foreach($aux as $a) if (is_numeric(str_replace(",", "", $a))) $numeric[] = $a; else $no_numeric[] = $a;
 				
 				$sku = (int)$numeric[0];
