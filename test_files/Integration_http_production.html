@@ -1,0 +1,72 @@
+<html>
+	<header>
+		<script language="javascript" type="text/javascript"> 
+		</script>
+	<Title> paperless injection test</Title>	
+	</header>
+	<body>
+
+	Status Check
+	
+	<FORM id=a METHOD=POST ACTION="http://asp402r.paperless.com.pe/Facturacion/webservices/ConsultaEstadoSUNAT.jsp">  
+		<table border=1>
+		 <tr><td colspan=1 align=left valign=middle>
+		  
+		  RUC <input type=text name=e value="20375755344" style="width:120px;"> <br>
+		  INVOICE TYPE <input type=text name=t value="01" style="width:120px;"> <br>
+		  INVOICE NO <input type=text name=f value="F001-00140966"   style="width:120px;"> <br>
+		  ID <input type=text name=l  value=PR008737 style="width:120px;"> <br>
+		  PWD <input type=text name=pw    style="width:120px;"> <br>
+		  <input type=submit name="click"  > 
+		  
+		</td></tr>
+		</table>
+  </FORM> 
+  
+  <br>
+  
+  Injection
+  
+  <FORM id=b METHOD=POST ACTION="http://asp402r.paperless.com.pe/Facturacion/webservices/Online.jsp">  
+		<table border=1>
+     <tr><td>
+		 RUC <input type=text name=e value="20375755344" style="width:120px;"> <br>
+		 </td></tr> <tr><td>
+		 INVOICE TYPE	 <input type=text name=t value="01" style="width:120px;"> <br>
+		 </td></tr> <tr><td>
+		 RETURN TYPE <input type=text name=tr value="4" style="width:120px;"> <br>
+		 </td></tr> <tr><td>
+		 DETAIL <textarea name=a rows="20" cols="500" style="width:600px;height:300px"  ></textarea> <br>
+		 </td></tr> <tr><td>
+		 ID	 <input type=text name=l  value=PR008737 style="width:120px;"> <br>
+		 </td></tr> <tr><td>
+		 PWD	 <input type=text name=pw   style="width:120px;"> <br>
+		 </td></tr> <tr><td>
+		 	 <input type=submit name="click2" > 
+		</td></tr>
+		</table>
+  </FORM> 
+  
+  Get PDF
+  
+  <FORM id=b METHOD=POST ACTION="http://asp402r.paperless.com.pe/Facturacion/webservices/ConsultaPDF.jsp">  
+		<table border=1>
+     <tr><td>
+		 INVOICE TYPE	 <input type=text name=t value="01" style="width:120px;"> <br>
+		 </td></tr> <tr><td>
+     INVOICE NO <input type=text name=f value="F001-00140966"   style="width:120px;"> <br>
+		 </td></tr> <tr><td>
+		 RUC <input type=text name=e value="20375755344" style="width:120px;"> <br>
+		 </td></tr> <tr><td>
+		 ID	 <input type=text name=l  value=PR008502 style="width:120px;"> <br>
+		 </td></tr> <tr><td>
+		 PWD	 <input type=text name=pw   style="width:120px;"> <br>
+		 </td></tr> <tr><td>
+		 	 <input type=submit name="click2" > 
+		</td></tr>
+		</table>
+  </FORM> 
+  
+  
+	</body>
+</html>
