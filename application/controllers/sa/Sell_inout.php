@@ -11,10 +11,6 @@ class Sell_inout extends CI_Controller {
 		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
-		$this->color_rgb = [
-			"green" => "198754",
-			"red" => "dc3545",
-		];
 	}
 	
 	private function get_sell_inout($customer_id, $product_id){

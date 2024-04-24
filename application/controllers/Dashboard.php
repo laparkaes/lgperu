@@ -6,6 +6,14 @@ use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class Dashboard extends CI_Controller {
 
+	public function __construct(){
+		parent::__construct();
+		//if (!$this->session->userdata('logged_in')) redirect("/auth/login");
+		
+		date_default_timezone_set('America/Lima');
+		$this->load->model('general_model', 'gen_m');
+	}
+	
 	public function index(){
 		if (!$this->session->userdata('logged_in')) redirect("/auth/login");
 		
@@ -18,11 +26,12 @@ class Dashboard extends CI_Controller {
 	
 	private function date_convert($date){
 		$aux = explode("/", $date);
-		return $aux[2].$aux[1].$aux[0];
+		if (count($aux) > 2) return $aux[2]."-".$aux[1]."-".$aux[0];
+		else return "";
 	}
 	
 	public function import_data(){
-		$spreadsheet = IOFactory::load('./test_files/dashboard/Excel_1402160157.xls');
+		$spreadsheet = IOFactory::load('./test_files/dashboard/dashboard_test.xls');
 		$spreadsheet->setActiveSheetIndex(0);
 		$sheet = $spreadsheet->getActiveSheet();
 		
@@ -68,12 +77,24 @@ class Dashboard extends CI_Controller {
 			$invoice_no = trim($sheet->getCellByColumnAndRow(56, $row)->getValue());
 			$customer_po_no = trim($sheet->getCellByColumnAndRow(57, $row)->getValue());
 
-			$od = $sheet->getCellByColumnAndRow(37, $row)->getValue();
-			$sd = $sheet->getCellByColumnAndRow(38, $row)->getValue();
-			$cd = $sheet->getCellByColumnAndRow(40, $row)->getValue();
+			echo $row." ***** ".$category." ***** ".$bill_to_name." ***** ".$ship_to_name." ***** ".$model." ***** ".$order_qty." ***** ".$unit_list_price." ***** ".$unit_selling_price." ***** ".$total_amount_pen." ***** ".$total_amount." ***** ".$order_amount_pen." ***** ".$order_amount." ***** ".$tax_amount." ***** ".$dc_amount." ***** ".$dc_rate." ***** ".$currency." ***** ".$book_currency." ***** ".$inventory_org." ***** ".$sub_inventory." ***** ".$sales_person." ***** ".$customer_code." ***** ".$customer_name." ***** ".$customer_department." ***** ".$product_level1_name." ***** ".$product_level2_name." ***** ".$product_level3_name." ***** ".$product_level4_name." ***** ".$model_category." ***** ".$item_type_desctiption." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$bill_to_code." ***** ".$ship_to_code." ***** ".$payment_term." ***** ".$sales_channel." ***** ".$order_no." ***** ".$invoice_no." ***** ".$customer_po_no."<br/>";
 			
-			//echo $row." ***** ".$category." ***** ".$bill_to_name." ***** ".$ship_to_name." ***** ".$model." ***** ".$order_qty." ***** ".$unit_list_price." ***** ".$unit_selling_price." ***** ".$total_amount_pen." ***** ".$total_amount." ***** ".$order_amount_pen." ***** ".$order_amount." ***** ".$tax_amount." ***** ".$dc_amount." ***** ".$dc_rate." ***** ".$currency." ***** ".$book_currency." ***** ".$inventory_org." ***** ".$sub_inventory." ***** ".$sales_person." ***** ".$customer_code." ***** ".$customer_name." ***** ".$customer_department." ***** ".$product_level1_name." ***** ".$product_level2_name." ***** ".$product_level3_name." ***** ".$product_level4_name." ***** ".$model_category." ***** ".$item_type_desctiption." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$bill_to_code." ***** ".$ship_to_code." ***** ".$payment_term." ***** ".$sales_channel." ***** ".$order_no." ***** ".$invoice_no." ***** ".$customer_po_no."<br/><br/>";
-			echo $row." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$order_no."<br/><br/>";
+			$customer = $this->gen_m->unique("customer", "bill_to_code", $bill_to_code);
+			if (!$customer){
+				$this->gen_m->insert("customer", ["customer" => $bill_to_name, "bill_to_code" => $bill_to_code]);
+				$customer = $this->gen_m->unique("customer", "bill_to_code", $bill_to_code);
+			}
+			echo "customer: "; print_r($customer); echo "<br/>";
+			
+			$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_code", $ship_to_code);
+			if (!$ship_to){
+				$this->gen_m->insert("customer_ship_to", ["ship_to_code" => $ship_to_code, "customer_id" => $customer->customer_id, "address" => ""]);
+				$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_code", $ship_to_code);
+			}
+			echo "ship_to: "; print_r($ship_to); echo "<br/>";
+			
+			echo "<br/>";
+			//echo $row." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$order_no."<br/><br/>";
 			
 			
 			if ($row >100) break;
