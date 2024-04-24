@@ -77,21 +77,62 @@ class Dashboard extends CI_Controller {
 			$invoice_no = trim($sheet->getCellByColumnAndRow(56, $row)->getValue());
 			$customer_po_no = trim($sheet->getCellByColumnAndRow(57, $row)->getValue());
 
-			echo $row." ***** ".$category." ***** ".$bill_to_name." ***** ".$ship_to_name." ***** ".$model." ***** ".$order_qty." ***** ".$unit_list_price." ***** ".$unit_selling_price." ***** ".$total_amount_pen." ***** ".$total_amount." ***** ".$order_amount_pen." ***** ".$order_amount." ***** ".$tax_amount." ***** ".$dc_amount." ***** ".$dc_rate." ***** ".$currency." ***** ".$book_currency." ***** ".$inventory_org." ***** ".$sub_inventory." ***** ".$sales_person." ***** ".$customer_code." ***** ".$customer_name." ***** ".$customer_department." ***** ".$product_level1_name." ***** ".$product_level2_name." ***** ".$product_level3_name." ***** ".$product_level4_name." ***** ".$model_category." ***** ".$item_type_desctiption." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$bill_to_code." ***** ".$ship_to_code." ***** ".$payment_term." ***** ".$sales_channel." ***** ".$order_no." ***** ".$invoice_no." ***** ".$customer_po_no."<br/>";
+			//echo $row." ***** ".$category." ***** ".$bill_to_name." ***** ".$ship_to_name." ***** ".$model." ***** ".$order_qty." ***** ".$unit_list_price." ***** ".$unit_selling_price." ***** ".$total_amount_pen." ***** ".$total_amount." ***** ".$order_amount_pen." ***** ".$order_amount." ***** ".$tax_amount." ***** ".$dc_amount." ***** ".$dc_rate." ***** ".$currency." ***** ".$book_currency." ***** ".$inventory_org." ***** ".$sub_inventory." ***** ".$sales_person." ***** ".$customer_code." ***** ".$customer_name." ***** ".$customer_department." ***** ".$product_level1_name." ***** ".$product_level2_name." ***** ".$product_level3_name." ***** ".$product_level4_name." ***** ".$model_category." ***** ".$item_type_desctiption." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$bill_to_code." ***** ".$ship_to_code." ***** ".$payment_term." ***** ".$sales_channel." ***** ".$order_no." ***** ".$invoice_no." ***** ".$customer_po_no."<br/>";
+			echo $row." ***** ".$category." ***** ".$model." ***** ".$order_qty." ***** ".$unit_list_price." ***** ".$unit_selling_price." ***** ".$total_amount_pen." ***** ".$total_amount." ***** ".$order_amount_pen." ***** ".$order_amount." ***** ".$tax_amount." ***** ".$dc_amount." ***** ".$dc_rate." ***** ".$currency." ***** ".$book_currency." ***** ".$inventory_org." ***** ".$sub_inventory." ***** ".$sales_person." ***** ".$customer_code." ***** ".$customer_name." ***** ".$customer_department." ***** ".$product_level1_name." ***** ".$product_level2_name." ***** ".$product_level3_name." ***** ".$product_level4_name." ***** ".$model_category." ***** ".$item_type_desctiption." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$payment_term." ***** ".$sales_channel." ***** ".$order_no." ***** ".$invoice_no." ***** ".$customer_po_no."<br/>";
 			
 			$customer = $this->gen_m->unique("customer", "bill_to_code", $bill_to_code);
 			if (!$customer){
 				$this->gen_m->insert("customer", ["customer" => $bill_to_name, "bill_to_code" => $bill_to_code]);
 				$customer = $this->gen_m->unique("customer", "bill_to_code", $bill_to_code);
 			}
-			echo "customer: "; print_r($customer); echo "<br/>";
 			
 			$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_code", $ship_to_code);
 			if (!$ship_to){
 				$this->gen_m->insert("customer_ship_to", ["ship_to_code" => $ship_to_code, "customer_id" => $customer->customer_id, "address" => ""]);
 				$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_code", $ship_to_code);
 			}
-			echo "ship_to: "; print_r($ship_to); echo "<br/>";
+			
+			$product_level1 = $this->gen_m->unique("product_line", "line", $product_level1_name);
+			if (!$product_level1){
+				$this->gen_m->insert("product_line", ["parent_id" => -1, "level" => 1, "line" => $product_level1_name]);
+				$product_level1 = $this->gen_m->unique("product_line", "line", $product_level1_name);
+			}
+			
+			$product_level2 = $this->gen_m->unique("product_line", "line", $product_level2_name);
+			if (!$product_level2){
+				$this->gen_m->insert("product_line", ["parent_id" => $product_level1->line_id, "level" => 2, "line" => $product_level2_name]);
+				$product_level2 = $this->gen_m->unique("product_line", "line", $product_level2_name);
+			}
+			
+			$product_level3 = $this->gen_m->unique("product_line", "line", $product_level3_name);
+			if (!$product_level3){
+				$this->gen_m->insert("product_line", ["parent_id" => $product_level2->line_id, "level" => 3, "line" => $product_level3_name]);
+				$product_level3 = $this->gen_m->unique("product_line", "line", $product_level3_name);
+			}
+			
+			$product_level4 = $this->gen_m->unique("product_line", "line", $product_level4_name);
+			if (!$product_level4){
+				$this->gen_m->insert("product_line", ["parent_id" => $product_level3->line_id, "level" => 4, "line" => $product_level4_name]);
+				$product_level4 = $this->gen_m->unique("product_line", "line", $product_level4_name);
+			}
+			
+			$division_id = $product_level1 ? $product_level1->parent_id : -1;
+			
+			$product = $this->gen_m->unique("product", "model", $model);
+			if (!$product){
+				$this->gen_m->insert("product", ["line_id" => $product_level4->line_id, "model" => $model]);
+				$product = $this->gen_m->unique("product", "model", $model);
+			}
+			
+			
+			echo "<strong>customer</strong>: "; print_r($customer); echo "<br/>";
+			echo "<strong>ship to</strong>: "; print_r($ship_to); echo "<br/>";
+			echo "<strong>Division</strong>: "; echo $division_id; echo "<br/>";
+			echo "<strong>line lvl 1</strong>: "; print_r($product_level1); echo "<br/>";
+			echo "<strong>line lvl 2</strong>: "; print_r($product_level2); echo "<br/>";
+			echo "<strong>line lvl 3</strong>: "; print_r($product_level3); echo "<br/>";
+			echo "<strong>line lvl 4</strong>: "; print_r($product_level4); echo "<br/>";
+			echo "<strong>product</strong>: "; print_r($product); echo "<br/>";
 			
 			echo "<br/>";
 			//echo $row." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$order_no."<br/><br/>";
