@@ -140,7 +140,7 @@ class Dashboard extends CI_Controller {
 			echo "<strong>product</strong>: "; print_r($currency); echo "<br/>";
 			echo "<strong>product</strong>: "; print_r($currency_book); echo "<br/>";
 			
-			echo "<br/>";
+			echo "<br/><br/>----------------------------------------------------------------------------------------------------<br/><br/>";
 			//echo $row." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$order_no."<br/><br/>";
 			
 			
