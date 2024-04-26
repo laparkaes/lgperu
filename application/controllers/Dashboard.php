@@ -56,9 +56,9 @@ class Dashboard extends CI_Controller {
 			$currency_book = trim($sheet->getCellByColumnAndRow(19, $row)->getValue());
 			$inventory_org = trim($sheet->getCellByColumnAndRow(20, $row)->getValue());
 			$sub_inventory = trim($sheet->getCellByColumnAndRow(21, $row)->getValue());
-			$sales_person = trim($sheet->getCellByColumnAndRow(22, $row)->getValue());
-			$customer_code = trim($sheet->getCellByColumnAndRow(26, $row)->getValue());
-			$customer_name = trim($sheet->getCellByColumnAndRow(27, $row)->getValue());
+			$sales_person_name = trim($sheet->getCellByColumnAndRow(22, $row)->getValue());
+			//$customer_code = trim($sheet->getCellByColumnAndRow(26, $row)->getValue());
+			//$customer_name = trim($sheet->getCellByColumnAndRow(27, $row)->getValue());
 			$customer_department = trim($sheet->getCellByColumnAndRow(28, $row)->getValue());
 			$product_level1_name = trim($sheet->getCellByColumnAndRow(29, $row)->getValue());
 			$product_level2_name = trim($sheet->getCellByColumnAndRow(30, $row)->getValue());
@@ -77,15 +77,52 @@ class Dashboard extends CI_Controller {
 			$invoice_no = trim($sheet->getCellByColumnAndRow(56, $row)->getValue());
 			$customer_po_no = trim($sheet->getCellByColumnAndRow(57, $row)->getValue());
 
-			//echo $row." ***** ".$category." ***** ".$bill_to_name." ***** ".$ship_to_name." ***** ".$model." ***** ".$order_qty." ***** ".$unit_list_price." ***** ".$unit_selling_price." ***** ".$total_amount_pen." ***** ".$total_amount." ***** ".$order_amount_pen." ***** ".$order_amount." ***** ".$tax_amount." ***** ".$dc_amount." ***** ".$dc_rate." ***** ".$currency." ***** ".$book_currency." ***** ".$inventory_org." ***** ".$sub_inventory." ***** ".$sales_person." ***** ".$customer_code." ***** ".$customer_name." ***** ".$customer_department." ***** ".$product_level1_name." ***** ".$product_level2_name." ***** ".$product_level3_name." ***** ".$product_level4_name." ***** ".$model_category." ***** ".$item_type_desctiption." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$bill_to_code." ***** ".$ship_to_code." ***** ".$payment_term." ***** ".$sales_channel." ***** ".$order_no." ***** ".$invoice_no." ***** ".$customer_po_no."<br/>";
-			echo $row." ***** ".$order_qty." ***** ".$unit_list_price." ***** ".$unit_selling_price." ***** ".$total_amount_pen." ***** ".$total_amount." ***** ".$order_amount_pen." ***** ".$order_amount." ***** ".$tax_amount." ***** ".$dc_amount." ***** ".$dc_rate." ***** ".$inventory_org." ***** ".$sub_inventory." ***** ".$sales_person." ***** ".$customer_code." ***** ".$customer_name." ***** ".$customer_department." ***** ".$model_category." ***** ".$item_type_desctiption." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$payment_term." ***** ".$sales_channel." ***** ".$order_no." ***** ".$invoice_no." ***** ".$customer_po_no."<br/>";
+			//echo $row." ***** ".$category." ***** ".$bill_to_name." ***** ".$ship_to_name." ***** ".$model." ***** ".$order_qty." ***** ".$unit_list_price." ***** ".$unit_selling_price." ***** ".$total_amount_pen." ***** ".$total_amount." ***** ".$order_amount_pen." ***** ".$order_amount." ***** ".$tax_amount." ***** ".$dc_amount." ***** ".$dc_rate." ***** ".$currency." ***** ".$book_currency." ***** ".$inventory_org." ***** ".$sub_inventory." ***** ".$sales_person_name." ***** ".$customer_code." ***** ".$customer_name." ***** ".$customer_department." ***** ".$product_level1_name." ***** ".$product_level2_name." ***** ".$product_level3_name." ***** ".$product_level4_name." ***** ".$model_category." ***** ".$item_type_desctiption." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$bill_to_code." ***** ".$ship_to_code." ***** ".$payment_term." ***** ".$sales_channel." ***** ".$order_no." ***** ".$invoice_no." ***** ".$customer_po_no."<br/>";
+			echo $row." ***** ".$model_category." ***** ".$item_type_desctiption." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$payment_term." ***** ".$sales_channel."<br/>";
 
 			$order = [
-				$order_no,
-				$invoice_no,
-				$customer_po_no,
+				"order_no" => $order_no,
+				"order_qty" => $order_qty,
+				"unit_list_price" => $unit_list_price,
+				"unit_selling_price" => $unit_selling_price,
+				"total_amount_pen" => $total_amount_pen,
+				"total_amount" => $total_amount,
+				"order_amount_pen" => $order_amount_pen,
+				"order_amount" => $order_amount,
+				"tax_amount" => $tax_amount,
+				"dc_amount" => $dc_amount,
+				"dc_rate" => $dc_rate,
+				"tax_amount" => $tax_amount,
+				"customer_po_no" => $customer_po_no,
 			];
 
+			$sales_person = $this->gen_m->unique("sales_person", "name", $sales_person_name);
+			if (!$sales_person){
+				$this->gen_m->insert("sales_person", ["name" => $sales_person_name]);
+				$sales_person = $this->gen_m->unique("sales_person", "name", $sales_person_name);
+			}
+			
+			$inventory = $this->gen_m->unique("inventory", "inventory", $inventory_org);
+			if (!$inventory){
+				$this->gen_m->insert("inventory", ["parent_id" => 0, "inventory" => $inventory_org]);
+				$inventory = $this->gen_m->unique("inventory", "inventory", $inventory_org);
+			}
+			
+			if ($sub_inventory){
+				$sub_inventory_aux = ["parent_id" => $inventory->inventory_id, "inventory" => $sub_inventory];
+				$sub_inventory = $this->gen_m->filter("inventory", true, $sub_inventory_aux);
+				if ($sub_inventory) $sub_inventory = $sub_inventory[0];
+				else{
+					$inv_id = $this->gen_m->insert("inventory", $sub_inventory_aux);
+					$sub_inventory = $this->gen_m->unique("inventory", "inventory_id", $inv_id);
+				}	
+			}else $sub_inventory = null;
+
+			$invoice = $this->gen_m->unique("invoice", "invoice", $invoice_no);
+			if (!$invoice){
+				$this->gen_m->insert("invoice", ["invoice" => $invoice_no]);
+				$invoice = $this->gen_m->unique("invoice", "invoice", $invoice_no);
+			}
 
 			$customer = $this->gen_m->unique("customer", "bill_to_code", $bill_to_code);
 			if (!$customer){
@@ -135,6 +172,11 @@ class Dashboard extends CI_Controller {
 			$currency = $this->gen_m->unique("currency", "currency", $currency);
 			$currency_book = $this->gen_m->unique("currency", "currency", $currency_book);
 			
+			echo "<strong>sales_person</strong>: "; print_r($sales_person); echo "<br/>";
+			echo "<strong>inventory</strong>: "; print_r($inventory); echo "<br/>";
+			echo "<strong>sub_inventory</strong>: "; print_r($sub_inventory); echo "<br/>";
+			echo "<strong>order</strong>: "; print_r($order); echo "<br/>";
+			echo "<strong>invoice</strong>: "; print_r($invoice); echo "<br/>";
 			echo "<strong>order category</strong>: "; print_r($order_category); echo "<br/>";
 			echo "<strong>customer</strong>: "; print_r($customer); echo "<br/>";
 			echo "<strong>ship to</strong>: "; print_r($ship_to); echo "<br/>";
