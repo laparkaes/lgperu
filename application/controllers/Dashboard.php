@@ -31,7 +31,7 @@ class Dashboard extends CI_Controller {
 	}
 	
 	public function import_data(){
-		$spreadsheet = IOFactory::load('./test_files/dashboard/dashboard_test.xls');
+		$spreadsheet = IOFactory::load('./test_files/dashboard/PSI_Consolidated_Report/Excel_1413601738COI.xls');
 		$spreadsheet->setActiveSheetIndex(0);
 		$sheet = $spreadsheet->getActiveSheet();
 		
@@ -80,7 +80,7 @@ class Dashboard extends CI_Controller {
 			//echo $row." ***** ".$category." ***** ".$bill_to_name." ***** ".$ship_to_name." ***** ".$model." ***** ".$order_qty." ***** ".$unit_list_price." ***** ".$unit_selling_price." ***** ".$total_amount_pen." ***** ".$total_amount." ***** ".$order_amount_pen." ***** ".$order_amount." ***** ".$tax_amount." ***** ".$dc_amount." ***** ".$dc_rate." ***** ".$currency." ***** ".$book_currency." ***** ".$inventory_org." ***** ".$sub_inventory." ***** ".$sales_person_name." ***** ".$customer_code." ***** ".$customer_name." ***** ".$customer_department." ***** ".$product_level1_name." ***** ".$product_level2_name." ***** ".$product_level3_name." ***** ".$product_level4_name." ***** ".$model_category." ***** ".$item_type_desctiption." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$bill_to_code." ***** ".$ship_to_code." ***** ".$payment_term." ***** ".$sales_channel." ***** ".$order_no." ***** ".$invoice_no." ***** ".$customer_po_no."<br/>";
 			echo $row." *****<br/>";
 
-			//set order
+			//order setup
 			$customer = $this->gen_m->unique("customer", "bill_to_code", $bill_to_code);
 			if (!$customer){
 				$this->gen_m->insert("customer", ["customer" => $bill_to_name, "bill_to_code" => $bill_to_code]);
@@ -105,6 +105,26 @@ class Dashboard extends CI_Controller {
 				$payterm = $this->gen_m->unique("payment_term", "term", $payment_term);
 			}
 
+			$order_category = $this->gen_m->unique("order_category", "category", $category);
+			$currency = $this->gen_m->unique("currency", "currency", $currency);
+			
+			$order = [
+				"customer_id" => $customer->customer_id,
+				"sales_channel_id" => $s_channel->channel_id,
+				"sales_person_id" => $s_person->person_id,
+				"payment_term_id" => $payterm->term_id,
+				"order_category_id" => $order_category->category_id,
+				"currency_id" => $currency->currency_id,
+				"order_no" => $order_no,
+				"order_date" => $order_date,
+				"customer_po_no" => $customer_po_no,
+			];
+			echo "<strong>order:</strong><br/>"; 
+			foreach($order as $key => $val) echo $key." => ".$val."<br/>";
+			echo "<br/><br/>";
+			//order setup finished
+			
+			//order item setup
 			$product_level1 = $this->gen_m->unique("product_line", "line", $product_level1_name);
 			if (!$product_level1){
 				$this->gen_m->insert("product_line", ["parent_id" => -1, "level" => 1, "line" => $product_level1_name]);
@@ -130,18 +150,6 @@ class Dashboard extends CI_Controller {
 			}
 			
 			$division_id = $product_level1 ? $product_level1->parent_id : -1;
-			
-			$order_category = $this->gen_m->unique("order_category", "category", $category);
-			$currency = $this->gen_m->unique("currency", "currency", $currency);
-			
-			//set order item
-			$order = [
-				"order_no" => $order_no,
-				"order_date" => $order_date,
-				"customer_po_no" => $customer_po_no,
-			];
-			
-			
 			
 			$order_itme_type = $this->gen_m->unique("order_itme_type", "type", $item_type_desctiption);
 			if (!$order_itme_type){
@@ -192,6 +200,19 @@ class Dashboard extends CI_Controller {
 			if (!$product->category_id) $this->gen_m->update("product", ["product_id" => $product->product_id], ["category_id" => $product_category->category_id]);
 			
 			$order_item = [
+				"type_id" => $order_itme_type->type_id,
+				"ship_to_id" => $ship_to->ship_to_id,
+				"division_id" => $division_id,
+				"product_l1_line_id" => $product_level1->line_id,
+				"product_l2_line_id" => $product_level2->line_id,
+				"product_l3_line_id" => $product_level3->line_id,
+				"product_l4_line_id" => $product_level4->line_id,
+				"product_category_id" => $product_category->category_id,
+				"product_id" => $product->product_id,
+				"inventory_id" => $inventory ? $inventory->inventory_id : null,
+				"sub_inventory_id" => $sub_inventory ? $sub_inventory->inventory_id :null,
+				"currency_id" => $currency->currency_id,
+				"invoice_id" => $invoice->invoice_id,
 				"shipment_date" => $shipment_date,
 				"closed_date" => $closed_date,
 				"order_qty" => $order_qty,
@@ -206,34 +227,37 @@ class Dashboard extends CI_Controller {
 				"dc_rate" => $dc_rate,
 				"tax_amount" => $tax_amount,
 			];
+			echo "<strong>order item:</strong><br/>"; 
+			foreach($order_item as $key => $val) echo $key." => ".$val."<br/>";
+			echo "<br/><br/>";
+			//order item setup finished
 			
-			
-			
-			
-			
-			echo "<strong>sales_person</strong>: "; print_r($s_person); echo "<br/>";
-			echo "<strong>inventory</strong>: "; print_r($inventory); echo "<br/>";
-			echo "<strong>sub_inventory</strong>: "; print_r($sub_inventory); echo "<br/>";
-			echo "<strong>order</strong>: "; print_r($order); echo "<br/>";
-			echo "<strong>invoice</strong>: "; print_r($invoice); echo "<br/>";
-			echo "<strong>order category</strong>: "; print_r($order_category); echo "<br/>";
+			/* 
+			-------------------------- order
 			echo "<strong>customer</strong>: "; print_r($customer); echo "<br/>";
+			echo "<strong>sales_channel</strong>: "; print_r($s_channel); echo "<br/>";
+			echo "<strong>sales_person</strong>: "; print_r($s_person); echo "<br/>";
+			echo "<strong>payterm</strong>: "; print_r($payterm); echo "<br/>";
+			echo "<strong>order category</strong>: "; print_r($order_category); echo "<br/>";
+			
+			-------------------------- order_item
+			echo "<strong>order_itme_type</strong>: "; print_r($order_itme_type); echo "<br/>";
 			echo "<strong>ship to</strong>: "; print_r($ship_to); echo "<br/>";
-			echo "<strong>Division ID</strong>: "; echo $division_id; echo "<br/>";
+			echo "<strong>division_id</strong>: "; echo $division_id."<br/>";
 			echo "<strong>line lvl 1</strong>: "; print_r($product_level1); echo "<br/>";
 			echo "<strong>line lvl 2</strong>: "; print_r($product_level2); echo "<br/>";
 			echo "<strong>line lvl 3</strong>: "; print_r($product_level3); echo "<br/>";
 			echo "<strong>line lvl 4</strong>: "; print_r($product_level4); echo "<br/>";
 			echo "<strong>product_category</strong>: "; print_r($product_category); echo "<br/>";
 			echo "<strong>product</strong>: "; print_r($product); echo "<br/>";
-			echo "<strong>currency</strong>: "; print_r($currency); echo "<br/>";
-			echo "<strong>order_itme_type</strong>: "; print_r($order_itme_type); echo "<br/>";
-			echo "<strong>payterm</strong>: "; print_r($payterm); echo "<br/>";
-			echo "<strong>s_channel</strong>: "; print_r($s_channel); echo "<br/>";
+			echo "<strong>inventory</strong>: "; print_r($inventory); echo "<br/>";
+			echo "<strong>sub_inventory</strong>: "; print_r($sub_inventory); echo "<br/>";
+			echo "<strong>invoice</strong>: "; print_r($invoice); echo "<br/>";
+			echo "<strong>currency</strong>: "; print_r($currency); echo "<br/>"; // used for order and order_item
+			*/
 			
 			echo "<br/><br/>----------------------------------------------------------------------------------------------------<br/><br/>";
 			//echo $row." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$order_no."<br/><br/>";
-			
 			
 			if ($row >100) break;
 		}
