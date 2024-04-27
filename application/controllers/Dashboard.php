@@ -53,7 +53,7 @@ class Dashboard extends CI_Controller {
 			$dc_amount = trim($sheet->getCellByColumnAndRow(16, $row)->getValue());
 			$dc_rate = trim($sheet->getCellByColumnAndRow(17, $row)->getValue());
 			$currency = trim($sheet->getCellByColumnAndRow(18, $row)->getValue());
-			$currency_book = trim($sheet->getCellByColumnAndRow(19, $row)->getValue());
+			//$currency_book = trim($sheet->getCellByColumnAndRow(19, $row)->getValue());
 			$inventory_org = trim($sheet->getCellByColumnAndRow(20, $row)->getValue());
 			$sub_inventory = trim($sheet->getCellByColumnAndRow(21, $row)->getValue());
 			$sales_person_name = trim($sheet->getCellByColumnAndRow(22, $row)->getValue());
@@ -78,10 +78,15 @@ class Dashboard extends CI_Controller {
 			$customer_po_no = trim($sheet->getCellByColumnAndRow(57, $row)->getValue());
 
 			//echo $row." ***** ".$category." ***** ".$bill_to_name." ***** ".$ship_to_name." ***** ".$model." ***** ".$order_qty." ***** ".$unit_list_price." ***** ".$unit_selling_price." ***** ".$total_amount_pen." ***** ".$total_amount." ***** ".$order_amount_pen." ***** ".$order_amount." ***** ".$tax_amount." ***** ".$dc_amount." ***** ".$dc_rate." ***** ".$currency." ***** ".$book_currency." ***** ".$inventory_org." ***** ".$sub_inventory." ***** ".$sales_person_name." ***** ".$customer_code." ***** ".$customer_name." ***** ".$customer_department." ***** ".$product_level1_name." ***** ".$product_level2_name." ***** ".$product_level3_name." ***** ".$product_level4_name." ***** ".$model_category." ***** ".$item_type_desctiption." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$bill_to_code." ***** ".$ship_to_code." ***** ".$payment_term." ***** ".$sales_channel." ***** ".$order_no." ***** ".$invoice_no." ***** ".$customer_po_no."<br/>";
-			echo $row." ***** ".$model_category." ***** ".$item_type_desctiption." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$payment_term." ***** ".$sales_channel."<br/>";
+			echo $row." ***** ".$item_type_desctiption." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$payment_term." ***** ".$sales_channel."<br/>";
 
 			$order = [
 				"order_no" => $order_no,
+				"customer_po_no" => $customer_po_no,
+			];
+			
+
+			$order_item = [
 				"order_qty" => $order_qty,
 				"unit_list_price" => $unit_list_price,
 				"unit_selling_price" => $unit_selling_price,
@@ -93,7 +98,6 @@ class Dashboard extends CI_Controller {
 				"dc_amount" => $dc_amount,
 				"dc_rate" => $dc_rate,
 				"tax_amount" => $tax_amount,
-				"customer_po_no" => $customer_po_no,
 			];
 
 			$sales_person = $this->gen_m->unique("sales_person", "name", $sales_person_name);
@@ -162,15 +166,23 @@ class Dashboard extends CI_Controller {
 			
 			$division_id = $product_level1 ? $product_level1->parent_id : -1;
 			
+			$product_category = $this->gen_m->unique("product_category", "category", $model_category);
+			if (!$product_category){
+				$this->gen_m->insert("product_category", ["category" => $model_category]);
+				$product_category = $this->gen_m->unique("product_category", "category", $model_category);
+			}
+			
 			$product = $this->gen_m->unique("product", "model", $model);
 			if (!$product){
 				$this->gen_m->insert("product", ["line_id" => $product_level4->line_id, "model" => $model]);
 				$product = $this->gen_m->unique("product", "model", $model);
 			}
 			
+			if (!$product->category_id) $this->gen_m->update("product", ["product_id" => $product->product_id], ["category_id" => $product_category->category_id]);
+			
 			$order_category = $this->gen_m->unique("order_category", "category", $category);
 			$currency = $this->gen_m->unique("currency", "currency", $currency);
-			$currency_book = $this->gen_m->unique("currency", "currency", $currency_book);
+			//$currency_book = $this->gen_m->unique("currency", "currency", $currency_book);
 			
 			echo "<strong>sales_person</strong>: "; print_r($sales_person); echo "<br/>";
 			echo "<strong>inventory</strong>: "; print_r($inventory); echo "<br/>";
@@ -185,9 +197,10 @@ class Dashboard extends CI_Controller {
 			echo "<strong>line lvl 2</strong>: "; print_r($product_level2); echo "<br/>";
 			echo "<strong>line lvl 3</strong>: "; print_r($product_level3); echo "<br/>";
 			echo "<strong>line lvl 4</strong>: "; print_r($product_level4); echo "<br/>";
+			echo "<strong>product_category</strong>: "; print_r($product_category); echo "<br/>";
 			echo "<strong>product</strong>: "; print_r($product); echo "<br/>";
-			echo "<strong>product</strong>: "; print_r($currency); echo "<br/>";
-			echo "<strong>product</strong>: "; print_r($currency_book); echo "<br/>";
+			echo "<strong>currency</strong>: "; print_r($currency); echo "<br/>";
+			//echo "<strong>currency_book</strong>: "; print_r($currency_book); echo "<br/>";
 			
 			echo "<br/><br/>----------------------------------------------------------------------------------------------------<br/><br/>";
 			//echo $row." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$order_no."<br/><br/>";
