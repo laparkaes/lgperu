@@ -74,8 +74,11 @@ class Dashboard extends CI_Controller {
 			$payment_term = trim($sheet->getCellByColumnAndRow(49, $row)->getValue());
 			$sales_channel = trim($sheet->getCellByColumnAndRow(50, $row)->getValue());
 			$order_no = trim($sheet->getCellByColumnAndRow(53, $row)->getValue());
+			$line_no = trim($sheet->getCellByColumnAndRow(54, $row)->getValue());
 			$invoice_no = trim($sheet->getCellByColumnAndRow(56, $row)->getValue());
 			$customer_po_no = trim($sheet->getCellByColumnAndRow(57, $row)->getValue());
+			
+			$now = date('Y-m-d H:i:s', time());
 
 			//echo $row." ***** ".$category." ***** ".$bill_to_name." ***** ".$ship_to_name." ***** ".$model." ***** ".$order_qty." ***** ".$unit_list_price." ***** ".$unit_selling_price." ***** ".$total_amount_pen." ***** ".$total_amount." ***** ".$order_amount_pen." ***** ".$order_amount." ***** ".$tax_amount." ***** ".$dc_amount." ***** ".$dc_rate." ***** ".$currency." ***** ".$book_currency." ***** ".$inventory_org." ***** ".$sub_inventory." ***** ".$sales_person_name." ***** ".$customer_code." ***** ".$customer_name." ***** ".$customer_department." ***** ".$product_level1_name." ***** ".$product_level2_name." ***** ".$product_level3_name." ***** ".$product_level4_name." ***** ".$model_category." ***** ".$item_type_desctiption." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$bill_to_code." ***** ".$ship_to_code." ***** ".$payment_term." ***** ".$sales_channel." ***** ".$order_no." ***** ".$invoice_no." ***** ".$customer_po_no."<br/>";
 			echo $row." *****<br/>";
@@ -118,35 +121,47 @@ class Dashboard extends CI_Controller {
 				"order_no" => $order_no,
 				"order_date" => $order_date,
 				"customer_po_no" => $customer_po_no,
+				"updated" => $now,
+				"registered" => $now,
 			];
+			$order_rec = $this->gen_m->filter("order_", true, ["order_no" => $order_no, "order_date" => $order_date]);
+			if ($order_rec) $order = $order_rec[0];
+			else{
+				$order_id = $this->gen_m->insert("order_", $order);
+				$order = $this->gen_m->unique("order_", "order_id", $order_id);
+			}
 			echo "<strong>order:</strong><br/>"; 
-			foreach($order as $key => $val) echo $key." => ".$val."<br/>";
+			foreach($order as $key => $val) echo $key."=> ".$val."<br/>";
 			echo "<br/><br/>";
 			//order setup finished
 			
 			//order item setup
-			$product_level1 = $this->gen_m->unique("product_line", "line", $product_level1_name);
-			if (!$product_level1){
-				$this->gen_m->insert("product_line", ["parent_id" => -1, "level" => 1, "line" => $product_level1_name]);
-				$product_level1 = $this->gen_m->unique("product_line", "line", $product_level1_name);
+			$product_level1 = $this->gen_m->filter("product_line", true, ["line" => $product_level1_name, "level" => 1]);
+			if ($product_level1) $product_level1 = $product_level1[0];
+			else{
+				$line_id = $this->gen_m->insert("product_line", ["parent_id" => -1, "level" => 1, "line" => $product_level1_name]);
+				$product_level1 = $this->gen_m->unique("product_line", "line_id", $line_id);
 			}
 			
-			$product_level2 = $this->gen_m->unique("product_line", "line", $product_level2_name);
-			if (!$product_level2){
-				$this->gen_m->insert("product_line", ["parent_id" => $product_level1->line_id, "level" => 2, "line" => $product_level2_name]);
-				$product_level2 = $this->gen_m->unique("product_line", "line", $product_level2_name);
+			$product_level2 = $this->gen_m->filter("product_line", true, ["line" => $product_level2_name, "level" => 2]);
+			if ($product_level2) $product_level2 = $product_level2[0];
+			else{
+				$line_id = $this->gen_m->insert("product_line", ["parent_id" => $product_level1->line_id, "level" => 2, "line" => $product_level2_name]);
+				$product_level2 = $this->gen_m->unique("product_line", "line_id", $line_id);
 			}
 			
-			$product_level3 = $this->gen_m->unique("product_line", "line", $product_level3_name);
-			if (!$product_level3){
-				$this->gen_m->insert("product_line", ["parent_id" => $product_level2->line_id, "level" => 3, "line" => $product_level3_name]);
-				$product_level3 = $this->gen_m->unique("product_line", "line", $product_level3_name);
+			$product_level3 = $this->gen_m->filter("product_line", true, ["line" => $product_level3_name, "level" => 3]);
+			if ($product_level3) $product_level3 = $product_level3[0];
+			else{
+				$line_id = $this->gen_m->insert("product_line", ["parent_id" => $product_level2->line_id, "level" => 3, "line" => $product_level3_name]);
+				$product_level3 = $this->gen_m->unique("product_line", "line_id", $line_id);
 			}
 			
-			$product_level4 = $this->gen_m->unique("product_line", "line", $product_level4_name);
-			if (!$product_level4){
-				$this->gen_m->insert("product_line", ["parent_id" => $product_level3->line_id, "level" => 4, "line" => $product_level4_name]);
-				$product_level4 = $this->gen_m->unique("product_line", "line", $product_level4_name);
+			$product_level4 = $this->gen_m->filter("product_line", true, ["line" => $product_level4_name, "level" => 4]);
+			if ($product_level4) $product_level4 = $product_level4[0];
+			else{
+				$line_id = $this->gen_m->insert("product_line", ["parent_id" => $product_level3->line_id, "level" => 4, "line" => $product_level4_name]);
+				$product_level4 = $this->gen_m->unique("product_line", "line_id", $line_id);
 			}
 			
 			$division_id = $product_level1 ? $product_level1->parent_id : -1;
@@ -200,6 +215,7 @@ class Dashboard extends CI_Controller {
 			if (!$product->category_id) $this->gen_m->update("product", ["product_id" => $product->product_id], ["category_id" => $product_category->category_id]);
 			
 			$order_item = [
+				"order_id" => $order->order_id,
 				"type_id" => $order_itme_type->type_id,
 				"ship_to_id" => $ship_to->ship_to_id,
 				"division_id" => $division_id,
@@ -213,22 +229,35 @@ class Dashboard extends CI_Controller {
 				"sub_inventory_id" => $sub_inventory ? $sub_inventory->inventory_id :null,
 				"currency_id" => $currency->currency_id,
 				"invoice_id" => $invoice->invoice_id,
+				"line_no" => $line_no,
 				"shipment_date" => $shipment_date,
 				"closed_date" => $closed_date,
 				"order_qty" => $order_qty,
-				"unit_list_price" => $unit_list_price,
-				"unit_selling_price" => $unit_selling_price,
-				"total_amount_pen" => $total_amount_pen,
-				"total_amount" => $total_amount,
-				"order_amount_pen" => $order_amount_pen,
-				"order_amount" => $order_amount,
-				"tax_amount" => $tax_amount,
-				"dc_amount" => $dc_amount,
-				"dc_rate" => $dc_rate,
-				"tax_amount" => $tax_amount,
+				"unit_list_price" => str_replace(",", "", $unit_list_price),
+				"unit_selling_price" => str_replace(",", "", $unit_selling_price),
+				"total_amount_pen" => str_replace(",", "", $total_amount_pen),
+				"total_amount" => str_replace(",", "", $total_amount),
+				"order_amount_pen" => str_replace(",", "", $order_amount_pen),
+				"order_amount" => str_replace(",", "", $order_amount),
+				"tax_amount" => str_replace(",", "", $tax_amount),
+				"dc_amount" => str_replace(",", "", $dc_amount),
+				"dc_rate" => str_replace("%", "", $dc_rate) / 100,
+				"tax_amount" => str_replace(",", "", $tax_amount),
 			];
+			
+			$f = [
+				"order_id" => $order->order_id,
+				"line_no" => $line_no,
+			];
+			
+			if (!$this->gen_m->filter("order_item", true, $f)){
+				$order_item["updated"] = $order_item["registered"] = $now;
+				$this->gen_m->insert("order_item", $order_item);
+				echo "registered item<br/>";
+			}else echo "duplicated item<br/>";
+			
 			echo "<strong>order item:</strong><br/>"; 
-			foreach($order_item as $key => $val) echo $key." => ".$val."<br/>";
+			foreach($order_item as $key => $val) echo $key."=> ".$val."<br/>";
 			echo "<br/><br/>";
 			//order item setup finished
 			
@@ -259,7 +288,7 @@ class Dashboard extends CI_Controller {
 			echo "<br/><br/>----------------------------------------------------------------------------------------------------<br/><br/>";
 			//echo $row." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$order_no."<br/><br/>";
 			
-			if ($row >100) break;
+			//if ($row >100) break;
 		}
 	}
 }
