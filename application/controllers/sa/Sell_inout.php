@@ -575,10 +575,9 @@ class Sell_inout extends CI_Controller {
 
 	public function exp_report(){
 		set_time_limit(0);
+		$start_time = microtime(true);
 		
 		$type = "error"; $msg = $url = ""; 
-		
-		$start_time = microtime(true);
 		
 		$header = [
 			"Customer",

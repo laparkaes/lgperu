@@ -3,6 +3,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class Dashboard extends CI_Controller {
 
@@ -40,10 +43,16 @@ class Dashboard extends CI_Controller {
 		return $record[0];
 	}
 	
-	public function import_data(){
-		$spreadsheet = IOFactory::load('./test_files/dashboard/PSI_Consolidated_Report/Excel_1413601738COI.xls');
-		$spreadsheet->setActiveSheetIndex(0);
+	public function process_closed_order($coi_file, $print_values = false){
+		set_time_limit(0);
+		$start_time = microtime(true);
+		
+		$spreadsheet = IOFactory::load($coi_file);
+		//$spreadsheet->setActiveSheetIndex(0);
+		//$spreadsheet->setActiveSheetIndexByName('My Second Sheet');
 		$sheet = $spreadsheet->getActiveSheet();
+		
+		$closed_months = [];
 		
 		$max_row = $sheet->getHighestRow();
 		
@@ -89,15 +98,18 @@ class Dashboard extends CI_Controller {
 				$order_id = $this->gen_m->insert("order_", $order);
 				$order = $this->gen_m->unique("order_", "order_id", $order_id);
 			}
-
-			echo "<strong>order:</strong><br/>"; 
-			foreach($order as $key => $val) echo $key."=> ".$val."<br/>";
-			echo "<br/><br/>";
+			
+			if ($print_values){
+				echo "<strong>order:</strong><br/>";
+				foreach($order as $key => $val) echo $key."=> ".$val."<br/>";
+				echo "<br/><br/>";
+			}
 			
 			//set order item data
 			$line_no = str_replace("' ", "", trim($sheet->getCellByColumnAndRow(54, $row)->getValue()));
-			
-			
+			$closed_date = $this->date_convert($sheet->getCellByColumnAndRow(40, $row)->getValue());
+			$closed_month = date("Y-m", strtotime($closed_date));
+			if (!in_array($closed_month, $closed_months)) $closed_months[] = $closed_month;
 			
 			$address = implode(", ", [trim($sheet->getCellByColumnAndRow(69, $row)->getValue()), trim($sheet->getCellByColumnAndRow(66, $row)->getValue())]);
 			if (strlen($address) <= 3) $address = "";
@@ -134,7 +146,7 @@ class Dashboard extends CI_Controller {
 				"invoice_id" 			=> $invoice->invoice_id,
 				"line_no"				=> $line_no,
 				"shipment_date" 		=> $this->date_convert($sheet->getCellByColumnAndRow(38, $row)->getValue()),
-				"closed_date" 			=> $this->date_convert($sheet->getCellByColumnAndRow(40, $row)->getValue()),
+				"closed_date" 			=> $closed_date,
 				"order_qty" 			=> trim($sheet->getCellByColumnAndRow(6, $row)->getValue()),
 				"unit_list_price" 		=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(7, $row)->getValue())),
 				"unit_selling_price" 	=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(8, $row)->getValue())),
@@ -160,13 +172,88 @@ class Dashboard extends CI_Controller {
 				$this->gen_m->insert("order_item", $order_item_arr);
 			}
 			
-			echo "<strong>order item:</strong><br/>"; 
-			foreach($order_item_arr as $key => $val) echo $key."=> ".$val."<br/>";
-			echo "<br/><br/>";
-			//order item setup finished
-			
-			echo "<br/><br/>----------------------------------------------------------------------------------------------------<br/><br/>";
-			
+			if ($print_values){
+				echo "<strong>order item:</strong><br/>"; 
+				foreach($order_item_arr as $key => $val) echo $key."=> ".$val."<br/>";
+				echo "<br/><br/>----------------------------------------------------------------------------------------------------<br/><br/>";
+			}
 		}
+		
+		//update monthly resume values - will be developed
+		foreach($closed_months as $month){
+			$from = date("Y-m-1", strtotime($month));
+			$to = date("Y-m-t", strtotime($month));
+			
+			//echo $from." ".$to."<br/>";
+		}
+		
+		return (microtime(true) - $start_time);
+	}
+	
+	public function import_data(){
+		$runtime_coi = $this->process_closed_order('./test_files/dashboard/PSI_Consolidated_Report/Excel_1413601738COI.xls');
+		
+		echo "closed order runtime: ".number_format($runtime_coi, 2)." seconds";
+	}
+	
+	public function test(){
+		$spreadsheet = new Spreadsheet();
+		$spreadsheet->removeSheetByIndex(0);
+
+		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'Closed'));
+		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'SOI 1'));
+		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'SOI 2'));
+		
+		
+		//COI
+		$sheet = $spreadsheet->getSheetByName('Closed');
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		$spreadsheet_coi = IOFactory::load('./test_files/dashboard/PSI_Consolidated_Report/Excel_1413601738COI.xls');
+		$sheet_coi = $spreadsheet_coi->getActiveSheet();
+		
+		$max_row = $sheet_coi->getHighestRow();
+		$max_col = $sheet_coi->getHighestColumn();
+		
+		//header work
+		$rows = $sheet_coi->rangeToArray("A1:{$max_col}1")[0];
+		$rows[] = "Column1"; 
+		$rows[] = ""; 
+		$rows[] = "Fixed Order Date"; 
+		$rows[] = "Fixed Ship Date"; 
+		$rows[] = ""; 
+		$rows[] = "Fixed Closed Date";
+		foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), 1)->setValue($val);
+		
+		echo "1<br/><br/>----------------------------------------------<br/><br/>";
+		print_r($rows);
+		echo "<br/><br/>";
+		
+		for($row = 2; $row <= $max_row; $row++){
+			$rows = $sheet_coi->rangeToArray("A{$row}:{$max_col}{$row}")[0];
+			
+			
+			
+			foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), $row)->setValue($val);
+		
+			echo $row."<br/><br/>----------------------------------------------<br/><br/>";
+			print_r($rows);
+			echo "<br/><br/>";
+		}
+		
+		
+		
+		//$sheet = $spreadsheet->getSheetByName('Worksheet 1');
+		//$sheet = $spreadsheet->getActiveSheet();
+		
+		
+		//$spreadsheet->setActiveSheetIndexByName('My Second Sheet');
+		
+		//save excel file to a temporary directory
+		$file_path = './upload/';
+		$writer = new Xlsx($spreadsheet);
+		$writer->save($file_path."dashboard_.xlsx");
+		
+		
 	}
 }
