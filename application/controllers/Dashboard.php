@@ -30,6 +30,16 @@ class Dashboard extends CI_Controller {
 		else return "";
 	}
 	
+	private function get_record($tablename, $data){
+		$record = $this->gen_m->filter($tablename, true, $data);
+		if (!$record){
+			$this->gen_m->insert($tablename, $data);
+			$record = $this->gen_m->filter($tablename, true, $data);
+		}
+		
+		return $record[0];
+	}
+	
 	public function import_data(){
 		$spreadsheet = IOFactory::load('./test_files/dashboard/PSI_Consolidated_Report/Excel_1413601738COI.xls');
 		$spreadsheet->setActiveSheetIndex(0);
@@ -38,257 +48,122 @@ class Dashboard extends CI_Controller {
 		$max_row = $sheet->getHighestRow();
 		
 		for ($row = 2; $row <= $max_row; $row++){
-			$category = trim($sheet->getCellByColumnAndRow(1, $row)->getValue());
-			$bill_to_name = trim($sheet->getCellByColumnAndRow(3, $row)->getValue());
-			$ship_to_name = trim($sheet->getCellByColumnAndRow(4, $row)->getValue());
-			$model = trim($sheet->getCellByColumnAndRow(5, $row)->getValue());
-			$order_qty = trim($sheet->getCellByColumnAndRow(6, $row)->getValue());
-			$unit_list_price = trim($sheet->getCellByColumnAndRow(7, $row)->getValue());
-			$unit_selling_price = trim($sheet->getCellByColumnAndRow(8, $row)->getValue());
-			$total_amount_pen = trim($sheet->getCellByColumnAndRow(9, $row)->getValue());
-			$total_amount = trim($sheet->getCellByColumnAndRow(10, $row)->getValue());
-			$order_amount_pen = trim($sheet->getCellByColumnAndRow(11, $row)->getValue());
-			$order_amount = trim($sheet->getCellByColumnAndRow(12, $row)->getValue());
-			$tax_amount = trim($sheet->getCellByColumnAndRow(15, $row)->getValue());
-			$dc_amount = trim($sheet->getCellByColumnAndRow(16, $row)->getValue());
-			$dc_rate = trim($sheet->getCellByColumnAndRow(17, $row)->getValue());
-			$currency = trim($sheet->getCellByColumnAndRow(18, $row)->getValue());
-			//$currency_book = trim($sheet->getCellByColumnAndRow(19, $row)->getValue());
-			$inventory_org = trim($sheet->getCellByColumnAndRow(20, $row)->getValue());
-			$sub_inventory = trim($sheet->getCellByColumnAndRow(21, $row)->getValue());
-			$sales_person_name = trim($sheet->getCellByColumnAndRow(22, $row)->getValue());
-			//$customer_code = trim($sheet->getCellByColumnAndRow(26, $row)->getValue());
-			//$customer_name = trim($sheet->getCellByColumnAndRow(27, $row)->getValue());
-			$customer_department = trim($sheet->getCellByColumnAndRow(28, $row)->getValue());
-			$product_level1_name = trim($sheet->getCellByColumnAndRow(29, $row)->getValue());
-			$product_level2_name = trim($sheet->getCellByColumnAndRow(30, $row)->getValue());
-			$product_level3_name = trim($sheet->getCellByColumnAndRow(31, $row)->getValue());
-			$product_level4_name = trim($sheet->getCellByColumnAndRow(32, $row)->getValue());
-			$model_category = trim($sheet->getCellByColumnAndRow(33, $row)->getValue());
-			$item_type_desctiption = trim($sheet->getCellByColumnAndRow(34, $row)->getValue());
-			$order_date = $this->date_convert($sheet->getCellByColumnAndRow(37, $row)->getValue());
-			$shipment_date = $this->date_convert($sheet->getCellByColumnAndRow(38, $row)->getValue());
-			$closed_date = $this->date_convert($sheet->getCellByColumnAndRow(40, $row)->getValue());
-			$bill_to_code = trim($sheet->getCellByColumnAndRow(43, $row)->getValue());
-			$ship_to_code = trim($sheet->getCellByColumnAndRow(44, $row)->getValue());
-			$payment_term = trim($sheet->getCellByColumnAndRow(49, $row)->getValue());
-			$sales_channel = trim($sheet->getCellByColumnAndRow(50, $row)->getValue());
-			$order_no = trim($sheet->getCellByColumnAndRow(53, $row)->getValue());
-			$line_no = trim($sheet->getCellByColumnAndRow(54, $row)->getValue());
-			$invoice_no = trim($sheet->getCellByColumnAndRow(56, $row)->getValue());
-			$customer_po_no = trim($sheet->getCellByColumnAndRow(57, $row)->getValue());
-			
+			//initial variables
 			$now = date('Y-m-d H:i:s', time());
+			$customer = $this->get_record("customer", ["customer" => trim($sheet->getCellByColumnAndRow(3, $row)->getValue()), "bill_to_code" => trim($sheet->getCellByColumnAndRow(43, $row)->getValue())]);
+			$currency_id = $this->get_record("currency", ["currency" => trim($sheet->getCellByColumnAndRow(18, $row)->getValue())])->currency_id;
+			$status_id = $this->get_record("order_status", ["status" => "Closed"])->status_id;
 
-			//echo $row." ***** ".$category." ***** ".$bill_to_name." ***** ".$ship_to_name." ***** ".$model." ***** ".$order_qty." ***** ".$unit_list_price." ***** ".$unit_selling_price." ***** ".$total_amount_pen." ***** ".$total_amount." ***** ".$order_amount_pen." ***** ".$order_amount." ***** ".$tax_amount." ***** ".$dc_amount." ***** ".$dc_rate." ***** ".$currency." ***** ".$book_currency." ***** ".$inventory_org." ***** ".$sub_inventory." ***** ".$sales_person_name." ***** ".$customer_code." ***** ".$customer_name." ***** ".$customer_department." ***** ".$product_level1_name." ***** ".$product_level2_name." ***** ".$product_level3_name." ***** ".$product_level4_name." ***** ".$model_category." ***** ".$item_type_desctiption." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$bill_to_code." ***** ".$ship_to_code." ***** ".$payment_term." ***** ".$sales_channel." ***** ".$order_no." ***** ".$invoice_no." ***** ".$customer_po_no."<br/>";
-			echo $row." *****<br/>";
+			//order record validation
+			$order_no = trim($sheet->getCellByColumnAndRow(53, $row)->getValue());
+			$order = $this->gen_m->unique("order_", "order_no", $order_no);
+			if ($order){
+				//update order status to closed
+				$this->gen_m->update("order_", ["order_id" => $order->order_id], ["status_id" => $status_id, "updated" => $now]);
+			}else{
+				//make order record with closed status
+				$s_person = $this->get_record("sales_person", ["name" => trim($sheet->getCellByColumnAndRow(22, $row)->getValue())]);
+				$s_channel = $this->get_record("sales_channel", ["channel" => trim($sheet->getCellByColumnAndRow(50, $row)->getValue())]);
+				$payment_term = $this->get_record("payment_term", ["term" => trim($sheet->getCellByColumnAndRow(49, $row)->getValue())]);
+				$order_category = $this->get_record("order_category", ["category" => trim($sheet->getCellByColumnAndRow(1, $row)->getValue())]);
 
-			//order setup
-			$customer = $this->gen_m->unique("customer", "bill_to_code", $bill_to_code);
-			if (!$customer){
-				$this->gen_m->insert("customer", ["customer" => $bill_to_name, "bill_to_code" => $bill_to_code]);
-				$customer = $this->gen_m->unique("customer", "bill_to_code", $bill_to_code);
-			}
-			
-			$s_person = $this->gen_m->unique("sales_person", "name", $sales_person_name);
-			if (!$s_person){
-				$this->gen_m->insert("sales_person", ["name" => $sales_person_name]);
-				$s_person = $this->gen_m->unique("sales_person", "name", $sales_person_name);
-			}
-			
-			$s_channel = $this->gen_m->unique("sales_channel", "channel", $sales_channel);
-			if (!$s_channel){
-				$this->gen_m->insert("sales_channel", ["channel" => $sales_channel]);
-				$s_channel = $this->gen_m->unique("sales_channel", "channel", $sales_channel);
-			}
-			
-			$payterm = $this->gen_m->unique("payment_term", "term", $payment_term);
-			if (!$payterm){
-				$this->gen_m->insert("payment_term", ["term" => $payment_term]);
-				$payterm = $this->gen_m->unique("payment_term", "term", $payment_term);
-			}
-
-			$order_category = $this->gen_m->unique("order_category", "category", $category);
-			$currency = $this->gen_m->unique("currency", "currency", $currency);
-			
-			$order = [
-				"customer_id" => $customer->customer_id,
-				"sales_channel_id" => $s_channel->channel_id,
-				"sales_person_id" => $s_person->person_id,
-				"payment_term_id" => $payterm->term_id,
-				"order_category_id" => $order_category->category_id,
-				"currency_id" => $currency->currency_id,
-				"order_no" => $order_no,
-				"order_date" => $order_date,
-				"customer_po_no" => $customer_po_no,
-				"updated" => $now,
-				"registered" => $now,
-			];
-			$order_rec = $this->gen_m->filter("order_", true, ["order_no" => $order_no, "order_date" => $order_date]);
-			if ($order_rec) $order = $order_rec[0];
-			else{
+				$order = [
+					"status_id"			=> $status_id,
+					"customer_id" 		=> $customer->customer_id,
+					"sales_channel_id" 	=> $s_channel->channel_id,
+					"sales_person_id" 	=> $s_person->person_id,
+					"payment_term_id" 	=> $payment_term->term_id,
+					"order_category_id"	=> $order_category->category_id,
+					"currency_id" 		=> $currency_id,
+					"order_no" 			=> $order_no,
+					"order_date" 		=> $this->date_convert($sheet->getCellByColumnAndRow(37, $row)->getValue()),
+					"customer_po_no" 	=> trim($sheet->getCellByColumnAndRow(57, $row)->getValue()),
+					"updated" 			=> $now,
+					"registered" 		=> $now,
+				];
+				
 				$order_id = $this->gen_m->insert("order_", $order);
 				$order = $this->gen_m->unique("order_", "order_id", $order_id);
 			}
+
 			echo "<strong>order:</strong><br/>"; 
 			foreach($order as $key => $val) echo $key."=> ".$val."<br/>";
 			echo "<br/><br/>";
-			//order setup finished
 			
-			//order item setup
-			$product_level1 = $this->gen_m->filter("product_line", true, ["line" => $product_level1_name, "level" => 1]);
-			if ($product_level1) $product_level1 = $product_level1[0];
-			else{
-				$line_id = $this->gen_m->insert("product_line", ["parent_id" => -1, "level" => 1, "line" => $product_level1_name]);
-				$product_level1 = $this->gen_m->unique("product_line", "line_id", $line_id);
-			}
+			//set order item data
+			$line_no = str_replace("' ", "", trim($sheet->getCellByColumnAndRow(54, $row)->getValue()));
 			
-			$product_level2 = $this->gen_m->filter("product_line", true, ["line" => $product_level2_name, "level" => 2]);
-			if ($product_level2) $product_level2 = $product_level2[0];
-			else{
-				$line_id = $this->gen_m->insert("product_line", ["parent_id" => $product_level1->line_id, "level" => 2, "line" => $product_level2_name]);
-				$product_level2 = $this->gen_m->unique("product_line", "line_id", $line_id);
-			}
+			///////////////////////////////////////
+			$customer_department = trim($sheet->getCellByColumnAndRow(28, $row)->getValue());//need to do something
+			////////////////////////////////////////
 			
-			$product_level3 = $this->gen_m->filter("product_line", true, ["line" => $product_level3_name, "level" => 3]);
-			if ($product_level3) $product_level3 = $product_level3[0];
-			else{
-				$line_id = $this->gen_m->insert("product_line", ["parent_id" => $product_level2->line_id, "level" => 3, "line" => $product_level3_name]);
-				$product_level3 = $this->gen_m->unique("product_line", "line_id", $line_id);
-			}
-			
-			$product_level4 = $this->gen_m->filter("product_line", true, ["line" => $product_level4_name, "level" => 4]);
-			if ($product_level4) $product_level4 = $product_level4[0];
-			else{
-				$line_id = $this->gen_m->insert("product_line", ["parent_id" => $product_level3->line_id, "level" => 4, "line" => $product_level4_name]);
-				$product_level4 = $this->gen_m->unique("product_line", "line_id", $line_id);
-			}
-			
+			$address = implode(", ", [trim($sheet->getCellByColumnAndRow(69, $row)->getValue()), trim($sheet->getCellByColumnAndRow(66, $row)->getValue())]);
+			if (strlen($address) <= 3) $address = "";
+			$ship_to = $this->get_record("customer_ship_to", ["ship_to_code" => trim($sheet->getCellByColumnAndRow(44, $row)->getValue()), "customer_id" => $customer->customer_id, "address" => $address]);
+			$product_level1 = $this->get_record("product_line", ["line" => trim($sheet->getCellByColumnAndRow(29, $row)->getValue()), "level" => 1]);
+			$product_level2 = $this->get_record("product_line", ["parent_id" => $product_level1->line_id, "line" => trim($sheet->getCellByColumnAndRow(30, $row)->getValue()), "level" => 2]);
+			$product_level3 = $this->get_record("product_line", ["parent_id" => $product_level2->line_id, "line" => trim($sheet->getCellByColumnAndRow(31, $row)->getValue()), "level" => 3]);
+			$product_level4 = $this->get_record("product_line", ["parent_id" => $product_level3->line_id, "line" => trim($sheet->getCellByColumnAndRow(32, $row)->getValue()), "level" => 4]);
 			$division_id = $product_level1 ? $product_level1->parent_id : -1;
-			
-			$order_itme_type = $this->gen_m->unique("order_itme_type", "type", $item_type_desctiption);
-			if (!$order_itme_type){
-				$this->gen_m->insert("order_itme_type", ["type" => $item_type_desctiption]);
-				$order_itme_type = $this->gen_m->unique("order_itme_type", "type", $item_type_desctiption);
-			}
-
-			$inventory = $this->gen_m->unique("inventory", "inventory", $inventory_org);
-			if (!$inventory){
-				$this->gen_m->insert("inventory", ["parent_id" => 0, "inventory" => $inventory_org]);
-				$inventory = $this->gen_m->unique("inventory", "inventory", $inventory_org);
-			}
-			
-			if ($sub_inventory){
-				$sub_inventory_aux = ["parent_id" => $inventory->inventory_id, "inventory" => $sub_inventory];
-				$sub_inventory = $this->gen_m->filter("inventory", true, $sub_inventory_aux);
-				if ($sub_inventory) $sub_inventory = $sub_inventory[0];
-				else{
-					$inv_id = $this->gen_m->insert("inventory", $sub_inventory_aux);
-					$sub_inventory = $this->gen_m->unique("inventory", "inventory_id", $inv_id);
-				}	
-			}else $sub_inventory = null;
-
-			$invoice = $this->gen_m->unique("invoice", "invoice", $invoice_no);
-			if (!$invoice){
-				$this->gen_m->insert("invoice", ["invoice" => $invoice_no]);
-				$invoice = $this->gen_m->unique("invoice", "invoice", $invoice_no);
-			}
-			
-			$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_code", $ship_to_code);
-			if (!$ship_to){
-				$this->gen_m->insert("customer_ship_to", ["ship_to_code" => $ship_to_code, "customer_id" => $customer->customer_id, "address" => ""]);
-				$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_code", $ship_to_code);
-			}
-			
-			$product_category = $this->gen_m->unique("product_category", "category", $model_category);
-			if (!$product_category){
-				$this->gen_m->insert("product_category", ["category" => $model_category]);
-				$product_category = $this->gen_m->unique("product_category", "category", $model_category);
-			}
-			
-			$product = $this->gen_m->unique("product", "model", $model);
-			if (!$product){
-				$this->gen_m->insert("product", ["line_id" => $product_level4->line_id, "model" => $model]);
-				$product = $this->gen_m->unique("product", "model", $model);
-			}
-			
+			$order_itme_type = $this->get_record("order_itme_type", ["type" => trim($sheet->getCellByColumnAndRow(34, $row)->getValue())]);
+			$inventory = $this->get_record("inventory", ["parent_id" => 0, "inventory" => trim($sheet->getCellByColumnAndRow(20, $row)->getValue())]);
+			$sub_inventory = trim($sheet->getCellByColumnAndRow(21, $row)->getValue());
+			$sub_inventory = $sub_inventory ? $this->get_record("inventory", ["parent_id" => $inventory->inventory_id, "inventory" => $sub_inventory]) : null;
+			$invoice = $this->get_record("invoice", ["invoice" => trim($sheet->getCellByColumnAndRow(56, $row)->getValue())]);
+			$product_category = $this->get_record("product_category", ["category" => trim($sheet->getCellByColumnAndRow(33, $row)->getValue())]);
+			$product = $this->get_record("product", ["line_id" => $product_level4->line_id, "model" => trim($sheet->getCellByColumnAndRow(5, $row)->getValue())]);
 			if (!$product->category_id) $this->gen_m->update("product", ["product_id" => $product->product_id], ["category_id" => $product_category->category_id]);
 			
-			$order_item = [
-				"order_id" => $order->order_id,
-				"type_id" => $order_itme_type->type_id,
-				"ship_to_id" => $ship_to->ship_to_id,
-				"division_id" => $division_id,
-				"product_l1_line_id" => $product_level1->line_id,
-				"product_l2_line_id" => $product_level2->line_id,
-				"product_l3_line_id" => $product_level3->line_id,
-				"product_l4_line_id" => $product_level4->line_id,
-				"product_category_id" => $product_category->category_id,
-				"product_id" => $product->product_id,
-				"inventory_id" => $inventory ? $inventory->inventory_id : null,
-				"sub_inventory_id" => $sub_inventory ? $sub_inventory->inventory_id :null,
-				"currency_id" => $currency->currency_id,
-				"invoice_id" => $invoice->invoice_id,
-				"line_no" => $line_no,
-				"shipment_date" => $shipment_date,
-				"closed_date" => $closed_date,
-				"order_qty" => $order_qty,
-				"unit_list_price" => str_replace(",", "", $unit_list_price),
-				"unit_selling_price" => str_replace(",", "", $unit_selling_price),
-				"total_amount_pen" => str_replace(",", "", $total_amount_pen),
-				"total_amount" => str_replace(",", "", $total_amount),
-				"order_amount_pen" => str_replace(",", "", $order_amount_pen),
-				"order_amount" => str_replace(",", "", $order_amount),
-				"tax_amount" => str_replace(",", "", $tax_amount),
-				"dc_amount" => str_replace(",", "", $dc_amount),
-				"dc_rate" => str_replace("%", "", $dc_rate) / 100,
-				"tax_amount" => str_replace(",", "", $tax_amount),
+			$order_item_arr = [
+				"status_id" 			=> $order->status_id,
+				"type_id" 				=> $order_itme_type->type_id,
+				"ship_to_id" 			=> $ship_to->ship_to_id,
+				"division_id" 			=> $division_id,
+				"product_l1_line_id" 	=> $product_level1->line_id,
+				"product_l2_line_id" 	=> $product_level2->line_id,
+				"product_l3_line_id" 	=> $product_level3->line_id,
+				"product_l4_line_id" 	=> $product_level4->line_id,
+				"product_category_id" 	=> $product_category->category_id,
+				"product_id" 			=> $product->product_id,
+				"inventory_id" 			=> $inventory ? $inventory->inventory_id : null,
+				"sub_inventory_id" 		=> $sub_inventory ? $sub_inventory->inventory_id :null,
+				"currency_id" 			=> $currency_id,
+				"invoice_id" 			=> $invoice->invoice_id,
+				"line_no"				=> $line_no,
+				"shipment_date" 		=> $this->date_convert($sheet->getCellByColumnAndRow(38, $row)->getValue()),
+				"closed_date" 			=> $this->date_convert($sheet->getCellByColumnAndRow(40, $row)->getValue()),
+				"order_qty" 			=> trim($sheet->getCellByColumnAndRow(6, $row)->getValue()),
+				"unit_list_price" 		=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(7, $row)->getValue())),
+				"unit_selling_price" 	=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(8, $row)->getValue())),
+				"total_amount_pen" 		=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(9, $row)->getValue())),
+				"total_amount" 			=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(10, $row)->getValue())),
+				"order_amount_pen" 		=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(11, $row)->getValue())),
+				"order_amount" 			=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(12, $row)->getValue())),
+				"tax_amount" 			=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(15, $row)->getValue())),
+				"dc_amount"				=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(16, $row)->getValue())),
+				"dc_rate" 				=> str_replace("%", "", trim($sheet->getCellByColumnAndRow(17, $row)->getValue())) / 100,
 			];
 			
-			$f = [
-				"order_id" => $order->order_id,
-				"line_no" => $line_no,
-			];
-			
-			if (!$this->gen_m->filter("order_item", true, $f)){
-				$order_item["updated"] = $order_item["registered"] = $now;
-				$this->gen_m->insert("order_item", $order_item);
-				echo "registered item<br/>";
-			}else echo "duplicated item<br/>";
+			//order item data record validation
+			$order_item = $this->gen_m->filter("order_item", true, ["order_id" => $order->order_id, "line_no" => $line_no]);
+			if ($order_item){
+				//update order_item
+				$order_item_arr["updated"] = $now;
+				$this->gen_m->update("order_item", ["item_id" => $order_item[0]->item_id], $order_item_arr);
+			}else{
+				//new order_item
+				$order_item_arr["order_id"] = $order->order_id;
+				$order_item_arr["updated"] = $order_item_arr["registered"] = $now;
+				$this->gen_m->insert("order_item", $order_item_arr);
+			}
 			
 			echo "<strong>order item:</strong><br/>"; 
-			foreach($order_item as $key => $val) echo $key."=> ".$val."<br/>";
+			foreach($order_item_arr as $key => $val) echo $key."=> ".$val."<br/>";
 			echo "<br/><br/>";
 			//order item setup finished
 			
-			/* 
-			-------------------------- order
-			echo "<strong>customer</strong>: "; print_r($customer); echo "<br/>";
-			echo "<strong>sales_channel</strong>: "; print_r($s_channel); echo "<br/>";
-			echo "<strong>sales_person</strong>: "; print_r($s_person); echo "<br/>";
-			echo "<strong>payterm</strong>: "; print_r($payterm); echo "<br/>";
-			echo "<strong>order category</strong>: "; print_r($order_category); echo "<br/>";
-			
-			-------------------------- order_item
-			echo "<strong>order_itme_type</strong>: "; print_r($order_itme_type); echo "<br/>";
-			echo "<strong>ship to</strong>: "; print_r($ship_to); echo "<br/>";
-			echo "<strong>division_id</strong>: "; echo $division_id."<br/>";
-			echo "<strong>line lvl 1</strong>: "; print_r($product_level1); echo "<br/>";
-			echo "<strong>line lvl 2</strong>: "; print_r($product_level2); echo "<br/>";
-			echo "<strong>line lvl 3</strong>: "; print_r($product_level3); echo "<br/>";
-			echo "<strong>line lvl 4</strong>: "; print_r($product_level4); echo "<br/>";
-			echo "<strong>product_category</strong>: "; print_r($product_category); echo "<br/>";
-			echo "<strong>product</strong>: "; print_r($product); echo "<br/>";
-			echo "<strong>inventory</strong>: "; print_r($inventory); echo "<br/>";
-			echo "<strong>sub_inventory</strong>: "; print_r($sub_inventory); echo "<br/>";
-			echo "<strong>invoice</strong>: "; print_r($invoice); echo "<br/>";
-			echo "<strong>currency</strong>: "; print_r($currency); echo "<br/>"; // used for order and order_item
-			*/
-			
 			echo "<br/><br/>----------------------------------------------------------------------------------------------------<br/><br/>";
-			//echo $row." ***** ".$order_date." ***** ".$shipment_date." ***** ".$closed_date." ***** ".$order_no."<br/><br/>";
 			
-			//if ($row >100) break;
 		}
 	}
 }
