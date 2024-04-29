@@ -27,7 +27,7 @@ class Dashboard extends CI_Controller {
 	private function date_convert($date){
 		$aux = explode("/", $date);
 		if (count($aux) > 2) return $aux[2]."-".$aux[1]."-".$aux[0];
-		else return "";
+		else return null;
 	}
 	
 	private function get_record($tablename, $data){
@@ -51,8 +51,11 @@ class Dashboard extends CI_Controller {
 			//initial variables
 			$now = date('Y-m-d H:i:s', time());
 			$customer = $this->get_record("customer", ["customer" => trim($sheet->getCellByColumnAndRow(3, $row)->getValue()), "bill_to_code" => trim($sheet->getCellByColumnAndRow(43, $row)->getValue())]);
+			
 			$currency_id = $this->get_record("currency", ["currency" => trim($sheet->getCellByColumnAndRow(18, $row)->getValue())])->currency_id;
 			$status_id = $this->get_record("order_status", ["status" => "Closed"])->status_id;
+			$subsidiary_id = $this->get_record("subsidiary", ["subsidiary" => trim($sheet->getCellByColumnAndRow(28, $row)->getValue())])->subsidiary_id;
+			$this->gen_m->update("customer", ["customer_id" => $customer->customer_id], ["subsidiary_id" => $subsidiary_id]);
 
 			//order record validation
 			$order_no = trim($sheet->getCellByColumnAndRow(53, $row)->getValue());
@@ -75,6 +78,7 @@ class Dashboard extends CI_Controller {
 					"payment_term_id" 	=> $payment_term->term_id,
 					"order_category_id"	=> $order_category->category_id,
 					"currency_id" 		=> $currency_id,
+					"subsidiary_id" 	=> $subsidiary_id,
 					"order_no" 			=> $order_no,
 					"order_date" 		=> $this->date_convert($sheet->getCellByColumnAndRow(37, $row)->getValue()),
 					"customer_po_no" 	=> trim($sheet->getCellByColumnAndRow(57, $row)->getValue()),
@@ -93,9 +97,7 @@ class Dashboard extends CI_Controller {
 			//set order item data
 			$line_no = str_replace("' ", "", trim($sheet->getCellByColumnAndRow(54, $row)->getValue()));
 			
-			///////////////////////////////////////
-			$customer_department = trim($sheet->getCellByColumnAndRow(28, $row)->getValue());//need to do something
-			////////////////////////////////////////
+			
 			
 			$address = implode(", ", [trim($sheet->getCellByColumnAndRow(69, $row)->getValue()), trim($sheet->getCellByColumnAndRow(66, $row)->getValue())]);
 			if (strlen($address) <= 3) $address = "";
@@ -115,7 +117,8 @@ class Dashboard extends CI_Controller {
 			if (!$product->category_id) $this->gen_m->update("product", ["product_id" => $product->product_id], ["category_id" => $product_category->category_id]);
 			
 			$order_item_arr = [
-				"status_id" 			=> $order->status_id,
+				"subsidiary_id" 		=> $subsidiary_id,
+				"order_status_id" 		=> $order->status_id,
 				"type_id" 				=> $order_itme_type->type_id,
 				"ship_to_id" 			=> $ship_to->ship_to_id,
 				"division_id" 			=> $division_id,

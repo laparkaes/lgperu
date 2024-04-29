@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- 생성 시간: 24-04-27 14:29
+-- 생성 시간: 24-04-28 23:56
 -- 서버 버전: 10.4.24-MariaDB
 -- PHP 버전: 7.4.29
 
@@ -75,6 +75,7 @@ CREATE TABLE `currency` (
 
 CREATE TABLE `customer` (
   `customer_id` int(11) NOT NULL,
+  `subsidiary_id` int(11) DEFAULT NULL,
   `customer` varchar(250) NOT NULL,
   `bill_to_code` varchar(20) NOT NULL,
   `registered` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -166,6 +167,30 @@ CREATE TABLE `location` (
 -- --------------------------------------------------------
 
 --
+-- 테이블 구조 `order_`
+--
+
+CREATE TABLE `order_` (
+  `order_id` int(11) NOT NULL,
+  `subsidiary_id` int(11) DEFAULT NULL,
+  `status_id` int(11) NOT NULL,
+  `customer_id` int(11) NOT NULL,
+  `sales_channel_id` int(11) NOT NULL,
+  `sales_person_id` int(11) NOT NULL,
+  `payment_term_id` int(11) NOT NULL,
+  `order_category_id` int(11) NOT NULL,
+  `currency_id` int(11) NOT NULL,
+  `order_no` varchar(50) NOT NULL,
+  `order_date` date DEFAULT NULL,
+  `customer_po_no` varchar(50) DEFAULT NULL,
+  `valid` tinyint(1) NOT NULL DEFAULT 1,
+  `updated` timestamp NULL DEFAULT NULL,
+  `registered` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- 테이블 구조 `order_category`
 --
 
@@ -178,12 +203,66 @@ CREATE TABLE `order_category` (
 -- --------------------------------------------------------
 
 --
+-- 테이블 구조 `order_item`
+--
+
+CREATE TABLE `order_item` (
+  `item_id` int(11) NOT NULL,
+  `subsidiary_id` int(11) DEFAULT NULL,
+  `order_id` int(11) NOT NULL,
+  `order_status_id` int(11) NOT NULL,
+  `type_id` int(11) NOT NULL,
+  `ship_to_id` int(11) NOT NULL,
+  `division_id` int(11) NOT NULL,
+  `product_l1_line_id` int(11) NOT NULL,
+  `product_l2_line_id` int(11) NOT NULL,
+  `product_l3_line_id` int(11) NOT NULL,
+  `product_l4_line_id` int(11) NOT NULL,
+  `product_category_id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `inventory_id` int(11) DEFAULT NULL,
+  `sub_inventory_id` int(11) DEFAULT NULL,
+  `currency_id` int(11) NOT NULL,
+  `invoice_id` int(11) NOT NULL,
+  `line_no` varchar(20) NOT NULL,
+  `shipment_date` date DEFAULT NULL,
+  `closed_date` date DEFAULT NULL,
+  `order_qty` int(11) NOT NULL,
+  `unit_list_price` decimal(10,2) NOT NULL,
+  `unit_selling_price` decimal(10,2) NOT NULL,
+  `total_amount_pen` decimal(10,2) NOT NULL,
+  `total_amount` decimal(10,2) NOT NULL,
+  `order_amount_pen` decimal(10,2) NOT NULL,
+  `order_amount` decimal(10,2) NOT NULL,
+  `tax_amount` decimal(10,2) NOT NULL,
+  `dc_amount` decimal(10,2) NOT NULL,
+  `dc_rate` decimal(10,2) NOT NULL,
+  `valid` tinyint(1) NOT NULL DEFAULT 1,
+  `updated` timestamp NULL DEFAULT NULL,
+  `registered` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- 테이블 구조 `order_itme_type`
 --
 
 CREATE TABLE `order_itme_type` (
   `type_id` int(11) NOT NULL,
   `type` varchar(20) NOT NULL,
+  `valid` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- 테이블 구조 `order_status`
+--
+
+CREATE TABLE `order_status` (
+  `status_id` int(11) NOT NULL,
+  `status` varchar(20) NOT NULL,
   `valid` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -246,7 +325,7 @@ CREATE TABLE `product_category` (
 
 CREATE TABLE `product_line` (
   `line_id` int(11) NOT NULL,
-  `parent_id` int(11) NOT NULL,
+  `parent_id` int(11) NOT NULL DEFAULT -1,
   `level` int(11) NOT NULL,
   `line` varchar(200) NOT NULL,
   `valid` tinyint(1) NOT NULL DEFAULT 1
@@ -490,16 +569,34 @@ ALTER TABLE `location`
   ADD PRIMARY KEY (`location_id`);
 
 --
+-- 테이블의 인덱스 `order_`
+--
+ALTER TABLE `order_`
+  ADD PRIMARY KEY (`order_id`);
+
+--
 -- 테이블의 인덱스 `order_category`
 --
 ALTER TABLE `order_category`
   ADD PRIMARY KEY (`category_id`);
 
 --
+-- 테이블의 인덱스 `order_item`
+--
+ALTER TABLE `order_item`
+  ADD PRIMARY KEY (`item_id`);
+
+--
 -- 테이블의 인덱스 `order_itme_type`
 --
 ALTER TABLE `order_itme_type`
   ADD PRIMARY KEY (`type_id`);
+
+--
+-- 테이블의 인덱스 `order_status`
+--
+ALTER TABLE `order_status`
+  ADD PRIMARY KEY (`status_id`);
 
 --
 -- 테이블의 인덱스 `organization`
@@ -669,16 +766,34 @@ ALTER TABLE `location`
   MODIFY `location_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- 테이블의 AUTO_INCREMENT `order_`
+--
+ALTER TABLE `order_`
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- 테이블의 AUTO_INCREMENT `order_category`
 --
 ALTER TABLE `order_category`
   MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- 테이블의 AUTO_INCREMENT `order_item`
+--
+ALTER TABLE `order_item`
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- 테이블의 AUTO_INCREMENT `order_itme_type`
 --
 ALTER TABLE `order_itme_type`
   MODIFY `type_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- 테이블의 AUTO_INCREMENT `order_status`
+--
+ALTER TABLE `order_status`
+  MODIFY `status_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- 테이블의 AUTO_INCREMENT `organization`
