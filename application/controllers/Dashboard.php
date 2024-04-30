@@ -197,15 +197,19 @@ class Dashboard extends CI_Controller {
 	}
 	
 	public function test(){
+		set_time_limit(0);
+		$start_time = microtime(true);
+		
+		//make blank excel file
 		$spreadsheet = new Spreadsheet();
 		$spreadsheet->removeSheetByIndex(0);
-
+		
+		//worksheets setting
 		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'Closed'));
 		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'SOI 1'));
 		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'SOI 2'));
 		
-		
-		//COI
+		//COI -start
 		$sheet = $spreadsheet->getSheetByName('Closed');
 		$sheet = $spreadsheet->getActiveSheet();
 		
@@ -217,30 +221,28 @@ class Dashboard extends CI_Controller {
 		
 		//header work
 		$rows = $sheet_coi->rangeToArray("A1:{$max_col}1")[0];
-		$rows[] = "Column1"; 
-		$rows[] = ""; 
-		$rows[] = "Fixed Order Date"; 
-		$rows[] = "Fixed Ship Date"; 
-		$rows[] = ""; 
-		$rows[] = "Fixed Closed Date";
+		$rows = array_merge($rows, ["Column1", "", "Fixed Order Date", "Fixed Ship Date", "", "Fixed Closed Date"]);
 		foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), 1)->setValue($val);
+		//echo "1<br/><br/>----<br/><br/>"; print_r($rows); echo "<br/><br/>";
 		
-		echo "1<br/><br/>----------------------------------------------<br/><br/>";
-		print_r($rows);
-		echo "<br/><br/>";
+		//index of array to remove commas
+		$nums = [5,6,7,8,9,10,11,12,13,14,15,82];
 		
 		for($row = 2; $row <= $max_row; $row++){
 			$rows = $sheet_coi->rangeToArray("A{$row}:{$max_col}{$row}")[0];
 			
+			//dates convert to 20240422 format
+			$rows = array_merge($rows, ["", "", str_replace("-", "", $this->date_convert($rows[36])), str_replace("-", "", $this->date_convert($rows[37])), "", str_replace("-", "", $this->date_convert($rows[39]))]);
 			
+			//remove commas of numbers
+			foreach($nums as $n) $rows[$n] = str_replace(",", "", $rows[$n]);
 			
+			//write to merged file
 			foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), $row)->setValue($val);
 		
-			echo $row."<br/><br/>----------------------------------------------<br/><br/>";
-			print_r($rows);
-			echo "<br/><br/>";
+			//echo $row."<br/><br/>----<br/><br/>"; print_r($rows); echo "<br/><br/>";
 		}
-		
+		//COI - end
 		
 		
 		//$sheet = $spreadsheet->getSheetByName('Worksheet 1');
@@ -254,6 +256,7 @@ class Dashboard extends CI_Controller {
 		$writer = new Xlsx($spreadsheet);
 		$writer->save($file_path."dashboard_.xlsx");
 		
-		
+		//runtime print
+		echo (microtime(true) - $start_time);
 	}
 }
