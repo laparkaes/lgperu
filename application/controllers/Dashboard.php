@@ -27,10 +27,14 @@ class Dashboard extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	private function date_convert($date){
+	private function date_convert($date){//dd/mm/yyyy > yyyy-mm-dd
 		$aux = explode("/", $date);
 		if (count($aux) > 2) return $aux[2]."-".$aux[1]."-".$aux[0];
 		else return null;
+	}
+	
+	private function date_convert_2($date){//yyyy/mm/dd hh:mm:ss > yyyy-mm-dd
+		return str_replace("/", "-", explode(" ", $date)[0]);
 	}
 	
 	private function get_record($tablename, $data){
@@ -196,24 +200,11 @@ class Dashboard extends CI_Controller {
 		echo "closed order runtime: ".number_format($runtime_coi, 2)." seconds";
 	}
 	
-	public function test(){
-		set_time_limit(0);
-		$start_time = microtime(true);
+	public function set_coi($filename, $sheetname, $filename_coi){
+		$spreadsheet = IOFactory::load($filename);
+		$sheet = $spreadsheet->getSheetByName($sheetname);
 		
-		//make blank excel file
-		$spreadsheet = new Spreadsheet();
-		$spreadsheet->removeSheetByIndex(0);
-		
-		//worksheets setting
-		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'Closed'));
-		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'SOI 1'));
-		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'SOI 2'));
-		
-		//COI -start
-		$sheet = $spreadsheet->getSheetByName('Closed');
-		$sheet = $spreadsheet->getActiveSheet();
-		
-		$spreadsheet_coi = IOFactory::load('./test_files/dashboard/PSI_Consolidated_Report/Excel_1413601738COI.xls');
+		$spreadsheet_coi = IOFactory::load($filename_coi);
 		$sheet_coi = $spreadsheet_coi->getActiveSheet();
 		
 		$max_row = $sheet_coi->getHighestRow();
@@ -223,7 +214,6 @@ class Dashboard extends CI_Controller {
 		$rows = $sheet_coi->rangeToArray("A1:{$max_col}1")[0];
 		$rows = array_merge($rows, ["Column1", "", "Fixed Order Date", "Fixed Ship Date", "", "Fixed Closed Date"]);
 		foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), 1)->setValue($val);
-		//echo "1<br/><br/>----<br/><br/>"; print_r($rows); echo "<br/><br/>";
 		
 		//index of array to remove commas
 		$nums = [5,6,7,8,9,10,11,12,13,14,15,82];
@@ -239,10 +229,140 @@ class Dashboard extends CI_Controller {
 			
 			//write to merged file
 			foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), $row)->setValue($val);
+		}
 		
-			//echo $row."<br/><br/>----<br/><br/>"; print_r($rows); echo "<br/><br/>";
+		$writer = new Xlsx($spreadsheet);
+		$writer->save("./upload/dashboard_.xlsx");
+	}
+	
+	public function set_soi($filename, $sheetname, $filename_coi){
+		$spreadsheet = IOFactory::load($filename);
+		$sheet = $spreadsheet->getSheetByName($sheetname);
+		
+		$spreadsheet_coi = IOFactory::load($filename_coi);
+		$sheet_coi = $spreadsheet_coi->getActiveSheet();
+		
+		$max_row = $sheet_coi->getHighestRow();
+		$max_col = $sheet_coi->getHighestColumn();
+		
+		//header work
+		$rows = $sheet_coi->rangeToArray("A1:{$max_col}1")[0];
+		$rows = array_merge($rows, ["Column1", "Fixed PO Date", "Fixed Create Date", "Fixed RAD Date", "Fixed Ship Date"]);
+		
+		foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), 1)->setValue($val);
+		
+		//index of array to remove commas
+		$nums = [11,12,13,14,15,16,17,18,23,154,155,156,157];
+		
+		for($row = 2; $row <= $max_row; $row++){
+			$rows = $sheet_coi->rangeToArray("A{$row}:{$max_col}{$row}")[0];
+			
+			//dates convert to 20240422 format
+			$rows = array_merge($rows, ["", str_replace("-", "", $this->date_convert($rows[43])), str_replace("-", "", $this->date_convert($rows[117])), str_replace("-", "", $this->date_convert_2($rows[130])), str_replace("-", "", $this->date_convert($rows[31]))]);
+			
+			//remove commas of numbers
+			foreach($nums as $n) $rows[$n] = str_replace(",", "", $rows[$n]);
+			
+			//write to merged file
+			foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), $row)->setValue($val);
+		}
+		
+		$writer = new Xlsx($spreadsheet);
+		$writer->save("./upload/dashboard_.xlsx");
+	}
+	
+	public function test(){
+		set_time_limit(0);
+		$start_time = microtime(true);
+		
+		//start to create excel file
+		$spreadsheet = new Spreadsheet();
+		$spreadsheet->removeSheetByIndex(0);
+		
+		//worksheets setting
+		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'Closed'));
+		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'SOI 1'));
+		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'SOI 2'));
+		
+		$writer = new Xlsx($spreadsheet);
+		$writer->save("./upload/dashboard_.xlsx");
+		
+		//copy COI content to excel file
+		$this->set_coi('./upload/dashboard_.xlsx', 'Closed', './test_files/dashboard/PSI_Consolidated_Report/Excel_1413601738COI.xls');
+		
+		//copy SOI 1 content to excel file
+		$this->set_soi('./upload/dashboard_.xlsx', 'SOI 1', './test_files/dashboard/PSI_Consolidated_Report/Excel_1413685085SOI1.xls');
+		
+		//copy SOI 2 content to excel file
+		$this->set_soi('./upload/dashboard_.xlsx', 'SOI 2', './test_files/dashboard/PSI_Consolidated_Report/Excel_1413685085SOI2.xls');
+		
+		/*
+		//COI - start
+		$sheet = $spreadsheet->getSheetByName('Closed');
+		
+		$spreadsheet_coi = IOFactory::load('./test_files/dashboard/PSI_Consolidated_Report/Excel_1413601738COI.xls');
+		$sheet_coi = $spreadsheet_coi->getActiveSheet();
+		
+		$max_row = $sheet_coi->getHighestRow();
+		$max_col = $sheet_coi->getHighestColumn();
+		
+		//header work
+		$rows = $sheet_coi->rangeToArray("A1:{$max_col}1")[0];
+		$rows = array_merge($rows, ["Column1", "", "Fixed Order Date", "Fixed Ship Date", "", "Fixed Closed Date"]);
+		foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), 1)->setValue($val);
+		
+		//index of array to remove commas
+		$nums = [5,6,7,8,9,10,11,12,13,14,15,82];
+		
+		for($row = 2; $row <= $max_row; $row++){
+			$rows = $sheet_coi->rangeToArray("A{$row}:{$max_col}{$row}")[0];
+			
+			//dates convert to 20240422 format
+			$rows = array_merge($rows, ["", "", str_replace("-", "", $this->date_convert($rows[36])), str_replace("-", "", $this->date_convert($rows[37])), "", str_replace("-", "", $this->date_convert($rows[39]))]);
+			
+			//remove commas of numbers
+			foreach($nums as $n) $rows[$n] = str_replace(",", "", $rows[$n]);
+			
+			//write to merged file
+			foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), $row)->setValue($val);
 		}
 		//COI - end
+		*/
+		
+		/*
+		//SOI 1 - start
+		$sheet = $spreadsheet->getSheetByName('SOI 1');
+		//$sheet = $spreadsheet->getActiveSheet();
+		
+		$spreadsheet_soi1 = IOFactory::load('./test_files/dashboard/PSI_Consolidated_Report/Excel_1413685085SOI1.xls');
+		$sheet_soi1 = $spreadsheet_coi->getActiveSheet();
+		
+		$max_row = $sheet_soi1->getHighestRow();
+		$max_col = $sheet_soi1->getHighestColumn();
+		
+		//header work
+		$rows = $sheet_soi1->rangeToArray("A1:{$max_col}1")[0];
+		$rows = array_merge($rows, ["Column1", "Fixed Order Date", "Fixed Ship Date", "Fixed Closed Date"]);
+		foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), 1)->setValue($val);
+		
+		//index of array to remove commas
+		//$nums = [5,6,7,8,9,10,11,12,13,14,15,82];
+		
+		for($row = 2; $row <= $max_row; $row++){
+			$rows = $sheet_soi1->rangeToArray("A{$row}:{$max_col}{$row}")[0];
+			
+			//dates convert to 20240422 format
+			//$rows = array_merge($rows, ["", "", str_replace("-", "", $this->date_convert($rows[36])), str_replace("-", "", $this->date_convert($rows[37])), "", str_replace("-", "", $this->date_convert($rows[39]))]);
+			
+			//remove commas of numbers
+			//foreach($nums as $n) $rows[$n] = str_replace(",", "", $rows[$n]);
+			
+			//write to merged file
+			foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), $row)->setValue($val);
+			
+			if ($row > 50) break;
+		}
+		//SOI 1 - end
 		
 		
 		//$sheet = $spreadsheet->getSheetByName('Worksheet 1');
@@ -255,7 +375,7 @@ class Dashboard extends CI_Controller {
 		$file_path = './upload/';
 		$writer = new Xlsx($spreadsheet);
 		$writer->save($file_path."dashboard_.xlsx");
-		
+		*/
 		//runtime print
 		echo (microtime(true) - $start_time);
 	}
