@@ -56,7 +56,7 @@ class Dashboard extends CI_Controller {
 	
 	public function process_sales_order($soi_file, $print_values = false){
 		$header = ["Bill To Name","Ship To Name","Model","Order No.","Line No.","Order Type","Line Status","Hold Flag","Ready To Pick","Pick Released","Instock Flag","Order Qty","Unit Selling Price","Sales Amount","Tax Amount","Charge Amount","Line Total","List Price","Original List Price","DC Rate","Currency","DFI Applicable","AAI Applicable","Cancel Qty","Booked Date","Scheduled Cancel Date","Cancel Date","Expire Date","Req. Arrival Date From","Req. Arrival Date To","Req. Ship Date","Shipment Date","Close Date","Line Type","Customer Name","Bill To","Department","Ship To","Ship To Full Name","Store No","Price Condition","Payment Term","Customer PO No.","Customer Po Date","Invoice No.","Invoice Line No.","Invoice Date","Sales Person","Pricing Group","Buying Group","Territory Code","Inventory Org.","Sub- Inventory","Shipping Method","Shipment Priority","Order Source","Order Status","Order Category","Quote Date","Quote Expire Date","Project Code","Comm. Submission No.","PLP Submission No.","BPM Request No.","Consumer Name","Consumer Phone No","Consumer Mobile NO","Receiver Name","Receiver Phone No","Receiver Mobile NO","Receiver Address1","Receiver Address2","Receiver Address3","Receiver City","Receiver City Desc","Receiver County","Receiver Postal code","Receiver State","Receiver Province","Receiver Country","Item Division","PL1 Name","PL2 Name","PL3 Name","PL4 Name","Product Level4 Code","Model Category","Item Type","Item Weight","Item CBM","Sales Channel (High)","Sales Channel (Low)","Ship Group","Back Order Hold","Credit Hold","Overdue Hold","Customer Hold","Payterm Term Hold","FP Hold","Minimum Hold","Future Hold","Reserve Hold","Manual Hold","Auto Pending Hold","S/A Hold","Form Hold","Bank Collateral Hold","Insurance Hold","Partial Flag","Load Hold Flag","Inventory Reserved","Pick Release Qty","Long & Multi Flag","SO-SA Mapping","Picking Remark","Shipping Remark","Create Employee Name","Create Date","Order Date","Expected Arrival Date","Fixed Arrival Date","DLS Interface","Sales Recognition Method","Billing Type","LT DAY","EDI Customer Remark","Carrier Code","Delivery Number","Manifest/ GRN No","Warehouse Job No","Customer RAD","Others Out Reason","Ship Set Name","Promising Txn Status","Promised MAD","Promised Arrival Date","Appointment Date","Promised Ship Date","Initial Promised Arrival Date","Accounting Unit","RAD Unmeet Reason","Install Type","Install Date","ACD Original Warehouse","ACD Original W/H Type","Customer Model","Customer Model Desc","CNPJ","Nota No","Nota Date","Net Price","Interest Amt","SO Status(2)","Back Order Reason","SBP Tax Include","SBP Tax Exclude","RRP Tax Include","RRP Tax Exclude","SO FAP Flag","SO FAP Slot Date","Model  Profit Level","APMS NO","Scheduled Back Date","Customer PO Type","","Revised RSD","Revised RAD From","Revised RAD To","Pick Cancel Manual Hold",];
-		$exr = $this->
+		$exr_usd_pen = $this->gen_m->filter("exchange_rate", true, ["currency_from" => "USD", "currency_to" => "PEN"], null, null, [["date", "desc"]], 1, 0)[0];
 		
 		set_time_limit(0);
 		$start_time = microtime(true);
@@ -74,7 +74,7 @@ class Dashboard extends CI_Controller {
 			$now = date('Y-m-d H:i:s', time());
 
 			$customer = $this->get_record("customer", ["customer" => $rowdata[0], "bill_to_code" => $rowdata[35]]);
-			$currency_id = $this->get_record("currency", ["currency" => $rowdata[20]])->currency_id;
+			$currency = $this->get_record("currency", ["currency" => $rowdata[20]]);
 			$status_id = $this->get_record("order_status", ["status" => $rowdata[152]])->status_id;
 			$subsidiary_id = $this->get_record("subsidiary", ["subsidiary" => $rowdata[36]])->subsidiary_id;
 			$this->gen_m->update("customer", ["customer_id" => $customer->customer_id], ["subsidiary_id" => $subsidiary_id]);
@@ -99,7 +99,7 @@ class Dashboard extends CI_Controller {
 					"sales_person_id" 	=> $s_person->person_id,
 					"payment_term_id" 	=> $payment_term->term_id,
 					"order_category_id"	=> $order_category->category_id,
-					"currency_id" 		=> $currency_id,
+					"currency_id" 		=> $currency->currency_id,
 					"subsidiary_id" 	=> $subsidiary_id,
 					"order_no" 			=> $order_no,
 					"order_date" 		=> $this->date_convert($rowdata[118]),
@@ -130,6 +130,9 @@ class Dashboard extends CI_Controller {
 			$product = $this->get_record("product", ["line_id" => $product_level4->line_id, "model" => $rowdata[2]]);
 			if (!$product->category_id) $this->gen_m->update("product", ["product_id" => $product->product_id], ["category_id" => $product_category->category_id]);
 			
+			$total_amount = str_replace(",", "", $rowdata[16]);
+			$order_amount = str_replace(",", "", $rowdata[13]);
+			
 			$order_item_arr = [
 				"subsidiary_id" 		=> $subsidiary_id,
 				"order_status_id" 		=> $order->status_id,
@@ -144,22 +147,35 @@ class Dashboard extends CI_Controller {
 				"product_id" 			=> $product->product_id,
 				"inventory_id" 			=> $inventory ? $inventory->inventory_id : null,
 				"sub_inventory_id" 		=> $sub_inventory ? $sub_inventory->inventory_id :null,
-				"currency_id" 			=> $currency_id,
+				"currency_id" 			=> $currency->currency_id,
 				"line_no"				=> $line_no,
 				"order_date" 			=> $order->order_date,
 				"shipment_date" 		=> $this->date_convert($rowdata[31]),
 				"order_qty" 			=> str_replace(",", "", $rowdata[11]),
 				"unit_list_price" 		=> str_replace(",", "", $rowdata[17]),
 				"unit_selling_price" 	=> str_replace(",", "", $rowdata[12]),
-				//"total_amount_pen" 		=> str_replace(",", "", $rowdata[8]),
-				"total_amount" 			=> str_replace(",", "", $rowdata[16]),
-				//"order_amount_pen" 		=> str_replace(",", "", $rowdata[10]),
-				"order_amount" 			=> str_replace(",", "", $rowdata[13]),
+				"total_amount_pen" 		=> $currency->currency === "USD" ? $total_amount * $exr_usd_pen->rate : $total_amount,
+				"total_amount" 			=> $total_amount,
+				"order_amount_pen" 		=> $currency->currency === "USD" ? $order_amount * $exr_usd_pen->rate : $order_amount,
+				"order_amount" 			=> $order_amount,
 				"tax_amount" 			=> str_replace(",", "", $rowdata[14]),
-				//"dc_amount"				=> str_replace(",", "", $rowdata[15]),
 				"dc_rate" 				=> (str_replace("%", "", $rowdata[19]) / 100),
 			];
 			
+			$order_item = $this->gen_m->filter("order_item", true, ["order_id" => $order->order_id, "line_no" => $line_no]);
+			if ($order_item){
+				//update order_item only in case of order is not closed
+				$closed_id = $this->get_record("order_status", ["status" => "CLOSED"])->status_id;
+				if ($order_item[0]->order_status_id != $closed_id){
+					$order_item_arr["updated"] = $now;
+					$this->gen_m->update("order_item", ["item_id" => $order_item[0]->item_id], $order_item_arr);	
+				}
+			}else{
+				//new order_item
+				$order_item_arr["order_id"] = $order->order_id;
+				$order_item_arr["updated"] = $order_item_arr["registered"] = $now;
+				$this->gen_m->insert("order_item", $order_item_arr);
+			}
 			
 			
 			echo "order ---------- <br/>"; print_r($order); echo "<br/><br/>";
@@ -195,7 +211,7 @@ class Dashboard extends CI_Controller {
 			$now = date('Y-m-d H:i:s', time());
 			$customer = $this->get_record("customer", ["customer" => $rowdata[2], "bill_to_code" => $rowdata[42]]);
 			$currency_id = $this->get_record("currency", ["currency" => $rowdata[17]])->currency_id;
-			$status_id = $this->get_record("order_status", ["status" => "Closed"])->status_id;
+			$status_id = $this->get_record("order_status", ["status" => "CLOSED"])->status_id;
 			$subsidiary_id = $this->get_record("subsidiary", ["subsidiary" => $rowdata[27]])->subsidiary_id;
 			$this->gen_m->update("customer", ["customer_id" => $customer->customer_id], ["subsidiary_id" => $subsidiary_id]);
 
@@ -285,7 +301,6 @@ class Dashboard extends CI_Controller {
 				"order_amount_pen" 		=> str_replace(",", "", $rowdata[10]),
 				"order_amount" 			=> str_replace(",", "", $rowdata[11]),
 				"tax_amount" 			=> str_replace(",", "", $rowdata[14]),
-				"dc_amount"				=> str_replace(",", "", $rowdata[15]),
 				"dc_rate" 				=> (str_replace("%", "", $rowdata[16]) / 100),
 			];
 			
