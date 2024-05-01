@@ -78,7 +78,7 @@ class My_func{
 			$writer->save($file_path.$filename);
 			
 			//file url
-			$url = base_url()."upload/".$filename;	
+			$url = base_url()."upload/".$filename;
 		}
 		
 		return $url;

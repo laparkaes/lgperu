@@ -37,6 +37,7 @@ class Dashboard extends CI_Controller {
 		return str_replace("/", "-", explode(" ", $date)[0]);
 	}
 	
+	//insert Closed order to database
 	private function get_record($tablename, $data){
 		$record = $this->gen_m->filter($tablename, true, $data);
 		if (!$record){
@@ -47,160 +48,214 @@ class Dashboard extends CI_Controller {
 		return $record[0];
 	}
 	
-	public function process_closed_order($coi_file, $print_values = false){
+	public function process_sales_order($coi_file, $print_values = false){
+		$header = ["Bill To Name","Ship To Name","Model","Order No.","Line No.","Order Type","Line Status","Hold Flag","Ready To Pick","Pick Released","Instock Flag","Order Qty","Unit Selling Price","Sales Amount","Tax Amount","Charge Amount","Line Total","List Price","Original List Price","DC Rate","Currency","DFI Applicable","AAI Applicable","Cancel Qty","Booked Date","Scheduled Cancel Date","Cancel Date","Expire Date","Req. Arrival Date From","Req. Arrival Date To","Req. Ship Date","Shipment Date","Close Date","Line Type","Customer Name","Bill To","Department","Ship To","Ship To Full Name","Store No","Price Condition","Payment Term","Customer PO No.","Customer Po Date","Invoice No.","Invoice Line No.","Invoice Date","Sales Person","Pricing Group","Buying Group","Territory Code","Inventory Org.","Sub- Inventory","Shipping Method","Shipment Priority","Order Source","Order Status","Order Category","Quote Date","Quote Expire Date","Project Code","Comm. Submission No.","PLP Submission No.","BPM Request No.","Consumer Name","Consumer Phone No","Consumer Mobile NO","Receiver Name","Receiver Phone No","Receiver Mobile NO","Receiver Address1","Receiver Address2","Receiver Address3","Receiver City","Receiver City Desc","Receiver County","Receiver Postal code","Receiver State","Receiver Province","Receiver Country","Item Division","PL1 Name","PL2 Name","PL3 Name","PL4 Name","Product Level4 Code","Model Category","Item Type","Item Weight","Item CBM","Sales Channel (High)","Sales Channel (Low)","Ship Group","Back Order Hold","Credit Hold","Overdue Hold","Customer Hold","Payterm Term Hold","FP Hold","Minimum Hold","Future Hold","Reserve Hold","Manual Hold","Auto Pending Hold","S/A Hold","Form Hold","Bank Collateral Hold","Insurance Hold","Partial Flag","Load Hold Flag","Inventory Reserved","Pick Release Qty","Long & Multi Flag","SO-SA Mapping","Picking Remark","Shipping Remark","Create Employee Name","Create Date","Order Date","Expected Arrival Date","Fixed Arrival Date","DLS Interface","Sales Recognition Method","Billing Type","LT DAY","EDI Customer Remark","Carrier Code","Delivery Number","Manifest/ GRN No","Warehouse Job No","Customer RAD","Others Out Reason","Ship Set Name","Promising Txn Status","Promised MAD","Promised Arrival Date","Appointment Date","Promised Ship Date","Initial Promised Arrival Date","Accounting Unit","RAD Unmeet Reason","Install Type","Install Date","ACD Original Warehouse","ACD Original W/H Type","Customer Model","Customer Model Desc","CNPJ","Nota No","Nota Date","Net Price","Interest Amt","SO Status(2)","Back Order Reason","SBP Tax Include","SBP Tax Exclude","RRP Tax Include","RRP Tax Exclude","SO FAP Flag","SO FAP Slot Date","Model  Profit Level","APMS NO","Scheduled Back Date","Customer PO Type","","Revised RSD","Revised RAD From","Revised RAD To","Pick Cancel Manual Hold",];
+		
 		set_time_limit(0);
 		$start_time = microtime(true);
 		
 		$spreadsheet = IOFactory::load($coi_file);
-		//$spreadsheet->setActiveSheetIndex(0);
-		//$spreadsheet->setActiveSheetIndexByName('My Second Sheet');
 		$sheet = $spreadsheet->getActiveSheet();
 		
-		$closed_months = [];
+		$max_row = $sheet->getHighestRow();
+		$max_col = $sheet->getHighestColumn();
+		
+		$rows = $sheet->rangeToArray("A1:{$max_col}1")[0];
+		if ($this->header_compare($header, $rows))
+			for ($row = 2; $row <= $max_row; $row++){
+				$now = date('Y-m-d H:i:s', time());
+				
+				echo $row."<br/>";
+			}
+		
+		return (microtime(true) - $start_time);
+	}
+	
+	public function process_closed_order($coi_file, $print_values = false){
+		$header = ["Category","AU","Bill To Name","Ship To Name","Model","Order Qty","Unit List  Price","Unit Selling  Price","Total Amount (PEN)","Total Amount","Order Amount (PEN)","Order Amount","Line Charge Amount","Header Charge Amount","Tax Amount","DC Amount","DC Rate","Currency","Book Currency","Inventory Org.","Sub- Inventory","Sales Person","Pricing Group","Buying Group","Territory","Customer Code","Customer Name","Customer Department","Product Level1 Name","Product Level2 Name","Product Level3 Name","Product Level4 Name","Model Category","Item Type Desctiption","Item Weight","Item CBM","Order Date","Shipment Date","LT Days","Closed Date","AAI Flag","HQ AU","Bill To Code","Ship To Code","Ship To Country","Ship To City","Ship To  State","Ship To Zip Code","Payment Term","Sales Channel","Order Source","Order Type","Order No.","Line No.","Line  Type","Invoice No.","Customer PO No.","Project Code","Comm. Submission No.","Product Level4","Price Grade","Consumer Name","Receiver Name","Receiver Country","Receiver Postal Code","Receiver City","Receiver State","Receiver Province","Receiver Address1","Receiver Address2","Receiver Address3","Install Store Code","Install Type","Install Date","Fapiao No.","Fapiao Date","CNPJ","Nota Date","ACD W/H Code","ACD W/H Type","Net Price","Interest Amt","Original List Pirce","PLP  Submission No","Price Condition","Nota Fiscal Serie No","Shipping Method"];
+		
+		set_time_limit(0);
+		$start_time = microtime(true);
+		
+		$spreadsheet = IOFactory::load($coi_file);
+		$sheet = $spreadsheet->getActiveSheet();
 		
 		$max_row = $sheet->getHighestRow();
+		$max_col = $sheet->getHighestColumn();
 		
-		for ($row = 2; $row <= $max_row; $row++){
-			//initial variables
-			$now = date('Y-m-d H:i:s', time());
-			$customer = $this->get_record("customer", ["customer" => trim($sheet->getCellByColumnAndRow(3, $row)->getValue()), "bill_to_code" => trim($sheet->getCellByColumnAndRow(43, $row)->getValue())]);
-			
-			$currency_id = $this->get_record("currency", ["currency" => trim($sheet->getCellByColumnAndRow(18, $row)->getValue())])->currency_id;
-			$status_id = $this->get_record("order_status", ["status" => "Closed"])->status_id;
-			$subsidiary_id = $this->get_record("subsidiary", ["subsidiary" => trim($sheet->getCellByColumnAndRow(28, $row)->getValue())])->subsidiary_id;
-			$this->gen_m->update("customer", ["customer_id" => $customer->customer_id], ["subsidiary_id" => $subsidiary_id]);
+		$rows = $sheet->rangeToArray("A1:{$max_col}1")[0];
+		if ($this->header_compare($header, $rows))
+			for ($row = 2; $row <= $max_row; $row++){
+				//initial variables
+				$now = date('Y-m-d H:i:s', time());
+				$customer = $this->get_record("customer", ["customer" => trim($sheet->getCellByColumnAndRow(3, $row)->getValue()), "bill_to_code" => trim($sheet->getCellByColumnAndRow(43, $row)->getValue())]);
+				
+				$currency_id = $this->get_record("currency", ["currency" => trim($sheet->getCellByColumnAndRow(18, $row)->getValue())])->currency_id;
+				$status_id = $this->get_record("order_status", ["status" => "Closed"])->status_id;
+				$subsidiary_id = $this->get_record("subsidiary", ["subsidiary" => trim($sheet->getCellByColumnAndRow(28, $row)->getValue())])->subsidiary_id;
+				$this->gen_m->update("customer", ["customer_id" => $customer->customer_id], ["subsidiary_id" => $subsidiary_id]);
 
-			//order record validation
-			$order_no = trim($sheet->getCellByColumnAndRow(53, $row)->getValue());
-			$order = $this->gen_m->unique("order_", "order_no", $order_no);
-			if ($order){
-				//update order status to closed
-				$this->gen_m->update("order_", ["order_id" => $order->order_id], ["status_id" => $status_id, "updated" => $now]);
-			}else{
-				//make order record with closed status
-				$s_person = $this->get_record("sales_person", ["name" => trim($sheet->getCellByColumnAndRow(22, $row)->getValue())]);
-				$s_channel = $this->get_record("sales_channel", ["channel" => trim($sheet->getCellByColumnAndRow(50, $row)->getValue())]);
-				$payment_term = $this->get_record("payment_term", ["term" => trim($sheet->getCellByColumnAndRow(49, $row)->getValue())]);
-				$order_category = $this->get_record("order_category", ["category" => trim($sheet->getCellByColumnAndRow(1, $row)->getValue())]);
+				//order record validation
+				$order_no = trim($sheet->getCellByColumnAndRow(53, $row)->getValue());
+				$order = $this->gen_m->unique("order_", "order_no", $order_no);
+				if ($order){
+					//update order status to closed
+					$this->gen_m->update("order_", ["order_id" => $order->order_id], ["status_id" => $status_id, "updated" => $now]);
+				}else{
+					//make order record with closed status
+					$s_person = $this->get_record("sales_person", ["name" => trim($sheet->getCellByColumnAndRow(22, $row)->getValue())]);
+					$s_channel = $this->get_record("sales_channel", ["channel" => trim($sheet->getCellByColumnAndRow(50, $row)->getValue())]);
+					$payment_term = $this->get_record("payment_term", ["term" => trim($sheet->getCellByColumnAndRow(49, $row)->getValue())]);
+					$order_category = $this->get_record("order_category", ["category" => trim($sheet->getCellByColumnAndRow(1, $row)->getValue())]);
 
-				$order = [
-					"status_id"			=> $status_id,
-					"customer_id" 		=> $customer->customer_id,
-					"sales_channel_id" 	=> $s_channel->channel_id,
-					"sales_person_id" 	=> $s_person->person_id,
-					"payment_term_id" 	=> $payment_term->term_id,
-					"order_category_id"	=> $order_category->category_id,
-					"currency_id" 		=> $currency_id,
-					"subsidiary_id" 	=> $subsidiary_id,
-					"order_no" 			=> $order_no,
-					"order_date" 		=> $this->date_convert($sheet->getCellByColumnAndRow(37, $row)->getValue()),
-					"customer_po_no" 	=> trim($sheet->getCellByColumnAndRow(57, $row)->getValue()),
-					"updated" 			=> $now,
-					"registered" 		=> $now,
+					$order = [
+						"status_id"			=> $status_id,
+						"customer_id" 		=> $customer->customer_id,
+						"sales_channel_id" 	=> $s_channel->channel_id,
+						"sales_person_id" 	=> $s_person->person_id,
+						"payment_term_id" 	=> $payment_term->term_id,
+						"order_category_id"	=> $order_category->category_id,
+						"currency_id" 		=> $currency_id,
+						"subsidiary_id" 	=> $subsidiary_id,
+						"order_no" 			=> $order_no,
+						"order_date" 		=> $this->date_convert($sheet->getCellByColumnAndRow(37, $row)->getValue()),
+						"customer_po_no" 	=> trim($sheet->getCellByColumnAndRow(57, $row)->getValue()),
+						"updated" 			=> $now,
+						"registered" 		=> $now,
+					];
+					
+					$order_id = $this->gen_m->insert("order_", $order);
+					$order = $this->gen_m->unique("order_", "order_id", $order_id);
+				}
+				
+				if ($print_values){
+					echo "<strong>order:</strong><br/>";
+					foreach($order as $key => $val) echo $key."=> ".$val."<br/>";
+					echo "<br/><br/>";
+				}
+				
+				//set order item data
+				$line_no = str_replace("' ", "", trim($sheet->getCellByColumnAndRow(54, $row)->getValue()));
+				$address = implode(", ", [trim($sheet->getCellByColumnAndRow(69, $row)->getValue()), trim($sheet->getCellByColumnAndRow(66, $row)->getValue())]);
+				if (strlen($address) <= 3) $address = "";
+				$ship_to = $this->get_record("customer_ship_to", ["ship_to_code" => trim($sheet->getCellByColumnAndRow(44, $row)->getValue()), "customer_id" => $customer->customer_id, "address" => $address]);
+				$product_level1 = $this->get_record("product_line", ["line" => trim($sheet->getCellByColumnAndRow(29, $row)->getValue()), "level" => 1]);
+				$product_level2 = $this->get_record("product_line", ["parent_id" => $product_level1->line_id, "line" => trim($sheet->getCellByColumnAndRow(30, $row)->getValue()), "level" => 2]);
+				$product_level3 = $this->get_record("product_line", ["parent_id" => $product_level2->line_id, "line" => trim($sheet->getCellByColumnAndRow(31, $row)->getValue()), "level" => 3]);
+				$product_level4 = $this->get_record("product_line", ["parent_id" => $product_level3->line_id, "line" => trim($sheet->getCellByColumnAndRow(32, $row)->getValue()), "level" => 4]);
+				$division_id = $product_level1 ? $product_level1->parent_id : -1;
+				$order_itme_type = $this->get_record("order_itme_type", ["type" => trim($sheet->getCellByColumnAndRow(34, $row)->getValue())]);
+				$inventory = $this->get_record("inventory", ["parent_id" => 0, "inventory" => trim($sheet->getCellByColumnAndRow(20, $row)->getValue())]);
+				$sub_inventory = trim($sheet->getCellByColumnAndRow(21, $row)->getValue());
+				$sub_inventory = $sub_inventory ? $this->get_record("inventory", ["parent_id" => $inventory->inventory_id, "inventory" => $sub_inventory]) : null;
+				$invoice = $this->get_record("invoice", ["invoice" => trim($sheet->getCellByColumnAndRow(56, $row)->getValue())]);
+				$product_category = $this->get_record("product_category", ["category" => trim($sheet->getCellByColumnAndRow(33, $row)->getValue())]);
+				$product = $this->get_record("product", ["line_id" => $product_level4->line_id, "model" => trim($sheet->getCellByColumnAndRow(5, $row)->getValue())]);
+				if (!$product->category_id) $this->gen_m->update("product", ["product_id" => $product->product_id], ["category_id" => $product_category->category_id]);
+				
+				$order_item_arr = [
+					"subsidiary_id" 		=> $subsidiary_id,
+					"order_status_id" 		=> $order->status_id,
+					"type_id" 				=> $order_itme_type->type_id,
+					"ship_to_id" 			=> $ship_to->ship_to_id,
+					"division_id" 			=> $division_id,
+					"product_l1_line_id" 	=> $product_level1->line_id,
+					"product_l2_line_id" 	=> $product_level2->line_id,
+					"product_l3_line_id" 	=> $product_level3->line_id,
+					"product_l4_line_id" 	=> $product_level4->line_id,
+					"product_category_id" 	=> $product_category->category_id,
+					"product_id" 			=> $product->product_id,
+					"inventory_id" 			=> $inventory ? $inventory->inventory_id : null,
+					"sub_inventory_id" 		=> $sub_inventory ? $sub_inventory->inventory_id :null,
+					"currency_id" 			=> $currency_id,
+					"invoice_id" 			=> $invoice->invoice_id,
+					"line_no"				=> $line_no,
+					"order_date" 			=> $order->order_date,
+					"shipment_date" 		=> $this->date_convert($sheet->getCellByColumnAndRow(38, $row)->getValue()),
+					"closed_date" 			=> $this->date_convert($sheet->getCellByColumnAndRow(40, $row)->getValue()),
+					"order_qty" 			=> trim($sheet->getCellByColumnAndRow(6, $row)->getValue()),
+					"unit_list_price" 		=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(7, $row)->getValue())),
+					"unit_selling_price" 	=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(8, $row)->getValue())),
+					"total_amount_pen" 		=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(9, $row)->getValue())),
+					"total_amount" 			=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(10, $row)->getValue())),
+					"order_amount_pen" 		=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(11, $row)->getValue())),
+					"order_amount" 			=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(12, $row)->getValue())),
+					"tax_amount" 			=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(15, $row)->getValue())),
+					"dc_amount"				=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(16, $row)->getValue())),
+					"dc_rate" 				=> str_replace("%", "", trim($sheet->getCellByColumnAndRow(17, $row)->getValue())) / 100,
 				];
 				
-				$order_id = $this->gen_m->insert("order_", $order);
-				$order = $this->gen_m->unique("order_", "order_id", $order_id);
-			}
-			
-			if ($print_values){
-				echo "<strong>order:</strong><br/>";
-				foreach($order as $key => $val) echo $key."=> ".$val."<br/>";
-				echo "<br/><br/>";
-			}
-			
-			//set order item data
-			$line_no = str_replace("' ", "", trim($sheet->getCellByColumnAndRow(54, $row)->getValue()));
-			$closed_date = $this->date_convert($sheet->getCellByColumnAndRow(40, $row)->getValue());
-			$closed_month = date("Y-m", strtotime($closed_date));
-			if (!in_array($closed_month, $closed_months)) $closed_months[] = $closed_month;
-			
-			$address = implode(", ", [trim($sheet->getCellByColumnAndRow(69, $row)->getValue()), trim($sheet->getCellByColumnAndRow(66, $row)->getValue())]);
-			if (strlen($address) <= 3) $address = "";
-			$ship_to = $this->get_record("customer_ship_to", ["ship_to_code" => trim($sheet->getCellByColumnAndRow(44, $row)->getValue()), "customer_id" => $customer->customer_id, "address" => $address]);
-			$product_level1 = $this->get_record("product_line", ["line" => trim($sheet->getCellByColumnAndRow(29, $row)->getValue()), "level" => 1]);
-			$product_level2 = $this->get_record("product_line", ["parent_id" => $product_level1->line_id, "line" => trim($sheet->getCellByColumnAndRow(30, $row)->getValue()), "level" => 2]);
-			$product_level3 = $this->get_record("product_line", ["parent_id" => $product_level2->line_id, "line" => trim($sheet->getCellByColumnAndRow(31, $row)->getValue()), "level" => 3]);
-			$product_level4 = $this->get_record("product_line", ["parent_id" => $product_level3->line_id, "line" => trim($sheet->getCellByColumnAndRow(32, $row)->getValue()), "level" => 4]);
-			$division_id = $product_level1 ? $product_level1->parent_id : -1;
-			$order_itme_type = $this->get_record("order_itme_type", ["type" => trim($sheet->getCellByColumnAndRow(34, $row)->getValue())]);
-			$inventory = $this->get_record("inventory", ["parent_id" => 0, "inventory" => trim($sheet->getCellByColumnAndRow(20, $row)->getValue())]);
-			$sub_inventory = trim($sheet->getCellByColumnAndRow(21, $row)->getValue());
-			$sub_inventory = $sub_inventory ? $this->get_record("inventory", ["parent_id" => $inventory->inventory_id, "inventory" => $sub_inventory]) : null;
-			$invoice = $this->get_record("invoice", ["invoice" => trim($sheet->getCellByColumnAndRow(56, $row)->getValue())]);
-			$product_category = $this->get_record("product_category", ["category" => trim($sheet->getCellByColumnAndRow(33, $row)->getValue())]);
-			$product = $this->get_record("product", ["line_id" => $product_level4->line_id, "model" => trim($sheet->getCellByColumnAndRow(5, $row)->getValue())]);
-			if (!$product->category_id) $this->gen_m->update("product", ["product_id" => $product->product_id], ["category_id" => $product_category->category_id]);
-			
-			$order_item_arr = [
-				"subsidiary_id" 		=> $subsidiary_id,
-				"order_status_id" 		=> $order->status_id,
-				"type_id" 				=> $order_itme_type->type_id,
-				"ship_to_id" 			=> $ship_to->ship_to_id,
-				"division_id" 			=> $division_id,
-				"product_l1_line_id" 	=> $product_level1->line_id,
-				"product_l2_line_id" 	=> $product_level2->line_id,
-				"product_l3_line_id" 	=> $product_level3->line_id,
-				"product_l4_line_id" 	=> $product_level4->line_id,
-				"product_category_id" 	=> $product_category->category_id,
-				"product_id" 			=> $product->product_id,
-				"inventory_id" 			=> $inventory ? $inventory->inventory_id : null,
-				"sub_inventory_id" 		=> $sub_inventory ? $sub_inventory->inventory_id :null,
-				"currency_id" 			=> $currency_id,
-				"invoice_id" 			=> $invoice->invoice_id,
-				"line_no"				=> $line_no,
-				"shipment_date" 		=> $this->date_convert($sheet->getCellByColumnAndRow(38, $row)->getValue()),
-				"closed_date" 			=> $closed_date,
-				"order_qty" 			=> trim($sheet->getCellByColumnAndRow(6, $row)->getValue()),
-				"unit_list_price" 		=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(7, $row)->getValue())),
-				"unit_selling_price" 	=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(8, $row)->getValue())),
-				"total_amount_pen" 		=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(9, $row)->getValue())),
-				"total_amount" 			=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(10, $row)->getValue())),
-				"order_amount_pen" 		=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(11, $row)->getValue())),
-				"order_amount" 			=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(12, $row)->getValue())),
-				"tax_amount" 			=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(15, $row)->getValue())),
-				"dc_amount"				=> str_replace(",", "", trim($sheet->getCellByColumnAndRow(16, $row)->getValue())),
-				"dc_rate" 				=> str_replace("%", "", trim($sheet->getCellByColumnAndRow(17, $row)->getValue())) / 100,
-			];
-			
-			//order item data record validation
-			$order_item = $this->gen_m->filter("order_item", true, ["order_id" => $order->order_id, "line_no" => $line_no]);
-			if ($order_item){
-				//update order_item
-				$order_item_arr["updated"] = $now;
-				$this->gen_m->update("order_item", ["item_id" => $order_item[0]->item_id], $order_item_arr);
-			}else{
-				//new order_item
-				$order_item_arr["order_id"] = $order->order_id;
-				$order_item_arr["updated"] = $order_item_arr["registered"] = $now;
-				$this->gen_m->insert("order_item", $order_item_arr);
-			}
-			
-			if ($print_values){
-				echo "<strong>order item:</strong><br/>"; 
-				foreach($order_item_arr as $key => $val) echo $key."=> ".$val."<br/>";
-				echo "<br/><br/>----------------------------------------------------------------------------------------------------<br/><br/>";
-			}
-		}
+				//order item data record validation
+				$order_item = $this->gen_m->filter("order_item", true, ["order_id" => $order->order_id, "line_no" => $line_no]);
+				if ($order_item){
+					//update order_item
+					$order_item_arr["updated"] = $now;
+					$this->gen_m->update("order_item", ["item_id" => $order_item[0]->item_id], $order_item_arr);
+				}else{
+					//new order_item
+					$order_item_arr["order_id"] = $order->order_id;
+					$order_item_arr["updated"] = $order_item_arr["registered"] = $now;
+					$this->gen_m->insert("order_item", $order_item_arr);
+				}
+				
+				if ($print_values){
+					echo "<strong>order item:</strong><br/>"; 
+					foreach($order_item_arr as $key => $val) echo $key."=> ".$val."<br/>";
+					echo "<br/><br/>----------------------------------------------------------------------------------------------------<br/><br/>";
+				}
+			}			
 		
-		//update monthly resume values - will be developed
-		foreach($closed_months as $month){
-			$from = date("Y-m-1", strtotime($month));
-			$to = date("Y-m-t", strtotime($month));
-			
-			//echo $from." ".$to."<br/>";
-		}
 		
 		return (microtime(true) - $start_time);
 	}
 	
 	public function import_data(){
-		$runtime_coi = $this->process_closed_order('./test_files/dashboard/PSI_Consolidated_Report/Excel_1413601738COI.xls');
+		$runtime_coi = $runtime_soi = 0;
 		
-		echo "closed order runtime: ".number_format($runtime_coi, 2)." seconds";
+		//$runtime_coi = $this->process_closed_order('./test_files/dashboard/PSI_Consolidated_Report/Excel_1413601738COI.xls');
+		$runtime_soi = $this->process_sales_order('./test_files/dashboard/PSI_Consolidated_Report/Excel_1413685085SOI2.xls', true);
+		
+		echo "closed order runtime: ".number_format($runtime_coi + $runtime_soi, 2)." seconds";
+	}
+	//end Closed order
+	
+	public function header_compare($h1, $h2){
+		$res = true;
+		
+		$h1_qty = count($h1);
+		$h2_qty = count($h2);
+		
+		if ($h1_qty == $h2_qty){
+			for($i = 0; $i < $h1_qty; $i++) $res = ($res and (trim($h1[$i]) === trim($h2[$i])));
+		}else $res = false;
+		
+		return $res;
+	}
+	
+	public function h_cmp(){
+		$header_coi = ["Category","AU","Bill To Name","Ship To Name","Model","Order Qty","Unit List  Price","Unit Selling  Price","Total Amount (PEN)","Total Amount","Order Amount (PEN)","Order Amount","Line Charge Amount","Header Charge Amount","Tax Amount","DC Amount","DC Rate","Currency","Book Currency","Inventory Org.","Sub- Inventory","Sales Person","Pricing Group","Buying Group","Territory","Customer Code","Customer Name","Customer Department","Product Level1 Name","Product Level2 Name","Product Level3 Name","Product Level4 Name","Model Category","Item Type Desctiption","Item Weight","Item CBM","Order Date","Shipment Date","LT Days","Closed Date","AAI Flag","HQ AU","Bill To Code","Ship To Code","Ship To Country","Ship To City","Ship To  State","Ship To Zip Code","Payment Term","Sales Channel","Order Source","Order Type","Order No.","Line No.","Line  Type","Invoice No.","Customer PO No.","Project Code","Comm. Submission No.","Product Level4","Price Grade","Consumer Name","Receiver Name","Receiver Country","Receiver Postal Code","Receiver City","Receiver State","Receiver Province","Receiver Address1","Receiver Address2","Receiver Address3","Install Store Code","Install Type","Install Date","Fapiao No.","Fapiao Date","CNPJ","Nota Date","ACD W/H Code","ACD W/H Type","Net Price","Interest Amt","Original List Pirce","PLP  Submission No","Price Condition","Nota Fiscal Serie No","Shipping Method"];
+		$header_soi = ["Bill To Name","Ship To Name","Model","Order No.","Line No.","Order Type","Line Status","Hold Flag","Ready To Pick","Pick Released","Instock Flag","Order Qty","Unit Selling Price","Sales Amount","Tax Amount","Charge Amount","Line Total","List Price","Original List Price","DC Rate","Currency","DFI Applicable","AAI Applicable","Cancel Qty","Booked Date","Scheduled Cancel Date","Cancel Date","Expire Date","Req. Arrival Date From","Req. Arrival Date To","Req. Ship Date","Shipment Date","Close Date","Line Type","Customer Name","Bill To","Department","Ship To","Ship To Full Name","Store No","Price Condition","Payment Term","Customer PO No.","Customer Po Date","Invoice No.","Invoice Line No.","Invoice Date","Sales Person","Pricing Group","Buying Group","Territory Code","Inventory Org.","Sub- Inventory","Shipping Method","Shipment Priority","Order Source","Order Status","Order Category","Quote Date","Quote Expire Date","Project Code","Comm. Submission No.","PLP Submission No.","BPM Request No.","Consumer Name","Consumer Phone No","Consumer Mobile NO","Receiver Name","Receiver Phone No","Receiver Mobile NO","Receiver Address1","Receiver Address2","Receiver Address3","Receiver City","Receiver City Desc","Receiver County","Receiver Postal code","Receiver State","Receiver Province","Receiver Country","Item Division","PL1 Name","PL2 Name","PL3 Name","PL4 Name","Product Level4 Code","Model Category","Item Type","Item Weight","Item CBM","Sales Channel (High)","Sales Channel (Low)","Ship Group","Back Order Hold","Credit Hold","Overdue Hold","Customer Hold","Payterm Term Hold","FP Hold","Minimum Hold","Future Hold","Reserve Hold","Manual Hold","Auto Pending Hold","S/A Hold","Form Hold","Bank Collateral Hold","Insurance Hold","Partial Flag","Load Hold Flag","Inventory Reserved","Pick Release Qty","Long & Multi Flag","SO-SA Mapping","Picking Remark","Shipping Remark","Create Employee Name","Create Date","Order Date","Expected Arrival Date","Fixed Arrival Date","DLS Interface","Sales Recognition Method","Billing Type","LT DAY","EDI Customer Remark","Carrier Code","Delivery Number","Manifest/ GRN No","Warehouse Job No","Customer RAD","Others Out Reason","Ship Set Name","Promising Txn Status","Promised MAD","Promised Arrival Date","Appointment Date","Promised Ship Date","Initial Promised Arrival Date","Accounting Unit","RAD Unmeet Reason","Install Type","Install Date","ACD Original Warehouse","ACD Original W/H Type","Customer Model","Customer Model Desc","CNPJ","Nota No","Nota Date","Net Price","Interest Amt","SO Status(2)","Back Order Reason","SBP Tax Include","SBP Tax Exclude","RRP Tax Include","RRP Tax Exclude","SO FAP Flag","SO FAP Slot Date","Model  Profit Level","APMS NO","Scheduled Back Date","Customer PO Type","","Revised RSD","Revised RAD From","Revised RAD To","Pick Cancel Manual Hold",];
+		
+		$spreadsheet_coi = IOFactory::load('./upload/so_soi1.xls');
+		$sheet_coi = $spreadsheet_coi->getActiveSheet();
+		
+		$max_row = $sheet_coi->getHighestRow();
+		$max_col = $sheet_coi->getHighestColumn();
+		
+		//header work
+		$rows = $sheet_coi->rangeToArray("A1:{$max_col}1")[0];
+		
+		print_r($rows);
+		echo "<br/><br/><br/>";
+		print_r($header_soi);
+		echo "<br/><br/><br/>";
+		
+		echo $this->header_compare($header_soi, $rows);
 	}
 	
 	public function set_coi($filename, $sheetname, $filename_coi){
+		$header = ["Category","AU","Bill To Name","Ship To Name","Model","Order Qty","Unit List  Price","Unit Selling  Price","Total Amount (PEN)","Total Amount","Order Amount (PEN)","Order Amount","Line Charge Amount","Header Charge Amount","Tax Amount","DC Amount","DC Rate","Currency","Book Currency","Inventory Org.","Sub- Inventory","Sales Person","Pricing Group","Buying Group","Territory","Customer Code","Customer Name","Customer Department","Product Level1 Name","Product Level2 Name","Product Level3 Name","Product Level4 Name","Model Category","Item Type Desctiption","Item Weight","Item CBM","Order Date","Shipment Date","LT Days","Closed Date","AAI Flag","HQ AU","Bill To Code","Ship To Code","Ship To Country","Ship To City","Ship To  State","Ship To Zip Code","Payment Term","Sales Channel","Order Source","Order Type","Order No.","Line No.","Line  Type","Invoice No.","Customer PO No.","Project Code","Comm. Submission No.","Product Level4","Price Grade","Consumer Name","Receiver Name","Receiver Country","Receiver Postal Code","Receiver City","Receiver State","Receiver Province","Receiver Address1","Receiver Address2","Receiver Address3","Install Store Code","Install Type","Install Date","Fapiao No.","Fapiao Date","CNPJ","Nota Date","ACD W/H Code","ACD W/H Type","Net Price","Interest Amt","Original List Pirce","PLP  Submission No","Price Condition","Nota Fiscal Serie No","Shipping Method"];
+		
 		$spreadsheet = IOFactory::load($filename);
 		$sheet = $spreadsheet->getSheetByName($sheetname);
 		
@@ -210,32 +265,37 @@ class Dashboard extends CI_Controller {
 		$max_row = $sheet_coi->getHighestRow();
 		$max_col = $sheet_coi->getHighestColumn();
 		
-		//header work
+		//load header and compare to continue work
 		$rows = $sheet_coi->rangeToArray("A1:{$max_col}1")[0];
-		$rows = array_merge($rows, ["Column1", "", "Fixed Order Date", "Fixed Ship Date", "", "Fixed Closed Date"]);
-		foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), 1)->setValue($val);
-		
-		//index of array to remove commas
-		$nums = [5,6,7,8,9,10,11,12,13,14,15,82];
-		
-		for($row = 2; $row <= $max_row; $row++){
-			$rows = $sheet_coi->rangeToArray("A{$row}:{$max_col}{$row}")[0];
+		if ($this->header_compare($header, $rows)){
+			//header work
+			$rows = array_merge($rows, ["Column1", "", "Fixed Order Date", "Fixed Ship Date", "", "Fixed Closed Date"]);
+			foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), 1)->setValue($val);
 			
-			//dates convert to 20240422 format
-			$rows = array_merge($rows, ["", "", str_replace("-", "", $this->date_convert($rows[36])), str_replace("-", "", $this->date_convert($rows[37])), "", str_replace("-", "", $this->date_convert($rows[39]))]);
+			//index of array to remove commas
+			$nums = [5,6,7,8,9,10,11,12,13,14,15,82];
 			
-			//remove commas of numbers
-			foreach($nums as $n) $rows[$n] = str_replace(",", "", $rows[$n]);
-			
-			//write to merged file
-			foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), $row)->setValue($val);
-		}
+			for($row = 2; $row <= $max_row; $row++){
+				$rows = $sheet_coi->rangeToArray("A{$row}:{$max_col}{$row}")[0];
+				
+				//dates convert to 20240422 format
+				$rows = array_merge($rows, ["", "", str_replace("-", "", $this->date_convert($rows[36])), str_replace("-", "", $this->date_convert($rows[37])), "", str_replace("-", "", $this->date_convert($rows[39]))]);
+				
+				//remove commas of numbers
+				foreach($nums as $n) $rows[$n] = str_replace(",", "", $rows[$n]);
+				
+				//write to merged file
+				foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), $row)->setValue($val);
+			}
+		}else $sheet->getCellByColumnAndRow(1, 1)->setValue("Wrong file.");
 		
 		$writer = new Xlsx($spreadsheet);
-		$writer->save("./upload/dashboard_.xlsx");
+		$writer->save("./upload/so__espr.xlsx");
 	}
 	
 	public function set_soi($filename, $sheetname, $filename_coi){
+		$header = ["Bill To Name","Ship To Name","Model","Order No.","Line No.","Order Type","Line Status","Hold Flag","Ready To Pick","Pick Released","Instock Flag","Order Qty","Unit Selling Price","Sales Amount","Tax Amount","Charge Amount","Line Total","List Price","Original List Price","DC Rate","Currency","DFI Applicable","AAI Applicable","Cancel Qty","Booked Date","Scheduled Cancel Date","Cancel Date","Expire Date","Req. Arrival Date From","Req. Arrival Date To","Req. Ship Date","Shipment Date","Close Date","Line Type","Customer Name","Bill To","Department","Ship To","Ship To Full Name","Store No","Price Condition","Payment Term","Customer PO No.","Customer Po Date","Invoice No.","Invoice Line No.","Invoice Date","Sales Person","Pricing Group","Buying Group","Territory Code","Inventory Org.","Sub- Inventory","Shipping Method","Shipment Priority","Order Source","Order Status","Order Category","Quote Date","Quote Expire Date","Project Code","Comm. Submission No.","PLP Submission No.","BPM Request No.","Consumer Name","Consumer Phone No","Consumer Mobile NO","Receiver Name","Receiver Phone No","Receiver Mobile NO","Receiver Address1","Receiver Address2","Receiver Address3","Receiver City","Receiver City Desc","Receiver County","Receiver Postal code","Receiver State","Receiver Province","Receiver Country","Item Division","PL1 Name","PL2 Name","PL3 Name","PL4 Name","Product Level4 Code","Model Category","Item Type","Item Weight","Item CBM","Sales Channel (High)","Sales Channel (Low)","Ship Group","Back Order Hold","Credit Hold","Overdue Hold","Customer Hold","Payterm Term Hold","FP Hold","Minimum Hold","Future Hold","Reserve Hold","Manual Hold","Auto Pending Hold","S/A Hold","Form Hold","Bank Collateral Hold","Insurance Hold","Partial Flag","Load Hold Flag","Inventory Reserved","Pick Release Qty","Long & Multi Flag","SO-SA Mapping","Picking Remark","Shipping Remark","Create Employee Name","Create Date","Order Date","Expected Arrival Date","Fixed Arrival Date","DLS Interface","Sales Recognition Method","Billing Type","LT DAY","EDI Customer Remark","Carrier Code","Delivery Number","Manifest/ GRN No","Warehouse Job No","Customer RAD","Others Out Reason","Ship Set Name","Promising Txn Status","Promised MAD","Promised Arrival Date","Appointment Date","Promised Ship Date","Initial Promised Arrival Date","Accounting Unit","RAD Unmeet Reason","Install Type","Install Date","ACD Original Warehouse","ACD Original W/H Type","Customer Model","Customer Model Desc","CNPJ","Nota No","Nota Date","Net Price","Interest Amt","SO Status(2)","Back Order Reason","SBP Tax Include","SBP Tax Exclude","RRP Tax Include","RRP Tax Exclude","SO FAP Flag","SO FAP Slot Date","Model  Profit Level","APMS NO","Scheduled Back Date","Customer PO Type","","Revised RSD","Revised RAD From","Revised RAD To","Pick Cancel Manual Hold",];
+
 		$spreadsheet = IOFactory::load($filename);
 		$sheet = $spreadsheet->getSheetByName($sheetname);
 		
@@ -245,138 +305,108 @@ class Dashboard extends CI_Controller {
 		$max_row = $sheet_coi->getHighestRow();
 		$max_col = $sheet_coi->getHighestColumn();
 		
-		//header work
 		$rows = $sheet_coi->rangeToArray("A1:{$max_col}1")[0];
-		$rows = array_merge($rows, ["Column1", "Fixed PO Date", "Fixed Create Date", "Fixed RAD Date", "Fixed Ship Date"]);
-		
-		foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), 1)->setValue($val);
-		
-		//index of array to remove commas
-		$nums = [11,12,13,14,15,16,17,18,23,154,155,156,157];
-		
-		for($row = 2; $row <= $max_row; $row++){
-			$rows = $sheet_coi->rangeToArray("A{$row}:{$max_col}{$row}")[0];
+		if ($this->header_compare($header, $rows)){
+			//header work
+			$rows = array_merge($rows, ["Column1", "Fixed PO Date", "Fixed Create Date", "Fixed RAD Date", "Fixed Ship Date"]);
+			foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), 1)->setValue($val);
 			
-			//dates convert to 20240422 format
-			$rows = array_merge($rows, ["", str_replace("-", "", $this->date_convert($rows[43])), str_replace("-", "", $this->date_convert($rows[117])), str_replace("-", "", $this->date_convert_2($rows[130])), str_replace("-", "", $this->date_convert($rows[31]))]);
+			//index of array to remove commas
+			$nums = [11,12,13,14,15,16,17,18,23,154,155,156,157];
 			
-			//remove commas of numbers
-			foreach($nums as $n) $rows[$n] = str_replace(",", "", $rows[$n]);
-			
-			//write to merged file
-			foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), $row)->setValue($val);
-		}
+			for($row = 2; $row <= $max_row; $row++){
+				$rows = $sheet_coi->rangeToArray("A{$row}:{$max_col}{$row}")[0];
+				
+				//dates convert to 20240422 format
+				$rows = array_merge($rows, ["", str_replace("-", "", $this->date_convert($rows[43])), str_replace("-", "", $this->date_convert($rows[117])), str_replace("-", "", $this->date_convert_2($rows[130])), str_replace("-", "", $this->date_convert($rows[31]))]);
+				
+				//remove commas of numbers
+				foreach($nums as $n) $rows[$n] = str_replace(",", "", $rows[$n]);
+				
+				//write to merged file
+				foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), $row)->setValue($val);
+			}
+		}else $sheet->getCellByColumnAndRow(1, 1)->setValue("Wrong file.");
 		
 		$writer = new Xlsx($spreadsheet);
-		$writer->save("./upload/dashboard_.xlsx");
+		$writer->save("./upload/so__espr.xlsx");
 	}
 	
-	public function test(){
+	public function espr_merge_order_inquiry(){
 		set_time_limit(0);
 		$start_time = microtime(true);
 		
-		//start to create excel file
-		$spreadsheet = new Spreadsheet();
-		$spreadsheet->removeSheetByIndex(0);
+		$type = "error"; $msg = $url = "";
 		
-		//worksheets setting
-		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'Closed'));
-		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'SOI 1'));
-		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'SOI 2'));
+		$config = [
+			'upload_path'	=> './upload/',
+			'allowed_types'	=> '*',
+			'max_size'		=> 10000,
+			'overwrite'		=> TRUE,
+		];
+		$this->load->library('upload', $config);
+
+		$name_coi = $name_soi1 = $name_soi2 = "";
 		
-		$writer = new Xlsx($spreadsheet);
-		$writer->save("./upload/dashboard_.xlsx");
-		
-		//copy COI content to excel file
-		$this->set_coi('./upload/dashboard_.xlsx', 'Closed', './test_files/dashboard/PSI_Consolidated_Report/Excel_1413601738COI.xls');
-		
-		//copy SOI 1 content to excel file
-		$this->set_soi('./upload/dashboard_.xlsx', 'SOI 1', './test_files/dashboard/PSI_Consolidated_Report/Excel_1413685085SOI1.xls');
-		
-		//copy SOI 2 content to excel file
-		$this->set_soi('./upload/dashboard_.xlsx', 'SOI 2', './test_files/dashboard/PSI_Consolidated_Report/Excel_1413685085SOI2.xls');
-		
-		/*
-		//COI - start
-		$sheet = $spreadsheet->getSheetByName('Closed');
-		
-		$spreadsheet_coi = IOFactory::load('./test_files/dashboard/PSI_Consolidated_Report/Excel_1413601738COI.xls');
-		$sheet_coi = $spreadsheet_coi->getActiveSheet();
-		
-		$max_row = $sheet_coi->getHighestRow();
-		$max_col = $sheet_coi->getHighestColumn();
-		
-		//header work
-		$rows = $sheet_coi->rangeToArray("A1:{$max_col}1")[0];
-		$rows = array_merge($rows, ["Column1", "", "Fixed Order Date", "Fixed Ship Date", "", "Fixed Closed Date"]);
-		foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), 1)->setValue($val);
-		
-		//index of array to remove commas
-		$nums = [5,6,7,8,9,10,11,12,13,14,15,82];
-		
-		for($row = 2; $row <= $max_row; $row++){
-			$rows = $sheet_coi->rangeToArray("A{$row}:{$max_col}{$row}")[0];
-			
-			//dates convert to 20240422 format
-			$rows = array_merge($rows, ["", "", str_replace("-", "", $this->date_convert($rows[36])), str_replace("-", "", $this->date_convert($rows[37])), "", str_replace("-", "", $this->date_convert($rows[39]))]);
-			
-			//remove commas of numbers
-			foreach($nums as $n) $rows[$n] = str_replace(",", "", $rows[$n]);
-			
-			//write to merged file
-			foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), $row)->setValue($val);
+		$config['file_name'] = 'so_coi';
+		$this->upload->initialize($config);
+		if ($this->upload->do_upload('file_coi')){
+			$data = $this->upload->data();
+			$name_coi = $data['orig_name'];
 		}
-		//COI - end
-		*/
 		
-		/*
-		//SOI 1 - start
-		$sheet = $spreadsheet->getSheetByName('SOI 1');
-		//$sheet = $spreadsheet->getActiveSheet();
-		
-		$spreadsheet_soi1 = IOFactory::load('./test_files/dashboard/PSI_Consolidated_Report/Excel_1413685085SOI1.xls');
-		$sheet_soi1 = $spreadsheet_coi->getActiveSheet();
-		
-		$max_row = $sheet_soi1->getHighestRow();
-		$max_col = $sheet_soi1->getHighestColumn();
-		
-		//header work
-		$rows = $sheet_soi1->rangeToArray("A1:{$max_col}1")[0];
-		$rows = array_merge($rows, ["Column1", "Fixed Order Date", "Fixed Ship Date", "Fixed Closed Date"]);
-		foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), 1)->setValue($val);
-		
-		//index of array to remove commas
-		//$nums = [5,6,7,8,9,10,11,12,13,14,15,82];
-		
-		for($row = 2; $row <= $max_row; $row++){
-			$rows = $sheet_soi1->rangeToArray("A{$row}:{$max_col}{$row}")[0];
-			
-			//dates convert to 20240422 format
-			//$rows = array_merge($rows, ["", "", str_replace("-", "", $this->date_convert($rows[36])), str_replace("-", "", $this->date_convert($rows[37])), "", str_replace("-", "", $this->date_convert($rows[39]))]);
-			
-			//remove commas of numbers
-			//foreach($nums as $n) $rows[$n] = str_replace(",", "", $rows[$n]);
-			
-			//write to merged file
-			foreach($rows as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), $row)->setValue($val);
-			
-			if ($row > 50) break;
+		$config['file_name'] = 'so_soi1';
+		$this->upload->initialize($config);
+		if ($this->upload->do_upload('file_soi1')){
+			$data = $this->upload->data();
+			$name_soi1 = $data['orig_name'];
 		}
-		//SOI 1 - end
 		
+		$config['file_name'] = 'so_soi2';
+		$this->upload->initialize($config);
+		if ($this->upload->do_upload('file_soi2')){
+			$data = $this->upload->data();
+			$name_soi2 = $data['orig_name'];
+		}
 		
-		//$sheet = $spreadsheet->getSheetByName('Worksheet 1');
-		//$sheet = $spreadsheet->getActiveSheet();
+		if ($name_coi and $name_soi1 and $name_soi2){
+			//start to create excel file
+			$spreadsheet = new Spreadsheet();
+			$spreadsheet->removeSheetByIndex(0);
+			
+			//worksheets setting
+			$spreadsheet->addSheet(new Worksheet($spreadsheet, 'Closed'));
+			$spreadsheet->addSheet(new Worksheet($spreadsheet, 'SOI 1'));
+			$spreadsheet->addSheet(new Worksheet($spreadsheet, 'SOI 2'));
+			
+			$writer = new Xlsx($spreadsheet);
+			$writer->save("./upload/so__espr.xlsx");
+			
+			//copy COI content to excel file
+			$this->set_coi('./upload/so__espr.xlsx', 'Closed', './upload/'.$name_coi);
+			
+			//copy SOI 1 content to excel file
+			$this->set_soi('./upload/so__espr.xlsx', 'SOI 1', './upload/'.$name_soi1);
+			
+			//copy SOI 2 content to excel file
+			$this->set_soi('./upload/so__espr.xlsx', 'SOI 2', './upload/'.$name_soi2);
+			
+			$type = "success";
+			$msg = "Merged file download will be started. (".number_format(microtime(true) - $start_time, 2)." sec)";
+			$url = base_url()."upload/so__espr.xlsx";
+		}else $msg = "Select all files: COI, SOI 1 and SOI 2.";
 		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
+	}
+
+	public function espr_file(){
+		if (!$this->session->userdata('logged_in')) redirect("/auth/login");
 		
-		//$spreadsheet->setActiveSheetIndexByName('My Second Sheet');
+		$data = [
+			"main" => "dashboard/espr_file",
+		];
 		
-		//save excel file to a temporary directory
-		$file_path = './upload/';
-		$writer = new Xlsx($spreadsheet);
-		$writer->save($file_path."dashboard_.xlsx");
-		*/
-		//runtime print
-		echo (microtime(true) - $start_time);
+		$this->load->view('layout', $data);
 	}
 }
