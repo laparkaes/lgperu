@@ -74,6 +74,12 @@ class My_func{
 		return $record[0];
 	}
 	
+	public function arr_trim($arr){
+		$new = [];
+		foreach($arr as $val) $new[] = trim($val);
+		return $new;
+	}
+	
 	public function generate_excel_report($filename, $title, $header, $rows){
 		$url = "";
 		

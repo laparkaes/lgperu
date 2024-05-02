@@ -18,8 +18,6 @@ class Espr_file extends CI_Controller {
 	}
 
 	public function index(){
-		if (!$this->session->userdata('logged_in')) redirect("/auth/login");
-		
 		$data = [
 			"main" => "scm/espr_file/index",
 		];
@@ -123,21 +121,21 @@ class Espr_file extends CI_Controller {
 
 			$name_coi = $name_soi1 = $name_soi2 = "";
 			
-			$config['file_name'] = 'so_coi';
+			$config['file_name'] = 'scm_so_coi';
 			$this->upload->initialize($config);
 			if ($this->upload->do_upload('file_coi')){
 				$data = $this->upload->data();
 				$name_coi = $data['orig_name'];
 			}
 			
-			$config['file_name'] = 'so_soi1';
+			$config['file_name'] = 'scm_so_soi1';
 			$this->upload->initialize($config);
 			if ($this->upload->do_upload('file_soi1')){
 				$data = $this->upload->data();
 				$name_soi1 = $data['orig_name'];
 			}
 			
-			$config['file_name'] = 'so_soi2';
+			$config['file_name'] = 'scm_so_soi2';
 			$this->upload->initialize($config);
 			if ($this->upload->do_upload('file_soi2')){
 				$data = $this->upload->data();
