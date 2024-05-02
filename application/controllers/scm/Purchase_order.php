@@ -239,6 +239,84 @@ class Purchase_order extends CI_Controller {
 		return $rows;
 	}
 	
+	private function sodimac($rows_input, $ship_to){
+		$rows = [];
+		
+		print_r($rows_input);
+		/*
+		$po_num = trim(array_values(array_filter(explode(" ", $rows_input[0])))[5]);
+		
+		$aux = explode("/", trim(str_replace("Se recepciona desde:", "", $rows_input[15])));
+		$issue_date = $aux[2].$aux[1].$aux[0];
+		
+		$aux = explode("/", trim(str_replace(":", "", explode(" ", $rows_input[14])[3])));
+		$arrival_date = $aux[2].$aux[1].$aux[0];
+		
+		$currency = "PEN";
+		
+		foreach($rows_input as $i => $r){
+			$r = str_replace("\t", " ", $r);
+			$r = str_replace(". .", " ", $r);
+			$r = str_replace("NINGUNA", " ", $r);
+			$r = str_replace("LG", " ", $r);
+			
+			$aux = array_values(array_filter(explode(" ", $r)));
+
+			$numeric = $no_numeric = [];
+			if (is_numeric($aux[0]) and (count($aux) > 9)){
+				foreach($aux as $a) if (is_numeric(str_replace(",", "", $a))) $numeric[] = $a; else $no_numeric[] = $a;
+				
+				$sku = (int)$numeric[0];
+				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
+				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
+				
+				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
+				$qty = (int)trim($numeric[1]);
+				$unit_price = str_replace(",", "", $numeric[count($numeric) - 4]);
+				$total = $unit_price * $qty;
+
+				$rows[] = [
+					$po_num,//Customer PO No.
+					$ship_to->ship_to_code,//Ship To
+					$currency,//Currency
+					$arrival_date,//Request Arrival Date(YYYYMMDD)
+					$model,//Model
+					$qty,//Quantity
+					str_replace(",", "", $unit_price),//Unit Selling Price
+					null,//Warehouse
+					null,//Payterm
+					null,//Shipping Remark
+					null,//Invoice Remark
+					null,//Customer RAD(YYYYMMDD)
+					$issue_date,//Customer PO Date(YYYYMMDD)
+					null,//H Flag
+					null,//OP Code
+					null,//Country
+					null,//Postal Code
+					null,//Address1
+					null,//Address2
+					null,//Address3
+					null,//Address4
+					null,//City
+					null,//State
+					null,//Province
+					null,//County
+					$ship_to->customer->customer,//Consumer Name
+					null,//Consumer Phone No.
+					null,//Receiver Name
+					null,//Receiver Phone No.
+					null,//Freight Charge
+					null,//Freight Term
+					null,//Price Condition
+					null,//Picking Remark
+					null,//Shipping Method
+				];
+			}
+		}
+		*/
+		return $rows;
+	}
+	
 	public function conecta_excel($filename, $ship_to){
 		$rows = [];
 		
@@ -309,8 +387,8 @@ class Purchase_order extends CI_Controller {
 		switch($po_template->code){
 			case "hiraoka_pre": $rows = $this->hiraoka_pre($rows, $ship_to); break;
 			case "hiraoka_sku": $rows = $this->hiraoka_sku($rows, $ship_to); break;
-			//case "estilos_dist": $rows = $this->estilos_dist($rows, $ship_to); break;
 			case "estilos_sku": $rows = $this->estilos_sku($rows, $ship_to); break;
+			case "sodimac": $rows = $this->sodimac($rows, $ship_to); break;
 			default: $rows = [];
 		}
 		
@@ -416,9 +494,10 @@ class Purchase_order extends CI_Controller {
 		
 		/* pdf to excel 
 		*/
-		$filename = './test_files/scm_po_estilos/normal/OC 229859.pdf';
-		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 4);//estilos sku
-		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 5);//estilos
+		$filename = './test_files/scm_po_sodimac/LG 4.3 (1).pdf';
+		//$filename = './test_files/scm_po_hiraoka/132527 LG - LB - VES_TIENDAS.pdf';
+		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 4);//sodimac
+		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 40);//sodimac
 		$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
 		
 		echo $this->pdf_to_excel($filename, $po_template, $ship_to);

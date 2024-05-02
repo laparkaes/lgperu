@@ -8,6 +8,8 @@ class My_pdf{
 	}
 	
 	public function to_text($path){
+		ini_set("memory_limit","1024M");
+		
 		$parser = new \Smalot\PdfParser\Parser();
 		$pdf = $parser->parseFile($path);
 		
@@ -15,15 +17,11 @@ class My_pdf{
 		
 		$pages = $pdf->getPages();
 		foreach($pages as $i => $p){
-			$text = $pages[$i]->getText();
-			
+			$text = $p->getText();//$pages[$i]->getText();
 			$lines = explode("\n", $text);
 			$lines = array_values(array_filter($lines));
-			foreach($lines as $line) $line = trim($line);
-			
-			$rows = array_merge($rows, $lines);
+			foreach($lines as $line) $rows[] = trim($line);
 		}
-		
 		return $rows;
 	}
 }
