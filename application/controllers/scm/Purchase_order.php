@@ -242,7 +242,11 @@ class Purchase_order extends CI_Controller {
 	private function sodimac($rows_input, $ship_to){
 		$rows = [];
 		
-		print_r($rows_input);
+		foreach($rows_input as $i => $r){
+			echo $i." -------- ";
+			print_r($r);
+			echo "<br/>";
+		}
 		/*
 		$po_num = trim(array_values(array_filter(explode(" ", $rows_input[0])))[5]);
 		
@@ -492,9 +496,10 @@ class Purchase_order extends CI_Controller {
 	public function test(){
 		//return;//just activate when you need to test conversion
 		
+		
 		/* pdf to excel 
 		*/
-		$filename = './test_files/scm_po_sodimac/LG 4.3 (1).pdf';
+		$filename = './test_files/scm_po_sodimac/test.pdf';
 		//$filename = './test_files/scm_po_hiraoka/132527 LG - LB - VES_TIENDAS.pdf';
 		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 4);//sodimac
 		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 40);//sodimac

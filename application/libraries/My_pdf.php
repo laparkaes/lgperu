@@ -9,6 +9,7 @@ class My_pdf{
 	
 	public function to_text($path){
 		ini_set("memory_limit","1024M");
+		ini_set('display_errors', 0);
 		
 		$parser = new \Smalot\PdfParser\Parser();
 		$pdf = $parser->parseFile($path);
