@@ -41,6 +41,39 @@ class My_func{
 		return $interval->days;
 	}
 	
+	public function header_compare($h1, $h2){
+		$res = true;
+		
+		$h1_qty = count($h1);
+		$h2_qty = count($h2);
+		
+		if ($h1_qty == $h2_qty){
+			for($i = 0; $i < $h1_qty; $i++) $res = ($res and (trim($h1[$i]) === trim($h2[$i])));
+		}else $res = false;
+		
+		return $res;
+	}
+	
+	public function date_convert($date){//dd/mm/yyyy > yyyy-mm-dd
+		$aux = explode("/", $date);
+		if (count($aux) > 2) return $aux[2]."-".$aux[1]."-".$aux[0];
+		else return null;
+	}
+	
+	public function date_convert_2($date){//yyyy/mm/dd hh:mm:ss > yyyy-mm-dd
+		return str_replace("/", "-", explode(" ", $date)[0]);
+	}
+	
+	public function get_record($tablename, $data){
+		$record = $this->CI->gen_m->filter($tablename, true, $data);
+		if (!$record){
+			$this->CI->gen_m->insert($tablename, $data);
+			$record = $this->CI->gen_m->filter($tablename, true, $data);
+		}
+		
+		return $record[0];
+	}
+	
 	public function generate_excel_report($filename, $title, $header, $rows){
 		$url = "";
 		
