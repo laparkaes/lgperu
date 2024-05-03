@@ -17,6 +17,45 @@ class Purchase_order extends CI_Controller {
 		];
 	}
 	
+	private function make_row($po_num, $ship_to_code, $currency, $arrival_date, $model, $qty, $unit_price, $issue_date, $customer_name){
+		return [
+			$po_num,//Customer PO No.
+			$ship_to_code,//Ship To
+			$currency,//Currency
+			$arrival_date,//Request Arrival Date(YYYYMMDD)
+			$model,//Model
+			$qty,//Quantity
+			$unit_price,//Unit Selling Price
+			null,//Warehouse
+			null,//Payterm
+			null,//Shipping Remark
+			null,//Invoice Remark
+			null,//Customer RAD(YYYYMMDD)
+			$issue_date,//Customer PO Date(YYYYMMDD)
+			null,//H Flag
+			null,//OP Code
+			null,//Country
+			null,//Postal Code
+			null,//Address1
+			null,//Address2
+			null,//Address3
+			null,//Address4
+			null,//City
+			null,//State
+			null,//Province
+			null,//County
+			$customer_name,//Consumer Name
+			null,//Consumer Phone No.
+			null,//Receiver Name
+			null,//Receiver Phone No.
+			null,//Freight Charge
+			null,//Freight Term
+			null,//Price Condition
+			null,//Picking Remark
+			null,//Shipping Method
+		];
+	}
+	
 	private function hiraoka_pre($rows_input, $ship_to){
 		$rows = [];
 		
@@ -47,42 +86,7 @@ class Purchase_order extends CI_Controller {
 				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
 				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
 				
-				$rows[] = [
-					$po_num,//Customer PO No.
-					$ship_to->ship_to_code,//Ship To
-					$currency,//Currency
-					$arrival_date,//Request Arrival Date(YYYYMMDD)
-					$model,//Model
-					$qty,//Quantity
-					str_replace(",", "", $unit_price),//Unit Selling Price
-					null,//Warehouse
-					null,//Payterm
-					null,//Shipping Remark
-					null,//Invoice Remark
-					null,//Customer RAD(YYYYMMDD)
-					$issue_date,//Customer PO Date(YYYYMMDD)
-					null,//H Flag
-					null,//OP Code
-					null,//Country
-					null,//Postal Code
-					null,//Address1
-					null,//Address2
-					null,//Address3
-					null,//Address4
-					null,//City
-					null,//State
-					null,//Province
-					null,//County
-					$ship_to->customer->customer,//Consumer Name
-					null,//Consumer Phone No.
-					null,//Receiver Name
-					null,//Receiver Phone No.
-					null,//Freight Charge
-					null,//Freight Term
-					null,//Price Condition
-					null,//Picking Remark
-					null,//Shipping Method
-				];
+				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $model, $qty, str_replace(",", "", $unit_price), $issue_date, $ship_to->customer->customer);
 			}
 		}
 		
@@ -119,42 +123,7 @@ class Purchase_order extends CI_Controller {
 				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
 				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
 				
-				$rows[] = [
-					$po_num,//Customer PO No.
-					$ship_to->ship_to_code,//Ship To
-					$currency,//Currency
-					$arrival_date,//Request Arrival Date(YYYYMMDD)
-					$model,//Model
-					$qty,//Quantity
-					str_replace(",", "", $unit_price),//Unit Selling Price
-					null,//Warehouse
-					null,//Payterm
-					null,//Shipping Remark
-					null,//Invoice Remark
-					null,//Customer RAD(YYYYMMDD)
-					$issue_date,//Customer PO Date(YYYYMMDD)
-					null,//H Flag
-					null,//OP Code
-					null,//Country
-					null,//Postal Code
-					null,//Address1
-					null,//Address2
-					null,//Address3
-					null,//Address4
-					null,//City
-					null,//State
-					null,//Province
-					null,//County
-					$ship_to->customer->customer,//Consumer Name
-					null,//Consumer Phone No.
-					null,//Receiver Name
-					null,//Receiver Phone No.
-					null,//Freight Charge
-					null,//Freight Term
-					null,//Price Condition
-					null,//Picking Remark
-					null,//Shipping Method
-				];
+				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $model, $qty, str_replace(",", "", $unit_price), $issue_date, $ship_to->customer->customer);
 				
 				$prod_num++;
 			}
@@ -197,42 +166,7 @@ class Purchase_order extends CI_Controller {
 				$unit_price = str_replace(",", "", $numeric[count($numeric) - 4]);
 				$total = $unit_price * $qty;
 
-				$rows[] = [
-					$po_num,//Customer PO No.
-					$ship_to->ship_to_code,//Ship To
-					$currency,//Currency
-					$arrival_date,//Request Arrival Date(YYYYMMDD)
-					$model,//Model
-					$qty,//Quantity
-					str_replace(",", "", $unit_price),//Unit Selling Price
-					null,//Warehouse
-					null,//Payterm
-					null,//Shipping Remark
-					null,//Invoice Remark
-					null,//Customer RAD(YYYYMMDD)
-					$issue_date,//Customer PO Date(YYYYMMDD)
-					null,//H Flag
-					null,//OP Code
-					null,//Country
-					null,//Postal Code
-					null,//Address1
-					null,//Address2
-					null,//Address3
-					null,//Address4
-					null,//City
-					null,//State
-					null,//Province
-					null,//County
-					$ship_to->customer->customer,//Consumer Name
-					null,//Consumer Phone No.
-					null,//Receiver Name
-					null,//Receiver Phone No.
-					null,//Freight Charge
-					null,//Freight Term
-					null,//Price Condition
-					null,//Picking Remark
-					null,//Shipping Method
-				];
+				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $model, $qty, str_replace(",", "", $unit_price), $issue_date, $ship_to->customer->customer);
 			}
 		}
 		
@@ -240,27 +174,26 @@ class Purchase_order extends CI_Controller {
 	}
 	
 	private function sodimac($rows_input, $ship_to){
-		$rows = [];
+		$rows = $products = [];
 		
 		$i = 0;
 		$limit = count($rows_input);
+		$currency = "PEN";
 		
 		//foreach($rows_input as $i => $r){
 		while($i < $limit){
 			$r = $rows_input[$i];
-			
-			$currency = "PEN";
 			
 			switch($r){
 				case "Creada por": 
 					$po_num = $rows_input[$i-1];
 					break;
 				case "Fecha Emision":
-					$issue_date = $rows_input[$i+1];
+					$issue_date = date('Ymd', strtotime($rows_input[$i+1]));
 					$i++;
 					break;
 				case "Fecha Recibo Esperada":
-					$arrival_date = $rows_input[$i+1];
+					$arrival_date = date('Ymd', strtotime($rows_input[$i+1]));
 					$i++;
 					break;
 				case "Monto Total":
@@ -286,85 +219,23 @@ class Purchase_order extends CI_Controller {
 					break;
 			}
 			
-			if ($products){
-				echo $po_num." ".$issue_date." ".$arrival_date."<br/>";
-				foreach($products as $prod){
-					print_r($prod);
-					echo "<br/>";
-				}
-				echo "<br/><br/>";
+			if ($products) foreach($products as $p){
+				//set model
+				$sku = trim($p[2]);
+				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
+				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
+				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
+				
+				$qty = intval(str_replace(',', '.', str_replace('.', '', $p[8])));
+				$unit_price = floatval(str_replace(',', '.', str_replace('.', '', $p[7])));
+				
+				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $model, $qty, $unit_price, $issue_date, $ship_to->customer->customer);
 			}
 			
 			$products = [];
-			
-			//echo $i." -------- "; print_r($r); echo "<br/><br/>";
-			
 			$i++;
 		}
-		/*
 		
-		
-		
-		foreach($rows_input as $i => $r){
-			$r = str_replace("\t", " ", $r);
-			$r = str_replace(". .", " ", $r);
-			$r = str_replace("NINGUNA", " ", $r);
-			$r = str_replace("LG", " ", $r);
-			
-			$aux = array_values(array_filter(explode(" ", $r)));
-
-			$numeric = $no_numeric = [];
-			if (is_numeric($aux[0]) and (count($aux) > 9)){
-				foreach($aux as $a) if (is_numeric(str_replace(",", "", $a))) $numeric[] = $a; else $no_numeric[] = $a;
-				
-				$sku = (int)$numeric[0];
-				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
-				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
-				
-				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
-				$qty = (int)trim($numeric[1]);
-				$unit_price = str_replace(",", "", $numeric[count($numeric) - 4]);
-				$total = $unit_price * $qty;
-
-				$rows[] = [
-					$po_num,//Customer PO No.
-					$ship_to->ship_to_code,//Ship To
-					$currency,//Currency
-					$arrival_date,//Request Arrival Date(YYYYMMDD)
-					$model,//Model
-					$qty,//Quantity
-					str_replace(",", "", $unit_price),//Unit Selling Price
-					null,//Warehouse
-					null,//Payterm
-					null,//Shipping Remark
-					null,//Invoice Remark
-					null,//Customer RAD(YYYYMMDD)
-					$issue_date,//Customer PO Date(YYYYMMDD)
-					null,//H Flag
-					null,//OP Code
-					null,//Country
-					null,//Postal Code
-					null,//Address1
-					null,//Address2
-					null,//Address3
-					null,//Address4
-					null,//City
-					null,//State
-					null,//Province
-					null,//County
-					$ship_to->customer->customer,//Consumer Name
-					null,//Consumer Phone No.
-					null,//Receiver Name
-					null,//Receiver Phone No.
-					null,//Freight Charge
-					null,//Freight Term
-					null,//Price Condition
-					null,//Picking Remark
-					null,//Shipping Method
-				];
-			}
-		}
-		*/
 		return $rows;
 	}
 	
@@ -388,42 +259,7 @@ class Purchase_order extends CI_Controller {
 			$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
 			$model = ($prod) ? $prod->model : "No SKU: ".$sku;
 			
-			$rows[] = [
-				trim($sheet->getCell('A'.$row)->getValue()),//Customer PO No.
-				$ship_to->ship_to_code,//Ship To
-				trim($sheet->getCell('I'.$row)->getValue()),//Currency
-				$arrival_date,//Request Arrival Date(YYYYMMDD)
-				$model,//Model
-				trim($sheet->getCell('U'.$row)->getValue()),//Quantity
-				trim($sheet->getCell('R'.$row)->getValue()),//Unit Selling Price
-				null,//Warehouse
-				null,//Payterm
-				null,//Shipping Remark
-				null,//Invoice Remark
-				null,//Customer RAD(YYYYMMDD)
-				$issue_date,//Customer PO Date(YYYYMMDD)
-				null,//H Flag
-				null,//OP Code
-				null,//Country
-				null,//Postal Code
-				null,//Address1
-				null,//Address2
-				null,//Address3
-				null,//Address4
-				null,//City
-				null,//State
-				null,//Province
-				null,//County
-				$ship_to->customer->customer,//Consumer Name
-				null,//Consumer Phone No.
-				null,//Receiver Name
-				null,//Receiver Phone No.
-				null,//Freight Charge
-				null,//Freight Term
-				null,//Price Condition
-				null,//Picking Remark
-				null,//Shipping Method
-			];
+			$rows[] = $this->make_row(trim($sheet->getCell('A'.$row)->getValue()), $ship_to->ship_to_code, trim($sheet->getCell('I'.$row)->getValue()), $arrival_date, $model, trim($sheet->getCell('U'.$row)->getValue()), trim($sheet->getCell('R'.$row)->getValue()), $issue_date, $ship_to->customer->customer);
 		}
 		
 		return $rows;
@@ -444,42 +280,7 @@ class Purchase_order extends CI_Controller {
 		}
 		
 		if ($rows){
-			$header = [
-				"Customer PO No.",
-				"Ship To",
-				"Currency",
-				"Request Arrival Date(YYYYMMDD)",
-				"Model",
-				"Quantity",
-				"Unit Selling Price",
-				"Warehouse",
-				"Payterm",
-				"Shipping Remark",
-				"Invoice Remark",
-				"Customer RAD(YYYYMMDD)",
-				"Customer PO Date(YYYYMMDD)",
-				"H Flag",
-				"OP Code",
-				"Country",
-				"Postal Code",
-				"Address1",
-				"Address2",
-				"Address3",
-				"Address4",
-				"City",
-				"State",
-				"Province",
-				"County",
-				"Consumer Name",
-				"Consumer Phone No.",
-				"Receiver Name",
-				"Receiver Phone No.",
-				"Freight Charge",
-				"Freight Term",
-				"Price Condition",
-				"Picking Remark",
-				"Shipping Method",
-			];
+			$header = ["Customer PO No.","Ship To","Currency","Request Arrival Date(YYYYMMDD)","Model","Quantity","Unit Selling Price","Warehouse","Payterm","Shipping Remark","Invoice Remark","Customer RAD(YYYYMMDD)","Customer PO Date(YYYYMMDD)","H Flag","OP Code","Country","Postal Code","Address1","Address2","Address3","Address4","City","State","Province","County","Consumer Name","Consumer Phone No.","Receiver Name","Receiver Phone No.","Freight Charge","Freight Term","Price Condition","Picking Remark","Shipping Method",];
 			
 			//make excel without title
 			$url = $this->my_func->generate_excel_report("scm_po_converted.xlsx", null, $header, $rows);
