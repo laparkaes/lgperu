@@ -19,7 +19,7 @@ class Sales_order extends CI_Controller {
 
 	public function index(){
 		$data = [
-			"orders"	=> $this->gen_m->filter("order_txt", true, null, null, null, [["order_date", "desc"], ["order_no", "asc"], ["line_no", "asc"]], 2000, 0),
+			"orders"	=> $this->gen_m->filter("order_txt", true, null, null, null, [["order_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]], 2000, 0),
 			"main" 		=> "scm/sales_order/index",
 		];
 		
@@ -348,5 +348,65 @@ class Sales_order extends CI_Controller {
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
+	}
+
+	public function set_coi($filepath, $sheetname, $closed_orders){
+		$header = ["Category","AU","Bill To Name","Ship To Name","Model","Order Qty","Unit List  Price","Unit Selling  Price","Total Amount (PEN)","Total Amount","Order Amount (PEN)","Order Amount","Line Charge Amount","Header Charge Amount","Tax Amount","DC Amount","DC Rate","Currency","Book Currency","Inventory Org.","Sub- Inventory","Sales Person","Pricing Group","Buying Group","Territory","Customer Code","Customer Name","Customer Department","Product Level1 Name","Product Level2 Name","Product Level3 Name","Product Level4 Name","Model Category","Item Type Desctiption","Item Weight","Item CBM","Order Date","Shipment Date","LT Days","Closed Date","AAI Flag","HQ AU","Bill To Code","Ship To Code","Ship To Country","Ship To City","Ship To  State","Ship To Zip Code","Payment Term","Sales Channel","Order Source","Order Type","Order No.","Line No.","Line  Type","Invoice No.","Customer PO No.","Project Code","Comm. Submission No.","Product Level4","Price Grade","Consumer Name","Receiver Name","Receiver Country","Receiver Postal Code","Receiver City","Receiver State","Receiver Province","Receiver Address1","Receiver Address2","Receiver Address3","Install Store Code","Install Type","Install Date","Fapiao No.","Fapiao Date","CNPJ","Nota Date","ACD W/H Code","ACD W/H Type","Net Price","Interest Amt","Original List Pirce","PLP  Submission No","Price Condition","Nota Fiscal Serie No","Shipping Method"];
+		print_R($header); echo "<br/>";
+		foreach($closed_orders as $co){
+			$row = explode("¦¦", $co->co_data);
+			
+			print_R($row); echo "<br/>";
+		}
+	}
+
+	public function export_espr_file(){
+		$start_time = microtime(true);
+		
+		//filepath
+		$filepath = "./upload/scm_so_llamasys_espr.xlsx";
+		
+		//start to create excel file
+		$spreadsheet = new Spreadsheet();
+		$spreadsheet->removeSheetByIndex(0);
+		
+		//worksheets setting
+		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'Closed'));
+		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'SOI 1'));
+		$spreadsheet->addSheet(new Worksheet($spreadsheet, 'SOI 2'));
+		
+		$writer = new Xlsx($spreadsheet);
+		$writer->save($filepath);
+		
+		//get date filter
+		$filter = $this->input->post();
+		
+		
+		
+		$coi_f = ["is_co" => true, "closed_date >= " => $filter["date_coi"]["from"], "closed_date <= " => $filter["date_coi"]["to"]];
+		$this->set_coi($filepath, 'Closed', $this->gen_m->filter("order_txt", true, $coi_f, null, null, [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]]));
+		
+		$soi1_f = ["is_so" => true, "order_date >= " => $filter["date_soi1"]["from"], "order_date <= " => $filter["date_soi1"]["to"]];
+		$soi1 = $this->gen_m->filter("order_txt", true, $soi1_f, null, null, [["order_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]]);
+		
+		$soi2_f = ["is_so" => true, "order_date >= " => $filter["date_soi2"]["from"], "order_date <= " => $filter["date_soi2"]["to"]];
+		$soi2 = $this->gen_m->filter("order_txt", true, $soi2_f, null, null, [["order_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]]);
+		
+		/*
+		//copy COI content to excel file
+		
+		
+		//copy SOI 1 content to excel file
+		$this->set_soi($filepath, 'SOI 1', './upload/'.$name_soi1);
+		
+		//copy SOI 2 content to excel file
+		$this->set_soi($filepath, 'SOI 2', './upload/'.$name_soi2);
+		
+		$type = "success";
+		$msg = "Merged file download will be started. (".number_format(microtime(true) - $start_time, 2)." sec)";
+		$url = base_url()."upload/scm_so_llamasys_espr.xlsx";
+		
+		*/
+		
 	}
 }

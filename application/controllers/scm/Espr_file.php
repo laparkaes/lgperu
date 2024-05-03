@@ -143,6 +143,9 @@ class Espr_file extends CI_Controller {
 			}
 			
 			if ($name_coi and $name_soi1 and $name_soi2){
+				//filepath
+				$filepath = "./upload/scm_so_espr.xlsx";
+				
 				//start to create excel file
 				$spreadsheet = new Spreadsheet();
 				$spreadsheet->removeSheetByIndex(0);
@@ -153,16 +156,16 @@ class Espr_file extends CI_Controller {
 				$spreadsheet->addSheet(new Worksheet($spreadsheet, 'SOI 2'));
 				
 				$writer = new Xlsx($spreadsheet);
-				$writer->save("./upload/scm_so_espr.xlsx");
+				$writer->save($filepath);
 				
 				//copy COI content to excel file
-				$this->set_coi('./upload/scm_so_espr.xlsx', 'Closed', './upload/'.$name_coi);
+				$this->set_coi($filepath, 'Closed', './upload/'.$name_coi);
 				
 				//copy SOI 1 content to excel file
-				$this->set_soi('./upload/scm_so_espr.xlsx', 'SOI 1', './upload/'.$name_soi1);
+				$this->set_soi($filepath, 'SOI 1', './upload/'.$name_soi1);
 				
 				//copy SOI 2 content to excel file
-				$this->set_soi('./upload/scm_so_espr.xlsx', 'SOI 2', './upload/'.$name_soi2);
+				$this->set_soi($filepath, 'SOI 2', './upload/'.$name_soi2);
 				
 				$type = "success";
 				$msg = "Merged file download will be started. (".number_format(microtime(true) - $start_time, 2)." sec)";
