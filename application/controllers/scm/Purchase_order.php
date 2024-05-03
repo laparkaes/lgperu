@@ -242,21 +242,68 @@ class Purchase_order extends CI_Controller {
 	private function sodimac($rows_input, $ship_to){
 		$rows = [];
 		
-		foreach($rows_input as $i => $r){
-			echo $i." -------- ";
-			print_r($r);
-			echo "<br/>";
+		$i = 0;
+		$limit = count($rows_input);
+		
+		//foreach($rows_input as $i => $r){
+		while($i < $limit){
+			$r = $rows_input[$i];
+			
+			$currency = "PEN";
+			
+			switch($r){
+				case "Creada por": 
+					$po_num = $rows_input[$i-1];
+					break;
+				case "Fecha Emision":
+					$issue_date = $rows_input[$i+1];
+					$i++;
+					break;
+				case "Fecha Recibo Esperada":
+					$arrival_date = $rows_input[$i+1];
+					$i++;
+					break;
+				case "Monto Total":
+					$i++;
+					$products = [];
+					while(true){
+						$prod = [];
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						
+						$products[] = $prod;
+						if ($rows_input[$i] === "TOTAL") break;
+					}
+					
+					break;
+			}
+			
+			if ($products){
+				echo $po_num." ".$issue_date." ".$arrival_date."<br/>";
+				foreach($products as $prod){
+					print_r($prod);
+					echo "<br/>";
+				}
+				echo "<br/><br/>";
+			}
+			
+			$products = [];
+			
+			//echo $i." -------- "; print_r($r); echo "<br/><br/>";
+			
+			$i++;
 		}
 		/*
-		$po_num = trim(array_values(array_filter(explode(" ", $rows_input[0])))[5]);
 		
-		$aux = explode("/", trim(str_replace("Se recepciona desde:", "", $rows_input[15])));
-		$issue_date = $aux[2].$aux[1].$aux[0];
 		
-		$aux = explode("/", trim(str_replace(":", "", explode(" ", $rows_input[14])[3])));
-		$arrival_date = $aux[2].$aux[1].$aux[0];
-		
-		$currency = "PEN";
 		
 		foreach($rows_input as $i => $r){
 			$r = str_replace("\t", " ", $r);
@@ -499,7 +546,7 @@ class Purchase_order extends CI_Controller {
 		
 		/* pdf to excel 
 		*/
-		$filename = './test_files/scm_po_sodimac/test.pdf';
+		$filename = './test_files/scm_po_sodimac/LG 4.3 (1).pdf';
 		//$filename = './test_files/scm_po_hiraoka/132527 LG - LB - VES_TIENDAS.pdf';
 		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 4);//sodimac
 		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 40);//sodimac
