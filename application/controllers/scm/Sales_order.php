@@ -19,7 +19,7 @@ class Sales_order extends CI_Controller {
 
 	public function index(){
 		$data = [
-			"orders"	=> $this->gen_m->filter("order_txt", true, null, null, null, [["order_date", "desc"], ["line_no", "asc"]], 2000, 0),
+			"orders"	=> $this->gen_m->filter("order_txt", true, null, null, null, [["order_date", "desc"], ["order_no", "asc"], ["line_no", "asc"]], 2000, 0),
 			"main" 		=> "scm/sales_order/index",
 		];
 		
