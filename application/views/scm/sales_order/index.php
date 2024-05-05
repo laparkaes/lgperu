@@ -122,7 +122,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		e.preventDefault();
 		$("#form_export_espr_file .sys_msg").html("");
 		ajax_form_warning(this, "scm/sales_order/export_espr_file", "Do you want to export excel file for ESPR?").done(function(res) {
-			alert(res);
 			swal_open_tab(res.type, res.msg, res.url);
 		});
 	});

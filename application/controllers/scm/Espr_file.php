@@ -71,13 +71,13 @@ class Espr_file extends CI_Controller {
 		$spreadsheet = IOFactory::load($filename);
 		$sheet = $spreadsheet->getSheetByName($sheetname);
 		
-		$spreadsheet_coi = IOFactory::load($filename_coi);
-		$sheet_coi = $spreadsheet_coi->getActiveSheet();
+		$spreadsheet_soi = IOFactory::load($filename_coi);
+		$sheet_soi = $spreadsheet_soi->getActiveSheet();
 		
-		$max_row = $sheet_coi->getHighestRow();
-		$max_col = $sheet_coi->getHighestColumn();
+		$max_row = $sheet_soi->getHighestRow();
+		$max_col = $sheet_soi->getHighestColumn();
 		
-		$rows = $sheet_coi->rangeToArray("A1:{$max_col}1")[0];
+		$rows = $sheet_soi->rangeToArray("A1:{$max_col}1")[0];
 		if ($this->my_func->header_compare($header, $rows)){
 			//header work
 			$rows = array_merge($rows, ["Column1", "Fixed PO Date", "Fixed Create Date", "Fixed RAD Date", "Fixed Ship Date"]);
@@ -87,7 +87,7 @@ class Espr_file extends CI_Controller {
 			$nums = [11,12,13,14,15,16,17,18,23,154,155,156,157];
 			
 			for($row = 2; $row <= $max_row; $row++){
-				$rows = $sheet_coi->rangeToArray("A{$row}:{$max_col}{$row}")[0];
+				$rows = $sheet_soi->rangeToArray("A{$row}:{$max_col}{$row}")[0];
 				
 				//dates convert to 20240422 format
 				$rows = array_merge($rows, ["", str_replace("-", "", $this->my_func->date_convert($rows[43])), str_replace("-", "", $this->my_func->date_convert($rows[117])), str_replace("-", "", $this->my_func->date_convert_2($rows[130])), str_replace("-", "", $this->my_func->date_convert($rows[31]))]);
@@ -175,7 +175,7 @@ class Espr_file extends CI_Controller {
 			$msg = "Your session is finished.";
 			$url = base_url();
 		}
-			
+		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
 	}

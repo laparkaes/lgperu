@@ -351,13 +351,67 @@ class Sales_order extends CI_Controller {
 	}
 
 	public function set_coi($filepath, $sheetname, $closed_orders){
+		$spreadsheet = IOFactory::load($filepath);
+		$sheet = $spreadsheet->getSheetByName($sheetname);
+		
+		//header work
 		$header = ["Category","AU","Bill To Name","Ship To Name","Model","Order Qty","Unit List  Price","Unit Selling  Price","Total Amount (PEN)","Total Amount","Order Amount (PEN)","Order Amount","Line Charge Amount","Header Charge Amount","Tax Amount","DC Amount","DC Rate","Currency","Book Currency","Inventory Org.","Sub- Inventory","Sales Person","Pricing Group","Buying Group","Territory","Customer Code","Customer Name","Customer Department","Product Level1 Name","Product Level2 Name","Product Level3 Name","Product Level4 Name","Model Category","Item Type Desctiption","Item Weight","Item CBM","Order Date","Shipment Date","LT Days","Closed Date","AAI Flag","HQ AU","Bill To Code","Ship To Code","Ship To Country","Ship To City","Ship To  State","Ship To Zip Code","Payment Term","Sales Channel","Order Source","Order Type","Order No.","Line No.","Line  Type","Invoice No.","Customer PO No.","Project Code","Comm. Submission No.","Product Level4","Price Grade","Consumer Name","Receiver Name","Receiver Country","Receiver Postal Code","Receiver City","Receiver State","Receiver Province","Receiver Address1","Receiver Address2","Receiver Address3","Install Store Code","Install Type","Install Date","Fapiao No.","Fapiao Date","CNPJ","Nota Date","ACD W/H Code","ACD W/H Type","Net Price","Interest Amt","Original List Pirce","PLP  Submission No","Price Condition","Nota Fiscal Serie No","Shipping Method"];
-		print_R($header); echo "<br/>";
+		$header = array_merge($header, ["Column1", "", "Fixed Order Date", "Fixed Ship Date", "", "Fixed Closed Date"]);
+		foreach($header as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), 1)->setValue($val);
+		
+		//index of array to remove commas
+		$nums = [5,6,7,8,9,10,11,12,13,14,15,82];
+		
+		$row_i = 2;
 		foreach($closed_orders as $co){
-			$row = explode("¦¦", $co->co_data);
+			$rowdata = explode("¦¦", $co->co_data);
 			
-			print_R($row); echo "<br/>";
+			//dates convert to 20240422 format
+			$rowdata = array_merge($rowdata, ["", "", str_replace("-", "", $this->my_func->date_convert($rowdata[36])), str_replace("-", "", $this->my_func->date_convert($rowdata[37])), "", str_replace("-", "", $this->my_func->date_convert($rowdata[39]))]);
+			
+			//remove commas of numbers
+			foreach($nums as $n) $rowdata[$n] = str_replace(",", "", $rowdata[$n]);
+			
+			//write to excel file
+			foreach($rowdata as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), $row_i)->setValue($val);
+			
+			$row_i++;
 		}
+		
+		$writer = new Xlsx($spreadsheet);
+		$writer->save($filepath);
+	}
+	
+	public function set_soi($filepath, $sheetname, $sales_orders){
+		$spreadsheet = IOFactory::load($filepath);
+		$sheet = $spreadsheet->getSheetByName($sheetname);
+		
+		//header work
+		$header = ["Bill To Name","Ship To Name","Model","Order No.","Line No.","Order Type","Line Status","Hold Flag","Ready To Pick","Pick Released","Instock Flag","Order Qty","Unit Selling Price","Sales Amount","Tax Amount","Charge Amount","Line Total","List Price","Original List Price","DC Rate","Currency","DFI Applicable","AAI Applicable","Cancel Qty","Booked Date","Scheduled Cancel Date","Cancel Date","Expire Date","Req. Arrival Date From","Req. Arrival Date To","Req. Ship Date","Shipment Date","Close Date","Line Type","Customer Name","Bill To","Department","Ship To","Ship To Full Name","Store No","Price Condition","Payment Term","Customer PO No.","Customer Po Date","Invoice No.","Invoice Line No.","Invoice Date","Sales Person","Pricing Group","Buying Group","Territory Code","Inventory Org.","Sub- Inventory","Shipping Method","Shipment Priority","Order Source","Order Status","Order Category","Quote Date","Quote Expire Date","Project Code","Comm. Submission No.","PLP Submission No.","BPM Request No.","Consumer Name","Consumer Phone No","Consumer Mobile NO","Receiver Name","Receiver Phone No","Receiver Mobile NO","Receiver Address1","Receiver Address2","Receiver Address3","Receiver City","Receiver City Desc","Receiver County","Receiver Postal code","Receiver State","Receiver Province","Receiver Country","Item Division","PL1 Name","PL2 Name","PL3 Name","PL4 Name","Product Level4 Code","Model Category","Item Type","Item Weight","Item CBM","Sales Channel (High)","Sales Channel (Low)","Ship Group","Back Order Hold","Credit Hold","Overdue Hold","Customer Hold","Payterm Term Hold","FP Hold","Minimum Hold","Future Hold","Reserve Hold","Manual Hold","Auto Pending Hold","S/A Hold","Form Hold","Bank Collateral Hold","Insurance Hold","Partial Flag","Load Hold Flag","Inventory Reserved","Pick Release Qty","Long & Multi Flag","SO-SA Mapping","Picking Remark","Shipping Remark","Create Employee Name","Create Date","Order Date","Expected Arrival Date","Fixed Arrival Date","DLS Interface","Sales Recognition Method","Billing Type","LT DAY","EDI Customer Remark","Carrier Code","Delivery Number","Manifest/ GRN No","Warehouse Job No","Customer RAD","Others Out Reason","Ship Set Name","Promising Txn Status","Promised MAD","Promised Arrival Date","Appointment Date","Promised Ship Date","Initial Promised Arrival Date","Accounting Unit","RAD Unmeet Reason","Install Type","Install Date","ACD Original Warehouse","ACD Original W/H Type","Customer Model","Customer Model Desc","CNPJ","Nota No","Nota Date","Net Price","Interest Amt","SO Status(2)","Back Order Reason","SBP Tax Include","SBP Tax Exclude","RRP Tax Include","RRP Tax Exclude","SO FAP Flag","SO FAP Slot Date","Model  Profit Level","APMS NO","Scheduled Back Date","Customer PO Type","","Revised RSD","Revised RAD From","Revised RAD To","Pick Cancel Manual Hold",];
+		$header = array_merge($header, ["Column1", "Fixed PO Date", "Fixed Create Date", "Fixed RAD Date", "Fixed Ship Date"]);
+		foreach($header as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), 1)->setValue($val);
+			
+		//index of array to remove commas
+		$nums = [11,12,13,14,15,16,17,18,23,154,155,156,157];
+		
+		$row_i = 2;
+		foreach($sales_orders as $so){
+			$rowdata = explode("¦¦", $so->so_data);
+			
+			//dates convert to 20240422 format
+			$rowdata = array_merge($rowdata, ["", str_replace("-", "", $this->my_func->date_convert($rowdata[43])), str_replace("-", "", $this->my_func->date_convert($rowdata[117])), str_replace("-", "", $this->my_func->date_convert_2($rowdata[130])), str_replace("-", "", $this->my_func->date_convert($rowdata[31]))]);
+			
+			//remove commas of numbers
+			foreach($nums as $n) $rowdata[$n] = str_replace(",", "", $rowdata[$n]);
+			
+			//write to merged file
+			foreach($rowdata as $i => $val) $sheet->getCellByColumnAndRow(($i + 1), $row_i)->setValue($val);
+			
+			$row_i++;
+		}
+			
+		$writer = new Xlsx($spreadsheet);
+		$writer->save($filepath);
 	}
 
 	public function export_espr_file(){
@@ -381,32 +435,23 @@ class Sales_order extends CI_Controller {
 		//get date filter
 		$filter = $this->input->post();
 		
-		
-		
+		//work closed order
 		$coi_f = ["is_co" => true, "closed_date >= " => $filter["date_coi"]["from"], "closed_date <= " => $filter["date_coi"]["to"]];
 		$this->set_coi($filepath, 'Closed', $this->gen_m->filter("order_txt", true, $coi_f, null, null, [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]]));
 		
+		//work sales order 1
 		$soi1_f = ["is_so" => true, "order_date >= " => $filter["date_soi1"]["from"], "order_date <= " => $filter["date_soi1"]["to"]];
-		$soi1 = $this->gen_m->filter("order_txt", true, $soi1_f, null, null, [["order_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]]);
+		$this->set_soi($filepath, 'SOI 1', $this->gen_m->filter("order_txt", true, $soi1_f, null, null, [["order_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]]));
 		
+		//work sales order 2
 		$soi2_f = ["is_so" => true, "order_date >= " => $filter["date_soi2"]["from"], "order_date <= " => $filter["date_soi2"]["to"]];
-		$soi2 = $this->gen_m->filter("order_txt", true, $soi2_f, null, null, [["order_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]]);
-		
-		/*
-		//copy COI content to excel file
-		
-		
-		//copy SOI 1 content to excel file
-		$this->set_soi($filepath, 'SOI 1', './upload/'.$name_soi1);
-		
-		//copy SOI 2 content to excel file
-		$this->set_soi($filepath, 'SOI 2', './upload/'.$name_soi2);
+		$this->set_soi($filepath, 'SOI 2', $this->gen_m->filter("order_txt", true, $soi2_f, null, null, [["order_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]]));
 		
 		$type = "success";
-		$msg = "Merged file download will be started. (".number_format(microtime(true) - $start_time, 2)." sec)";
+		$msg = "File generation finisehd. Download will be started. (".number_format(microtime(true) - $start_time, 2)." sec)";
 		$url = base_url()."upload/scm_so_llamasys_espr.xlsx";
 		
-		*/
-		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
 	}
 }
