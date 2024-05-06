@@ -28,6 +28,7 @@ class Dashboard extends CI_Controller {
 	
 	public function test(){
 		$this->load->model('som_model', 'som_m');
+		
 		echo phpinfo();
 		
 	}
