@@ -14,18 +14,24 @@ class Product extends CI_Controller {
 	}
 	
 	public function index(){
-		//421
+		$lines = $this->gen_m->all("product_line", [["line", "asc"]]);
+		$lines_arr = [];
+		$lines_arr[-1] = null;
+		foreach($lines as $line) $lines_arr[$line->line_id] = $line;
 		
-		$this->gen_m->update("product", ["product_id" => 21], ["category_id" => null, "updated" => date('Y-m-d H:i:s', time())]);
-		
-		$products = $this->gen_m->all("product", [["updated", "desc"]]);
-		print_r($products);
+		$categories = $this->gen_m->all("product_category", [["category", "asc"]]);
+		$categories_arr = [];
+		foreach($categories as $cat) $categories_arr[$cat->category_id] = $cat;
 		
 		$data = [
-			"purchase_order_temps" => $this->gen_m->all("product", [["category_id", "asc"], ["model", "asc"]]),
+			"lines" => $lines,
+			"lines_arr" => $lines_arr,
+			"categories" => $categories,
+			"categories_arr" => $categories_arr,
+			"products" => $this->gen_m->all("product", [["updated", "desc"], ["model", "desc"]]),
 			"main" => "som/product/index",
 		];
 		
-		//$this->load->view('layout', $data);
+		$this->load->view('layout', $data);
 	}
 }
