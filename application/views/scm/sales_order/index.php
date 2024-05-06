@@ -37,28 +37,28 @@
 						<?php $today = date("Y-m-d"); ?>
 						<div class="col-12">
 							<label class="form-label">Closed order</label>
-							<div class="input-group mb-3">
-								<span class="input-group-text" style="width:75px;">Desde</span>
+							<div class="input-group">
+								<span class="input-group-text" style="width:75px;">From</span>
 								<input type="text" class="form-control" name="date_coi[from]" value="<?= date("Y-m-01", strtotime($today)) ?>">
-								<span class="input-group-text" style="width:75px;">Hasta</span>
+								<span class="input-group-text" style="width:75px;">To</span>
 								<input type="text" class="form-control" name="date_coi[to]" value="<?= $today ?>">
 							</div>
 						</div>
 						<div class="col-12">
 							<label class="form-label">Sales order 1</label>
-							<div class="input-group mb-3">
-								<span class="input-group-text" style="width:75px;">Desde</span>
+							<div class="input-group">
+								<span class="input-group-text" style="width:75px;">From</span>
 								<input type="text" class="form-control" name="date_soi1[from]" value="<?= date("Y-m-01", strtotime("-2 month", strtotime($today))) ?>">
-								<span class="input-group-text" style="width:75px;">Hasta</span>
+								<span class="input-group-text" style="width:75px;">To</span>
 								<input type="text" class="form-control" name="date_soi1[to]" value="<?= $today ?>">
 							</div>
 						</div>
 						<div class="col-12">
 							<label class="form-label">Sales order 2</label>
-							<div class="input-group mb-3">
-								<span class="input-group-text" style="width:75px;">Desde</span>
+							<div class="input-group">
+								<span class="input-group-text" style="width:75px;">From</span>
 								<input type="text" class="form-control" name="date_soi2[from]" value="<?= date("Y-m-01", strtotime("-5 month", strtotime($today))) ?>">
-								<span class="input-group-text" style="width:75px;">Hasta</span>
+								<span class="input-group-text" style="width:75px;">To</span>
 								<input type="text" class="form-control" name="date_soi2[to]" value="<?= date("Y-m-t", strtotime("-3 month", strtotime($today))) ?>">
 							</div>
 						</div>

@@ -11,7 +11,6 @@ class Dashboard extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
-		//if (!$this->session->userdata('logged_in')) redirect("/auth/login");
 		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
@@ -26,4 +25,11 @@ class Dashboard extends CI_Controller {
 		
 		$this->load->view('layout', $data);
 	}
+	
+	public function test(){
+		$this->load->model('som_model', 'som_m');
+		echo phpinfo();
+		
+	}
+	
 }

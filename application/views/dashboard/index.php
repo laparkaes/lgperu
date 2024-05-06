@@ -1,29 +1,5 @@
 <section class="section dashboard">
 	<div class="row">
-		<div class="col-md-4">
-			<div class="card">
-				<div class="card-body pb-0">
-					<h5 class="card-title">SA - Sale Admin</h5>
-					<div class="row">
-						<div class="col-md-12">
-							<div class="card info-card sales-card pb-0">
-								<div class="card-body p-3">
-									<div class="d-flex align-items-center">
-										<div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-											<i class="bi bi-receipt"></i>
-										</div>
-										<div class="ps-3">
-											<a href="<?= base_url() ?>sa/sell_inout"><h6>Sell In/Out Report</h6></a>
-											<span class="text-muted small pt-2">Follow up customer stocks</span>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>				
-					</div>
-				</div>
-			</div>
-		</div>
 		<div class="col-md-8">
 			<div class="card">
 				<div class="card-body pb-0">
@@ -59,6 +35,30 @@
 								</div>
 							</div>
 						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card">
+				<div class="card-body pb-0">
+					<h5 class="card-title">SA - Sale Admin</h5>
+					<div class="row">
+						<div class="col-md-12">
+							<div class="card info-card sales-card pb-0">
+								<div class="card-body p-3">
+									<div class="d-flex align-items-center">
+										<div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+											<i class="bi bi-receipt"></i>
+										</div>
+										<div class="ps-3">
+											<a href="<?= base_url() ?>sa/sell_inout"><h6>Sell In/Out Report</h6></a>
+											<span class="text-muted small pt-2">Follow up customer stocks</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>				
 					</div>
 				</div>
 			</div>
