@@ -86,6 +86,15 @@ class General_model extends CI_Model{
 		$result = $query->result();
 		return $result[0];
 	}
+	
+	function get_group($tablename, $where, $groups){
+		$this->db->select(implode(",", $groups));
+		if ($where) $this->db->where($where);
+		$this->db->group_by($groups);
+		$this->db->order_by($groups[0], "asc");
+		$query = $this->db->get($tablename);
+		return $query->result();
+	}
 
 	function structure($tablename){
 		$res = new stdClass();

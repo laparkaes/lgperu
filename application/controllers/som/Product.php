@@ -34,4 +34,32 @@ class Product extends CI_Controller {
 		
 		$this->load->view('layout', $data);
 	}
+	
+	public function assign_category(){
+		echo "Auto category assign based on one record of same line.<br/><br/>";
+		
+		$line_ids = [];
+		
+		$aux = $this->gen_m->get_group("product", ["line_id >" => 0, "category_id >" => 0], ["line_id", "category_id"]);
+		foreach($aux as $a){
+			if (!array_key_exists($a->line_id, $line_ids)) $line_ids[$a->line_id] = [];
+			$line_ids[$a->line_id][] = $a->category_id;
+		}
+		
+		foreach($line_ids as $line_id => $cat_ids)
+			if (count($cat_ids) == 1)
+				$this->gen_m->update("product", ["line_id" => $line_id], ["category_id" => $cat_ids[0]]);
+			
+		echo "Fin!";
+	}
+	
+	public function create(){
+		$data = [
+			"lines" => $this->gen_m->all("product_line", [["line", "asc"]]),
+			"categories" => $this->gen_m->all("product_category", [["category", "asc"]]),
+			"main" => "som/product/create",
+		];
+		
+		$this->load->view('layout', $data);
+	}
 }
