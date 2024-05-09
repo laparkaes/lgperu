@@ -68,9 +68,9 @@
 									<td><?= $prod->updated ?></td>
 									<td><?= $prod->registered ?></td>
 									<td>
-										<button type="button" class="btn btn-primary btn-sm">
+										<a class="btn btn-primary btn-sm" href="<?= base_url() ?>som/product/edit/<?= $prod->product_id ?>">
 											<i class="bi bi-pencil"></i>
-										</button>
+										</a>
 									</td>
 								</tr>
 								<?php } ?>

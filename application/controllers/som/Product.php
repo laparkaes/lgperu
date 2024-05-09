@@ -36,7 +36,7 @@ class Product extends CI_Controller {
 	}
 	
 	public function assign_category(){
-		echo "Auto category assign based on one record of same line.<br/><br/>";
+		echo "Auto category assign based on one record of same product line.<br/><br/>";
 		
 		$line_ids = [];
 		
@@ -58,6 +58,17 @@ class Product extends CI_Controller {
 			"lines" => $this->gen_m->all("product_line", [["line", "asc"]]),
 			"categories" => $this->gen_m->all("product_category", [["category", "asc"]]),
 			"main" => "som/product/create",
+		];
+		
+		$this->load->view('layout', $data);
+	}
+	
+	public function edit($product_id){
+		$data = [
+			"product"		=> $this->gen_m->unique("product", "product_id", "product_id"),
+			"lines"			=> $this->gen_m->all("product_line", [["line", "asc"]]),
+			"categories"	=> $this->gen_m->all("product_category", [["category", "asc"]]),
+			"main" 			=> "som/product/edit",
 		];
 		
 		$this->load->view('layout', $data);
