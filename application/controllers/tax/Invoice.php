@@ -33,6 +33,7 @@ class Invoice extends CI_Controller {
 		
 		echo $max_row." ".$max_col;
 		
+		/*
 		echo "<br/><br/><br/>";
 		
 		$sheet_p = IOFactory::load("./test_files/tax_e_invoice/paperless 202404.xlsx")->getActiveSheet();
@@ -41,5 +42,6 @@ class Invoice extends CI_Controller {
 		$max_col = $sheet_p->getHighestColumn();
 		
 		echo $max_row." ".$max_col;
+		*/
 	}
 }
