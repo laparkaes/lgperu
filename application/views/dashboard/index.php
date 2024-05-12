@@ -130,7 +130,7 @@
 											<i class="bi bi-list-columns"></i>
 										</div>
 										<div class="ps-3">
-											<a href="<?= base_url() ?>tax/invoice_comparison"><h6>Invoice Comparison</h6></a>
+											<a href="<?= base_url() ?>tax/invoice"><h6>Invoice Comparison</h6></a>
 											<span class="text-muted small pt-2">Compare invoices in GERP and Paperless</span>
 										</div>
 									</div>
