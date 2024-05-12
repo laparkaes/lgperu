@@ -29,28 +29,37 @@ class Invoice extends CI_Controller {
 		$invoices = [];
 		
 		//Peperless process
-		$sheet_p = IOFactory::load("./test_files/tax_e_invoice/paperless 202404.xlsx")->getActiveSheet();
-		$max_row = $sheet_p->getHighestRow();
-		$max_col = $sheet_p->getHighestColumn();
+		$sheet = IOFactory::load("./test_files/tax_e_invoice/paperless 202404.xlsx")->getActiveSheet();
+		$max_row = $sheet->getHighestRow();
+		$max_col = $sheet->getHighestColumn();
 
 		for ($row = 3; $row <= $max_row; $row++){//Paperless excel starts from row 3
-			$rowdata = $this->my_func->arr_trim($sheet_p->rangeToArray("A{$row}:{$max_col}{$row}")[0]);
+			$rowdata = $this->my_func->arr_trim($sheet->rangeToArray("A{$row}:{$max_col}{$row}")[0]);
 			
-			if (!array_key_exists($rowdata[1], $invoices)) $invoices[$rowdata[1]] = ["inv" => $rowdata[1], "type" => $rowdata[0], "status" => $rowdata[11]];
+			if (!array_key_exists($rowdata[1], $invoices)) 
+				$invoices[$rowdata[1]] = [$rowdata[11], $rowdata[0], $rowdata[1]];
 		}
 		
 		//GERP process
+		$sheet = IOFactory::load("./test_files/tax_e_invoice/gerp 202404.xlsx")->getActiveSheet();
+		$max_row = $sheet->getHighestRow();
+		$max_col = $sheet->getHighestColumn();
 		
-		/*
-		$sheet_g = IOFactory::load("./test_files/tax_e_invoice/gerp 202404.xlsx")->getActiveSheet();
-		$max_row = $sheet_g->getHighestRow();
-		$max_col = $sheet_g->getHighestColumn();
-
-		//TIPO DOCUMENTO, SERIE-CORRELATIVO, RUC RECEPTOR, RAZON SOCIAL, FECHA INGRESO, FECHA EMISION,  MONTO, MONEDA, SUCURSAL, CAJA, ESTADO SUNAT, DESC ESTADO SUNAT
-				
+		$report = [];
+		$blank_arr = ["", "", ""];
+		
 		for ($row = 2; $row <= $max_row; $row++){
-			$rowdata = $this->my_func->arr_trim($sheet_g->rangeToArray("A{$row}:{$max_col}{$row}")[0]);
+			$rowdata = $this->my_func->arr_trim($sheet->rangeToArray("A{$row}:{$max_col}{$row}")[0]);
 			
+			$aux = [];
+			if ($rowdata[4]) $aux[] = $rowdata[4];
+			if ($rowdata[5]) $aux[] = $rowdata[5];
+			$inv = implode("-", $aux);
+			
+			$data = [$rowdata[0], $rowdata[1], $rowdata[2], $rowdata[9], $rowdata[10]];
+			$report[] = array_key_exists($inv, $invoices) ? array_merge($invoices[$inv], $data) : array_merge($blank_arr, $data);
+			
+			/*
 			$inv_date = $rowdata[26];
 			
 			$aux = [];
@@ -64,18 +73,18 @@ class Invoice extends CI_Controller {
 				if (!array_key_exists($inv_key, $invoices)) $invoices[$inv_key] = ["inv" => $inv, "date" => $inv_date, "g" => null, "p" => null];
 				$invoices[$inv_key]["g"] = $rowdata[7];
 			}
+			*/
 		}
 		
-		*/
-		
-		foreach($invoices as $num => $inv){
+		foreach($report as $num => $r){
 			echo $num." ====> ";
-			print_r($inv);
-			echo "<br/>";	
+			print_r($r);
+			echo "<br/>";
 			
 		}
 		echo "<br/><br/>";
-		echo count($invoices);
+		
+		echo count($report);
 		
 		//echo $max_row." ".$max_col;
 		
