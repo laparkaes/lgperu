@@ -33,8 +33,6 @@ class Invoice extends CI_Controller {
 		$max_row = $sheet_p->getHighestRow();
 		$max_col = $sheet_p->getHighestColumn();
 
-		//TIPO DOCUMENTO, SERIE-CORRELATIVO, RUC RECEPTOR, RAZON SOCIAL, FECHA INGRESO, FECHA EMISION,  MONTO, MONEDA, SUCURSAL, CAJA, ESTADO SUNAT, DESC ESTADO SUNAT
-		
 		for ($row = 3; $row <= $max_row; $row++){//Paperless excel starts from row 3
 			$rowdata = $this->my_func->arr_trim($sheet_p->rangeToArray("A{$row}:{$max_col}{$row}")[0]);
 			
@@ -47,7 +45,9 @@ class Invoice extends CI_Controller {
 		$sheet_g = IOFactory::load("./test_files/tax_e_invoice/gerp 202404.xlsx")->getActiveSheet();
 		$max_row = $sheet_g->getHighestRow();
 		$max_col = $sheet_g->getHighestColumn();
-		
+
+		//TIPO DOCUMENTO, SERIE-CORRELATIVO, RUC RECEPTOR, RAZON SOCIAL, FECHA INGRESO, FECHA EMISION,  MONTO, MONEDA, SUCURSAL, CAJA, ESTADO SUNAT, DESC ESTADO SUNAT
+				
 		for ($row = 2; $row <= $max_row; $row++){
 			$rowdata = $this->my_func->arr_trim($sheet_g->rangeToArray("A{$row}:{$max_col}{$row}")[0]);
 			
@@ -67,8 +67,6 @@ class Invoice extends CI_Controller {
 		}
 		
 		*/
-		
-		print_r($invoices);
 		
 		foreach($invoices as $num => $inv){
 			echo $num." ====> ";
