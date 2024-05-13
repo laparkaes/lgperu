@@ -120,7 +120,7 @@
 		<div class="col-md-4">
 			<div class="card">
 				<div class="card-body pb-0">
-					<h5 class="card-title">Tax & Account - Invoice comparison</h5>
+					<h5 class="card-title">Tax & Account - Invoice</h5>
 					<div class="row">
 						<div class="col-md-12">
 							<div class="card info-card sales-card pb-0">
@@ -130,8 +130,8 @@
 											<i class="bi bi-list-columns"></i>
 										</div>
 										<div class="ps-3">
-											<a href="<?= base_url() ?>tax/invoice"><h6>Invoice Comparison</h6></a>
-											<span class="text-muted small pt-2">Compare invoices in GERP and Paperless</span>
+											<a href="<?= base_url() ?>tax/invoice"><h6>Invoice</h6></a>
+											<span class="text-muted small pt-2">You can do</span>
 										</div>
 									</div>
 								</div>

@@ -22,14 +22,13 @@ class Invoice extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	public function comparison(){
+	private function comparison($file_p, $file_g){
 		set_time_limit(0);
-		$start_time = microtime(true);
 		
 		$invoices = [];
 		
 		//Peperless process
-		$sheet = IOFactory::load("./test_files/tax_e_invoice/paperless 202404.xlsx")->getActiveSheet();
+		$sheet = IOFactory::load($file_p)->getActiveSheet();
 		$max_row = $sheet->getHighestRow();
 		$max_col = $sheet->getHighestColumn();
 
@@ -41,7 +40,7 @@ class Invoice extends CI_Controller {
 		}
 		
 		//GERP process
-		$sheet = IOFactory::load("./test_files/tax_e_invoice/gerp 202404.xlsx")->getActiveSheet();
+		$sheet = IOFactory::load($file_g)->getActiveSheet();
 		$max_row = $sheet->getHighestRow();
 		$max_col = $sheet->getHighestColumn();
 		
@@ -69,7 +68,55 @@ class Invoice extends CI_Controller {
 		
 		$header = ["Document type", "Documment number", "Status (Paperless)", "Status (GERP)", "Voucher_No", "Header_Id", "Date", "Business number", "Business name", "Amount", "VAT", "Total"];
 		
-		$url = $this->my_func->generate_excel_report("tax_invoice_comparison.xlsx", null, $header, $rows);
+		$url = $this->my_func->generate_excel_report("tax_invoice_comparison_report.xlsx", null, $header, $rows);
 		return $url;
+	}
+	
+	public function comparison_report(){
+		$type = "error"; $msg = $url = "";
+		
+		if ($this->session->userdata('logged_in')){
+			set_time_limit(0);
+			$start_time = microtime(true);
+		
+			$config = [
+				'upload_path'	=> './upload/',
+				'allowed_types'	=> '*',
+				'max_size'		=> 10000,
+				'overwrite'		=> TRUE,
+			];
+			$this->load->library('upload', $config);
+
+			$name_p = $name_g = "";
+			
+			$config['file_name'] = 'tax_invoice_paperless';
+			$this->upload->initialize($config);
+			if ($this->upload->do_upload('file_paperless')){
+				$data = $this->upload->data();
+				$name_p = $data['orig_name'];
+			}
+			
+			$config['file_name'] = 'tax_invoice_gerp';
+			$this->upload->initialize($config);
+			if ($this->upload->do_upload('file_gerp')){
+				$data = $this->upload->data();
+				$name_g = $data['orig_name'];
+			}
+			
+			$name_p = "";
+			$name_g = "";
+			
+			if ($name_p and $name_g){
+				$type = "success";
+				$msg = "Invoice record comparison report has been created. (".number_format(microtime(true) - $start_time, 2)." sec)";
+				$url = $this->comparison($file_p, $file_g);
+			}else $msg = "Select all files: Paperless and GERP Invoice reports.";
+		}else{
+			$msg = "Your session is finished.";
+			$url = base_url();
+		}
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
 	}
 }
