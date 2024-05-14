@@ -131,7 +131,7 @@
 										</div>
 										<div class="ps-3">
 											<a href="<?= base_url() ?>tax/invoice"><h6>Invoice</h6></a>
-											<span class="text-muted small pt-2">You can do</span>
+											<span class="text-muted small pt-2">Make comparison report between GERP and Paperless</span>
 										</div>
 									</div>
 								</div>
