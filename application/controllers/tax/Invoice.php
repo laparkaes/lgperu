@@ -28,7 +28,7 @@ class Invoice extends CI_Controller {
 		$invoices = [];
 		
 		//Peperless process
-		$sheet = IOFactory::load($file_p)->getActiveSheet();
+		$sheet = IOFactory::load("./upload/".$file_p)->getActiveSheet();
 		$max_row = $sheet->getHighestRow();
 		$max_col = $sheet->getHighestColumn();
 
@@ -40,7 +40,7 @@ class Invoice extends CI_Controller {
 		}
 		
 		//GERP process
-		$sheet = IOFactory::load($file_g)->getActiveSheet();
+		$sheet = IOFactory::load("./upload/".$file_g)->getActiveSheet();
 		$max_row = $sheet->getHighestRow();
 		$max_col = $sheet->getHighestColumn();
 		
@@ -91,25 +91,22 @@ class Invoice extends CI_Controller {
 			
 			$config['file_name'] = 'tax_invoice_paperless';
 			$this->upload->initialize($config);
-			if ($this->upload->do_upload('file_paperless')){
+			if ($this->upload->do_upload('file_p')){
 				$data = $this->upload->data();
 				$name_p = $data['orig_name'];
 			}
 			
 			$config['file_name'] = 'tax_invoice_gerp';
 			$this->upload->initialize($config);
-			if ($this->upload->do_upload('file_gerp')){
+			if ($this->upload->do_upload('file_g')){
 				$data = $this->upload->data();
 				$name_g = $data['orig_name'];
 			}
 			
-			$name_p = "";
-			$name_g = "";
-			
 			if ($name_p and $name_g){
 				$type = "success";
-				$msg = "Invoice record comparison report has been created. (".number_format(microtime(true) - $start_time, 2)." sec)";
-				$url = $this->comparison($file_p, $file_g);
+				$msg = "Invoice record comparison report has been created.";
+				$url = $this->comparison($name_p, $name_g);
 			}else $msg = "Select all files: Paperless and GERP Invoice reports.";
 		}else{
 			$msg = "Your session is finished.";
