@@ -25,4 +25,10 @@ class Dashboard extends CI_Controller {
 		
 		$this->load->view('layout', $data);
 	}
+	
+	public function test(){
+		echo"hola";
+		
+		echo phpinfo();
+	}
 }
