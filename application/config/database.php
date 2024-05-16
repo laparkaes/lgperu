@@ -97,8 +97,9 @@ $db['default'] = array(
 
 $db['sqlsvr_lg'] = array(
 	'dsn'	=> '',
-	'hostname' => '136.166.13.8',
-	'port' 	   => '1433',
+	//'hostname' => '136.166.13.8,1433',
+	'hostname' => '136.166.13.8:1433',
+	//'port' 	   => '1433',
 	'username' => 'db_llamasys',
 	'password' => 'Llamasys2024',
 	'database' => 'SOM',
