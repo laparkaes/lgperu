@@ -27,8 +27,12 @@ class Dashboard extends CI_Controller {
 	}
 	
 	public function test(){
-		echo"hola";
+		//echo"hola";
 		
-		echo phpinfo();
+		$db_home = $this->load->database('sqlsvr_home', TRUE); // 'another_db' 데이터베이스 로드
+        //$query = $db_home->get('product'); // 'products' 테이블을 다른 데이터베이스에서 가져옴
+        //$product = $query->result();
+		
+		//echo phpinfo();
 	}
 }
