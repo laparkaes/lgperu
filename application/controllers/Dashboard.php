@@ -26,14 +26,4 @@ class Dashboard extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	public function test(){
-		//echo"hola";
-		
-		//$db_home = $this->load->database('sqlsvr_home', TRUE);
-		$db_lg = $this->load->database('sqlsvr_lg', TRUE);
-        //$query = $db_home->get('product'); // 'products' 테이블을 다른 데이터베이스에서 가져옴
-        //$product = $query->result();
-		
-		echo phpinfo();
-	}
 }
