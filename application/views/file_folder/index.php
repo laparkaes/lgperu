@@ -21,20 +21,66 @@
 	<main id="main" class="main mt-0">
 		<section class="section">
 			<div class="row">
+				<?php
+				$type = $msg = null;
+				if ($this->session->flashdata('success_msg')){
+					$type = "success";
+					$msg = $this->session->flashdata('success_msg');
+				}elseif ($this->session->flashdata('error_msg')){
+					$type = "error";
+					$msg = $this->session->flashdata('error_msg');
+				}
+				
+				if ($msg){
+				?>
+				<div class="col-md-12">
+					<div class="alert alert-<?= $type ?> fade show" role="alert">
+						<?= $msg ?>
+					</div>
+				</div>
+				<?php } ?>
 				<div class="col-md-4">
 					<div class="card">
 						<div class="card-body">
-							<h5 class="card-title">Default Card</h5>
-							<form class="row g-3">
+							<h5 class="card-title">Upload File</h5>
+							<form class="row g-3" id="form_upload_file">
 								<div class="col-md-12">
-									<label class="form-label">Your Name</label>
-									<input class="form-control" type="file">
+									<label class="form-label">File</label>
+									<input class="form-control" type="file" name="filename">
 								</div>
 								<div class="text-center pt-3">
-									<button type="submit" class="btn btn-primary">Submit</button>
+									<button type="submit" class="btn btn-primary">Upload</button>
 									<button type="reset" class="btn btn-secondary">Reset</button>
 								</div>
 							</form>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-8">
+					<div class="card">
+						<div class="card-body">
+							<h5 class="card-title">Files</h5>
+							<table class="table align-middle">
+								<thead>
+									<tr>
+										<th scope="col" style="width: 80px;">#</th>
+										<th scope="col">File name</th>
+										<th scope="col" class="text-end">Action</th>
+									</tr>
+								</thead>
+								<tbody>
+									<?php foreach($files as $i => $f){ ?>
+									<tr>
+										<th scope="row" style="width: 80px;"><?= number_format($i + 1) ?></th>
+										<td><?= $f ?></td>
+										<td class="text-end">
+											<a href="./upload_file/<?= $f ?>" class="btn btn-primary" download><i class="bi bi-download"></i></a>
+											<a href="./file_folder/del/<?= base64_encode($f) ?>" class="btn btn-danger btn_del_file"><i class="bi bi-trash"></i></a>
+										</td>
+									</tr>
+									<?php } ?>
+								</tbody>
+							</table>
 						</div>
 					</div>
 				</div>
@@ -52,9 +98,19 @@
 	<script src="<?= base_url() ?>assets/js/func.js"></script>
 	<script>
 	document.addEventListener("DOMContentLoaded", () => {
-		$('#btn_logout').click(function(){
-			swal_warning_redirect("Are you sure to leave?", "auth/logout");
+		$('.btn_del_file').click(function(){
+			if (!confirm("Are you sure to remove file?"))
+				event.preventDefault();
 		});
+		
+		$("#form_upload_file").submit(function(e) {
+			e.preventDefault();
+			$("#form_upload_file .sys_msg").html("");
+			ajax_form_warning(this, "file_folder/upload", "Do you want to upload file to server?").done(function(res) {
+				if (res == "end") location.reload();
+			});
+		});
+		
 	});
 	</script>
 </body>
