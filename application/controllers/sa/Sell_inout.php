@@ -26,6 +26,7 @@ class Sell_inout extends CI_Controller {
 		$row->invoice = null;
 		$row->invoices = [];
 		$row->price_avg = null;
+		$row->sale_price = null;
 		
 		$w_in = [
 			"order_qty !=" => -1,
@@ -90,6 +91,7 @@ class Sell_inout extends CI_Controller {
 			$aux->date = $out->date;
 			$aux->sell_out = $out->qty;
 			$aux->stock_customer = $out->stock;
+			$aux->sale_price = round($out->amount/$out->qty, 2);
 			
 			$inout[] = clone $aux;
 		}
@@ -268,9 +270,9 @@ class Sell_inout extends CI_Controller {
 		foreach($customers as $c) $customer_ids[] = $c->customer_id;
 		
 		array_unique($customer_ids);
-		$customers = $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]);
 		
-		filter($tablename, $valid = true, $w = null, $l = null, $w_in = null, $orders = [], $limit = "", $offset = "")
+		//$customers = $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]);
+		$customers = $this->gen_m->filter("customer", true, null, null, [["field" => "customer_id", "values" => $customer_ids]], [["customer", "asc"], ["bill_to_code", "asc"]]);
 		
 		foreach($customers as $cus) $customer_arr[$cus->customer_id] = $cus;
 		

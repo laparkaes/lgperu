@@ -203,14 +203,15 @@
 										<tr>
 											<th scope="col" style="width: 80px;">#</th>
 											<th scope="col">Date</th>
-											<th scope="col">U/Price</th>
 											<th scope="col">Sell-in</th>
 											<th scope="col">Sell-out</th>
 											<th scope="col">Stock<br/>(Cust. / LG / Diff)</th>
 											<th scope="col">Alert</th>
-											<th scope="col">Invoice</th>
+											<!-- th scope="col">Invoice</th -->
 											<th scope="col">Invoices</th>
+											<th scope="col">LG Price</th>
 											<th scope="col">Avg Price</th>
+											<th scope="col">Sele Price</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -218,7 +219,6 @@
 										<tr>
 											<td class="text-nowrap"><?= number_format($i + 1) ?></td>
 											<td><?= $i_io->date ?></td>
-											<td><?= (($i_io->u_price > 0) ? $i_io->currency." ".number_format($i_io->u_price, 2) : "") ?></td>
 											<td><?= $i_io->sell_in ?></td>
 											<td><?= $i_io->sell_out ?></td>
 											<td>
@@ -237,9 +237,8 @@
 												<i class="bi bi-circle-fill <?= $c ?>"></i>
 												<?php } ?>
 											</td>
-											<td><?= $i_io->invoice ?></td>
+											<!-- td><?= $i_io->invoice ?></td -->
 											<td>
-												
 												<?php 
 												$count = 0; 
 												foreach($i_io->invoices as $inv){
@@ -255,7 +254,9 @@
 												</div>
 												<?php $count++;} ?>
 											</td>
+											<td><?= (($i_io->u_price > 0) ? $i_io->currency." ".number_format($i_io->u_price, 2) : "") ?></td>
 											<td><?= (($i_io->price_avg > 0) ? "S/ ".number_format($i_io->price_avg, 2) : "") ?></td>
+											<td><?= (($i_io->sale_price > 0) ? "S/ ".number_format($i_io->sale_price, 2) : "") ?></td>
 										</tr>
 										<?php } ?>
 									</tbody>
