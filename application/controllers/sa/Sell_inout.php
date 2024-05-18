@@ -262,7 +262,16 @@ class Sell_inout extends CI_Controller {
 		
 		//set up customer array
 		$customer_arr = [];
+		$customer_ids = [];
+		
+		$customers = array_merge($this->gen_m->only("sell_in", "customer_id"), $this->gen_m->only("sell_out", "customer_id"));
+		foreach($customers as $c) $customer_ids[] = $c->customer_id;
+		
+		array_unique($customer_ids);
 		$customers = $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]);
+		
+		filter($tablename, $valid = true, $w = null, $l = null, $w_in = null, $orders = [], $limit = "", $offset = "")
+		
 		foreach($customers as $cus) $customer_arr[$cus->customer_id] = $cus;
 		
 		//set up channel array
@@ -343,7 +352,19 @@ class Sell_inout extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	public function testing(){
+	public function test_customer(){
+		
+		$customer_ids = [];
+		$customers = array_merge($this->gen_m->only("sell_in", "customer_id"), $this->gen_m->only("sell_out", "customer_id"));
+		foreach($customers as $c) $customer_ids[] = $c->customer_id;
+		
+		array_unique($customer_ids);
+		print_r($customer_ids);
+		
+		//$customers = $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]); print_r($customers);
+	}
+	
+	public function test_sell_inout(){
 		
 		function print_sell_inout($inout){
 			echo "<table>";
