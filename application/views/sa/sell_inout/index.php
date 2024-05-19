@@ -212,6 +212,7 @@
 											<th scope="col">LG Price</th>
 											<th scope="col">Avg Price</th>
 											<th scope="col">Sele Price</th>
+											<th scope="col">Profit</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -257,6 +258,7 @@
 											<td><?= (($i_io->u_price > 0) ? $i_io->currency." ".number_format($i_io->u_price, 2) : "") ?></td>
 											<td><?= (($i_io->price_avg > 0) ? "S/ ".number_format($i_io->price_avg, 2) : "") ?></td>
 											<td><?= (($i_io->sale_price > 0) ? "S/ ".number_format($i_io->sale_price, 2) : "") ?></td>
+											<td><span class="text-<?= $i_io->profit > 0 ? "success" : "danger" ?>"><?= (($i_io->profit != 0) ? "S/ ".number_format(abs($i_io->profit), 2) : "") ?></span></td>
 										</tr>
 										<?php } ?>
 									</tbody>

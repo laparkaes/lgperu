@@ -27,6 +27,7 @@ class Sell_inout extends CI_Controller {
 		$row->invoices = [];
 		$row->price_avg = null;
 		$row->sale_price = null;
+		$row->profit = null;
 		
 		$w_in = [
 			"order_qty !=" => -1,
@@ -161,6 +162,7 @@ class Sell_inout extends CI_Controller {
 			}
 			
 			$io->price_avg = ($aux_qty > 0) ? $aux_amount / $aux_qty : 0;
+			$io->profit = (($io->price_avg > 0) and ($io->sale_price > 0)) ? round($io->sale_price - $io->price_avg, 2) : 0;
 		}
 		
 		return array_reverse($inout);
