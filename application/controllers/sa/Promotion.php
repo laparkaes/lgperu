@@ -24,7 +24,8 @@ class Promotion extends CI_Controller {
 	}
 	
 	public function search_customer(){
-		print_r($this->input->post());
+		$customers = $this->gen_m->filter("customer", null, [["field" => "customer", "values" => [$this->input->post("customer")]]]);
+		print_r($customers);
 	}
 	
 	public function search_product(){
