@@ -39,12 +39,12 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-4">
+		<div class="col-md-8">
 			<div class="card">
 				<div class="card-body pb-0">
 					<h5 class="card-title">SA - Sale Admin</h5>
 					<div class="row">
-						<div class="col-md-12">
+						<div class="col-md-6">
 							<div class="card info-card sales-card pb-0">
 								<div class="card-body p-3">
 									<div class="d-flex align-items-center">
@@ -58,7 +58,22 @@
 									</div>
 								</div>
 							</div>
-						</div>				
+						</div>
+						<div class="col-md-6">
+							<div class="card info-card sales-card pb-0">
+								<div class="card-body p-3">
+									<div class="d-flex align-items-center">
+										<div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+											<i class="bi bi-box-arrow-in-down"></i>
+										</div>
+										<div class="ps-3">
+											<a href="<?= base_url() ?>sa/promotion"><h6>Promotion</h6></a>
+											<span class="text-muted small pt-2">Admin Sell-In promotions</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
