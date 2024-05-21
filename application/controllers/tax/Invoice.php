@@ -2,6 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class Invoice extends CI_Controller {
 
@@ -115,5 +116,70 @@ class Invoice extends CI_Controller {
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
+	}
+
+	public function test(){
+		//Peperless process
+		$sheet = IOFactory::load("./test_files/tax_e_invoice/paperless.xlsx")->getActiveSheet();
+		$max_row = $sheet->getHighestRow();
+		$max_col = $sheet->getHighestColumn();
+
+		$invoices = [];
+		
+		for ($row = 3; $row <= $max_row; $row++){//Paperless excel starts from row 3
+			$rowdata = [
+				$sheet->getCell('A'.$row)->getValue(),
+				$sheet->getCell('B'.$row)->getValue(),
+				$sheet->getCell('C'.$row)->getValue(),
+				$sheet->getCell('D'.$row)->getValue(),
+				Date::excelToDateTimeObject($sheet->getCell('E'.$row)->getValue())->format('Y-m-d H:i:s'),
+				Date::excelToDateTimeObject($sheet->getCell('F'.$row)->getValue())->format('Y-m-d'),
+				$sheet->getCell('G'.$row)->getValue(),
+				$sheet->getCell('H'.$row)->getValue(),
+				$sheet->getCell('L'.$row)->getValue(),
+			];
+		
+			$invoices[$rowdata[1]] = $rowdata;
+		}
+		
+		$inv_blank = ["", "", "", "", "", "", "", "", ""];
+		
+		//GERP process
+		$sheet = IOFactory::load("./test_files/tax_e_invoice/gerp.xlsx")->getActiveSheet();
+		$max_row = $sheet->getHighestRow();
+		$max_col = $sheet->getHighestColumn();
+
+		for ($row = 3; $row <= $max_row; $row++){//Paperless excel starts from row 3
+			$rowdata = [
+				$sheet->getCell('A'.$row)->getValue(),
+				$sheet->getCell('B'.$row)->getValue(),
+				Date::excelToDateTimeObject($sheet->getCell('C'.$row)->getValue())->format('Y-m-d'),
+				$sheet->getCell('G'.$row)->getValue(),
+				$sheet->getCell('J'.$row)->getValue(),
+				$sheet->getCell('K'.$row)->getValue(),
+				$sheet->getCell('L'.$row)->getValue(),
+				$sheet->getCell('M'.$row)->getValue(),
+				$sheet->getCell('N'.$row)->getValue(),
+				$sheet->getCell('O'.$row)->getValue(),
+				$sheet->getCell('P'.$row)->getValue(),
+				$sheet->getCell('Q'.$row)->getValue(),
+				$sheet->getCell('R'.$row)->getValue(),
+				$sheet->getCell('AC'.$row)->getValue(),
+			];
+			
+			print_r($rowdata); echo "<br/>";
+			
+			$inv = $sheet->getCell('E'.$row)->getValue()."-".$sheet->getCell('F'.$row)->getValue();
+			if ($inv !== "-"){//invoice number
+				if (array_key_exists($inv, $invoices)){
+					print_r($invoices[$inv]); echo "<br/>";
+				}
+			}else{
+				print_r($inv_blank); echo "<br/>";
+			}
+			
+			
+			echo "<br/>";
+		}
 	}
 }
