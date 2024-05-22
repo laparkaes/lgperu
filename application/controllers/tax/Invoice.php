@@ -26,51 +26,125 @@ class Invoice extends CI_Controller {
 	private function comparison($file_p, $file_g){
 		set_time_limit(0);
 		
-		$invoices = [];
-		
 		//Peperless process
 		$sheet = IOFactory::load("./upload/".$file_p)->getActiveSheet();
 		$max_row = $sheet->getHighestRow();
 		$max_col = $sheet->getHighestColumn();
 
+		$invoices = [];
+		
 		for ($row = 3; $row <= $max_row; $row++){//Paperless excel starts from row 3
-			$rowdata = $this->my_func->arr_trim($sheet->rangeToArray("A{$row}:{$max_col}{$row}")[0]);
-			
-			if (!array_key_exists($rowdata[1], $invoices)) 
-				$invoices[$rowdata[1]] = [$rowdata[0], $rowdata[1], $rowdata[11]];
+			$rowdata = [
+				$sheet->getCell('A'.$row)->getValue(),
+				$sheet->getCell('B'.$row)->getValue(),
+				$sheet->getCell('C'.$row)->getValue(),
+				$sheet->getCell('D'.$row)->getValue(),
+				Date::excelToDateTimeObject($sheet->getCell('E'.$row)->getValue())->format('Y-m-d H:i:s'),
+				Date::excelToDateTimeObject($sheet->getCell('F'.$row)->getValue())->format('Y-m-d'),
+				$sheet->getCell('G'.$row)->getValue(),
+				$sheet->getCell('H'.$row)->getValue(),
+				$sheet->getCell('L'.$row)->getValue(),
+			];
+		
+			$invoices[$rowdata[1]] = $rowdata;
 		}
+		
+		$inv_blank = ["", "", "", "", "", "", "", "", ""];
 		
 		//GERP process
 		$sheet = IOFactory::load("./upload/".$file_g)->getActiveSheet();
 		$max_row = $sheet->getHighestRow();
 		$max_col = $sheet->getHighestColumn();
-		
-		$rows = [];
-		$blank_arr = ["", "", ""];
-		
-		for ($row = 2; $row <= $max_row; $row++){
-			$rowdata = $this->my_func->arr_trim($sheet->rangeToArray("A{$row}:{$max_col}{$row}")[0]);
+
+		$rows = $bad_inv = [];
+
+		for ($row = 3; $row <= $max_row; $row++){//Paperless excel starts from row 3
+			$rowdata = [
+				$sheet->getCell('A'.$row)->getValue(),
+				$sheet->getCell('B'.$row)->getValue(),
+				Date::excelToDateTimeObject($sheet->getCell('C'.$row)->getValue())->format('Y-m-d'),
+				$sheet->getCell('G'.$row)->getValue(),
+				$sheet->getCell('J'.$row)->getValue(),
+				$sheet->getCell('K'.$row)->getValue(),
+				$sheet->getCell('L'.$row)->getValue(),
+				$sheet->getCell('M'.$row)->getValue(),
+				$sheet->getCell('N'.$row)->getValue(),
+				$sheet->getCell('O'.$row)->getValue(),
+				$sheet->getCell('P'.$row)->getValue(),
+				$sheet->getCell('Q'.$row)->getValue(),
+				$sheet->getCell('R'.$row)->getValue(),
+				$sheet->getCell('AC'.$row)->getValue(),
+			];
 			
-			//print_r($rowdata); echo "<br/>";
+			$inv_p = $inv_blank;
+			$inv = $sheet->getCell('E'.$row)->getValue()."-".$sheet->getCell('F'.$row)->getValue();
+			if ($inv !== "-") if (array_key_exists($inv, $invoices)) $inv_p = $invoices[$inv];
 			
-			$aux = [];
-			if ($rowdata[4]) $aux[] = $rowdata[4];
-			if ($rowdata[5]) $aux[] = $rowdata[5];
-			$inv = implode("-", $aux);
+			//print_r($rowdata); echo "<br/>"; print_r($inv_p); echo "<br/><br/>";
 			
-			$data = [$rowdata[7], $rowdata[0], $rowdata[1], date("Y-m-d", strtotime($rowdata[2])), $rowdata[9], $rowdata[10], $rowdata[13], $rowdata[14], $rowdata[15]];
-			$rows[] = array_key_exists($inv, $invoices) ? array_merge($invoices[$inv], $data) : array_merge($blank_arr, $data);
+			$data = [
+				$inv_p[8],		//[0] => Aceptado
+				$inv_p[0],		//[1] => FACTURA ELECTRONICA
+				$inv_p[1],		//[2] => F001-271799
+				$rowdata[3],	//[3] => 01-F001-00271799
+				$rowdata[0],	//[16] => 110000549398
+				$rowdata[1],	//[17] => 432812688
+				$inv_p[4],		//[4] => 2024-04-02 11:00:00
+				$rowdata[2],	//[5] => 2024-04-02
+				$inv_p[7],		//[7] => PEN
+				$inv_p[6],		//[8] => 60059.64
+				"PEN",			//[9] => PEN
+				$rowdata[8],	//[10] => 50898
+				$rowdata[9],	//[11] => 9161.64
+				$rowdata[10],	//[12] => 60059.64
+				$rowdata[12],	//[13] => 1
+				$rowdata[13],	//[6] => PE000968001B
+				$rowdata[5],	//[15] => SAGA FALABELLA S A
+				$rowdata[4],	//[14] => 20100128056
+				$rowdata[6],	//[20] => PRODD18
+				$rowdata[7],	//[21] => VAT 18% Sales Goods
+			];
+			
+			$rows[] = $data;
 		}
 		
 		usort($rows, function($a, $b) {
-			if (!strcmp($a[0], $b[0])) return (strtotime($a[6]) > strtotime($b[6]));
-			else return strcmp($a[0], $b[0]);
+			if ($a[0] === $b[0]){
+				if ($a[1] === $b[1]){
+					if ($a[3] === $b[3]){
+						return (strtotime($a[6]) < strtotime($b[6]));
+					}else return strcmp($a[3], $b[3]);
+				}else return strcmp($a[1], $b[1]);
+			}else return strcmp($a[0], $b[0]);
 		});
 		
-		$header = ["Document type", "Documment number", "Status (Paperless)", "Status (GERP)", "Voucher_No", "Header_Id", "Date", "Business number", "Business name", "Amount", "VAT", "Total"];
+		foreach($rows as $r) if ($r[0] !== "Aceptado") $bad_inv[] = $r;
+		
+		$header = [
+			"Sunat Status",
+			"Document Type",
+			"Invoice Number (P)",
+			"Invoice Number (G)",
+			"Voucher No",
+			"Header Id",
+			"Registration",
+			"Date",
+			"Currency",
+			"Amount",
+			"Soles",
+			"Net Amount",
+			"VAT",
+			"Total Amount",
+			"Exchange Rate",
+			"Customer No",
+			"Customer",
+			"Tax ID (RUC)",
+			"Tax_Rate_Code",
+			"Tax Rate Name",
+		];
 		
 		$url = $this->my_func->generate_excel_report("tax_invoice_comparison_report.xlsx", null, $header, $rows);
-		return $url;
+		return ["url" => $url, "bad_inv" => $bad_inv];
 	}
 	
 	public function comparison_report(){
@@ -119,67 +193,6 @@ class Invoice extends CI_Controller {
 	}
 
 	public function test(){
-		//Peperless process
-		$sheet = IOFactory::load("./test_files/tax_e_invoice/paperless.xlsx")->getActiveSheet();
-		$max_row = $sheet->getHighestRow();
-		$max_col = $sheet->getHighestColumn();
-
-		$invoices = [];
 		
-		for ($row = 3; $row <= $max_row; $row++){//Paperless excel starts from row 3
-			$rowdata = [
-				$sheet->getCell('A'.$row)->getValue(),
-				$sheet->getCell('B'.$row)->getValue(),
-				$sheet->getCell('C'.$row)->getValue(),
-				$sheet->getCell('D'.$row)->getValue(),
-				Date::excelToDateTimeObject($sheet->getCell('E'.$row)->getValue())->format('Y-m-d H:i:s'),
-				Date::excelToDateTimeObject($sheet->getCell('F'.$row)->getValue())->format('Y-m-d'),
-				$sheet->getCell('G'.$row)->getValue(),
-				$sheet->getCell('H'.$row)->getValue(),
-				$sheet->getCell('L'.$row)->getValue(),
-			];
-		
-			$invoices[$rowdata[1]] = $rowdata;
-		}
-		
-		$inv_blank = ["", "", "", "", "", "", "", "", ""];
-		
-		//GERP process
-		$sheet = IOFactory::load("./test_files/tax_e_invoice/gerp.xlsx")->getActiveSheet();
-		$max_row = $sheet->getHighestRow();
-		$max_col = $sheet->getHighestColumn();
-
-		for ($row = 3; $row <= $max_row; $row++){//Paperless excel starts from row 3
-			$rowdata = [
-				$sheet->getCell('A'.$row)->getValue(),
-				$sheet->getCell('B'.$row)->getValue(),
-				Date::excelToDateTimeObject($sheet->getCell('C'.$row)->getValue())->format('Y-m-d'),
-				$sheet->getCell('G'.$row)->getValue(),
-				$sheet->getCell('J'.$row)->getValue(),
-				$sheet->getCell('K'.$row)->getValue(),
-				$sheet->getCell('L'.$row)->getValue(),
-				$sheet->getCell('M'.$row)->getValue(),
-				$sheet->getCell('N'.$row)->getValue(),
-				$sheet->getCell('O'.$row)->getValue(),
-				$sheet->getCell('P'.$row)->getValue(),
-				$sheet->getCell('Q'.$row)->getValue(),
-				$sheet->getCell('R'.$row)->getValue(),
-				$sheet->getCell('AC'.$row)->getValue(),
-			];
-			
-			print_r($rowdata); echo "<br/>";
-			
-			$inv = $sheet->getCell('E'.$row)->getValue()."-".$sheet->getCell('F'.$row)->getValue();
-			if ($inv !== "-"){//invoice number
-				if (array_key_exists($inv, $invoices)){
-					print_r($invoices[$inv]); echo "<br/>";
-				}
-			}else{
-				print_r($inv_blank); echo "<br/>";
-			}
-			
-			
-			echo "<br/>";
-		}
 	}
 }
