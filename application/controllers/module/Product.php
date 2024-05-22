@@ -29,7 +29,7 @@ class Product extends CI_Controller {
 			"categories" => $categories,
 			"categories_arr" => $categories_arr,
 			"products" => $this->gen_m->all("product", [["updated", "desc"], ["model", "desc"]]),
-			"main" => "som/product/index",
+			"main" => "module/product/index",
 		];
 		
 		$this->load->view('layout', $data);
@@ -57,7 +57,7 @@ class Product extends CI_Controller {
 		$data = [
 			"lines" => $this->gen_m->all("product_line", [["line", "asc"]]),
 			"categories" => $this->gen_m->all("product_category", [["category", "asc"]]),
-			"main" => "som/product/create",
+			"main" => "module/product/create",
 		];
 		
 		$this->load->view('layout', $data);
@@ -68,7 +68,7 @@ class Product extends CI_Controller {
 			"product"		=> $this->gen_m->unique("product", "product_id", "product_id"),
 			"lines"			=> $this->gen_m->all("product_line", [["line", "asc"]]),
 			"categories"	=> $this->gen_m->all("product_category", [["category", "asc"]]),
-			"main" 			=> "som/product/edit",
+			"main" 			=> "module/product/edit",
 		];
 		
 		$this->load->view('layout', $data);

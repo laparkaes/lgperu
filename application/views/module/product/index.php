@@ -10,10 +10,10 @@
 		</nav>
 	</div>
 	<div>
-		<a type="button" class="btn btn-success" href="<?= base_url() ?>som/product/assign_category" target="_blank">
+		<a type="button" class="btn btn-success" href="<?= base_url() ?>module/product/assign_category" target="_blank">
 			<i class="bi bi-tags"></i>
 		</a>
-		<a type="button" class="btn btn-success" href="<?= base_url() ?>som/product/create">
+		<a type="button" class="btn btn-success" href="<?= base_url() ?>module/product/create">
 			<i class="bi bi-plus-lg"></i>
 		</a>
 	</div>
@@ -68,7 +68,7 @@
 									<td><?= $prod->updated ?></td>
 									<td><?= $prod->registered ?></td>
 									<td>
-										<a class="btn btn-primary btn-sm" href="<?= base_url() ?>som/product/edit/<?= $prod->product_id ?>">
+										<a class="btn btn-primary btn-sm" href="<?= base_url() ?>module/product/edit/<?= $prod->product_id ?>">
 											<i class="bi bi-pencil"></i>
 										</a>
 									</td>

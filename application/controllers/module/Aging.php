@@ -16,7 +16,7 @@ class Aging extends CI_Controller {
 	
 	public function index(){
 		$data = [
-			"main" => "ar/aging/index",
+			"main" => "module/aging/index",
 		];
 		
 		$this->load->view('layout', $data);

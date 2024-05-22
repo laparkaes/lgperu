@@ -1,5 +1,24 @@
 <section class="section dashboard">
 	<div class="row">
+		<div class="col-md-4">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Modules</h5>
+					<div class="list-group">
+						<a href="<?= base_url() ?>module/product" class="list-group-item list-group-item-action">
+							<div class="d-flex w-100 justify-content-between">
+								<h4 class="mb-2">Product</h3>
+							</div>
+							<p class="text-end mb-0">Admin product's information</p>
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+<section class="section dashboard">
+	<div class="row">
 		<div class="col-md-8">
 			<div class="card">
 				<div class="card-body pb-0">
@@ -13,8 +32,8 @@
 											<i class="bi bi-box-seam"></i>
 										</div>
 										<div class="ps-3">
-											<a href="<?= base_url() ?>som/product"><h6>Product</h6></a>
-											<span class="text-muted small pt-2">Admin product's information</span>
+											<a href=""><h6></h6></a>
+											<span class="text-muted small pt-2"></span>
 										</div>
 									</div>
 								</div>

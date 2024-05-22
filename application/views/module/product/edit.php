@@ -1,17 +1,17 @@
 <div class="d-flex justify-content-between align-items-start">
 	<div class="pagetitle">
-		<h1>Create Product</h1>
+		<h1>Edit Product</h1>
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
 				<li class="breadcrumb-item">SOM</li>
-				<li class="breadcrumb-item"><a href="<?= base_url() ?>som/product">Product</a></li>
-				<li class="breadcrumb-item active">Create</li>
+				<li class="breadcrumb-item"><a href="<?= base_url() ?>module/product">Product</a></li>
+				<li class="breadcrumb-item active">Edit</li>
 			</ol>
 		</nav>
 	</div>
 	<div>
-		<a type="button" class="btn btn-success" href="<?= base_url() ?>som/product">
+		<a type="button" class="btn btn-success" href="<?= base_url() ?>module/product">
 			<i class="bi bi-arrow-left"></i>
 		</a>
 	</div>
@@ -21,8 +21,8 @@
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">New Product</h5>
-					<form class="row g-3" id="form_new_product">
+					<h5 class="card-title">Edit Product</h5>
+					<form class="row g-3" id="form_update_product">
 						<div class="col-md-3">
 							<label class="form-label">Category</label>
 							<select class="form-select" name="category_id">
