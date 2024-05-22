@@ -56,7 +56,7 @@ class Invoice extends CI_Controller {
 		$max_row = $sheet->getHighestRow();
 		$max_col = $sheet->getHighestColumn();
 
-		$rows = $bad_inv = [];
+		$rows = $bads = [];
 
 		for ($row = 3; $row <= $max_row; $row++){//Paperless excel starts from row 3
 			$rowdata = [
@@ -118,7 +118,7 @@ class Invoice extends CI_Controller {
 			}else return strcmp($a[0], $b[0]);
 		});
 		
-		foreach($rows as $r) if ($r[0] !== "Aceptado") $bad_inv[] = $r;
+		foreach($rows as $r) if ($r[0] !== "Aceptado") $bads[] = $r;
 		
 		$header = [
 			"Sunat Status",
@@ -144,11 +144,11 @@ class Invoice extends CI_Controller {
 		];
 		
 		$url = $this->my_func->generate_excel_report("tax_invoice_comparison_report.xlsx", null, $header, $rows);
-		return ["url" => $url, "bad_inv" => $bad_inv];
+		return ["url" => $url, "bads" => $bads];
 	}
 	
 	public function comparison_report(){
-		$type = "error"; $msg = $url = "";
+		$type = "error"; $msg = $url = ""; $bads = [];
 		
 		if ($this->session->userdata('logged_in')){
 			set_time_limit(0);
@@ -179,9 +179,12 @@ class Invoice extends CI_Controller {
 			}
 			
 			if ($name_p and $name_g){
+				$res = $this->comparison($name_p, $name_g);
+				
 				$type = "success";
 				$msg = "Invoice record comparison report has been created.";
-				$url = $this->comparison($name_p, $name_g);
+				$url = $res["url"];
+				$bads = $res["bads"];
 			}else $msg = "Select all files: Paperless and GERP Invoice reports.";
 		}else{
 			$msg = "Your session is finished.";
@@ -189,10 +192,6 @@ class Invoice extends CI_Controller {
 		}
 		
 		header('Content-Type: application/json');
-		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
-	}
-
-	public function test(){
-		
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url, "bads" => $bads]);
 	}
 }
