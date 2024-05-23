@@ -4,7 +4,6 @@
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item">HR</li>
 				<li class="breadcrumb-item active">Attendance</li>
 			</ol>
 		</nav>
@@ -167,18 +166,18 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_exp_report").submit(function(e) {
 		e.preventDefault();
 		$("#form_exp_report .sys_msg").html("");
-		ajax_form_warning(this, "hr/attendance/export_monthly_report", "Do you want to export monthly attendance report?").done(function(res) {
+		ajax_form_warning(this, "module/attendance/export_monthly_report", "Do you want to export monthly attendance report?").done(function(res) {
 			window.location.href = res.url;
 			//alert();
-			//swal_redirection(res.type, res.msg, "hr/attendance");
+			//swal_redirection(res.type, res.msg, "module/attendance");
 		});
 	});
 	
 	$("#form_uff_attendance").submit(function(e) {
 		e.preventDefault();
 		$("#form_uff_attendance .sys_msg").html("");
-		ajax_form_warning(this, "hr/attendance/upload_device_check", "Do you want to upload device check-in data from selected file?").done(function(res) {
-			swal_redirection(res.type, res.msg, "hr/attendance");
+		ajax_form_warning(this, "module/attendance/upload_device_check", "Do you want to upload device check-in data from selected file?").done(function(res) {
+			swal_redirection(res.type, res.msg, "module/attendance");
 		});
 	});
 });

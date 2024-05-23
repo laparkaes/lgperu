@@ -65,7 +65,7 @@ class Employee extends CI_Controller {
 		
 		$data = [
 			"employees" => $employees,
-			"main" => "hr/employee/index",
+			"main" => "module/employee/index",
 		];
 		$this->load->view('layout', $data);
 	}

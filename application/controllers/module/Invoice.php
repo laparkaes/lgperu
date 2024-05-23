@@ -17,7 +17,7 @@ class Invoice extends CI_Controller {
 	
 	public function index(){
 		$data = [
-			"main" => "tax/invoice/index",
+			"main" => "module/invoice/index",
 		];
 		
 		$this->load->view('layout', $data);

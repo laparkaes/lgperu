@@ -4,7 +4,6 @@
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item">HR</li>
 				<li class="breadcrumb-item active">Employee</li>
 			</ol>
 		</nav>
@@ -69,9 +68,9 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_uff_w_hour").submit(function(e) {
 		e.preventDefault();
 		$("#form_uff_w_hour .sys_msg").html("");
-		ajax_form_warning(this, "hr/employee/upload_w_hour_from_file", "Do you want to upload working hours data from selected file?").done(function(res) {
+		ajax_form_warning(this, "module/employee/upload_w_hour_from_file", "Do you want to upload working hours data from selected file?").done(function(res) {
 			if (res.type == "success") window.location.href = base_url + "upload/working_hour.xlsx";
-			swal_redirection(res.type, res.msg, "hr/employee");
+			swal_redirection(res.type, res.msg, "module/employee");
 		});
 	});
 	

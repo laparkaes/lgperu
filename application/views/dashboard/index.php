@@ -1,16 +1,25 @@
+
+							
 <section class="section dashboard">
 	<div class="row">
 		<div class="col-md-4">
-			<div class="card">
+			<div class="card info-card">
 				<div class="card-body">
 					<h5 class="card-title">Modules</h5>
-					<div class="list-group">
-						<a href="<?= base_url() ?>module/product" class="list-group-item list-group-item-action">
-							<div class="d-flex w-100 justify-content-between">
-								<h4 class="mb-2">Product</h3>
-							</div>
-							<p class="text-end mb-0">Admin product's information</p>
-						</a>
+					<ul class="list-group list-group-flush">
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/aging">Aging Report</a>
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/attendance">Attendance</a>
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/employee">Employee</a>
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/espr_file">ESPR File (COI, SOI 1, SOI 2)</a>
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/invoice">Invoice</a>
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/product">Product</a>
+						
+						
+						
+						<button type="button" class="list-group-item list-group-item-action">A second item</button>
+						<button type="button" class="list-group-item list-group-item-action">A third button item</button>
+						<button type="button" class="list-group-item list-group-item-action">A fourth button item</button>
+						<button type="button" class="list-group-item list-group-item-action" disabled="">A disabled button item</button>
 					</div>
 				</div>
 			</div>
@@ -29,7 +38,7 @@
 								<div class="card-body p-3">
 									<div class="d-flex align-items-center">
 										<div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-											<i class="bi bi-box-seam"></i>
+											
 										</div>
 										<div class="ps-3">
 											<a href=""><h6></h6></a>
@@ -134,17 +143,6 @@
 						</div>
 						<div class="col-md-4">
 							<div class="card info-card sales-card pb-0">
-								<div class="card-body p-3">
-									<div class="d-flex align-items-center">
-										<div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-											<i class="bi bi-folder-plus"></i>
-										</div>
-										<div class="ps-3">
-											<a href="<?= base_url() ?>scm/espr_file"><h6>ESPR File</h6></a>
-											<span class="text-muted small pt-2">Merge COI, SOI 1 and SOI 2 to insert Dashboard SQL.</span>
-										</div>
-									</div>
-								</div>
 							</div>
 						</div>
 					</div>
@@ -157,19 +155,6 @@
 					<h5 class="card-title">Tax & Account - Invoice</h5>
 					<div class="row">
 						<div class="col-md-12">
-							<div class="card info-card sales-card pb-0">
-								<div class="card-body p-3">
-									<div class="d-flex align-items-center">
-										<div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-											<i class="bi bi-list-columns"></i>
-										</div>
-										<div class="ps-3">
-											<a href="<?= base_url() ?>tax/invoice"><h6>Invoice</h6></a>
-											<span class="text-muted small pt-2">Make comparison report between GERP and Paperless</span>
-										</div>
-									</div>
-								</div>
-							</div>
 						</div>
 					</div>
 				</div>
@@ -181,59 +166,9 @@
 					<h5 class="card-title">HR - Human Resource</h5>
 					<div class="row">
 						<div class="col-md-6">
-							<div class="card info-card sales-card pb-0">
-								<div class="card-body p-3">
-									<div class="d-flex align-items-center">
-										<div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-											<i class="bi bi-person-badge"></i>
-										</div>
-										<div class="ps-3">
-											<a href="<?= base_url() ?>hr/employee"><h6>Employee</h6></a>
-											<span class="text-muted small pt-2">Admin employees information</span>
-										</div>
-									</div>
-								</div>
-							</div>
 						</div>
 						<div class="col-md-6">
-							<div class="card info-card revenue-card pb-0">
-								<div class="card-body p-3">
-									<div class="d-flex align-items-center">
-										<div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-											<i class="bi bi-door-open"></i>
-										</div>
-										<div class="ps-3">
-											<a href="<?= base_url() ?>hr/attendance"><h6>Attendance</h6></a>
-											<span class="text-muted small pt-2">Manage diary attendance of employees</span>
-										</div>
-									</div>
-								</div>
-							</div>
 						</div>			
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-4">
-			<div class="card">
-				<div class="card-body pb-0">
-					<h5 class="card-title">AR - Account to Receive</h5>
-					<div class="row">
-						<div class="col-md-12">
-							<div class="card info-card sales-card pb-0">
-								<div class="card-body p-3">
-									<div class="d-flex align-items-center">
-										<div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-											<i class="bi bi-window-split"></i>
-										</div>
-										<div class="ps-3">
-											<a href="<?= base_url() ?>ar/aging"><h6>Aging Report</h6></a>
-											<span class="text-muted small pt-2">Make aging report by period</span>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
 					</div>
 				</div>
 			</div>

@@ -19,7 +19,7 @@ class Espr_file extends CI_Controller {
 
 	public function index(){
 		$data = [
-			"main" => "scm/espr_file/index",
+			"main" => "module/espr_file/index",
 		];
 		
 		$this->load->view('layout', $data);

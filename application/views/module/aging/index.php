@@ -1,10 +1,9 @@
 <div class="d-flex justify-content-between align-items-start">
 	<div class="pagetitle">
-		<h1>Account to Receive</h1>
+		<h1>Aging Report</h1>
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item">AR</li>
 				<li class="breadcrumb-item active">Aging Report</li>
 			</ol>
 		</nav>
@@ -12,27 +11,27 @@
 </div>
 <section class="section">
 	<div class="row">
-		<div class="col-md-12">
+		<div class="col-md-4">
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Data</h5>
 					<form class="row g-3" id="form_upload_data">
-						<div class="col-md-2">
+						<div class="col-md-6">
 							<label class="form-label">Currency</label>
 							<select class="form-select" name="curr">
 								<option value="usd">USD</option>
 								<option value="pen">PEN</option>
 							</select>
 						</div>
-						<div class="col-md-2">
+						<div class="col-md-6">
 							<label class="form-label">Exchange Rate</label>
 							<input class="form-control" type="number" name="er" value="3.8" step="0.001">
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-12">
 							<label class="form-label">File</label>
 							<input class="form-control" type="file" name="datafile">
 						</div>
-						<div class="col-md-2 flex-fill align-self-end">
+						<div class="col-md-12 flex-fill align-self-end pt-3">
 							<div class="d-grid gap-2">
 								<button type="submit" class="btn btn-primary">Submit</button>
 							</div>
@@ -41,7 +40,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-12">
+		<div class="col-md-8">
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Summary</h5>
@@ -136,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		$("#tb_cha").html("");
 		
 		$("#form_upload_data .sys_msg").html("");
-		ajax_form_warning(this, "ar/aging/upload_data", "Do you want to upload data file and make summary report?").done(function(res) {
+		ajax_form_warning(this, "module/aging/upload_data", "Do you want to upload data file and make summary report?").done(function(res) {
 			if (res.type == "success"){
 				swal_open_tab(res.type, res.msg, res.data.url);
 				

@@ -17,7 +17,6 @@ class Attendance extends CI_Controller {
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
 		$this->load->model('attendance_model', 'att_m');
-		$this->nav_menu = ["hr", "attendance"];
 		$this->color_rgb = [
 			"green" => "198754",
 			"red" => "dc3545",
@@ -287,7 +286,7 @@ class Attendance extends CI_Controller {
 		$period = "2024-02";
 		
 		$data = $this->set_attendance($period);
-		$data["main"] = "hr/attendance/index";
+		$data["main"] = "module/attendance/index";
 		
 		$this->load->view('layout', $data);
 	}

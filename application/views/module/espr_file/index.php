@@ -4,7 +4,6 @@
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item">SCM</li>
 				<li class="breadcrumb-item active">ESPR File</li>
 			</ol>
 		</nav>
@@ -13,24 +12,24 @@
 </div>
 <section class="section">
 	<div class="row">
-		<div class="col-md-12">
+		<div class="col-md-5 mx-auto">
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Order Inquiry Files</h5>
 					<form class="row g-3" id="form_merge_order_inquiry">
-						<div class="col-md-4 col-12">
+						<div class="col-12">
 							<label class="form-label">COI</label>
 							<input type="file" class="form-control" name="file_coi">
 						</div>
-						<div class="col-md-4 col-12">
+						<div class="col-12">
 							<label class="form-label">SOI 1</label>
 							<input type="file" class="form-control" name="file_soi1">
 						</div>
-						<div class="col-md-4 col-12">
+						<div class="col-12">
 							<label class="form-label">SOI 2</label>
 							<input type="file" class="form-control" name="file_soi2">
 						</div>
-						<div class="col-md-12 flex-fill align-self-end">
+						<div class="col-md-12 flex-fill align-self-end pt-3">
 							<div class="d-grid gap-2">
 								<button type="submit" class="btn btn-primary">Submit</button>
 							</div>
@@ -46,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_merge_order_inquiry").submit(function(e) {
 		e.preventDefault();
 		$("#form_merge_order_inquiry .sys_msg").html("");
-		ajax_form_warning(this, "scm/espr_file/merge_order_inquiry", "Do you want to generate ESPR template file?").done(function(res) {
+		ajax_form_warning(this, "module/espr_file/merge_order_inquiry", "Do you want to generate ESPR template file?").done(function(res) {
 			swal_open_tab(res.type, res.msg, res.url);
 		});
 	});

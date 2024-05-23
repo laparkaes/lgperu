@@ -4,7 +4,6 @@
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item">SOM</li>
 				<li class="breadcrumb-item active">Product</li>
 			</ol>
 		</nav>
