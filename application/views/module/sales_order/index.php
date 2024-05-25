@@ -4,7 +4,6 @@
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item">SCM</li>
 				<li class="breadcrumb-item active">Sales Order</li>
 			</ol>
 		</nav>
@@ -111,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_upload_sales_order").submit(function(e) {
 		e.preventDefault();
 		$("#form_upload_sales_order .sys_msg").html("");
-		ajax_form_warning(this, "scm/sales_order/upload_sales_order", "Do you want to upload sales order?").done(function(res) {
+		ajax_form_warning(this, "module/sales_order/upload_sales_order", "Do you want to upload sales order?").done(function(res) {
 			swal_open_tab(res.type, res.msg, res.url);
 		});
 	});
@@ -121,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_export_espr_file").submit(function(e) {
 		e.preventDefault();
 		$("#form_export_espr_file .sys_msg").html("");
-		ajax_form_warning(this, "scm/sales_order/export_espr_file", "Do you want to export excel file for ESPR?").done(function(res) {
+		ajax_form_warning(this, "module/sales_order/export_espr_file", "Do you want to export excel file for ESPR?").done(function(res) {
 			swal_open_tab(res.type, res.msg, res.url);
 		});
 	});

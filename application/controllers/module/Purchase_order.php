@@ -356,7 +356,7 @@ class Purchase_order extends CI_Controller {
 		echo $this->pdf_to_excel($filename, $po_template, $ship_to);
 		
 		/* excel to excel
-		$filename = './test_files/scm/conecta/conecta2.xls';
+		$filename = './test_files/module/conecta/conecta2.xls';
 		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 3);//conecta excel
 		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 3);//conecta
 		$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
@@ -387,8 +387,8 @@ class Purchase_order extends CI_Controller {
 			(
 				[file_name] => po_file.pdf
 				[file_type] => application/pdf
-				[file_path] => C:/xampp_lg/htdocs/llamasys/upload/scm/
-				[full_path] => C:/xampp_lg/htdocs/llamasys/upload/scm/po_file.pdf
+				[file_path] => C:/xampp_lg/htdocs/llamasys/upload/module/
+				[full_path] => C:/xampp_lg/htdocs/llamasys/upload/module/po_file.pdf
 				[raw_name] => po_file
 				[orig_name] => po_file.pdf
 				[client_name] => test_hiraoka5.pdf
@@ -447,7 +447,7 @@ class Purchase_order extends CI_Controller {
 		$data = [
 			"purchase_order_temps" => $this->gen_m->all("purchase_order_template", [["template", "asc"]]),
 			"ship_tos" => $ship_tos,
-			"main" => "scm/purchase_order/index",
+			"main" => "module/purchase_order/index",
 		];
 		
 		$this->load->view('layout', $data);

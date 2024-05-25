@@ -20,7 +20,7 @@ class Sales_order extends CI_Controller {
 	public function index(){
 		$data = [
 			"orders"	=> $this->gen_m->filter("order_txt", true, null, null, null, [["order_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]], 2000, 0),
-			"main" 		=> "scm/sales_order/index",
+			"main" 		=> "module/sales_order/index",
 		];
 		
 		$this->load->view('layout', $data);
@@ -339,7 +339,7 @@ class Sales_order extends CI_Controller {
 				
 				$type = "success";
 				$msg = "Process has been completed.";
-				$url = base_url()."scm/sales_order";
+				$url = base_url()."module/sales_order";
 			}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
 		}else{
 			$msg = "Your session is finished.";

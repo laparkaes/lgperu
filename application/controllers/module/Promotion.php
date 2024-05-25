@@ -17,7 +17,7 @@ class Promotion extends CI_Controller {
 		
 		$data = [
 			"customers" => $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]),
-			"main" => "sa/promotion/index",
+			"main" => "module/promotion/index",
 		];
 		
 		$this->load->view('layout', $data);

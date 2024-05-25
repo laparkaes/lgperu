@@ -4,7 +4,6 @@
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item">SA</li>
 				<li class="breadcrumb-item active">Sell-In/Out</li>
 			</ol>
 		</nav>
@@ -500,7 +499,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_upload_sell_inout").submit(function(e) {
 		e.preventDefault();
 		$("#form_upload_sell_inout .sys_msg").html("");
-		ajax_form_warning(this, "sa/sell_inout/upload_sell_inout_file", "Do you upload data?").done(function(res) {
+		ajax_form_warning(this, "module/sell_inout/upload_sell_inout_file", "Do you upload data?").done(function(res) {
 			swal_open_tab(res.type, res.msg, res.url);
 		});
 	});
@@ -508,7 +507,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_exp_report").submit(function(e) {
 		e.preventDefault();
 		$("#form_exp_report .sys_msg").html("");
-		ajax_form_warning(this, "sa/sell_inout/exp_report", "Do you want to export sell-in/out report in excel?").done(function(res) {
+		ajax_form_warning(this, "module/sell_inout/exp_report", "Do you want to export sell-in/out report in excel?").done(function(res) {
 			if (res.type == "success") swal_open_tab(res.type, res.msg, res.url);
 			else swal(res.type, res.msg);
 		});

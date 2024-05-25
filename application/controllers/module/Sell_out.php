@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-class Sell_out_upload extends CI_Controller {
+class Sell_out extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
@@ -16,7 +16,7 @@ class Sell_out_upload extends CI_Controller {
 	public function index(){
 		$data = [
 			//"purchase_order_temps" => $this->gen_m->all("product", [["category_id", "asc"], ["model", "asc"]]),
-			"main" => "som/sell_out_upload",
+			"main" => "module/sell_out/index",
 		];
 		
 		$this->load->view('layout', $data);

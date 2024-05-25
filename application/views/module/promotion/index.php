@@ -4,7 +4,6 @@
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item">SA</li>
 				<li class="breadcrumb-item active">Promotion</li>
 			</ol>
 		</nav>
@@ -486,7 +485,7 @@
 
 <script>
 function load_promotion_info(data){
-	ajax_simple(data, "sa/promotion/load_promotion_info").done(function(res) {
+	ajax_simple(data, "module/promotion/load_promotion_info").done(function(res) {
 		//swal_open_tab(res.type, res.msg, res.url);
 		console.log(res);
 	});
@@ -495,13 +494,13 @@ function load_promotion_info(data){
 
 document.addEventListener("DOMContentLoaded", () => {
 	$('#btn_search_customer').click(function(){
-		ajax_simple({"customer": $('#inp_customer').val()}, "sa/promotion/search_customer").done(function(res) {
+		ajax_simple({"customer": $('#inp_customer').val()}, "module/promotion/search_customer").done(function(res) {
 			console.log(res);
 		});
     });
 	
 	$('#btn_search_product').click(function(){
-		ajax_simple({"model": $('#inp_model').val()}, "sa/promotion/search_product").done(function(res) {
+		ajax_simple({"model": $('#inp_model').val()}, "module/promotion/search_product").done(function(res) {
 			console.log(res);
 		});
     });
@@ -576,7 +575,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_upload_sell_inout").submit(function(e) {
 		e.preventDefault();
 		$("#form_upload_sell_inout .sys_msg").html("");
-		ajax_form_warning(this, "sa/sell_inout/upload_sell_inout_file", "Do you upload data?").done(function(res) {
+		ajax_form_warning(this, "module/sell_inout/upload_sell_inout_file", "Do you upload data?").done(function(res) {
 			swal_open_tab(res.type, res.msg, res.url);
 		});
 	});
@@ -584,7 +583,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_exp_report").submit(function(e) {
 		e.preventDefault();
 		$("#form_exp_report .sys_msg").html("");
-		ajax_form_warning(this, "sa/sell_inout/exp_report", "Do you want to export sell-in/out report in excel?").done(function(res) {
+		ajax_form_warning(this, "module/sell_inout/exp_report", "Do you want to export sell-in/out report in excel?").done(function(res) {
 			if (res.type == "success") swal_open_tab(res.type, res.msg, res.url);
 			else swal(res.type, res.msg);
 		});

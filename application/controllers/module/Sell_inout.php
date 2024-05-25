@@ -350,7 +350,7 @@ class Sell_inout extends CI_Controller {
 			"sell_ins" => $sell_ins,
 			"sell_outs" => $this->gen_m->filter("sell_out", true, $w, null, $w_in, [["date", "desc"]], 1000),
 			"sell_inouts" => $sell_inouts,
-			"main" => "sa/sell_inout/index",
+			"main" => "module/sell_inout/index",
 		];
 		
 		$this->load->view('layout', $data);
@@ -590,7 +590,7 @@ class Sell_inout extends CI_Controller {
 
 		if ($this->upload->do_upload('md_uff_file')){
 			$type = "success";
-			$url = base_url()."sa/sell_inout/process_sell_inout_file";
+			$url = base_url()."module/sell_inout/process_sell_inout_file";
 			$msg = "File upload is done. Data saving will be started.";
 		}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
 		
