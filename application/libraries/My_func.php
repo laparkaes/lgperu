@@ -64,6 +64,11 @@ class My_func{
 		return str_replace("/", "-", explode(" ", $date)[0]);
 	}
 	
+	public function date_convert_3($date_str){//yyyymmdd > yyyy-mm-dd
+		$date = DateTime::createFromFormat('Ymd', $date_str);
+		return $date->format('Y-m-d');
+	}
+	
 	public function get_record($tablename, $data){
 		$record = $this->CI->gen_m->filter($tablename, true, $data);
 		if (!$record){

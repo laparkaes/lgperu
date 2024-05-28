@@ -232,8 +232,8 @@ class Promotion extends CI_Controller {
 				$promotions[] = [
 					"prom" 			=> $sheet->getCell('D'.$i)->getValue(),
 					"prom_line" 	=> $sheet->getCell('E'.$i)->getValue(),
-					"date_start"	=> $sheet->getCell('F'.$i)->getValue(),
-					"date_end"		=> $sheet->getCell('G'.$i)->getValue(),
+					"date_start"	=> $this->my_func->date_convert_3($sheet->getCell('F'.$i)->getValue()),
+					"date_end"		=> $this->my_func->date_convert_3($sheet->getCell('G'.$i)->getValue()),
 					"cus_code"		=> $sheet->getCell('H'.$i)->getValue(),
 					"prod_model"	=> $sheet->getCell('I'.$i)->getValue(),
 					"cost_sellin"	=> $sheet->getCell('K'.$i)->getValue(),
@@ -251,6 +251,7 @@ class Promotion extends CI_Controller {
 				else return strcmp($a["prom"], $b["prom"]);
 			});
 			
+			//set promotions by product model
 			foreach($promotions as $i => $prom){
 				//echo $i." =====> "; print_r($prom); echo "<br/>";
 				//echo $i." =====> ".$prom["prom"]." ".$prom["prom_line"]." ".$prom["prod_model"]."<br/>";
@@ -259,7 +260,10 @@ class Promotion extends CI_Controller {
 				$promotions_by_model[$prom["prod_model"]][] = $prom;
 			}
 			
+			//working promotions by each product
 			foreach($promotions_by_model as $model => $proms){
+				$promotions_by_model[$model]["msg"] = "";
+				
 				$product = $this->gen_m->unique("product", "model", $model);
 				if ($product){
 					$customer = $this->gen_m->unique("customer", "bill_to_code", $proms[0]["cus_code"]);
@@ -275,27 +279,60 @@ class Promotion extends CI_Controller {
 						foreach($sell_inout as $inout){
 							//unset($inout->invoices); print_r($inout); echo "<br/>";
 							
+							//last price_avg is valid
 							if (!$price_avg) $price_avg = $inout->price_avg;
+							
+							//break loop when this record es recent sell in
 							if ($inout->u_price){
 								$price_sellin = $inout->u_price;
 								break;
 							}
 						}
 						
-						echo "<br/>";
-						echo "Sell-in: ".$price_sellin." / Avg: ".$price_avg."<br/>";
-						echo "<br/>";
+						//echo "<br/>";
+						//echo "Sell-in: ".$price_sellin." / Avg: ".$price_avg."<br/>";
+						//echo "<br/>";
 						
+						//set price_avg as start price to apply promotions
+						$cost_start = $price_avg ? $price_avg : $price_sellin;
 						
-						
-						foreach($proms as $p){
-							print_r($p); echo "<br/>";
-						}
-						echo "<br/>=======================================================<br/><br/>";
-						
-						if ($price_sellin and $price_avg and (count($proms) > 2)) break;
-					}else  $msg = $proms[0]["cus_code"]." no exists.";
-				}else $msg = $model." no exists.";
+						//work if you have start cost
+						if ($cost_start){
+							echo "Promotion starting price: ".$cost_start."<br/>";
+							
+							foreach($proms as $i => $p){
+								if ($i){
+									//loop all previous promotions to get last valid cost prom 
+									$i_start = strtotime($proms[$i]["date_start"]);
+									$i_end = strtotime($proms[$i]["date_end"]);
+									
+									$j = 0;
+									while($j < $i){
+										$j_start = strtotime($proms[$j]["date_start"]);
+										$j_end = strtotime($proms[$j]["date_end"]);
+										
+										if (($j_start <= $i_start) and ($i_end <= $j_end)) $cost_sellin = $proms[$j]["cost_prom"];
+										
+										$j++;
+									}
+								}else $cost_sellin = $cost_start;
+								
+								$proms[$i]["cost_sellin"] = $cost_sellin;
+								//$p["cost_sellin"] = $cost_sellin;
+								
+								//print_r($p); echo "<br/>";
+								print_r($proms[$i]); echo "<br/>";
+								echo "<br/>";
+							}
+							
+							if (count($proms) > 2) break;	
+						}else $promotions_by_model[$model]["msg"] = "No sell-in price or sell-out avg price.";
+					}else $promotions_by_model[$model]["msg"] = "Product no exists.";
+				}else $promotions_by_model[$model]["msg"] = "Customer no exists.";
+				
+				echo $model."<br/>";
+				echo $promotions_by_model[$model]["msg"]."<br/>";
+				echo "<br/>=======================================================<br/><br/>";
 			}
 		}else $msg = "Wrong file uploaded.";
 		
