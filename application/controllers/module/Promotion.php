@@ -181,10 +181,11 @@ class Promotion extends CI_Controller {
 	public function test(){
 		$type = "error"; $msg = "";
 		
+		//load excel file
 		$spreadsheet = IOFactory::load("./test_files/sa_promotion/sa_promotion.xlsx");
 		$sheet = $spreadsheet->getActiveSheet();
 		
-		
+		//excel file header validation
 		$h = [
 			trim($sheet->getCell('A1')->getValue()),
 			trim($sheet->getCell('B1')->getValue()),
@@ -220,9 +221,10 @@ class Promotion extends CI_Controller {
 		$header_validation = true;
 		foreach($h as $i => $h_i) if ($h_i !== $h_origin[$i]) $header_validation = false;
 		
-		$promotions = $promotions_by_model = [];
-		
 		if ($header_validation){
+			//save promotion rows in array
+			$promotions = $promotions_by_model = [];
+			
 			$max_row = $sheet->getHighestRow();
 			//$max_col = $sheet->getHighestColumn();
 			
@@ -243,6 +245,7 @@ class Promotion extends CI_Controller {
 				];
 			}
 			
+			//sort by promotion order
 			usort($promotions, function($a, $b) {
 				if ($a["prom"] === $b["prom"]) return ($a["prom_line"] > $b["prom_line"]);
 				else return strcmp($a["prom"], $b["prom"]);
@@ -258,40 +261,42 @@ class Promotion extends CI_Controller {
 			
 			foreach($promotions_by_model as $model => $proms){
 				$product = $this->gen_m->unique("product", "model", $model);
-				$customer = $this->gen_m->unique("customer", "bill_to_code", $proms[0]["cus_code"]);
-				
-				$price_sellin = $price_avg = 0;
-				$sell_inout = $this->get_sell_inout($customer->customer_id, $product->product_id);
-				
-				print_r($product); echo "<br/>";
-				print_r($customer); echo "<br/>";
-				
-				echo "<br/>";
-				foreach($sell_inout as $inout){
-					unset($inout->invoices);
-					print_r($inout); echo "<br/>";
-					
-					if (!$price_avg) $price_avg = $inout->price_avg;
-					
-					if ($inout->u_price){
-						$price_sellin = $inout->u_price;
-						break;
-					}
-				}
-				echo "<br/>";
-				
-				echo "Sell-in: ".$price_sellin." / Avg: ".$price_avg."<br/>";
-				
-				echo "<br/>";
-				
-				
-				
-				foreach($proms as $p){
-					print_r($p); echo "<br/>";
-				}
-				echo "<br/>=======================================================<br/><br/>";
+				if ($product){
+					$customer = $this->gen_m->unique("customer", "bill_to_code", $proms[0]["cus_code"]);
+					if ($customer){
+						//print_r($product); echo "<br/>";
+						//print_r($customer); echo "<br/>";
+						//echo "<br/>";
+						
+						//load prices: last sell-in and actual avg in customer's stock
+						$price_sellin = $price_avg = 0;
+						
+						$sell_inout = $this->get_sell_inout($customer->customer_id, $product->product_id);
+						foreach($sell_inout as $inout){
+							//unset($inout->invoices); print_r($inout); echo "<br/>";
+							
+							if (!$price_avg) $price_avg = $inout->price_avg;
+							if ($inout->u_price){
+								$price_sellin = $inout->u_price;
+								break;
+							}
+						}
+						
+						echo "<br/>";
+						echo "Sell-in: ".$price_sellin." / Avg: ".$price_avg."<br/>";
+						echo "<br/>";
+						
+						
+						
+						foreach($proms as $p){
+							print_r($p); echo "<br/>";
+						}
+						echo "<br/>=======================================================<br/><br/>";
+						
+						if ($price_sellin and $price_avg and (count($proms) > 2)) break;
+					}else  $msg = $proms[0]["cus_code"]." no exists.";
+				}else $msg = $model." no exists.";
 			}
-			
 		}else $msg = "Wrong file uploaded.";
 		
 		echo $msg;
