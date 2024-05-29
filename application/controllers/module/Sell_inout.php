@@ -643,21 +643,21 @@ class Sell_inout extends CI_Controller {
 		$li = $this->input->post("li");
 		
 		if ($customers and $lz and $li){
-			foreach($customers as $customer){
-				$lvlzs = $this->gen_m->filter("product_line", true, ["level" => 0]);
-				foreach($lvlzs as $lvlz){
-					if ($lvlz->line_id == $lz){
-						$lvlis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvlz->line_id]);
-						foreach($lvlis as $lvli){
-							if ($lvli->line_id == $li){
-								$lvliis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvli->line_id]);
-								foreach($lvliis as $lvlii){
-									$lvliiis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvlii->line_id]);
-									foreach($lvliiis as $lvliii){
-										$lvlivs = $this->gen_m->filter("product_line", true, ["parent_id" => $lvliii->line_id]);
-										foreach($lvlivs as $lvliv){
-											$prods = $this->gen_m->filter("product", true, ["line_id" => $lvliv->line_id]);
-											foreach($prods as $prod){
+			$lvlzs = $this->gen_m->filter("product_line", true, ["level" => 0]);
+			foreach($lvlzs as $lvlz){
+				if ($lvlz->line_id == $lz){
+					$lvlis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvlz->line_id]);
+					foreach($lvlis as $lvli){
+						if ($lvli->line_id == $li){
+							$lvliis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvli->line_id]);
+							foreach($lvliis as $lvlii){
+								$lvliiis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvlii->line_id]);
+								foreach($lvliiis as $lvliii){
+									$lvlivs = $this->gen_m->filter("product_line", true, ["parent_id" => $lvliii->line_id]);
+									foreach($lvlivs as $lvliv){
+										$prods = $this->gen_m->filter("product", true, ["line_id" => $lvliv->line_id]);
+										foreach($prods as $prod){
+											foreach($customers as $customer){
 												$inouts = $this->get_sell_inout($customer->customer_id, $prod->product_id);
 												if ($inouts) foreach($inouts as $i => $i_io){
 													//stock alert processing
