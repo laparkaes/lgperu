@@ -325,7 +325,7 @@ class Promotion extends CI_Controller {
 								echo "<br/>";
 							}
 							
-							if (count($proms) > 2) break;	
+							//if (count($proms) > 2) break;	
 						}else $promotions_by_model[$model]["msg"] = "No sell-in price or sell-out avg price.";
 					}else $promotions_by_model[$model]["msg"] = "Product no exists.";
 				}else $promotions_by_model[$model]["msg"] = "Customer no exists.";
