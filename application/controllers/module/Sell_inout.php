@@ -628,69 +628,79 @@ class Sell_inout extends CI_Controller {
 		
 		$rows = [];
 		
-		$customer = $this->gen_m->unique("customer", "customer_id", $this->input->post("cus"));
-		$customer_id = $customer->customer_id;
+		$cus_id = $this->input->post("cus");
+		$customer_ids = [];
+		if ($cus_id) $customer_ids[] = $this->input->post("cus");
+		else{
+			$customers = array_merge($this->gen_m->only("sell_in", "customer_id"), $this->gen_m->only("sell_out", "customer_id"));
+			foreach($customers as $c) $customer_ids[] = $c->customer_id;
+		}
+		
+		array_unique($customer_ids);
+		$customers = $this->gen_m->filter("customer", true, null, null, [["field" => "customer_id", "values" => $customer_ids]], [["customer", "asc"], ["bill_to_code", "asc"]]);
 		
 		$lz = $this->input->post("lz");
 		$li = $this->input->post("li");
 		
-		if ($customer and $lz and $li){
-			$lvlzs = $this->gen_m->filter("product_line", true, ["level" => 0]);
-			foreach($lvlzs as $lvlz){
-				if ($lvlz->line_id == $lz){
-					$lvlis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvlz->line_id]);
-					foreach($lvlis as $lvli){
-						if ($lvli->line_id == $li){
-							$lvliis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvli->line_id]);
-							foreach($lvliis as $lvlii){
-								$lvliiis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvlii->line_id]);
-								foreach($lvliiis as $lvliii){
-									$lvlivs = $this->gen_m->filter("product_line", true, ["parent_id" => $lvliii->line_id]);
-									foreach($lvlivs as $lvliv){
-										$prods = $this->gen_m->filter("product", true, ["line_id" => $lvliv->line_id]);
-										foreach($prods as $prod){
-											$inouts = $this->get_sell_inout($customer_id, $prod->product_id);
-											if ($inouts) foreach($inouts as $i => $i_io){
-												//stock alert processing
-												if ($i_io->sell_out > 0){ 
-													switch(true){
-														case (abs($i_io->stock_diff) > 10) : $alert = "Danger"; break;
-														case (abs($i_io->stock_diff) > 5) : $alert = "Warning"; break;
-														default: $alert = "";
+		if ($customers and $lz and $li){
+			foreach($customers as $customer){
+				$lvlzs = $this->gen_m->filter("product_line", true, ["level" => 0]);
+				foreach($lvlzs as $lvlz){
+					if ($lvlz->line_id == $lz){
+						$lvlis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvlz->line_id]);
+						foreach($lvlis as $lvli){
+							if ($lvli->line_id == $li){
+								$lvliis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvli->line_id]);
+								foreach($lvliis as $lvlii){
+									$lvliiis = $this->gen_m->filter("product_line", true, ["parent_id" => $lvlii->line_id]);
+									foreach($lvliiis as $lvliii){
+										$lvlivs = $this->gen_m->filter("product_line", true, ["parent_id" => $lvliii->line_id]);
+										foreach($lvlivs as $lvliv){
+											$prods = $this->gen_m->filter("product", true, ["line_id" => $lvliv->line_id]);
+											foreach($prods as $prod){
+												$inouts = $this->get_sell_inout($customer->customer_id, $prod->product_id);
+												if ($inouts) foreach($inouts as $i => $i_io){
+													//stock alert processing
+													if ($i_io->sell_out > 0){ 
+														switch(true){
+															case (abs($i_io->stock_diff) > 10) : $alert = "Danger"; break;
+															case (abs($i_io->stock_diff) > 5) : $alert = "Warning"; break;
+															default: $alert = "";
+														}
+													}else $alert = "";
+													
+													//invoices processing
+													$aux = []; 
+													foreach($i_io->invoices as $inv){
+														$i_aux = $inv["invoice"];
+														$i_code = ($i_aux) ? $i_aux->invoice : "No Invoice";
+														$i_price = ($i_aux) ? " * ".$i_aux->currency." ".number_format($i_aux->u_price, 2) : "";
+														$aux[] = $i_code." (".number_format($inv["qty"]).$i_price.")";
 													}
-												}else $alert = "";
-												
-												//invoices processing
-												$aux = []; 
-												foreach($i_io->invoices as $inv){
-													$i_aux = $inv["invoice"];
-													$i_code = ($i_aux) ? $i_aux->invoice : "No Invoice";
-													$i_price = ($i_aux) ? " * ".$i_aux->currency." ".number_format($i_aux->u_price, 2) : "";
-													$aux[] = $i_code." (".number_format($inv["qty"]).$i_price.")";
-												}
-												$invoices = implode(", ", $aux);
-												
-												$rows[] = [
-													$customer->customer,
-													$customer->bill_to_code,
-													$lvlz->line,
-													$lvli->line,
-													$lvlii->line,
-													$lvliii->line,
-													$lvliv->line,
-													$prod->model,
-													$i_io->date,
-													(($i_io->u_price > 0) ? $i_io->currency." ".number_format($i_io->u_price, 2) : ""),
-													$i_io->sell_in,
-													$i_io->sell_out,
-													$i_io->sell_out ? $i_io->stock_customer : "",
-													$i_io->sell_out ? $i_io->stock_lg : "",
-													$i_io->sell_out ? $i_io->stock_diff : "",
-													$alert,
-													$i_io->invoice,
-													$invoices,
-													(($i_io->price_avg > 0) ? "S/ ".number_format($i_io->price_avg, 2) : ""),
-												];
+													$invoices = implode(", ", $aux);
+													
+													$rows[] = [
+														$customer->customer,
+														$customer->bill_to_code,
+														$lvlz->line,
+														$lvli->line,
+														$lvlii->line,
+														$lvliii->line,
+														$lvliv->line,
+														$prod->model,
+														$i_io->date,
+														(($i_io->u_price > 0) ? $i_io->currency." ".number_format($i_io->u_price, 2) : ""),
+														$i_io->sell_in,
+														$i_io->sell_out,
+														$i_io->sell_out ? $i_io->stock_customer : "",
+														$i_io->sell_out ? $i_io->stock_lg : "",
+														$i_io->sell_out ? $i_io->stock_diff : "",
+														$alert,
+														$i_io->invoice,
+														$invoices,
+														(($i_io->price_avg > 0) ? "S/ ".number_format($i_io->price_avg, 2) : ""),
+													];
+												}	
 											}
 										}
 									}

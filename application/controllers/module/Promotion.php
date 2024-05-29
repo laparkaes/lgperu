@@ -298,7 +298,10 @@ class Promotion extends CI_Controller {
 						
 						//work if you have start cost
 						if ($cost_start){
-							echo "Promotion starting price: ".$cost_start."<br/>";
+							echo "Promotion starting price: ".$cost_start."<br/><br/>";
+							
+							print_r($customer); echo "<br/>";
+							print_r($product); echo "<br/><br/>";
 							
 							foreach($proms as $i => $p){
 								if ($i){
@@ -321,7 +324,7 @@ class Promotion extends CI_Controller {
 								//$p["cost_sellin"] = $cost_sellin;
 								
 								//print_r($p); echo "<br/>";
-								print_r($proms[$i]); echo "<br/>";
+								unset($proms[$i]["cus_code"]); unset($proms[$i]["prod_model"]); print_r($proms[$i]); echo "<br/>";
 								echo "<br/>";
 							}
 							
