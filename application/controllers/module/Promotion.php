@@ -279,13 +279,15 @@ class Promotion extends CI_Controller {
 						foreach($sell_inout as $inout){
 							//unset($inout->invoices); print_r($inout); echo "<br/>";
 							
-							//last price_avg is valid
-							if (!$price_avg) $price_avg = $inout->price_avg;
-							
-							//break loop when this record es recent sell in
-							if ($inout->u_price){
-								$price_sellin = $inout->u_price;
-								break;
+							if (strtotime($inout->date) < strtotime($proms[0]["date_start"])){
+								//last price_avg is valid
+								if (!$price_avg) $price_avg = $inout->price_avg;
+								
+								//break loop when this record es recent sell in
+								if ($inout->u_price){
+									$price_sellin = $inout->u_price;
+									break;
+								}	
 							}
 						}
 						
