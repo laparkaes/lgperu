@@ -34,23 +34,28 @@ class Obs extends CI_Controller {
 		if ($content !== FALSE) {
 			//echo json_encode($content); echo "<br/><br/><br/>";
 			
-			//$content = str_replace('EasyClean, luz interior y base estable, negro', 'EasyClean; luz interior y base estable; negro', $content);
-			//$content = str_replace('de 21,5', 'de 21.5', $content);
 			$content = str_replace('\"', '', $content);
 			$content = str_replace('S, AHORRA', 'S AHORRA', $content);
 			$content = str_replace('Qty Ordered"', 'Qty Ordered".0000', $content);
-			$rows = explode(".0000\r\n", $content);
+			$rows = explode(".0000\n", $content);
 			
-			foreach($rows as $row){
-				$row = str_replace('\r\n', ' ', $row);
-				$row = str_replace(', \r\n', ' ', $row);
-				$row = str_replace(',\r\n', ' ', $row);
+			$header = [];
+			$data = [];
+			
+			foreach($rows as $index => $row){
+				//print_r($row); echo "<br/><br/>";
 				
-				$row = strtr($row, ["\r\n" => " ", ", \r\n" => "; ", ",\r\n" => "; "]);
+				$row = str_replace('\n', ' ', $row);
+				$row = str_replace(', \n', ' ', $row);
+				$row = str_replace(',\n', ' ', $row);
+				
+				$row = strtr($row, ["\n" => " ", ", \n" => "; ", ",\n" => "; "]);
 				
 				//echo json_encode($row); echo "<br/><br/>";
 				
 				$row = explode(",", $row);
+				
+				//print_r($row); echo "<br/><br/>";
 				
 				if (count($row) > 30){
 					if ($row[3] >= 1000){
@@ -69,7 +74,10 @@ class Obs extends CI_Controller {
 					
 					$row = array_merge($row1, [implode(", ", $row)], $row2);
 					
-					foreach($row as $i => $r) $row[$i] = str_replace('"', '', $r);
+					foreach($row as $i => $r){
+						$row[$i] = str_replace('"', '', $r);
+						if ($row[$i] === "N/A") $row[$i] =null;
+					}
 					
 					print_r($row); echo "<br/><br/>====================<br/><br/>";
 				}
