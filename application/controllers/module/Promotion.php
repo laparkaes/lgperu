@@ -323,6 +323,17 @@ class Promotion extends CI_Controller {
 								}else $cost_sellin = $cost_start;
 								
 								$proms[$i]["cost_sellin"] = $cost_sellin;
+								$proms[$i]["diff"] = $proms[$i]["cost_sellin"] - $proms[$i]["cost_prom"];
+								
+								$f = [
+									"customer_id" => $customer->customer_id,
+									"product_id" => $product->product_id,
+									"date >=" => $proms[$i]["date_start"],
+									"date <=" => $proms[$i]["date_end"],
+								];
+								
+								$proms[$i]["qty"] = $this->gen_m->sum("sell_out", "qty", $f)->qty;
+								
 								//$p["cost_sellin"] = $cost_sellin;
 								
 								//print_r($p); echo "<br/>";
