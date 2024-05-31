@@ -179,6 +179,8 @@ class Promotion extends CI_Controller {
 	}
 	
 	public function test(){
+		set_time_limit(0);
+		
 		$type = "error"; $msg = "";
 		
 		//load excel file
