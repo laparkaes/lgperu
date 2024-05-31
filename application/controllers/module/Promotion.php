@@ -263,11 +263,14 @@ class Promotion extends CI_Controller {
 			//working promotions by each product
 			foreach($promotions_by_model as $model => $proms){
 				$promotions_by_model[$model]["msg"] = "";
+				$total_to_pay = 0;
+				$cus = "";
 				
 				$product = $this->gen_m->unique("product", "model", $model);
 				if ($product){
 					$customer = $this->gen_m->unique("customer", "bill_to_code", $proms[0]["cus_code"]);
 					if ($customer){
+						$cus = $customer->customer;
 						//print_r($product); echo "<br/>";
 						//print_r($customer); echo "<br/>";
 						//echo "<br/>";
@@ -333,6 +336,9 @@ class Promotion extends CI_Controller {
 								];
 								
 								$proms[$i]["qty"] = $this->gen_m->sum("sell_out", "qty", $f)->qty;
+								$proms[$i]["total"] = $proms[$i]["diff"] * $proms[$i]["qty"];
+								
+								$total_to_pay += $proms[$i]["total"];
 								
 								//$p["cost_sellin"] = $cost_sellin;
 								
@@ -341,12 +347,15 @@ class Promotion extends CI_Controller {
 								echo "<br/>";
 							}
 							
+							$promotions_by_model[$model]["msg"] = "Success.";
 							//if (count($proms) > 2) break;	
 						}else $promotions_by_model[$model]["msg"] = "No sell-in price or sell-out avg price.";
 					}else $promotions_by_model[$model]["msg"] = "Product no exists.";
 				}else $promotions_by_model[$model]["msg"] = "Customer no exists.";
 				
+				echo $cus."<br/>";
 				echo $model."<br/>";
+				echo $total_to_pay."<br/>";
 				echo $promotions_by_model[$model]["msg"]."<br/>";
 				echo "<br/>=======================================================<br/><br/>";
 			}
