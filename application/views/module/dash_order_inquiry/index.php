@@ -18,7 +18,7 @@
 					<form class="row g-3" id="form_upload_order_inquiry">
 						<div class="col-md-12">
 							<label class="form-label">Closed or Sales Order</label>
-							<input class="form-control" type="file" name="filename">
+							<input class="form-control" type="file" name="attach">
 						</div>
 						<div class="text-center pt-3">
 							<button type="submit" class="btn btn-primary">Upload</button>
