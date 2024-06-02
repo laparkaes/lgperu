@@ -16,18 +16,16 @@
 				<div class="card-body">
 					<h5 class="card-title">Invoice Report</h5>
 					<form class="row g-3" id="form_comparison_report">
-						<div class="col-12">
+						<div class="col-md-6">
 							<label class="form-label">Paperless</label>
 							<input type="file" class="form-control" name="file_p">
 						</div>
-						<div class="col-12">
+						<div class="col-md-6">
 							<label class="form-label">GEPR</label>
 							<input type="file" class="form-control" name="file_g">
 						</div>
-						<div class="col-md-12 pt-3 flex-fill align-self-end">
-							<div class="d-grid gap-2">
-								<button type="submit" class="btn btn-primary">Submit</button>
-							</div>
+						<div class="col-md-12 pt-3 text-center">
+							<button type="submit" class="btn btn-primary">Submit</button>
 						</div>
 					</form>
 				</div>

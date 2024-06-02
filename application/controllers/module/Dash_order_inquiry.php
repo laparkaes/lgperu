@@ -120,7 +120,7 @@ class Dash_order_inquiry extends CI_Controller {
 		if ($qty_update > 0) $result[] = number_format($qty_update)." updated";
 		if ($qty_fail > 0) $result[] = number_format($qty_fail)." failed";
 		
-		return "Closed order inquiry process result: ".implode(",", $result);
+		return "Closed order inquiry process result:<br/><br/>".implode(",", $result);
 	}
 	
 	public function process_sales($sheet){
@@ -202,7 +202,7 @@ class Dash_order_inquiry extends CI_Controller {
 		if ($qty_update > 0) $result[] = number_format($qty_update)." updated";
 		if ($qty_fail > 0) $result[] = number_format($qty_fail)." failed";
 		
-		return "Sales order inquiry process result: ".implode(",", $result);
+		return "Sales order inquiry process result:<br/><br/>".implode(",", $result);
 	}
 	
 	public function process_file(){

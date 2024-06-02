@@ -178,13 +178,13 @@ class Promotion extends CI_Controller {
 		return array_reverse($inout);
 	}
 	
-	public function test(){
+	private function calculate_promotion($name_p){
 		set_time_limit(0);
 		
-		$type = "error"; $msg = "";
+		$prom_result = [];
 		
 		//load excel file
-		$spreadsheet = IOFactory::load("./test_files/sa_promotion/sa_promotion.xlsx");
+		$spreadsheet = IOFactory::load("./upload/".$name_p);
 		$sheet = $spreadsheet->getActiveSheet();
 		
 		//excel file header validation
@@ -204,21 +204,7 @@ class Promotion extends CI_Controller {
 			trim($sheet->getCell('M1')->getValue()),
 		];
 		
-		$h_origin = [
-			"Seq",
-			"Company Name",
-			"Division Name",
-			"Promotion No",
-			"Promotion Line No",
-			"Fecha Inicio",
-			"Fecha Fin",
-			"Customer Code",
-			"Modelo",
-			"PVP",
-			"Costo Sellin",
-			"* Precio Promotion",
-			"* Nuevo Margen",
-		];
+		$h_origin = ["Seq", "Company Name", "Division Name", "Promotion No", "Promotion Line No", "Fecha Inicio", "Fecha Fin", "Customer Code", "Modelo", "PVP", "Costo Sellin", "* Precio Promotion", "* Nuevo Margen"];
 		
 		$header_validation = true;
 		foreach($h as $i => $h_i) if ($h_i !== $h_origin[$i]) $header_validation = false;
@@ -231,7 +217,7 @@ class Promotion extends CI_Controller {
 			//$max_col = $sheet->getHighestColumn();
 			
 			for($i = 2; $i < $max_row; $i++){
-				$promotions[] = [
+				$prom = [
 					"prom" 			=> $sheet->getCell('D'.$i)->getValue(),
 					"prom_line" 	=> $sheet->getCell('E'.$i)->getValue(),
 					"date_start"	=> $this->my_func->date_convert_3($sheet->getCell('F'.$i)->getValue()),
@@ -244,7 +230,12 @@ class Promotion extends CI_Controller {
 					"cost_prom"		=> $sheet->getCell('N'.$i)->getValue(),
 					"diff"			=> $sheet->getCell('O'.$i)->getValue(),
 					"qty"			=> $sheet->getCell('P'.$i)->getValue(),
+					"total"			=> 0,
 				];
+				
+				$promotions[] = $prom;
+				
+				$prom_result[$prom["prom"]][$prom["prom_line"]] = $prom;
 			}
 			
 			//sort by promotion order
@@ -305,12 +296,13 @@ class Promotion extends CI_Controller {
 						
 						//work if you have start cost
 						if ($cost_start){
-							echo "Promotion starting price: ".$cost_start."<br/><br/>";
-							
-							print_r($customer); echo "<br/>";
-							print_r($product); echo "<br/><br/>";
+							//echo "Promotion starting price: ".$cost_start."<br/><br/>";
+							//print_r($customer); echo "<br/>";
+							//print_r($product); echo "<br/><br/>";
 							
 							foreach($proms as $i => $p){
+								//$proms[$i]["customer"] = $cus;
+								
 								if ($i){
 									//loop all previous promotions to get last valid cost prom 
 									$i_start = strtotime($proms[$i]["date_start"]);
@@ -337,32 +329,103 @@ class Promotion extends CI_Controller {
 									"date <=" => $proms[$i]["date_end"],
 								];
 								
-								$proms[$i]["qty"] = $this->gen_m->sum("sell_out", "qty", $f)->qty;
+								$proms[$i]["qty"] = $this->gen_m->sum("sell_out", "qty", $f)->qty; if (!$proms[$i]["qty"]) $proms[$i]["qty"] = 0;
 								$proms[$i]["total"] = $proms[$i]["diff"] * $proms[$i]["qty"];
-								
 								$total_to_pay += $proms[$i]["total"];
 								
-								//$p["cost_sellin"] = $cost_sellin;
-								
 								//print_r($p); echo "<br/>";
-								unset($proms[$i]["cus_code"]); unset($proms[$i]["prod_model"]); print_r($proms[$i]); echo "<br/>";
-								echo "<br/>";
+								//unset($proms[$i]["cus_code"]); unset($proms[$i]["prod_model"]); 
+								//print_r($proms[$i]); echo "<br/><br/>";
+								
+								$prom_result[$proms[$i]["prom"]][$proms[$i]["prom_line"]] = $proms[$i];
 							}
 							
-							$promotions_by_model[$model]["msg"] = "Success.";
+							//$promotions_by_model[$model]["msg"] = "Success.";
+							//$promotions_by_model[$model]["total_to_pay"] = $total_to_pay;
 							//if (count($proms) > 2) break;	
-						}else $promotions_by_model[$model]["msg"] = "No sell-in price or sell-out avg price.";
-					}else $promotions_by_model[$model]["msg"] = "Product no exists.";
-				}else $promotions_by_model[$model]["msg"] = "Customer no exists.";
+						}//else $promotions_by_model[$model]["msg"] = "No sell-in price or sell-out avg price.";
+					}//else $promotions_by_model[$model]["msg"] = "Product no exists.";
+				}//else $promotions_by_model[$model]["msg"] = "Customer no exists.";
 				
-				echo $cus."<br/>";
-				echo $model."<br/>";
-				echo $total_to_pay."<br/>";
-				echo $promotions_by_model[$model]["msg"]."<br/>";
-				echo "<br/>=======================================================<br/><br/>";
+				//echo $cus."<br/>";
+				//echo $model."<br/>";
+				//echo $total_to_pay."<br/>";
+				//echo $promotions_by_model[$model]["msg"]."<br/>";
+				//echo "<br/>=======================================================<br/><br/>";
 			}
-		}else $msg = "Wrong file uploaded.";
+		}
 		
-		echo $msg;
+		/*
+		foreach($prom_result as $prom => $lines){
+			echo $prom."<br/>";
+			
+			foreach($lines as $line => $data){
+				echo $line."<br/>";
+				print_r($data);
+				echo "<br/><br/>";
+			}
+			
+			echo "<br/><br/>=========================<br/>";
+		}
+		*/
+		
+		return $prom_result;
+	}
+
+	private function update_report($promotions, $name_g){
+		print_r($promotions);
+	}
+	
+	public function test(){
+		$promotions = $this->calculate_promotion("sa_promotion.xlsx");
+		$this->update_report($promotions, "sa_promotion_result.xlsx");
+	}
+
+	public function calculation(){
+		$type = "error"; $msg = $url = "";
+		
+		if ($this->session->userdata('logged_in')){
+			set_time_limit(0);
+			$start_time = microtime(true);
+		
+			$config = [
+				'upload_path'	=> './upload/',
+				'allowed_types'	=> '*',
+				'max_size'		=> 10000,
+				'overwrite'		=> TRUE,
+			];
+			$this->load->library('upload', $config);
+
+			$name_p = $name_g = "";
+			
+			$config['file_name'] = 'sa_promotion';
+			$this->upload->initialize($config);
+			if ($this->upload->do_upload('file_p')){
+				$data = $this->upload->data();
+				$name_p = $data['orig_name'];
+			}
+			
+			$config['file_name'] = 'sa_promotion_result';
+			$this->upload->initialize($config);
+			if ($this->upload->do_upload('file_g')){
+				$data = $this->upload->data();
+				$name_g = $data['orig_name'];
+			}
+			
+			if ($name_p and $name_g){
+				$promotions = $this->calculate_promotion($name_p);
+				//print_r($promotions);
+				
+				$type = "success";
+				$msg = "Promotion result has been calculated.";
+				$url = base_url()."upload/".$name_g;
+			}else $msg = "Select all files: Promotion and GERP upload file.";
+		}else{
+			$msg = "Your session is finished.";
+			$url = base_url();
+		}
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
 	}
 }
