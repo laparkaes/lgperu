@@ -2,6 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class Promotion extends CI_Controller {
 
@@ -14,8 +15,11 @@ class Promotion extends CI_Controller {
 	}
 	
 	public function index(){
-		
 		$data = [
+			"f_sellin" => $this->gen_m->filter("sell_in", true, null, null, null, [["closed_date", "asc"]], 1, 0)[0]->closed_date,
+			"l_sellin" => $this->gen_m->filter("sell_in", true, null, null, null, [["closed_date", "desc"]], 1, 0)[0]->closed_date,
+			"f_sellout" => $this->gen_m->filter("sell_out", true, null, null, null, [["date", "asc"]], 1, 0)[0]->date,
+			"l_sellout" => $this->gen_m->filter("sell_out", true, null, null, null, [["date", "desc"]], 1, 0)[0]->date,
 			"customers" => $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]),
 			"main" => "module/promotion/index",
 		];
@@ -367,13 +371,80 @@ class Promotion extends CI_Controller {
 			
 			echo "<br/><br/>=========================<br/>";
 		}
-		*/
 		
 		return $prom_result;
+		*/
 	}
 
 	private function update_report($promotions, $name_g){
-		print_r($promotions);
+		$msgs = [];
+		
+		//load excel file
+		$spreadsheet = IOFactory::load("./upload/".$name_g);
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		$max_row = $sheet->getHighestRow();
+		//$max_col = $sheet->getHighestColumn();
+		
+		//excel file header validation
+		$h = [
+			trim($sheet->getCell('A1')->getValue()),
+			trim($sheet->getCell('B1')->getValue()),
+			trim($sheet->getCell('C1')->getValue()),
+			trim($sheet->getCell('D1')->getValue()),
+			trim($sheet->getCell('E1')->getValue()),
+			trim($sheet->getCell('F1')->getValue()),
+			trim($sheet->getCell('G1')->getValue()),
+			trim($sheet->getCell('H1')->getValue()),
+			trim($sheet->getCell('I1')->getValue()),
+			trim($sheet->getCell('J1')->getValue()),
+			trim($sheet->getCell('K1')->getValue()),
+			trim($sheet->getCell('L1')->getValue()),
+			trim($sheet->getCell('M1')->getValue()),
+		];
+		
+		$h_origin = ["Promotion No", "Promotion Name", "Promotion Line No", "Seq No", "Property Type", "Estimate Sales PGM No(Editable)", "Registration Request Date(Editable)", "Budget AU", "Pre Sales PGM No(Editable)", "Sales PGM No", "Sales PGM Name(Editable)", "Apply Date(From)", "Apply Date(To)"];
+		
+		$header_validation = true;
+		foreach($h as $i => $h_i) if ($h_i !== $h_origin[$i]) $header_validation = false;
+		
+		if ($header_validation){
+			//set promotion results
+			for($i = 2; $i < $max_row; $i++){
+				$prom = trim($sheet->getCell('A'.$i)->getValue());
+				$prom_line = trim($sheet->getCell('C'.$i)->getValue());
+				
+				if (@array_key_exists($prom, $promotions)){
+					if (@array_key_exists($prom_line, $promotions[$prom])){
+						$sheet->getCell("AV".$i)->setValue(round($promotions[$prom][$prom_line]["diff"], 2));
+						$sheet->getCell("AW".$i)->setValue(round($promotions[$prom][$prom_line]["qty"], 2));
+						$sheet->getCell("AX".$i)->setValue(round($promotions[$prom][$prom_line]["total"], 2));
+						$sheet->getCell("AY".$i)->setValue(date("Ym"));
+					}else $msgs[] = $prom." (".$prom_line.") no exists in promotion file.";
+				}else $msgs[] = $prom." no exists in promotion file.";
+			}
+		}else $msgs = ["Wrong GERP file."];
+		
+		//unique messages
+		$msgs = array_unique($msgs);
+		
+		//success cases if msgs is empty
+		if (!$msgs) $msgs[] = "Success";
+		
+		//give instruction to remove message lines before upload to GERP
+		array_unshift($msgs, "System msgs: (Remove these messages before upload to GERP)");
+		
+		//write msgs
+		$msg_row = $max_row + 2;
+		foreach($msgs as $msg){
+			$sheet->getCell("A".$msg_row)->setValue($msg);
+			$msg_row++;
+		}
+		
+		//save excel file to a temporary directory
+		$file_path = './upload/';
+		$writer = new Xlsx($spreadsheet);
+		$writer->save('./upload/'.$name_g);
 	}
 	
 	public function test(){
@@ -413,8 +484,7 @@ class Promotion extends CI_Controller {
 			}
 			
 			if ($name_p and $name_g){
-				$promotions = $this->calculate_promotion($name_p);
-				//print_r($promotions);
+				$this->update_report($this->calculate_promotion($name_p), "sa_promotion_result.xlsx");
 				
 				$type = "success";
 				$msg = "Promotion result has been calculated.";
