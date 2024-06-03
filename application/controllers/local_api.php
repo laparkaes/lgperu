@@ -25,7 +25,7 @@ class Local_api extends CI_Controller {
 	}
 	
 	public function get_sales_order(){
-		//http://localhost/llamasys/local_api/get_sales_order?key=lgepr&f=2024-01-01&t=2024-12-31
+		//llamasys/local_api/get_sales_order?key=lgepr&f=2024-01-01&t=2024-12-31
 		
 		$res = [];
 		
@@ -47,7 +47,7 @@ class Local_api extends CI_Controller {
 	}
 	
 	public function get_closed_order(){
-		//http://localhost/llamasys/local_api/get_closed_order?key=lgepr&f=2024-01-01&t=2024-12-31
+		//llamasys/local_api/get_closed_order?key=lgepr&f=2024-01-01&t=2024-12-31
 		
 		$res = [];
 		
@@ -68,4 +68,25 @@ class Local_api extends CI_Controller {
 		echo json_encode($res);
 	}
 	
+	public function get_obs_magento(){
+		//llamasys/local_api/get_obs_magento?key=lgepr&f=2024-01-01&t=2024-12-31
+		
+		$res = [];
+		
+		$key = $this->input->get("key");
+		$f = $this->input->get("f");
+		$t = $this->input->get("t");
+		
+		if ($f and $t and ($key === "lgepr")){
+			$filter = [
+				"local_time >=" => $f,
+				"local_time <=" => $t,
+			];
+			
+			$res = $this->gen_m->filter("obs_magento", false, $filter);
+		}else $res = ["msg" => "Error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
 }

@@ -23,7 +23,111 @@ class Obs extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
+	private function process_magento(){
+		set_time_limit(0);
+		
+		//load excel file
+		$spreadsheet = IOFactory::load("./test_files/obs_backdata/master_export_rodrigo.oyarce_order_rodrigo.oyarce_24_05_31_17_22_07_1717176127.933.csv");
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		//excel file header validation
+		$h = [
+			trim($sheet->getCell('A1')->getValue()),
+			trim($sheet->getCell('B1')->getValue()),
+			trim($sheet->getCell('C1')->getValue()),
+			trim($sheet->getCell('D1')->getValue()),
+			trim($sheet->getCell('E1')->getValue()),
+			trim($sheet->getCell('F1')->getValue()),
+			trim($sheet->getCell('G1')->getValue()),
+			trim($sheet->getCell('H1')->getValue()),
+			trim($sheet->getCell('I1')->getValue()),
+			trim($sheet->getCell('J1')->getValue()),
+			trim($sheet->getCell('K1')->getValue()),
+			trim($sheet->getCell('L1')->getValue()),
+			trim($sheet->getCell('M1')->getValue()),
+		];
+		
+		//magento report header
+		$h_magento = ["ID", "Grand Total (Base)", "Grand Total (Purchased)", "Shipping Address", "Shipping and Handling", "Customer name", "SKU", "Level 1 Code", "Level 2 Code", "Level 3 Code", "Level 4 Code", "GERP Type", "GERP Order #"];
+		
+		//header validation
+		$is_magento = true;
+		foreach($h as $i => $h_i) if ($h_i !== $h_magento[$i]) $is_magento = false;
+		
+		$result = [];
+		
+		if ($is_magento){
+			$max_row = $sheet->getHighestRow();
+			
+			//result types
+			$qty_insert = $qty_update = $qty_fail = 0;
+			
+			//define now
+			$now = date('Y-m-d H:i:s', time());
+			
+			//db fields
+			$vars = ["magento_id", "grand_total_base", "grand_total_purchased", "shipping_address", "shipping_and_handling", "customer_name", "sku", "level_1_code", "level_2_code", "level_3_code", "level_4_code", "gerp_type", "gerp_order_no", "warehouse_code", "sku_price", "local_time", "company_name_through_vipkey", "vipkey", "pre_order", "error_code", "price_source", "coupon_code", "coupon_rule", "discount_amount", "devices", "knout_status", "status", "customer_group", "payment_method", "error_status", "opt_in_status", "purchase_date", "gerp_selling_price", "ip_address", "sale_channel", "is_export_order_to_gerp", "sku_without_prefix", "sku_without_prefix_and_suffix", "qty_ordered"];
+			
+			for($i = 2; $i < $max_row; $i++){
+				$row = [];
+				foreach($vars as $var_i => $var) $row[$var] = str_replace("N/A", null, $sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue());
+				
+				//unique gerp_order_no
+				$row["gerp_order_no"] = explode("\n", $row["gerp_order_no"])[0];
+				
+				//line change char working
+				$row["sku"] = str_replace(", \n", "**", $row["sku"]);
+				$row["warehouse_code"] = str_replace("\n", "**", $row["warehouse_code"]);
+				$row["sku_price"] = str_replace("\n", "**", $row["sku_price"]);
+				$row["sku_without_prefix"] = str_replace("\n", "**", $row["sku_without_prefix"]);
+				$row["sku_without_prefix_and_suffix"] = str_replace("\n", "**", $row["sku_without_prefix_and_suffix"]);
+				
+				//comma working
+				$row["gerp_selling_price"] = str_replace(",", "**", $row["gerp_selling_price"]);
+				
+				//address working
+				$address_aux = explode(",", $row["shipping_address"]);
+				$row["zipcode"] = $address_aux[count($address_aux)-1];
+				$row["department"] = $address_aux[count($address_aux)-2];
+				$row["province"] = $address_aux[count($address_aux)-3];
+				
+				//model category working
+				$row["model_category"] = $row["level_1_code"] ? explode(" ", explode(",", $row["level_1_code"])[0])[1] : "OTHER";
+				
+				$magento = $this->gen_m->unique("obs_magento", "magento_id", $row["magento_id"], false);
+				if ($magento){
+					$row["updated"] = $now;
+					
+					if ($this->gen_m->update("obs_magento", ["obs_magento_id" => $magento->obs_magento_id], $row)) $qty_update++;
+					else $qty_fail++;
+				}else{
+					$row["registered"] = $row["updated"] = $now;
+					
+					if ($this->gen_m->insert("obs_magento", $row)) $qty_insert++;
+					else $qty_fail++;
+				}
+				
+				//print_r($row); 
+				//foreach($row as $key => $r) echo $key." >>>> ".json_encode($r)."<br/>";
+				//echo "<br/>======================<br/><br/>";
+			}
+			
+			if ($qty_insert > 0) $result[] = number_format($qty_insert)." inserted";
+			if ($qty_update > 0) $result[] = number_format($qty_update)." updated";
+			if ($qty_fail > 0) $result[] = number_format($qty_fail)." failed";
+		}else $result[] = "Wrong file.";
+		
+		return "OBS magento report process result:<br/><br/>".implode(",", $result);
+	}
+	
 	public function test(){
+		
+		$msg = $this->process_magento();
+		
+		echo $msg;
+	}
+	
+	public function test1(){//no use
 		// 읽어들일 CSV 파일 경로
 		$file = './test_files/obs_backdata/master_export_rodrigo.oyarce_order_rodrigo.oyarce_24_05_29_22_35_07_1717022107.3641.csv';
 		//$file = "./test_files/obs_backdata/license.txt";
