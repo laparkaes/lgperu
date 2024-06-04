@@ -16,8 +16,10 @@ class Obs extends CI_Controller {
 	public function index(){
 		
 		$data = [
-			//"customers" => $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]),
-			"main" => "module/obs/index",
+			"sales_updated"	=> $this->gen_m->filter("obs_magento", false, null, null, null, [["updated", "desc"]], 1, 0)[0],
+			"sales_first"	=> $this->gen_m->filter("obs_magento", false, null, null, null, [["local_time", "asc"]], 1, 0)[0],
+			"sales_last" 	=> $this->gen_m->filter("obs_magento", false, null, null, null, [["local_time", "desc"]], 1, 0)[0],
+			"main" 			=> "module/obs/index",
 		];
 		
 		$this->load->view('layout', $data);
