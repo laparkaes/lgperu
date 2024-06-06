@@ -3,11 +3,11 @@
 		<div class="col-md-4 mx-auto">
 			<div class="d-flex justify-content-between align-items-start">
 				<div class="pagetitle">
-					<h1>OBS</h1>
+					<h1>OBS - Magento</h1>
 					<nav>
 						<ol class="breadcrumb">
 							<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-							<li class="breadcrumb-item active">OBS</li>
+							<li class="breadcrumb-item active">OBS - Magento</li>
 						</ol>
 					</nav>
 				</div>

@@ -25,11 +25,11 @@ class Obs_magento extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	private function process(){
+	private function process($filename = "obs_magento.csv"){
 		set_time_limit(0);
 		
 		//load excel file
-		$spreadsheet = IOFactory::load("./test_files/obs_backdata/master_export_rodrigo.oyarce_order_rodrigo.oyarce_24_05_31_17_22_07_1717176127.933.csv");
+		$spreadsheet = IOFactory::load("./upload/".$filename);
 		$sheet = $spreadsheet->getActiveSheet();
 		
 		//excel file header validation
@@ -117,16 +117,38 @@ class Obs_magento extends CI_Controller {
 			if ($qty_insert > 0) $result[] = number_format($qty_insert)." inserted";
 			if ($qty_update > 0) $result[] = number_format($qty_update)." updated";
 			if ($qty_fail > 0) $result[] = number_format($qty_fail)." failed";
-		}else $result[] = "Wrong file.";
+		}
 		
-		return "OBS magento report process result:<br/><br/>".implode(",", $result);
+		return $result ? "OBS magento report process result:<br/><br/>".implode(",", $result) : null;
 	}
 	
-	public function test(){
+	public function upload(){
+		$type = "error"; $msg = "";
 		
-		$msg = $this->process();
+		if ($this->session->userdata('logged_in')){
+			set_time_limit(0);
+			$start_time = microtime(true);
 		
-		echo $msg;
+			$config = [
+				'upload_path'	=> './upload/',
+				'allowed_types'	=> '*',
+				'max_size'		=> 10000,
+				'overwrite'		=> TRUE,
+				'file_name'		=> 'obs_magento.csv',
+			];
+			$this->load->library('upload', $config);
+
+			if ($this->upload->do_upload('attach')){
+				$msg = $this->process();
+				if ($msg){
+					$type = "success";
+					$msg = "OBS Mangento data has been uploaded.";
+				}else $msg = "Wrong file.";
+			}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
+		}else $msg = "Your session is finished.";
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
 	
 }
