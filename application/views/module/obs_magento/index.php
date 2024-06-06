@@ -33,19 +33,19 @@
 		<div class="col-md-4 mx-auto">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Magento Data Upload</h5>
+					<h5 class="card-title">Magento Datas</h5>
 					<div class="row g-3">
 						<div class="col-12">
 							<label class="form-label">Recent Update</label>
 							<input class="form-control" type="text" value="<?= $sales_updated->updated ?>" readonly>
 						</div>
 						<div class="col-md-6">
-							<label class="form-label">Last OBS Sales</label>
-							<input class="form-control" type="text" value="<?= $sales_last->local_time ?>" readonly>
+							<label class="form-label">First Record</label>
+							<input class="form-control" type="text" value="<?= $sales_first->local_time ?>" readonly>
 						</div>
 						<div class="col-md-6">
-							<label class="form-label">First OBS Sales</label>
-							<input class="form-control" type="text" value="<?= $sales_first->local_time ?>" readonly>
+							<label class="form-label">Last Record</label>
+							<input class="form-control" type="text" value="<?= $sales_last->local_time ?>" readonly>
 						</div>
 					</div>
 				</div>
@@ -59,8 +59,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_upload_magento").submit(function(e) {
 		e.preventDefault();
 		$("#form_upload_magento .sys_msg").html("");
-		ajax_form_warning(this, "module/obs/upload", "Do you upload data?").done(function(res) {
-			swal_redirection(res.type, res.msg, "module/obs");
+		ajax_form_warning(this, "module/obs_magento/upload", "Do you upload data?").done(function(res) {
+			swal_redirection(res.type, res.msg, "module/obs_magento");
 		});
 	});
 });
