@@ -14,7 +14,8 @@
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/dash_order_inquiry">Dashboard - Order Inquiry</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/employee">Employee</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/invoice">Invoice</a>
-						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_magento">OBS - Magento Report</a>
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_magento">OBS - Magento</a>
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_report">OBS - Report</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/product">Product</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/promotion">Promotion</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/purchase_order">Purchase Order</a>

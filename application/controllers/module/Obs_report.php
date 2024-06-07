@@ -21,14 +21,17 @@ class Obs_report extends CI_Controller {
 		];
 		
 		$sales = $this->gen_m->filter("obs_magento", false, $f, null, null, [["local_time", "desc"]]);
-		print_r($f);
-		print_r($sales);
-		
+		/*
+		echo "<textarea>";
+		$aux = $sales[0];
+		foreach($aux as $k => $a) print_r('<td><?= $sale->'.$k.' ?></td>');
+		echo "</textarea>";
+		*/
 		$data = [
 			"sales" 	=> $sales,
 			"main" 		=> "module/obs_report/index",
 		];
 		
-		//$this->load->view('layout', $data);
+		$this->load->view('layout', $data);
 	}
 }
