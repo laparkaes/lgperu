@@ -12,15 +12,23 @@ class Obs_report extends CI_Controller {
 	}
 	
 	public function index(){
-		$m = $this->input->get("m"); //month
-		if (!$m) $m = date("Y-m");
+		$from = $this->input->get("f") ? $this->input->get("f") : date("Y-m-01");
+		$to = $this->input->get("t") ? $this->input->get("t") : date("Y-m-t");
 		
 		$f = [
-			"local_time >=" => date("Y-m-01", strtotime($m)),
-			"local_time <=" => date("Y-m-t", strtotime($m)),
+			"local_time >=" => $from,
+			"local_time <=" => $to,
 		];
 		
 		$sales = $this->gen_m->filter("obs_magento", false, $f, null, null, [["local_time", "desc"]]);
+		
+		$status = [];
+		$status_rec = $this->gen_m->only("obs_magento", "status", $f);
+		foreach($status_rec as $s){
+			$status[$s->status] = ["code" => $s->status, "qty" => 0, "amount" => 0];
+		}
+		print_R($status);
+		
 		/*
 		echo "<textarea>";
 		$aux = $sales[0];
@@ -28,6 +36,8 @@ class Obs_report extends CI_Controller {
 		echo "</textarea>";
 		*/
 		$data = [
+			"from"		=> $from,
+			"to"		=> $to,
 			"sales" 	=> $sales,
 			"main" 		=> "module/obs_report/index",
 		];

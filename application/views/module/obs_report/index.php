@@ -8,6 +8,14 @@
 			</ol>
 		</nav>
 	</div>
+	<form>
+		<div class="input-group">
+			<input type="date" class="form-control" id="report_from" value="<?= $from ?>" name="f" placeholder="From" max="<?= $to ?>">
+			<span class="input-group-text">~</span>
+			<input type="date" class="form-control" id="report_to" value="<?= $to ?>" name="t" placeholder="To" min="<?= $from ?>">
+			<button type="submit" class="btn btn-primary">Submit</button>
+		</div>
+	</form>
 </div>
 <section class="section">
 	<div class="row">
@@ -133,6 +141,14 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+	$("#report_from").on( "change", function() {
+		$("#report_to").attr("min", $(this).val());
+	});
+	
+	$("#report_to").on( "change", function() {
+		$("#report_from").attr("max", $(this).val());
+	});
+	
 	$("#form_upload_magento").submit(function(e) {
 		e.preventDefault();
 		$("#form_upload_magento .sys_msg").html("");
