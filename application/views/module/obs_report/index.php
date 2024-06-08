@@ -1,4 +1,4 @@
-<div class="d-flex justify-content-between align-items-start">
+<div class="d-md-flex justify-content-between align-items-center">
 	<div class="pagetitle">
 		<h1>OBS - Report</h1>
 		<nav>
@@ -8,7 +8,7 @@
 			</ol>
 		</nav>
 	</div>
-	<form>
+	<form class="m-0">
 		<div class="input-group">
 			<input type="date" class="form-control" id="report_from" value="<?= $from ?>" name="f" placeholder="From" max="<?= $to ?>">
 			<span class="input-group-text">~</span>
@@ -16,15 +16,43 @@
 			<button type="submit" class="btn btn-primary">Submit</button>
 		</div>
 	</form>
-</div>
+</div>					
 <section class="section">
 	<div class="row">
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">OBS Report</h5>
+					<h5 class="card-title">By Status</h5>
+					<div class="row">
+						<div class="col-md-4">
+						<?php foreach($status as $s) echo $s["code"]."<br/>"; ?>
+							<table class="table align-middle">
+								<thead>
+									<tr>
+										<th scope="col">Status</th>
+										<th scope="col">Qty</th>
+										<th scope="col" class="text-end">Amount, USD</th>
+									</tr>
+								</thead>
+								<tbody>
+									<?php foreach($status as $s){ ?>
+									<tr>
+										<td><?= ucfirst(str_replace("_", " ", $s["code"])) ?></td>
+										<td><?= number_format($s["qty"]) ?></td>
+										<td class="text-end"><?= number_format($s["amount"] / $exchange_rate, 2) ?></td>
+									</tr>
+									<?php } ?>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Sales Records</h5>
 					<div class="table-responsive">
-						<table class="table align-middle">
+						<table class="table datatable align-middle">
 							<thead>
 								<tr>
 									<th scope="col">Sale</th>
@@ -35,8 +63,9 @@
 									<th scope="col">Coupon</th>
 									<th scope="col">SKU</th>
 									<th scope="col">Qty</th>
-									<th scope="col">Total</th>
-									<th scope="col">Discount</th>
+									<th scope="col"><div class="text-end">Total, USD</div></th>
+									<th scope="col"><div class="text-end">Total, PEN</div></th>
+									<th scope="col"><div class="text-end">Discount, PEN</div></th>
 									<!--
 									<th scope="col">obs_magento_id</th>
 									<th scope="col">magento_id</th>
@@ -82,14 +111,15 @@
 								<tr>
 									<td><?= $sale->local_time ?></td>
 									<td><?= $sale->purchase_date ?></td>
-									<td><?= $sale->status ?></td>
+									<td><?= ucfirst(str_replace("_", " ", $sale->status)) ?></td>
 									<td><?= $sale->model_category ?></td>
 									<td><?= $sale->customer_group ?></td>
 									<td><?= $sale->coupon_rule ?></td>
 									<td><?= str_replace("**", "<br/>", $sale->sku_without_prefix) ?></td>
 									<td><?= number_format($sale->qty_ordered) ?></td>
-									<td><?= number_format($sale->grand_total_purchased, 2) ?></td>
-									<td><?= abs($sale->discount_amount) > 0 ? number_format($sale->discount_amount, 2) : "" ?></td>
+									<td><div class="text-end"><?= number_format($sale->grand_total_purchased / $exchange_rate, 2) ?></div></td>
+									<td><div class="text-end"><?= number_format($sale->grand_total_purchased, 2) ?></div></td>
+									<td><div class="text-end"><?= abs($sale->discount_amount) > 0 ? number_format($sale->discount_amount, 2) : "" ?></div></td>
 									<!--
 									<td><?= $sale->obs_magento_id ?></td>
 									<td><?= $sale->magento_id ?></td>

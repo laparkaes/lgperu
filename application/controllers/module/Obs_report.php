@@ -12,6 +12,8 @@ class Obs_report extends CI_Controller {
 	}
 	
 	public function index(){
+		$exchange_rate = 3.8;
+		
 		$from = $this->input->get("f") ? $this->input->get("f") : date("Y-m-01");
 		$to = $this->input->get("t") ? $this->input->get("t") : date("Y-m-t");
 		
@@ -20,14 +22,45 @@ class Obs_report extends CI_Controller {
 			"local_time <=" => $to,
 		];
 		
-		$sales = $this->gen_m->filter("obs_magento", false, $f, null, null, [["local_time", "desc"]]);
+		//by sales status setting
+		total
+		"complete", "closed", 
+		
+		"awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed", 
+		
+		"payment_declined", "transfer_cancelled", "canceled", 
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		$status_valid = [];
+		$status_delivery = [];
+		$status_invalid = [];
 		
 		$status = [];
-		$status_rec = $this->gen_m->only("obs_magento", "status", $f);
-		foreach($status_rec as $s){
-			$status[$s->status] = ["code" => $s->status, "qty" => 0, "amount" => 0];
+		$status["total"] = ["code" => "total", "qty" => 0, "amount" => 0];
+		$status_rec = $this->gen_m->only("obs_magento", "status");
+		foreach($status_rec as $s) $status[$s->status] = ["code" => $s->status, "qty" => 0, "amount" => 0];
+		
+		//sales records load
+		$sales = $this->gen_m->filter("obs_magento", false, $f, null, null, [["local_time", "desc"]]);
+		foreach($sales as $sale){
+			$status["total"]["qty"]++;
+			$status["total"]["amount"] += $sale->grand_total_purchased;
+			$status[$sale->status]["qty"]++;
+			$status[$sale->status]["amount"] += $sale->grand_total_purchased;
 		}
-		print_R($status);
+		
+		usort($status, function($a, $b) {
+			return ($a["amount"] < $b["amount"]);
+		});
 		
 		/*
 		echo "<textarea>";
@@ -36,8 +69,10 @@ class Obs_report extends CI_Controller {
 		echo "</textarea>";
 		*/
 		$data = [
+			"exchange_rate" => $exchange_rate,
 			"from"		=> $from,
 			"to"		=> $to,
+			"status" 	=> $status,
 			"sales" 	=> $sales,
 			"main" 		=> "module/obs_report/index",
 		];
