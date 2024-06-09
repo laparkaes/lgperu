@@ -11,18 +11,7 @@ class Obs_report extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 	}
 	
-	private function status_process($sales, $exchange_rate){
-		//by sales status setting
-		$status = [];
-		$status["total"] = ["code" => "total", "qty" => 0, "amount" => 0];
-		$status_rec = $this->gen_m->only("obs_magento", "status");
-		foreach($status_rec as $s) $status[$s->status] = ["code" => $s->status, "qty" => 0, "amount" => 0];
-		
-		foreach($sales as $sale){
-			$status[$sale->status]["qty"]++;
-			$status[$sale->status]["amount"] += $sale->grand_total_purchased / $exchange_rate;
-		}
-		
+	private function status_process($status, $exchange_rate){
 		usort($status, function($a, $b) {
 			return ($a["amount"] < $b["amount"]);
 		});
@@ -103,8 +92,20 @@ class Obs_report extends CI_Controller {
 		//sales records load
 		$sales = $this->gen_m->filter("obs_magento", false, $f, null, null, [["local_time", "desc"]]);
 		
+		//by sales status setting
+		$status = [];
+		$status_rec = $this->gen_m->only("obs_magento", "status");
+		foreach($status_rec as $s) $status[$s->status] = ["code" => $s->status, "qty" => 0, "amount" => 0];
+		
+		//run each sale
+		foreach($sales as $sale){
+			//order by status
+			$status[$sale->status]["qty"]++;
+			$status[$sale->status]["amount"] += $sale->grand_total_purchased / $exchange_rate;
+		}
+		
 		//status process data set
-		$status_process = $this->status_process($sales, $exchange_rate);
+		$status_process = $this->status_process($status, $exchange_rate);
 		
 		$data = [
 			"exchange_rate" => $exchange_rate,

@@ -19,47 +19,49 @@
 </div>					
 <section class="section">
 	<div class="row">
-		<div class="col-md-12">
+		<div class="col-md-4">
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Order Status</h5>
-					<div class="d-none" id="status_chart_data"><?= json_encode($status_chart); ?></div>
+					<table class="table align-middle">
+						<thead>
+							<tr class="table-dark">
+								<th scope="col">Status</th>
+								<th scope="col">Qty</th>
+								<th scope="col" class="text-end">Amount, USD</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach($status as $s){ ?>
+							<tr class="table-<?= $s["color"] ?>">
+								<th><?= $s["group"] ?></th>
+								<th><?= number_format($s["qty"]) ?></th>
+								<th class="text-end"><?= number_format($s["amount"], 2) ?></th>
+							</tr>
+							<?php foreach($s["details"] as $d){ ?>
+							<tr>
+								<td class="ps-3"><?= ucfirst(str_replace("_", " ", $d["code"])) ?></td>
+								<td><?= number_format($d["qty"]) ?></td>
+								<td class="text-end"><?= number_format($d["amount"], 2) ?></td>
+							</tr>
+							<?php }} ?>
+						</tbody>
+					</table>
+					<!-- div class="d-none" id="status_chart_data"><?= json_encode($status_chart); ?></div>
 					<div class="row">
-						<div class="col-md-4">
-							<table class="table align-middle">
-								<thead>
-									<tr class="table-dark">
-										<th scope="col">Status</th>
-										<th scope="col">Qty</th>
-										<th scope="col" class="text-end">Amount, USD</th>
-									</tr>
-								</thead>
-								<tbody>
-									<?php foreach($status as $s){ ?>
-									<tr class="table-<?= $s["color"] ?>">
-										<th><?= $s["group"] ?></th>
-										<th><?= number_format($s["qty"]) ?></th>
-										<th class="text-end"><?= number_format($s["amount"], 2) ?></th>
-									</tr>
-									<?php foreach($s["details"] as $d){ ?>
-									<tr>
-										<td class="ps-3"><?= ucfirst(str_replace("_", " ", $d["code"])) ?></td>
-										<td><?= number_format($d["qty"]) ?></td>
-										<td class="text-end"><?= number_format($d["amount"], 2) ?></td>
-									</tr>
-									<?php }} ?>
-								</tbody>
-							</table>
-						</div>
-						<div class="col-md-4">
+						<div class="col-md-6">
 							<div id="status_chart_amount" style="min-height: 600px;"></div>
 						</div>
-						<div class="col-md-4">
+						<div class="col-md-6">
 							<div id="status_chart_qty" style="min-height: 600px;"></div>
 						</div>
-					</div>
+					</div -->
 				</div>
 			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Sales Records</h5>
@@ -209,7 +211,7 @@ function set_status_chart(){
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-	set_status_chart();
+	//set_status_chart();
 	
 	$("#report_from").on( "change", function() {
 		$("#report_to").attr("min", $(this).val());
