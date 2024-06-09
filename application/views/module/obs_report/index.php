@@ -22,13 +22,13 @@
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">By Status</h5>
+					<h5 class="card-title">Order Status</h5>
+					<div class="d-none" id="status_chart_data"><?= json_encode($status_chart); ?></div>
 					<div class="row">
 						<div class="col-md-4">
-						<?php foreach($status as $s) echo $s["code"]."<br/>"; ?>
 							<table class="table align-middle">
 								<thead>
-									<tr>
+									<tr class="table-dark">
 										<th scope="col">Status</th>
 										<th scope="col">Qty</th>
 										<th scope="col" class="text-end">Amount, USD</th>
@@ -36,14 +36,26 @@
 								</thead>
 								<tbody>
 									<?php foreach($status as $s){ ?>
-									<tr>
-										<td><?= ucfirst(str_replace("_", " ", $s["code"])) ?></td>
-										<td><?= number_format($s["qty"]) ?></td>
-										<td class="text-end"><?= number_format($s["amount"] / $exchange_rate, 2) ?></td>
+									<tr class="table-<?= $s["color"] ?>">
+										<th><?= $s["group"] ?></th>
+										<th><?= number_format($s["qty"]) ?></th>
+										<th class="text-end"><?= number_format($s["amount"], 2) ?></th>
 									</tr>
-									<?php } ?>
+									<?php foreach($s["details"] as $d){ ?>
+									<tr>
+										<td class="ps-3"><?= ucfirst(str_replace("_", " ", $d["code"])) ?></td>
+										<td><?= number_format($d["qty"]) ?></td>
+										<td class="text-end"><?= number_format($d["amount"], 2) ?></td>
+									</tr>
+									<?php }} ?>
 								</tbody>
 							</table>
+						</div>
+						<div class="col-md-4">
+							<div id="status_chart_amount" style="min-height: 600px;"></div>
+						</div>
+						<div class="col-md-4">
+							<div id="status_chart_qty" style="min-height: 600px;"></div>
 						</div>
 					</div>
 				</div>
@@ -114,7 +126,15 @@
 									<td><?= ucfirst(str_replace("_", " ", $sale->status)) ?></td>
 									<td><?= $sale->model_category ?></td>
 									<td><?= $sale->customer_group ?></td>
-									<td><?= $sale->coupon_rule ?></td>
+									<td>
+										<?php
+										$cupon_aux = [];
+										if ($sale->company_name_through_vipkey) $cupon_aux[] = $sale->company_name_through_vipkey;
+										if ($sale->vipkey) $cupon_aux[] = $sale->vipkey;
+										if ($sale->coupon_rule) $cupon_aux[] = $sale->coupon_rule;
+										?>
+										<?= implode("<br/>", $cupon_aux) ?>
+									</td>
 									<td><?= str_replace("**", "<br/>", $sale->sku_without_prefix) ?></td>
 									<td><?= number_format($sale->qty_ordered) ?></td>
 									<td><div class="text-end"><?= number_format($sale->grand_total_purchased / $exchange_rate, 2) ?></div></td>
@@ -170,7 +190,27 @@
 </section>
 
 <script>
+function set_status_chart(){
+	var data = JSON.parse($("#status_chart_data").html());
+	
+	echarts.init(document.querySelector("#status_chart_amount")).setOption({
+		title	: {text: 'By Order Amount', left: 'center'},
+		tooltip	: {trigger: 'item'},
+		//legend	: {orient: 'vertical', left: 'left'},
+		series	: [{type: 'pie', data: data.amount, label: {show: false}, labelLine: {show: false}}],
+	});
+	
+	echarts.init(document.querySelector("#status_chart_qty")).setOption({
+		title	: {text: ' By Order Qty', left: 'center'},
+		tooltip	: {trigger: 'item'},
+		legend	: {orient: 'vertical', left: 'right'},
+		series	: [{type: 'pie', data: data.qty, label: {show: false}, labelLine: {show: false}}],
+	});
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+	set_status_chart();
+	
 	$("#report_from").on( "change", function() {
 		$("#report_to").attr("min", $(this).val());
 	});
