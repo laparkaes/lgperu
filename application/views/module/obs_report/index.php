@@ -72,7 +72,6 @@
 									<th scope="col">Sale</th>
 									<th scope="col">Purchase</th>
 									<th scope="col">Status</th>
-									<th scope="col">Category</th>
 									<th scope="col">Cus. Group</th>
 									<th scope="col">Coupon</th>
 									<th scope="col">SKU</th>
@@ -126,7 +125,6 @@
 									<td><?= $sale->local_time ?></td>
 									<td><?= $sale->purchase_date ?></td>
 									<td><?= ucfirst(str_replace("_", " ", $sale->status)) ?></td>
-									<td><?= $sale->model_category ?></td>
 									<td><?= $sale->customer_group ?></td>
 									<td>
 										<?php

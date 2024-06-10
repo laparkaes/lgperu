@@ -25,6 +25,35 @@ class General_model extends CI_Model{
 		$result = $query->result();
 		return $result;
 	}
+	
+	function filter1($tablename, $valid = true, $w = null, $l = null, $w_in = null, $w_not_in = null, $orders = [], $limit = "", $offset = ""){
+		if ($valid) $this->db->where("valid", true);
+		if ($w){ $this->db->group_start(); $this->db->where($w); $this->db->group_end(); }
+		if ($l){
+			$this->db->group_start();
+			foreach($l as $item){
+				$this->db->group_start();
+				$values = $item["values"];
+				foreach($values as $v) $this->db->like($item["field"], $v);
+				$this->db->group_end();
+			}
+			$this->db->group_end();
+		}
+		if ($w_in){
+			$this->db->group_start();
+			foreach($w_in as $item) $this->db->where_in($item["field"], $item["values"]);
+			$this->db->group_end();
+		}
+		if ($w_not_in){
+			$this->db->group_start();
+			foreach($w_not_in as $item) $this->db->where_not_in($item["field"], $item["values"]);
+			$this->db->group_end();
+		}
+		if ($orders) foreach($orders as $o) $this->db->order_by($o[0], $o[1]);
+		$query = $this->db->get($tablename, $limit, $offset);
+		$result = $query->result();
+		return $result;
+	}
 
 	function unique($tablename, $field, $value, $check_valid = true){
 		$this->db->where($field, $value);

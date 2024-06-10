@@ -93,9 +93,6 @@ class Obs_magento extends CI_Controller {
 				$row["department"] = $address_aux[count($address_aux)-2];
 				$row["province"] = $address_aux[count($address_aux)-3];
 				
-				//model category working
-				$row["model_category"] = $row["level_1_code"] ? explode(" ", explode(",", $row["level_1_code"])[0])[1] : "OTHER";
-				
 				$magento = $this->gen_m->unique("obs_magento", "magento_id", $row["magento_id"], false);
 				if ($magento){
 					$row["updated"] = $now;
@@ -109,9 +106,59 @@ class Obs_magento extends CI_Controller {
 					else $qty_fail++;
 				}
 				
+				//item processing
+				if ($row){
+					$aux_lvl = [];
+					if ($row["level_1_code"]) $aux_lvl[] = $row["level_1_code"];
+					if ($row["level_2_code"]) $aux_lvl[] = $row["level_2_code"];
+					if ($row["level_3_code"]) $aux_lvl[] = $row["level_3_code"];
+					if ($row["level_4_code"]) $aux_lvl[] = $row["level_4_code"];
+					
+					//echo $row["magento_id"]."<br/><br/><br/>";
+					//print_r($aux_lvl[0]); echo "<br/><br/><br/>";
+					
+					$aux_lvl_code = explode(",", $aux_lvl[0]);//PE.LP1419IVSM.SSR0: AC,PE.VM182C9.NKR1: AC,PE.VM182C9.SSR1: AC,PE.VM182C9.USR1: AC,PE.VR182H9.NKR1: AC,PE.VR182H9.SSR1: AC,PE.VR182H9.USR1: AC
+					$aux_sku_price = explode("**", $row["sku_price"]);//4,049.10**0.00**0.00**1,979.10**5,218.20**0.00**0.00
+					
+					//print_r($row["level_3_code"]); echo "<br/><br/><br/>";
+					//print_r($aux_sku_price); echo "<br/><br/><br/>";
+					
+					$to = count($aux_lvl_code);
+					for($aux_i = 0; $aux_i < $to; $aux_i++){
+						$div_lvl_code = explode(": ", $aux_lvl_code[$aux_i]);//[0]: sku, [1]: model_category
+						
+						$item = [
+							"magento_id"		=> $row["magento_id"],
+							"status"			=> $row["status"],
+							"local_time"		=> $row["local_time"],
+							"model_category"	=> substr($div_lvl_code[1], 0, 2),
+							"sku" 				=> str_replace("PE.", "", $div_lvl_code[0]),
+							"amount"			=> str_replace(",", "", $aux_sku_price[$aux_i]),
+						];
+						
+						//print_r($item); echo "<br/><br/><br/>";
+						
+						$item_rec = $this->gen_m->filter("obs_magento_item", false, ["magento_id" => $item["magento_id"], "sku" => $item["sku"]]);
+						//print_r($item_rec); echo "<br/>======================<br/><br/>";
+						if ($item_rec) $this->gen_m->update("obs_magento_item", ["obs_magento_item_id" => $item_rec[0]->obs_magento_item_id], $item);
+						else $this->gen_m->insert("obs_magento_item", $item);
+						
+						//print_r($item); echo "<br/><br/><br/>";
+					}
+					
+					//$row["obs_magento_id"]
+					//$row["status"]
+					//$row["local_time"]
+					//$row["level_1_code"]
+					//$row["gerp_selling_price"] => IMPORTANT!!! data no match because of discount and zero sku price values => individual order qty imposible to calculate
+					
+				}
+				
 				//print_r($row); 
 				//foreach($row as $key => $r) echo $key." >>>> ".json_encode($r)."<br/>";
 				//echo "<br/>======================<br/><br/>";
+				
+				//if ($i > 50) break;
 			}
 			
 			if ($qty_insert > 0) $result[] = number_format($qty_insert)." inserted";
@@ -120,6 +167,10 @@ class Obs_magento extends CI_Controller {
 		}
 		
 		return $result ? "OBS magento report process result:<br/><br/>".implode(",", $result) : null;
+	}
+	
+	public function test(){
+		echo $this->process();
 	}
 	
 	public function upload(){

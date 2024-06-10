@@ -44,6 +44,7 @@ class Obs_report extends CI_Controller {
 				"amount" 	=> 0,
 				"details"	=> [],
 			],
+			/*
 			"invalid" => [
 				"color"		=> "danger",
 				"color_hex"	=> "#dc3545",
@@ -53,6 +54,7 @@ class Obs_report extends CI_Controller {
 				"amount" 	=> 0,
 				"details"	=> [],
 			],
+			*/
 		];
 		
 		foreach($status as $s){
@@ -84,13 +86,27 @@ class Obs_report extends CI_Controller {
 		$from = $this->input->get("f") ? $this->input->get("f") : date("Y-m-01");
 		$to = $this->input->get("t") ? $this->input->get("t") : date("Y-m-t");
 		
-		$f = [
+		//put date range correctly
+		$w = [
 			"local_time >=" => $from." 00:00:00",
 			"local_time <=" => $to." 23:59:59",
 		];
 		
+		//just need to load valid order information
+		$w_in = [
+			[
+				"field" => "status", 
+				"values" => ["complete", "closed", "awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed"],
+			],
+		];
+		
 		//sales records load
-		$sales = $this->gen_m->filter("obs_magento", false, $f, null, null, [["local_time", "desc"]]);
+		$sales = $this->gen_m->filter("obs_magento", false, $w, null, $w_in, [["local_time", "desc"]]);
+		$sales_items = $this->gen_m->filter("obs_magento_item", false, $w, null, $w_in, [["local_time", "desc"]]);
+		
+		//set LG basic divisions
+		$mc_rec = $this->gen_m->only("obs_magento_item", "model_category"); //AC, AO, AV, CA, CS, MN, RF, TV, WM, ZZ
+		
 		
 		//by sales status setting
 		$status = [];
