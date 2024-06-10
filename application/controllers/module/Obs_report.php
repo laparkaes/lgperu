@@ -102,10 +102,81 @@ class Obs_report extends CI_Controller {
 		
 		//sales records load
 		$sales = $this->gen_m->filter("obs_magento", false, $w, null, $w_in, [["local_time", "desc"]]);
+		
+		//$status_valid 		= ["complete", "closed"];
+		//$status_on_process	= ["awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed"];
+		$mapping = [
+			//category => division
+			"RF" => "HA", "CA" => "HA", "WM" => "HA", "AC" => "HA", "TV" => "HE", "AV" => "HE", "AO" => "HE", "CS" => "BS", "MN" => "BS", "ZZ" => "ETC",
+			//status => status_type
+			"complete" => "valid", "closed" => "valid", "awaiting_transfer" => "on_process", "processing" => "on_process", "holded" => "on_process", "preparing_for_delivery" => "on_process", "picking_for_delivery" => "on_process", "on_delivery" => "on_process", "delivery_completed" => "on_process",
+		];
+		
+		//division difine
+		$divisinos = [];
+		$divisions["HA"] = [
+			"summary" => ["valid" => 0, "on_process" => 0],
+			"categories" => [
+				"RF" => ["valid" => 0, "on_process" => 0],
+				"CA" => ["valid" => 0, "on_process" => 0],
+				"WM" => ["valid" => 0, "on_process" => 0],
+				"AC" => ["valid" => 0, "on_process" => 0],
+			],
+		];
+		$divisions["HE"] = [
+			"summary" => ["valid" => 0, "on_process" => 0],
+			"categories" => [
+				"TV" => ["valid" => 0, "on_process" => 0],
+				"AV" => ["valid" => 0, "on_process" => 0],
+				"AO" => ["valid" => 0, "on_process" => 0],
+			],
+		];
+		$divisions["BS"] = [
+			"summary" => ["valid" => 0, "on_process" => 0],
+			"categories" => [
+				"CS" => ["valid" => 0, "on_process" => 0],
+				"MN" => ["valid" => 0, "on_process" => 0],
+			],
+		];
+		$divisions["ETC"] = [
+			"summary" => ["valid" => 0, "on_process" => 0],
+			"categories" => [
+				"ZZ" => ["valid" => 0, "on_process" => 0],
+			],
+		];
+		
 		$sales_items = $this->gen_m->filter("obs_magento_item", false, $w, null, $w_in, [["local_time", "desc"]]);
+		//print_r($sales_items); echo "<br/><br/>";
+		foreach($sales_items as $si){
+			$divisions[$mapping[$si->model_category]]["categories"][$si->model_category][$mapping[$si->status]] += $si->amount;
+		}
+		
+		foreach($divisions as $div => $detail){
+			foreach($detail["categories"] as $category => $summary){
+				//convert to USD
+				$divisions[$div]["categories"][$category]["valid"] = round($summary["valid"] / $exchange_rate, 2);
+				$divisions[$div]["categories"][$category]["on_process"] = round($summary["on_process"] / $exchange_rate, 2);
+				
+				//add to division summary
+				$divisions[$div]["summary"]["valid"] += $divisions[$div]["categories"][$category]["valid"];
+				$divisions[$div]["summary"]["on_process"] += $divisions[$div]["categories"][$category]["on_process"];
+			}
+		}
+		
+		/* print divisions variable
+		foreach($divisions as $div => $detail){
+			echo $div." ===> "; print_r($detail["summary"]); echo "<br/><br/>";
+			
+			foreach($detail["categories"] as $category => $summary){
+				echo "---> ".$category.": ";
+				print_r($summary);
+				echo "<br/><br/>";
+			}
+		}
+		*/
 		
 		//set LG basic divisions
-		$mc_rec = $this->gen_m->only("obs_magento_item", "model_category"); //AC, AO, AV, CA, CS, MN, RF, TV, WM, ZZ
+		$mc_rec = $this->gen_m->only("obs_magento_item", "model_category");
 		
 		
 		//by sales status setting
