@@ -496,7 +496,7 @@ class Purchase_order extends CI_Controller {
 			$customer_recs = $this->gen_m->filter("customer", true, null, [["field" => "customer", "values" => [$word]]]);
 			foreach($customer_recs as $cus) $customer_ids[] = $cus->customer_id;
 		}
-print_r($customer_ids);
+
 		$ship_tos = $this->gen_m->filter("customer_ship_to", true, null, null, [["field" => "customer_id", "values" => $customer_ids]], [["ship_to_code", "asc"], ["address", "asc"]]);
 		foreach($ship_tos as $i => $s){
 			if ($s->address){
