@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- 생성 시간: 24-06-10 18:26
+-- 생성 시간: 24-06-11 00:11
 -- 서버 버전: 10.4.27-MariaDB
 -- PHP 버전: 7.4.33
 
@@ -30,6 +30,7 @@ SET time_zone = "+00:00";
 CREATE TABLE `purchase_order_template` (
   `template_id` int(11) NOT NULL,
   `template` varchar(50) NOT NULL,
+  `customer_word` varchar(50) DEFAULT NULL,
   `code` varchar(20) NOT NULL,
   `filename` varchar(50) DEFAULT NULL,
   `valid` tinyint(1) NOT NULL DEFAULT 1
@@ -39,13 +40,13 @@ CREATE TABLE `purchase_order_template` (
 -- 테이블의 덤프 데이터 `purchase_order_template`
 --
 
-INSERT INTO `purchase_order_template` (`template_id`, `template`, `code`, `filename`, `valid`) VALUES
-(1, 'Hiraoka Pre-distubution (PDF)', 'hiraoka_pre', NULL, 1),
-(2, 'Hiraoka SKU (PDF)', 'hiraoka_sku', NULL, 1),
-(3, 'Conecta (Excel)', 'conecta_excel', NULL, 1),
-(4, 'Sodimac (PDF)', 'sodimac', NULL, 1),
-(5, 'Estilos SKU (PDF)', 'estilos_sku', NULL, 1),
-(6, 'Chancafe (PDF)', 'chancafe', NULL, 1);
+INSERT INTO `purchase_order_template` (`template_id`, `template`, `customer_word`, `code`, `filename`, `valid`) VALUES
+(1, 'Hiraoka Pre-distubution (PDF)', 'hiraoka', 'hiraoka_pre', NULL, 1),
+(2, 'Hiraoka SKU (PDF)', 'hiraoka', 'hiraoka_sku', NULL, 1),
+(3, 'Conecta (Excel)', 'conecta', 'conecta_excel', NULL, 1),
+(4, 'Sodimac (PDF)', 'sodimac', 'sodimac', NULL, 1),
+(5, 'Estilos SKU (PDF)', 'estilos', 'estilos_sku', NULL, 1),
+(6, 'Chancafe (PDF)', 'chancafe', 'chancafe', NULL, 1);
 
 --
 -- 덤프된 테이블의 인덱스
