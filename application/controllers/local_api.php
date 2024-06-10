@@ -79,11 +79,11 @@ class Local_api extends CI_Controller {
 		
 		if ($f and $t and ($key === "lgepr")){
 			$filter = [
-				"local_time >=" => $f,
-				"local_time <=" => $t,
+				"local_time >=" => $f." 00:00:00",
+				"local_time <=" => $t." 23:59:59",
 			];
 			
-			$res = $this->gen_m->filter("obs_magento", false, $filter);
+			$res = $this->gen_m->filter("obs_magento_item", false, $filter);
 		}else $res = ["msg" => "Error"];
 		
 		header('Content-Type: application/json');
