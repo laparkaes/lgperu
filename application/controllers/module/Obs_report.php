@@ -80,37 +80,12 @@ class Obs_report extends CI_Controller {
 		return ["summary" => $status_summary, "chart" => $status_chart];
 	}
 	
-	public function index(){
-		$exchange_rate = 3.8;
-		
-		$from = $this->input->get("f") ? $this->input->get("f") : date("Y-m-01");
-		$to = $this->input->get("t") ? $this->input->get("t") : date("Y-m-t");
-		
-		//put date range correctly
-		$w = [
-			"local_time >=" => $from." 00:00:00",
-			"local_time <=" => $to." 23:59:59",
-		];
-		
-		//just need to load valid order information
-		$w_in = [
-			[
-				"field" => "status", 
-				"values" => ["complete", "closed", "awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed"],
-			],
-		];
-		
-		//sales records load
-		$sales = $this->gen_m->filter("obs_magento", false, $w, null, $w_in, [["local_time", "desc"]]);
+	private function get_division(){
+		//set LG basic divisions. Use this variables to show what divisions exists in order items
+		//$mc_rec = $this->gen_m->only("obs_magento_item", "model_category");
 		
 		//$status_valid 		= ["complete", "closed"];
 		//$status_on_process	= ["awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed"];
-		$mapping = [
-			//category => division
-			"RF" => "HA", "CA" => "HA", "WM" => "HA", "AC" => "HA", "TV" => "HE", "AV" => "HE", "AO" => "HE", "CS" => "BS", "MN" => "BS", "ZZ" => "ETC",
-			//status => status_type
-			"complete" => "valid", "closed" => "valid", "awaiting_transfer" => "on_process", "processing" => "on_process", "holded" => "on_process", "preparing_for_delivery" => "on_process", "picking_for_delivery" => "on_process", "on_delivery" => "on_process", "delivery_completed" => "on_process",
-		];
 		
 		//division difine
 		$divisinos = [];
@@ -145,8 +120,44 @@ class Obs_report extends CI_Controller {
 			],
 		];
 		
-		$sales_items = $this->gen_m->filter("obs_magento_item", false, $w, null, $w_in, [["local_time", "desc"]]);
-		//print_r($sales_items); echo "<br/><br/>";
+		return $divisions;
+	}
+	
+	public function index(){
+		$exchange_rate = 3.8;
+		
+		$from = $this->input->get("f") ? $this->input->get("f") : date("Y-m-01");
+		$to = $this->input->get("t") ? $this->input->get("t") : date("Y-m-t");
+		
+		//put date range correctly
+		$w = [
+			"local_time >=" => $from." 00:00:00",
+			"local_time <=" => $to." 23:59:59",
+		];
+		
+		//just need to load valid order information
+		$w_in = [
+			[
+				"field" => "status", 
+				"values" => ["complete", "awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed"],
+			],
+		];
+		
+		//to be used for divisions
+		$mapping = [
+			//category => division
+			"RF" => "HA", "CA" => "HA", "WM" => "HA", "AC" => "HA", 
+			"TV" => "HE", "AV" => "HE", "AO" => "HE", 
+			"CS" => "BS", "MN" => "BS", 
+			"ZZ" => "ETC",
+			//status => status_type
+			"complete" => "valid", //"closed" => "valid", //closed is return
+			"awaiting_transfer" => "on_process", "processing" => "on_process", "holded" => "on_process", "preparing_for_delivery" => "on_process", "picking_for_delivery" => "on_process", "on_delivery" => "on_process", "delivery_completed" => "on_process",
+		];
+		
+		$divisions = $this->get_division();
+		
+		$sales_items = $this->gen_m->filter("obs_magento_item", false, $w, null, $w_in, [["local_time", "desc"]]); //print_r($sales_items); echo "<br/><br/>";
 		foreach($sales_items as $si){
 			$divisions[$mapping[$si->model_category]]["categories"][$si->model_category][$mapping[$si->status]] += $si->amount;
 		}
@@ -154,8 +165,8 @@ class Obs_report extends CI_Controller {
 		foreach($divisions as $div => $detail){
 			foreach($detail["categories"] as $category => $summary){
 				//convert to USD
-				$divisions[$div]["categories"][$category]["valid"] = round($summary["valid"] / $exchange_rate, 2);
-				$divisions[$div]["categories"][$category]["on_process"] = round($summary["on_process"] / $exchange_rate, 2);
+				$divisions[$div]["categories"][$category]["valid"] = round($summary["valid"] / $exchange_rate / 1.18, 2);
+				$divisions[$div]["categories"][$category]["on_process"] = round($summary["on_process"] / $exchange_rate / 1.18, 2);
 				
 				//add to division summary
 				$divisions[$div]["summary"]["valid"] += $divisions[$div]["categories"][$category]["valid"];
@@ -175,16 +186,13 @@ class Obs_report extends CI_Controller {
 		}
 		*/
 		
-		//set LG basic divisions
-		$mc_rec = $this->gen_m->only("obs_magento_item", "model_category");
-		
-		
 		//by sales status setting
 		$status = [];
 		$status_rec = $this->gen_m->only("obs_magento", "status");
 		foreach($status_rec as $s) $status[$s->status] = ["code" => $s->status, "qty" => 0, "amount" => 0];
 		
-		//run each sale
+		//sales records load
+		$sales = $this->gen_m->filter("obs_magento", false, $w, null, $w_in, [["local_time", "desc"]]);
 		foreach($sales as $sale){
 			//order by status
 			$status[$sale->status]["qty"]++;
@@ -201,6 +209,7 @@ class Obs_report extends CI_Controller {
 			"status" 		=> $status_process["summary"],
 			"status_chart"	=> $status_process["chart"],
 			"sales" 		=> $sales,
+			"divisions" 	=> $divisions,
 			"main" 			=> "module/obs_report/index",
 		];
 		

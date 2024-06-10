@@ -239,6 +239,57 @@ class Purchase_order extends CI_Controller {
 		return $rows;
 	}
 	
+	private function chancafe($rows_input, $ship_to){
+		$rows = [];
+		
+		$po_num = trim(explode(" ", $rows_input[14])[3]);
+		//echo "po_num: ".$po_num."<br/><br/>";
+		
+		$aux = explode("/", trim(str_replace(": ", "", $rows_input[13])));
+		$aux_date = $aux[2]."-".$aux[1]."-".$aux[0];
+		
+		$issue_date = date("Ymd", strtotime($aux_date));
+		//echo "issue_date: ".$issue_date."<br/><br/>";
+		
+		$arrival_date = date("Ymd", strtotime("+1 month", strtotime($aux_date)));
+		//echo "arrival_date: ".$arrival_date."<br/><br/>";
+		
+		$currency = "PEN";
+		
+		$is_product = false;
+		foreach($rows_input as $i => $r){
+			if ($r === ".............................") $is_product = false;
+			
+			if ($is_product){
+				$aux = array_values(array_filter(explode(" ", $r)));
+				
+				$qty = trim(str_replace("UND", "", $aux[1]));
+				$unit_price = trim(str_replace(",", "", $aux[2]));
+				$total = $unit_price * $qty;
+				$sku = trim($aux[8]);
+				
+				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
+				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
+				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
+				/*
+				echo $i." ====> ";
+				echo strlen($r);
+				echo " ====> ";
+				print_r($aux); echo "<br/>";
+				echo $sku." /// ".$model." /// ".$qty." /// ".$unit_price." /// ".$total;
+				echo "<br/><br/>";
+				*/
+				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $model, $qty, str_replace(",", "", $unit_price), $issue_date, $ship_to->customer->customer);
+			}
+			
+			if ($r === "MARCA") $is_product = true;
+			
+			
+		}
+		
+		return $rows;
+	}
+	
 	public function conecta_excel($filename, $ship_to){
 		$rows = [];
 		
@@ -276,6 +327,7 @@ class Purchase_order extends CI_Controller {
 			case "hiraoka_sku": $rows = $this->hiraoka_sku($rows, $ship_to); break;
 			case "estilos_sku": $rows = $this->estilos_sku($rows, $ship_to); break;
 			case "sodimac": $rows = $this->sodimac($rows, $ship_to); break;
+			case "chancafe": $rows = $this->chancafe($rows, $ship_to); break;
 			default: $rows = [];
 		}
 		
@@ -347,10 +399,10 @@ class Purchase_order extends CI_Controller {
 		
 		/* pdf to excel 
 		*/
-		$filename = './test_files/scm_po_sodimac/LG 4.3 (1).pdf';
+		$filename = './test_files/scm_po_chancafe/OC 011-469 LG RODRIGUEZ DE MENDOZA.pdf';
 		//$filename = './test_files/scm_po_hiraoka/132527 LG - LB - VES_TIENDAS.pdf';
-		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 4);//sodimac
-		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 40);//sodimac
+		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 6);//chancafe
+		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 149);//chancafe
 		$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
 		
 		echo $this->pdf_to_excel($filename, $po_template, $ship_to);
@@ -434,10 +486,23 @@ class Purchase_order extends CI_Controller {
 	}
 	
 	public function index(){
-		$ship_tos = $this->gen_m->all("customer_ship_to", [["ship_to_code", "asc"], ["address", "asc"]]);
-		foreach($ship_tos as $s){
-			$cus = $this->gen_m->unique("customer", "customer_id", $s->customer_id);
-			$s->op = $cus->customer." ** ".$cus->bill_to_code." ** ".$s->ship_to_code." ** ".$s->address;
+		$po_templates_words = [];
+		$po_templates_rec = $this->gen_m->all("purchase_order_template", [["template", "asc"]]);
+		foreach($po_templates_rec as $temp) $po_templates_words[] = $temp->customer_word;
+		$po_templates_words = array_unique($po_templates_words);
+
+		$customer_ids = [];
+		foreach($po_templates_words as $word){
+			$customer_recs = $this->gen_m->filter("customer", true, null, [["field" => "customer", "values" => [$word]]]);
+			foreach($customer_recs as $cus) $customer_ids[] = $cus->customer_id;
+		}
+
+		$ship_tos = $this->gen_m->filter("customer_ship_to", true, null, null, [["field" => "customer_id", "values" => $customer_ids]], [["ship_to_code", "asc"], ["address", "asc"]]);
+		foreach($ship_tos as $i => $s){
+			if ($s->address){
+				$cus = $this->gen_m->unique("customer", "customer_id", $s->customer_id);
+				$s->op = $cus->customer." ** ".$cus->bill_to_code." ** ".$s->ship_to_code." ** ".$s->address;	
+			}else unset($ship_tos[$i]);
 		}
 		
 		usort($ship_tos, function($a, $b) {
@@ -445,7 +510,7 @@ class Purchase_order extends CI_Controller {
 		});
 		
 		$data = [
-			"purchase_order_temps" => $this->gen_m->all("purchase_order_template", [["template", "asc"]]),
+			"purchase_order_temps" => $po_templates_rec,
 			"ship_tos" => $ship_tos,
 			"main" => "module/purchase_order/index",
 		];
