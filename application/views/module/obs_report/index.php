@@ -23,17 +23,46 @@
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Order Status</h5>
-					<?php
-					foreach($divisions as $div => $detail){
-						echo $div." ===> "; print_r($detail["summary"]); echo "<br/><br/>";
-						
-						foreach($detail["categories"] as $category => $summary){
-							echo "---> ".$category.": ";
-							print_r($summary);
-							echo "<br/><br/>";
-						}
-					}
-					?>
+					<table class="table align-middle">
+						<thead>
+							<tr>
+								<th scope="col">Subsidiary</th>
+								<th scope="col">Division</th>
+								<th scope="col">Category</th>
+								<th scope="col">Valid, USD</th>
+								<th scope="col">On Process, USD</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach($subsidiaries as $sub => $subsidiary){ ?>
+							<tr>
+								<td><?= $sub ?></td>
+								<td></td>
+								<td></td>
+								<td><?= number_format($subsidiary["summary"]["valid"], 2) ?></td>
+								<td><?= number_format($subsidiary["summary"]["on_process"], 2) ?></td>
+							</tr>
+							<?php $divisions = $subsidiary["divisions"];
+							foreach($divisions as $div => $division){ ?>
+							<tr>
+								<td></td>
+								<td><?= $div ?></td>
+								<td></td>
+								<td><?= number_format($division["summary"]["valid"], 2) ?></td>
+								<td><?= number_format($division["summary"]["on_process"], 2) ?></td>
+							</tr>
+							<?php $categories = $division["categories"];
+							foreach($categories as $cat => $category){ ?>
+							<tr>
+								<td></td>
+								<td></td>
+								<td><?= $cat ?></td>
+								<td><?= number_format($category["valid"], 2) ?></td>
+								<td><?= number_format($category["on_process"], 2) ?></td>
+							</tr>
+							<?php }}} ?>
+						</tbody>
+					</table>
 					<!-- table class="table align-middle">
 						<thead>
 							<tr class="table-dark">

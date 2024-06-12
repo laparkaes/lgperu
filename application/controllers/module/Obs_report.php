@@ -80,7 +80,7 @@ class Obs_report extends CI_Controller {
 		return ["summary" => $status_summary, "chart" => $status_chart];
 	}
 	
-	private function get_division(){
+	private function get_subsidiaries(){
 		//set LG basic divisions. Use this variables to show what divisions exists in order items
 		//$mc_rec = $this->gen_m->only("obs_magento_item", "model_category");
 		
@@ -88,39 +88,45 @@ class Obs_report extends CI_Controller {
 		//$status_on_process	= ["awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed"];
 		
 		//division difine
-		$divisinos = [];
-		$divisions["HA"] = [
-			"summary" => ["valid" => 0, "on_process" => 0],
-			"categories" => [
-				"RF" => ["valid" => 0, "on_process" => 0],
-				"CA" => ["valid" => 0, "on_process" => 0],
-				"WM" => ["valid" => 0, "on_process" => 0],
-				"AC" => ["valid" => 0, "on_process" => 0],
-			],
-		];
-		$divisions["HE"] = [
-			"summary" => ["valid" => 0, "on_process" => 0],
-			"categories" => [
-				"TV" => ["valid" => 0, "on_process" => 0],
-				"AV" => ["valid" => 0, "on_process" => 0],
-				"AO" => ["valid" => 0, "on_process" => 0],
-			],
-		];
-		$divisions["BS"] = [
-			"summary" => ["valid" => 0, "on_process" => 0],
-			"categories" => [
-				"CS" => ["valid" => 0, "on_process" => 0],
-				"MN" => ["valid" => 0, "on_process" => 0],
-			],
-		];
-		$divisions["ETC"] = [
-			"summary" => ["valid" => 0, "on_process" => 0],
-			"categories" => [
-				"ZZ" => ["valid" => 0, "on_process" => 0],
+		$subsidiaries = [
+			"LGEPR" => [
+				"summary" => ["valid" => 0, "on_process" => 0],
+				"divisions" => [
+					"HA" => [
+						"summary" => ["valid" => 0, "on_process" => 0],
+						"categories" => [
+							"RF" => ["valid" => 0, "on_process" => 0],
+							"CA" => ["valid" => 0, "on_process" => 0],
+							"WM" => ["valid" => 0, "on_process" => 0],
+							"AC" => ["valid" => 0, "on_process" => 0],
+						],
+					],
+					"HE" => [
+						"summary" => ["valid" => 0, "on_process" => 0],
+						"categories" => [
+							"TV" => ["valid" => 0, "on_process" => 0],
+							"AV" => ["valid" => 0, "on_process" => 0],
+							"AO" => ["valid" => 0, "on_process" => 0],
+						],
+					],
+					"BS" => [
+						"summary" => ["valid" => 0, "on_process" => 0],
+						"categories" => [
+							"CS" => ["valid" => 0, "on_process" => 0],
+							"MN" => ["valid" => 0, "on_process" => 0],
+						],
+					],
+					"ETC" => [
+						"summary" => ["valid" => 0, "on_process" => 0],
+						"categories" => [
+							"ZZ" => ["valid" => 0, "on_process" => 0],
+						],
+					],
+				],
 			],
 		];
 		
-		return $divisions;
+		return $subsidiaries;
 	}
 	
 	public function index(){
@@ -155,36 +161,32 @@ class Obs_report extends CI_Controller {
 			"awaiting_transfer" => "on_process", "processing" => "on_process", "holded" => "on_process", "preparing_for_delivery" => "on_process", "picking_for_delivery" => "on_process", "on_delivery" => "on_process", "delivery_completed" => "on_process",
 		];
 		
-		$divisions = $this->get_division();
+		$subsidiaries = $this->get_subsidiaries();
 		
 		$sales_items = $this->gen_m->filter("obs_magento_item", false, $w, null, $w_in, [["local_time", "desc"]]); //print_r($sales_items); echo "<br/><br/>";
 		foreach($sales_items as $si){
-			$divisions[$mapping[$si->model_category]]["categories"][$si->model_category][$mapping[$si->status]] += $si->amount;
+			$subsidiaries["LGEPR"]["divisions"][$mapping[$si->model_category]]["categories"][$si->model_category][$mapping[$si->status]] += $si->amount;
 		}
 		
-		foreach($divisions as $div => $detail){
-			foreach($detail["categories"] as $category => $summary){
-				//convert to USD
-				$divisions[$div]["categories"][$category]["valid"] = round($summary["valid"] / $exchange_rate / 1.18, 2);
-				$divisions[$div]["categories"][$category]["on_process"] = round($summary["on_process"] / $exchange_rate / 1.18, 2);
-				
-				//add to division summary
-				$divisions[$div]["summary"]["valid"] += $divisions[$div]["categories"][$category]["valid"];
-				$divisions[$div]["summary"]["on_process"] += $divisions[$div]["categories"][$category]["on_process"];
+		foreach($subsidiaries as $sub => $subsidiary){
+			$divisions = $subsidiary["divisions"];
+			foreach($divisions as $div => $division){
+				$categories = $division["categories"];
+				foreach($categories as $category => $summary){
+					//convert to USD
+					$subsidiaries[$sub]["divisions"][$div]["categories"][$category]["valid"] = round($summary["valid"] / $exchange_rate / 1.18, 2);
+					$subsidiaries[$sub]["divisions"][$div]["categories"][$category]["on_process"] = round($summary["on_process"] / $exchange_rate / 1.18, 2);
+					
+					//add to division summary
+					$subsidiaries[$sub]["divisions"][$div]["summary"]["valid"] += $divisions[$div]["categories"][$category]["valid"];
+					$subsidiaries[$sub]["divisions"][$div]["summary"]["on_process"] += $divisions[$div]["categories"][$category]["on_process"];
+					
+					//add to LGEPR total
+					$subsidiaries[$sub]["summary"]["valid"] += $divisions[$div]["categories"][$category]["valid"];
+					$subsidiaries[$sub]["summary"]["on_process"] += $divisions[$div]["categories"][$category]["on_process"];
+				}
 			}
 		}
-		
-		/* print divisions variable
-		foreach($divisions as $div => $detail){
-			echo $div." ===> "; print_r($detail["summary"]); echo "<br/><br/>";
-			
-			foreach($detail["categories"] as $category => $summary){
-				echo "---> ".$category.": ";
-				print_r($summary);
-				echo "<br/><br/>";
-			}
-		}
-		*/
 		
 		//by sales status setting
 		$status = [];
@@ -209,7 +211,7 @@ class Obs_report extends CI_Controller {
 			"status" 		=> $status_process["summary"],
 			"status_chart"	=> $status_process["chart"],
 			"sales" 		=> $sales,
-			"divisions" 	=> $divisions,
+			"subsidiaries" 	=> $subsidiaries,
 			"main" 			=> "module/obs_report/index",
 		];
 		
