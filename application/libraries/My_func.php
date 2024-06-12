@@ -69,6 +69,13 @@ class My_func{
 		return $date->format('Y-m-d');
 	}
 	
+	public function date_convert_4($original_date){//28-OCT-21 > 2021-10-28
+		if ($original_date){
+			$date = DateTime::createFromFormat('d-M-y', $original_date);
+			return $date->format('Y-m-d');
+		}else return null;
+	}
+	
 	public function get_record($tablename, $data){
 		$record = $this->CI->gen_m->filter($tablename, true, $data);
 		if (!$record){

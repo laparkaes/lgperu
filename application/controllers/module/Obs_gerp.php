@@ -74,10 +74,48 @@ class Obs_gerp extends CI_Controller {
 				$row = [];
 				foreach($vars as $var_i => $var) $row[$var] = trim($sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue());
 				
+				//float_convert
+				$row["unit_selling_price"] = str_replace(",", "", $row["unit_selling_price"]);
+				$row["sales_amount"] = str_replace(",", "", $row["sales_amount"]);
+				$row["tax_amount"] = str_replace(",", "", $row["tax_amount"]);
+				$row["charge_amount"] = str_replace(",", "", $row["charge_amount"]);
+				$row["line_total"] = str_replace(",", "", $row["line_total"]);
+				$row["list_price"] = str_replace(",", "", $row["list_price"]);
+				$row["original_list_price"] = str_replace(",", "", $row["original_list_price"]);
+				$row["item_weight"] = str_replace(",", "", $row["item_weight"]);
+				$row["item_cbm"] = str_replace(",", "", $row["item_cbm"]);
+				$row["sbp_tax_include"] = str_replace(",", "", $row["sbp_tax_include"]);
+				$row["sbp_tax_exclude"] = str_replace(",", "", $row["sbp_tax_exclude"]);
+				$row["rrp_tax_include"] = str_replace(",", "", $row["rrp_tax_include"]);
+				$row["rrp_tax_exclude"] = str_replace(",", "", $row["rrp_tax_exclude"]);
+				
+				//date convert: 28-OCT-21 > 2021-10-28
+				$row["booked_date"] = $this->my_func->date_convert_4($row["booked_date"]);
+				$row["scheduled_cancel_date"] = $this->my_func->date_convert_4($row["scheduled_cancel_date"]);
+				$row["expire_date"] = $this->my_func->date_convert_4($row["expire_date"]);
+				$row["req_arrival_date_from"] = $this->my_func->date_convert_4($row["req_arrival_date_from"]);
+				$row["req_arrival_date_to"] = $this->my_func->date_convert_4($row["req_arrival_date_to"]);
+				$row["req_ship_date"] = $this->my_func->date_convert_4($row["req_ship_date"]);
+				$row["shipment_date"] = $this->my_func->date_convert_4($row["shipment_date"]);
+				$row["close_date"] = $this->my_func->date_convert_4($row["close_date"]);
+				$row["invoice_date"] = $this->my_func->date_convert_4($row["invoice_date"]);
+				$row["create_date"] = $this->my_func->date_convert_4($row["create_date"]);
+				
+				//date convert: 2021/11/02 00:00:00 > 2021-11-02
+				$row["customer_rad"] = $this->my_func->date_convert_2($row["customer_rad"]);
+				
 				foreach($row as $key => $val){
-					echo $key." ===> ".$val."<br/>";
+					echo $key."===> ".$val."<br/>";
 				} 
 				echo "<br/><br/>";
+				
+				/*
+				$sales_order = $this->gen_m->filter();
+				order_no ===> 1000410197
+				line_no ===> 1.1
+				*/
+				
+				
 			/*		
 				//unique gerp_order_no
 				$row["gerp_order_no"] = explode("\n", $row["gerp_order_no"])[0];
