@@ -16,9 +16,8 @@ class Obs_gerp extends CI_Controller {
 	public function index(){
 		
 		$data = [
-			//"sales_updated"	=> $this->gen_m->filter("obs_magento", false, null, null, null, [["updated", "desc"]], 1, 0)[0],
-			//"sales_first"	=> $this->gen_m->filter("obs_magento", false, null, null, null, [["local_time", "asc"]], 1, 0)[0],
-			//"sales_last" 	=> $this->gen_m->filter("obs_magento", false, null, null, null, [["local_time", "desc"]], 1, 0)[0],
+			"sales_first"	=> $this->gen_m->filter("obs_gerp_sales_order", false, ["create_date !=" => null], null, null, [["create_date", "asc"]], 1, 0)[0],
+			"sales_last" 	=> $this->gen_m->filter("obs_gerp_sales_order", false, ["create_date !=" => null], null, null, [["create_date", "desc"]], 1, 0)[0],
 			"main" 			=> "module/obs_gerp/index",
 		];
 		
@@ -72,7 +71,12 @@ class Obs_gerp extends CI_Controller {
 			
 			for($i = 2; $i < $max_row; $i++){
 				$row = [];
-				foreach($vars as $var_i => $var) $row[$var] = trim($sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue());
+				foreach($vars as $var_i => $var){
+					$row[$var] = trim($sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue());
+					if (!$row[$var]) $row[$var] = null;
+				}
+				
+				//print_r($row); echo "<br/><br/>";
 				
 				//float_convert
 				$row["unit_selling_price"] = str_replace(",", "", $row["unit_selling_price"]);
@@ -101,111 +105,26 @@ class Obs_gerp extends CI_Controller {
 				$row["invoice_date"] = $this->my_func->date_convert_4($row["invoice_date"]);
 				$row["create_date"] = $this->my_func->date_convert_4($row["create_date"]);
 				
+				//date convert: 28-OCT-2021 > 2021-10-28
+				$row["customer_po_date"] = $this->my_func->date_convert_5($row["customer_po_date"]);
+				
 				//date convert: 2021/11/02 00:00:00 > 2021-11-02
 				$row["customer_rad"] = $this->my_func->date_convert_2($row["customer_rad"]);
 				
 				//% > float
 				$row["dc_rate"] = str_replace("%", "", $row["dc_rate"])/100;
 				
-				foreach($row as $key => $val){
-					echo $key."===> ".$val."<br/>";
-				} 
-				echo "<br/><br/>";
+				//foreach($row as $key => $val){echo $key."===> ".$val."<br/>";} echo "<br/><br/>";
 				
-				/*
-				$sales_order = $this->gen_m->filter();
-				order_no ===> 1000410197
-				line_no ===> 1.1
-				*/
-				
-				
-			/*		
-				//unique gerp_order_no
-				$row["gerp_order_no"] = explode("\n", $row["gerp_order_no"])[0];
-				
-				//line change char working
-				$row["sku"] = str_replace(", \n", "**", $row["sku"]);
-				$row["warehouse_code"] = str_replace("\n", "**", $row["warehouse_code"]);
-				$row["sku_price"] = str_replace("\n", "**", $row["sku_price"]);
-				$row["sku_without_prefix"] = str_replace("\n", "**", $row["sku_without_prefix"]);
-				$row["sku_without_prefix_and_suffix"] = str_replace("\n", "**", $row["sku_without_prefix_and_suffix"]);
-				
-				//comma working
-				$row["gerp_selling_price"] = str_replace(",", "**", $row["gerp_selling_price"]);
-				
-				//address working
-				$address_aux = explode(",", $row["shipping_address"]);
-				$row["zipcode"] = $address_aux[count($address_aux)-1];
-				$row["department"] = $address_aux[count($address_aux)-2];
-				$row["province"] = $address_aux[count($address_aux)-3];
-				
-				$magento = $this->gen_m->unique("obs_magento", "magento_id", $row["magento_id"], false);
-				if ($magento){
-					$row["updated"] = $now;
-					
-					if ($this->gen_m->update("obs_magento", ["obs_magento_id" => $magento->obs_magento_id], $row)) $qty_update++;
-					else $qty_fail++;
-				}else{
-					$row["registered"] = $row["updated"] = $now;
-					
-					if ($this->gen_m->insert("obs_magento", $row)) $qty_insert++;
+				$sales_order = $this->gen_m->filter("obs_gerp_sales_order", false, ["order_no" => $row["order_no"], "line_no" => $row["line_no"]]);
+				if ($sales_order){
+					if ($this->gen_m->update("obs_gerp_sales_order", ["sales_order_id" => $sales_order[0]->sales_order_id], $row)) $qty_update++;
 					else $qty_fail++;
 				}
-				
-				//item processing
-				if ($row){
-					$aux_lvl = [];
-					if ($row["level_1_code"]) $aux_lvl[] = $row["level_1_code"];
-					if ($row["level_2_code"]) $aux_lvl[] = $row["level_2_code"];
-					if ($row["level_3_code"]) $aux_lvl[] = $row["level_3_code"];
-					if ($row["level_4_code"]) $aux_lvl[] = $row["level_4_code"];
-					
-					//echo $row["magento_id"]."<br/><br/><br/>";
-					//print_r($aux_lvl[0]); echo "<br/><br/><br/>";
-					
-					$aux_lvl_code = explode(",", $aux_lvl[0]);//PE.LP1419IVSM.SSR0: AC,PE.VM182C9.NKR1: AC,PE.VM182C9.SSR1: AC,PE.VM182C9.USR1: AC,PE.VR182H9.NKR1: AC,PE.VR182H9.SSR1: AC,PE.VR182H9.USR1: AC
-					$aux_sku_price = explode("**", $row["sku_price"]);//4,049.10**0.00**0.00**1,979.10**5,218.20**0.00**0.00
-					
-					//print_r($row["level_3_code"]); echo "<br/><br/><br/>";
-					//print_r($aux_sku_price); echo "<br/><br/><br/>";
-					
-					$to = count($aux_lvl_code);
-					for($aux_i = 0; $aux_i < $to; $aux_i++){
-						$div_lvl_code = explode(": ", $aux_lvl_code[$aux_i]);//[0]: sku, [1]: model_category
-						
-						$item = [
-							"magento_id"		=> $row["magento_id"],
-							"status"			=> $row["status"],
-							"local_time"		=> $row["local_time"],
-							"model_category"	=> substr($div_lvl_code[1], 0, 2),
-							"sku" 				=> str_replace("PE.", "", $div_lvl_code[0]),
-							"amount"			=> str_replace(",", "", $aux_sku_price[$aux_i]),
-						];
-						
-						//print_r($item); echo "<br/><br/><br/>";
-						
-						$item_rec = $this->gen_m->filter("obs_magento_item", false, ["magento_id" => $item["magento_id"], "sku" => $item["sku"]]);
-						//print_r($item_rec); echo "<br/>======================<br/><br/>";
-						if ($item_rec) $this->gen_m->update("obs_magento_item", ["obs_magento_item_id" => $item_rec[0]->obs_magento_item_id], $item);
-						else $this->gen_m->insert("obs_magento_item", $item);
-						
-						//print_r($item); echo "<br/><br/><br/>";
-					}
-					
-					//$row["obs_magento_id"]
-					//$row["status"]
-					//$row["local_time"]
-					//$row["level_1_code"]
-					//$row["gerp_selling_price"] => IMPORTANT!!! data no match because of discount and zero sku price values => individual order qty imposible to calculate
-					
+				else{
+					if ($this->gen_m->insert("obs_gerp_sales_order", $row)) $qty_insert++;
+					else $qty_fail++;
 				}
-				
-				//print_r($row); 
-				//foreach($row as $key => $r) echo $key." >>>> ".json_encode($r)."<br/>";
-				//echo "<br/>======================<br/><br/>";
-				
-				//if ($i > 50) break;
-			*/
 			}
 			
 			if ($qty_insert > 0) $result[] = number_format($qty_insert)." inserted";
@@ -235,7 +154,7 @@ class Obs_gerp extends CI_Controller {
 				'allowed_types'	=> '*',
 				'max_size'		=> 10000,
 				'overwrite'		=> TRUE,
-				'file_name'		=> 'obs_magento.csv',
+				'file_name'		=> 'obs_gerp.xls',
 			];
 			$this->load->library('upload', $config);
 
@@ -243,7 +162,7 @@ class Obs_gerp extends CI_Controller {
 				$msg = $this->process();
 				if ($msg){
 					$type = "success";
-					$msg = "OBS Mangento data has been uploaded.";
+					$msg = "OBS GERP data has been uploaded.";
 				}else $msg = "Wrong file.";
 			}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
 		}else $msg = "Your session is finished.";

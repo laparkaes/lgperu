@@ -89,4 +89,23 @@ class Local_api extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode($res);
 	}
+	
+	public function get_obs_gerp_month(){
+		//llamasys/local_api/get_obs_gerp_month?key=lgepr
+		
+		$key = $this->input->get("key");
+		$res = [];
+		
+		if ($key === "lgepr"){
+			$filter = [
+				"create_date >=" => date("Y-m-01")." 00:00:00",
+				"create_date <=" => date("Y-m-t")." 23:59:59",
+			];
+			
+			$res = $this->gen_m->filter("obs_gerp_sales_order", false, $filter, null, null, [["create_date", "asc"]]);
+		}else $res = ["msg" => "Error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
 }
