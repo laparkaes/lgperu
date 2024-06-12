@@ -104,6 +104,9 @@ class Obs_gerp extends CI_Controller {
 				//date convert: 2021/11/02 00:00:00 > 2021-11-02
 				$row["customer_rad"] = $this->my_func->date_convert_2($row["customer_rad"]);
 				
+				//% > float
+				$row["dc_rate"] = str_replace("%", "", $row["dc_rate"])/100;
+				
 				foreach($row as $key => $val){
 					echo $key."===> ".$val."<br/>";
 				} 
