@@ -132,9 +132,8 @@ class Obs_gerp extends CI_Controller {
 			if ($qty_fail > 0) $result[] = number_format($qty_fail)." failed";
 		}
 		
-		//return $result ? "OBS magento report process result:<br/><br/>".implode(",", $result) : null;
-		
-		echo $result ? "OBS magento report process result:<br/><br/>".implode(",", $result) : null;
+		return $result ? "OBS GERP Sales orders process result:<br/><br/>".implode(",", $result) : null;
+		//echo $result ? "OBS GERP Sales orders process result:<br/><br/>".implode(",", $result) : null;
 		
 	}
 	
@@ -160,10 +159,8 @@ class Obs_gerp extends CI_Controller {
 
 			if ($this->upload->do_upload('attach')){
 				$msg = $this->process();
-				if ($msg){
-					$type = "success";
-					$msg = "OBS GERP data has been uploaded.";
-				}else $msg = "Wrong file.";
+				if ($msg) $type = "success";
+				else $msg = "Wrong file.";
 			}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
 		}else $msg = "Your session is finished.";
 		
