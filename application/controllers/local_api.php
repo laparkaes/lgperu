@@ -156,7 +156,7 @@ class Local_api extends CI_Controller {
 				//"shipping_method", 
 				//"shipment_priority", 
 				//"order_source", 
-				//"order_status", 
+				"order_status", 
 				"order_category", 
 				//"quote_date", 
 				//"quote_expire_date", 

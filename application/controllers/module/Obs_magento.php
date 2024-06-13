@@ -107,6 +107,7 @@ class Obs_magento extends CI_Controller {
 				}
 				
 				//item processing
+				/*
 				if ($row){
 					$aux_lvl = [];
 					if ($row["level_1_code"]) $aux_lvl[] = $row["level_1_code"];
@@ -153,7 +154,7 @@ class Obs_magento extends CI_Controller {
 					//$row["gerp_selling_price"] => IMPORTANT!!! data no match because of discount and zero sku price values => individual order qty imposible to calculate
 					
 				}
-				
+				*/
 				//print_r($row); 
 				//foreach($row as $key => $r) echo $key." >>>> ".json_encode($r)."<br/>";
 				//echo "<br/>======================<br/><br/>";

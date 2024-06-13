@@ -22,122 +22,47 @@
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Order Status</h5>
-					<table class="table align-middle">
+					<h5 class="card-title">GERP Orders</h5>
+					<table class="table datatable align-middle">
 						<thead>
 							<tr>
+								<th scope="col">Date</th>
+								<th scope="col">Type</th>
+								<th scope="col">Status</th>
 								<th scope="col">Subsidiary</th>
-								<th scope="col">Division</th>
+								<th scope="col">Group</th>
+								<th scope="col">Order</th>
+								<th scope="col">Line</th>
+								<th scope="col">Item Type</th>
 								<th scope="col">Category</th>
-								<th scope="col">Valid, USD</th>
-								<th scope="col">On Process, USD</th>
+								<th scope="col">Model/Product</th>
+								<th scope="col">Currency</th>
+								<th scope="col">U/Price</th>
+								<th scope="col">Qty</th>
+								<th scope="col">Amount</th>
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach($subsidiaries as $sub => $subsidiary){ ?>
+							<?php foreach($gerps as $g){ $lvl4 = substr($g->product_level4_code, 0, 2); ?>
 							<tr>
-								<td><?= $sub ?></td>
-								<td></td>
-								<td></td>
-								<td><?= number_format($subsidiary["summary"]["valid"], 2) ?></td>
-								<td><?= number_format($subsidiary["summary"]["on_process"], 2) ?></td>
+								<td><div class="text-nowrap"><?= $g->create_date ?></div></td>
+								<td><?= $g->order_category ?></td>
+								<td><div style="width: 90px;"><?= $g->line_status ?></div></td>
+								<td><?= $g->customer_department ?></td>
+								<td><?= $g->bill_to_name ?></td>
+								<td><?= $g->order_no ?></td>
+								<td><?= $g->line_no ?></td>
+								<td><?= $g->item_type_desctiption ?></td>
+								<td><?= $g->model_category ? $g->model_category : (array_key_exists($lvl4, $mc_map) ? $mc_map[$lvl4] : null) ?></td>
+								<td><?= $g->model."<br/>".str_replace("_", " ", $g->product_level4_name) ?></td>
+								<td><?= $g->currency ?></td>
+								<td><?= number_format($g->unit_selling_price, 2) ?></td>
+								<td><?= number_format($g->ordered_qty) ?></td>
+								<td><?= number_format($g->sales_amount, 2) ?></td>
 							</tr>
-							<?php $divisions = $subsidiary["divisions"];
-							foreach($divisions as $div => $division){ ?>
-							<tr>
-								<td></td>
-								<td><?= $div ?></td>
-								<td></td>
-								<td><?= number_format($division["summary"]["valid"], 2) ?></td>
-								<td><?= number_format($division["summary"]["on_process"], 2) ?></td>
-							</tr>
-							<?php $categories = $division["categories"];
-							foreach($categories as $cat => $category){ ?>
-							<tr>
-								<td></td>
-								<td></td>
-								<td><?= $cat ?></td>
-								<td><?= number_format($category["valid"], 2) ?></td>
-								<td><?= number_format($category["on_process"], 2) ?></td>
-							</tr>
-							<?php }}} ?>
+							<?php } ?>
 						</tbody>
 					</table>
-					<!-- table class="table align-middle">
-						<thead>
-							<tr class="table-dark">
-								<th scope="col">Status</th>
-								<th scope="col">Qty</th>
-								<th scope="col" class="text-end">Amount, USD</th>
-							</tr>
-						</thead>
-						<tbody>
-							<?php foreach($status as $s){ ?>
-							<tr class="table-<?= $s["color"] ?>">
-								<th><?= $s["group"] ?></th>
-								<th><?= number_format($s["qty"]) ?></th>
-								<th class="text-end"><?= number_format($s["amount"], 2) ?></th>
-							</tr>
-							<?php foreach($s["details"] as $d){ ?>
-							<tr>
-								<td class="ps-3"><?= ucfirst(str_replace("_", " ", $d["code"])) ?></td>
-								<td><?= number_format($d["qty"]) ?></td>
-								<td class="text-end"><?= number_format($d["amount"], 2) ?></td>
-							</tr>
-							<?php }} ?>
-						</tbody -->
-					</table>
-					<!-- div class="d-none" id="status_chart_data"><?= json_encode($status_chart); ?></div>
-					<div class="row">
-						<div class="col-md-6">
-							<div id="status_chart_amount" style="min-height: 600px;"></div>
-						</div>
-						<div class="col-md-6">
-							<div id="status_chart_qty" style="min-height: 600px;"></div>
-						</div>
-					</div -->
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-md-4">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Order Status</h5>
-					<table class="table align-middle">
-						<thead>
-							<tr class="table-dark">
-								<th scope="col">Status</th>
-								<th scope="col">Qty</th>
-								<th scope="col" class="text-end">Amount, USD</th>
-							</tr>
-						</thead>
-						<tbody>
-							<?php foreach($status as $s){ ?>
-							<tr class="table-<?= $s["color"] ?>">
-								<th><?= $s["group"] ?></th>
-								<th><?= number_format($s["qty"]) ?></th>
-								<th class="text-end"><?= number_format($s["amount"], 2) ?></th>
-							</tr>
-							<?php foreach($s["details"] as $d){ ?>
-							<tr>
-								<td class="ps-3"><?= ucfirst(str_replace("_", " ", $d["code"])) ?></td>
-								<td><?= number_format($d["qty"]) ?></td>
-								<td class="text-end"><?= number_format($d["amount"], 2) ?></td>
-							</tr>
-							<?php }} ?>
-						</tbody>
-					</table>
-					<!-- div class="d-none" id="status_chart_data"><?= json_encode($status_chart); ?></div>
-					<div class="row">
-						<div class="col-md-6">
-							<div id="status_chart_amount" style="min-height: 600px;"></div>
-						</div>
-						<div class="col-md-6">
-							<div id="status_chart_qty" style="min-height: 600px;"></div>
-						</div>
-					</div -->
 				</div>
 			</div>
 		</div>

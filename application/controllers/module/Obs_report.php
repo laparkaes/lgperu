@@ -132,9 +132,61 @@ class Obs_report extends CI_Controller {
 	public function index(){
 		$exchange_rate = 3.8;
 		
-		$from = $this->input->get("f") ? $this->input->get("f") : date("Y-m-01");
-		$to = $this->input->get("t") ? $this->input->get("t") : date("Y-m-t");
+		//get date range
+		$from = ($this->input->get("f") ? $this->input->get("f") : date("Y-m-01"));
+		$to = ($this->input->get("t") ? $this->input->get("t") : date("Y-m-t"));
 		
+		//set magento data filters
+		$s_m = ["obs_magento_id",  "magento_id",  "grand_total_base",  "grand_total_purchased",  "shipping_address",  "shipping_and_handling",  "customer_name",  "sku",  "level_1_code",  "level_2_code",  "level_3_code",  "level_4_code",  "gerp_type",  "gerp_order_no",  "warehouse_code",  "sku_price",  "local_time",  "company_name_through_vipkey",  "vipkey",  "pre_order",  "error_code",  "price_source",  "coupon_code",  "coupon_rule",  "discount_amount",  "devices",  "knout_status",  "status",  "customer_group",  "payment_method",  "error_status",  "opt_in_status",  "purchase_date",  "gerp_selling_price",  "ip_address",  "sale_channel",  "is_export_order_to_gerp",  "sku_without_prefix",  "sku_without_prefix_and_suffix",  "qty_ordered",  "zipcode",  "department",  "province",  "updated",  "registered"];
+		$w_m = ["local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"];
+		$w_in_m = [
+			[
+				"field" => "status", 
+				"values" => ["complete", "awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed"],
+			],
+		];
+		
+		$magentos = $this->gen_m->filter_select("obs_magento", false, $s_m, $w_m, null, $w_in_m, [["local_time", "desc"]]);
+		//foreach($magentos as $m){echo $m->local_time." /// ".$m->status."<br/>";}
+		
+		//set magento gerp data filters
+		$s_g = ["sales_order_id", "create_date", "customer_department", "line_status", "order_category", "order_no", "line_no", "model_category", "model", "product_level4_name", "product_level4_code", "item_type_desctiption", "currency", "unit_selling_price", "ordered_qty", "sales_amount", "bill_to_name"];
+		$w_g = ["create_date >=" => $from, "create_date <=" => $to, "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
+		
+		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "desc"]]);
+		
+		//model category vs product lvl4 mapping
+		$mc_map = [
+			"MN" => "MNT",
+		];
+		
+		//foreach($gerps as $g){echo $g->create_date." /// ".$g->order_status." - ".$g->line_status."<br/>";}
+		
+		
+		$data = [
+			"exchange_rate" => $exchange_rate,
+			"from"			=> $from,
+			"to"			=> $to,
+			"magentos" 		=> $magentos,
+			"gerps" 		=> $gerps,
+			"mc_map" 		=> $mc_map,
+			"main" 			=> "module/obs_report/index",
+		];
+		
+		$this->load->view('layout', $data);
+		
+		
+		/*
+		echo "<br/><br/><br/>";
+		$status_rec = $this->gen_m->only("obs_gerp_sales_order", "line_status");
+		print_r($status_rec);
+		echo "<br/><br/><br/>";
+		$status_rec = $this->gen_m->only("obs_gerp_sales_order", "order_status");
+		print_r($status_rec);
+		*/
+		
+		
+		/*
 		//put date range correctly
 		$w = [
 			"local_time >=" => $from." 00:00:00",
@@ -142,12 +194,6 @@ class Obs_report extends CI_Controller {
 		];
 		
 		//just need to load valid order information
-		$w_in = [
-			[
-				"field" => "status", 
-				"values" => ["complete", "awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed"],
-			],
-		];
 		
 		//to be used for divisions
 		$mapping = [
@@ -204,17 +250,6 @@ class Obs_report extends CI_Controller {
 		//status process data set
 		$status_process = $this->status_process($status, $exchange_rate);
 		
-		$data = [
-			"exchange_rate" => $exchange_rate,
-			"from"			=> $from,
-			"to"			=> $to,
-			"status" 		=> $status_process["summary"],
-			"status_chart"	=> $status_process["chart"],
-			"sales" 		=> $sales,
-			"subsidiaries" 	=> $subsidiaries,
-			"main" 			=> "module/obs_report/index",
-		];
-		
-		$this->load->view('layout', $data);
+		*/
 	}
 }
