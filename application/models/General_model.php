@@ -26,7 +26,7 @@ class General_model extends CI_Model{
 		return $result;
 	}
 	
-	function filter_select($tablename, $valid = true, $s = null, $w = null, $l = null, $w_in = null, $orders = [], $limit = "", $offset = ""){
+	function filter_select($tablename, $valid = true, $s = null, $w = null, $l = null, $w_in = null, $orders = [], $limit = "", $offset = "", $group_by = null){
 		if ($s) $this->db->select($s);
 		if ($valid) $this->db->where("valid", true);
 		if ($w){ $this->db->group_start(); $this->db->where($w); $this->db->group_end(); }
@@ -46,6 +46,7 @@ class General_model extends CI_Model{
 			$this->db->group_end();
 		}
 		if ($orders) foreach($orders as $o) $this->db->order_by($o[0], $o[1]);
+		if ($group_by) $this->db->group_by($group_by);
 		$query = $this->db->get($tablename, $limit, $offset);
 		$result = $query->result();
 		return $result;
