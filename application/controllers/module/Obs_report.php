@@ -129,51 +129,6 @@ class Obs_report extends CI_Controller {
 		return $subsidiaries;
 	}
 	
-	public function test(){
-		$s_g = ["model_category", "model", "product_level4_name", "product_level4_code"];
-		$w_g = ["model_category =" => null, "product_level4_code !=" => "ZZZZZZZZ", "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
-		
-		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["product_level4_code", "desc"]], null, null, "product_level4_code");
-		
-		foreach($gerps as $g){
-			print_r($g);
-			echo "<br/><br/>";
-		}
-		echo "======================================<br/><br/>";
-		
-		$f = [
-			"model_category !=" => null,
-		];
-		$gerps_aux = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $f, null, null, [["product_level4_code", "desc"]], null, null, "product_level4_code");
-		
-		$mapping = [];
-		foreach($gerps_aux as $g){
-			$mapping[substr($g->product_level4_code, 0, 4)] = $g->model_category;
-			$mapping[substr($g->product_level4_code, 0, 2)] = $g->model_category;
-			//print_r($g); echo "<br/><br/>";
-		}
-		
-		print_r($mapping);
-		
-		foreach($gerps as $g){
-			if (!$g->model_category){
-				$sub4 = substr($g->product_level4_code, 0, 4);
-				if (array_key_exists($sub4, $mapping)) $g->model_category = $mapping[$sub4];
-			}
-			
-			if (!$g->model_category){
-				$sub2 = substr($g->product_level4_code, 0, 2);
-				if (array_key_exists($sub2, $mapping)) $g->model_category = $mapping[$sub2];
-			}
-			
-			if ($g->model_category) $this->gen_m->update("obs_gerp_sales_order", ["product_level4_code" => $g->product_level4_code], ["model_category" => $g->model_category]);
-			
-			print_r($g);
-			echo "<br/><br/>";
-		}
-		echo "======================================<br/><br/>";
-	}
-	
 	public function index(){
 		$exchange_rate = 3.8;
 		
@@ -182,7 +137,7 @@ class Obs_report extends CI_Controller {
 		$to = ($this->input->get("t") ? $this->input->get("t") : date("Y-m-t"));
 		
 		//set magento data filters
-		$s_m = ["obs_magento_id",  "magento_id",  "grand_total_base",  "grand_total_purchased",  "shipping_address",  "shipping_and_handling",  "customer_name",  "sku",  "level_1_code",  "level_2_code",  "level_3_code",  "level_4_code",  "gerp_type",  "gerp_order_no",  "warehouse_code",  "sku_price",  "local_time",  "company_name_through_vipkey",  "vipkey",  "pre_order",  "error_code",  "price_source",  "coupon_code",  "coupon_rule",  "discount_amount",  "devices",  "knout_status",  "status",  "customer_group",  "payment_method",  "error_status",  "opt_in_status",  "purchase_date",  "gerp_selling_price",  "ip_address",  "sale_channel",  "is_export_order_to_gerp",  "sku_without_prefix",  "sku_without_prefix_and_suffix",  "qty_ordered",  "zipcode",  "department",  "province",  "updated",  "registered"];
+		$s_m = ["grand_total_purchased", "gerp_order_no", "local_time", "company_name_through_vipkey", "vipkey", "coupon_code", "coupon_rule", "discount_amount", "devices", "status", "customer_group", "department", "province"];
 		$w_m = ["local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"];
 		$w_in_m = [
 			[
@@ -195,18 +150,129 @@ class Obs_report extends CI_Controller {
 		//foreach($magentos as $m){echo $m->local_time." /// ".$m->status."<br/>";}
 		
 		//set magento gerp data filters
-		$s_g = ["sales_order_id", "create_date", "customer_department", "line_status", "order_category", "order_no", "line_no", "model_category", "model", "product_level4_name", "product_level4_code", "item_type_desctiption", "currency", "unit_selling_price", "ordered_qty", "sales_amount", "bill_to_name"];
+		$s_g = ["create_date", "customer_department", "line_status", "order_category", "order_no", "line_no", "model_category", "model", "product_level4_name", "product_level4_code", "item_type_desctiption", "currency", "unit_selling_price", "ordered_qty", "sales_amount", "bill_to_name"];
 		$w_g = ["create_date >=" => $from, "create_date <=" => $to, "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
 		
 		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "desc"]]);
-		
-		//model category vs product lvl4 mapping
-		$mc_map = [
-			"MN" => "MNT",
-		];
-		
 		//foreach($gerps as $g){echo $g->create_date." /// ".$g->order_status." - ".$g->line_status."<br/>";}
 		
+		//set sales by division
+		$summary_structure = ["Closed" => 0, "On process" => 0];
+		
+		$subsidiaries = [
+			"LGEPR" =>[
+				"summary" => $summary_structure,
+				"divisions" => [
+					"HA" => [
+						"summary" => $summary_structure,
+						"categories" => [],
+					],
+					"HE" => [
+						"summary" => $summary_structure,
+						"categories" => [],
+					],
+					"BS" => [
+						"summary" => $summary_structure,
+						"categories" => [],
+					],
+				],
+			],
+		];
+		
+		$div_map = [
+			"Airconditioner" => "HA",
+			"AO" => "HE",
+			"AV" => "HE",
+			"Commercial Display_Signage" => "BS",
+			"Cooking Appliance" => "HA",
+			"Monitor" => "BS",
+			"PC" => "BS",
+			"Refrigerator" => "HA",
+			"TV" => "HE",
+			"Washing Machine" => "HA",
+		];
+		
+		$lvl1_rec = $this->gen_m->only("obs_gerp_sales_order", "product_level1_name", ["product_level1_name !=" => "Not Define"]);
+		foreach($lvl1_rec as $item){
+			$subsidiaries["LGEPR"]["divisions"][$div_map[$item->product_level1_name]]["categories"][$item->product_level1_name]["summary"] = $summary_structure;
+			//echo $item->product_level1_name."<br/>";
+		}
+		
+		foreach($subsidiaries as $sub => $subsidiary){
+			echo $sub." ====> ";
+			print_r($subsidiary["summary"]);
+			echo "<br/><br/>";
+			
+			foreach($subsidiary["divisions"] as $div => $divisions){
+				echo "---";
+				echo $div." ====> ";
+				print_r($divisions["summary"]);
+				echo "<br/><br/>";
+				
+				foreach($divisions["categories"] as $cat => $category){
+					echo "------";
+					echo $cat." ====> ";
+					print_r($category);
+					echo "<br/><br/>";
+				}
+			}	
+		}
+		
+		
+		
+		
+		$m_categories = [];
+		$m_categories_rec = $this->gen_m->only("obs_gerp_sales_order", "model_category", ["model_category !=" => null]);
+		foreach($m_categories_rec as $mc) if ($mc->model_category) $m_categories[] = $mc->model_category;
+		//print_r($m_categories); echo "<br/><br/>";
+		
+		$mapping1 = [];
+		$lvl1_mc = $this->gen_m->filter_select("obs_gerp_sales_order", false, ["product_level1_name", "model_category"], null, null, [["field" => "model_category", "values" => $m_categories]], [["product_level1_name", "asc"]], "", "", "model_category");
+		foreach($lvl1_mc as $item){
+			$mapping1[$item->model_category] = $item->product_level1_name;
+			//print_r($item); echo "<br/>";
+		}
+		
+		$mapping2 = [
+			"Refrigerator" => "REF",
+			"Cooking Appliance" => "Cooking",
+			"Washing Machine" => "WM",
+			"Airconditioner" => "AC",
+			"TV" => "TV",
+			"AO" => "AV",
+			"Monitor" => "MNT",
+			"PC" => "PC",
+			"Commercial Display_Signage" => "CS",
+		];
+		
+		
+		
+		/*
+		
+		
+		"REF" => "REF",
+		"O" => "COOK",
+		"O" => "COOK",
+		
+		
+		A/C
+		RAC
+		SAC
+		
+		AUD
+		
+		CAV
+		CTV
+		CVT
+		LCD
+		LTV
+		MNT
+		MWO
+		
+		PC
+		SGN
+		W/M
+		*/
 		
 		$data = [
 			"exchange_rate" => $exchange_rate,
@@ -214,11 +280,10 @@ class Obs_report extends CI_Controller {
 			"to"			=> $to,
 			"magentos" 		=> $magentos,
 			"gerps" 		=> $gerps,
-			"mc_map" 		=> $mc_map,
 			"main" 			=> "module/obs_report/index",
 		];
 		
-		$this->load->view('layout', $data);
+		//$this->load->view('layout', $data);
 		
 		
 		/*

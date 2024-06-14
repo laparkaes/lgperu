@@ -24,6 +24,44 @@ class Obs_gerp extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
+	private function update_model_category(){
+		//get gerp records without model category group by product lvl4 code
+		$s_g = ["model_category", "model", "product_level4_name", "product_level4_code"];
+		$w_g = ["model_category =" => null, "product_level4_code !=" => "ZZZZZZZZ", "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
+		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["product_level4_code", "desc"]], null, null, "product_level4_code");
+		
+		//get ger records with model category group by product lvl4 code
+		$f = ["model_category !=" => null];
+		$gerps_aux = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $f, null, null, [["product_level4_code", "desc"]], null, null, "product_level4_code");
+		
+		//set mapping array to assign model category
+		$mapping = [];
+		foreach($gerps_aux as $g){
+			$mapping[substr($g->product_level4_code, 0, 4)] = $g->model_category;
+			$mapping[substr($g->product_level4_code, 0, 2)] = $g->model_category;
+			//print_r($g); echo "<br/><br/>";
+		}
+		//print_r($mapping);
+		
+		//start tu assign model category by product lvl 2 then lvl 1 (in case of no data with lvl 2)
+		foreach($gerps as $g){
+			if (!$g->model_category){
+				$sub4 = substr($g->product_level4_code, 0, 4);
+				if (array_key_exists($sub4, $mapping)) $g->model_category = $mapping[$sub4];
+			}
+			
+			if (!$g->model_category){
+				$sub2 = substr($g->product_level4_code, 0, 2);
+				if (array_key_exists($sub2, $mapping)) $g->model_category = $mapping[$sub2];
+			}
+			
+			if ($g->model_category) $this->gen_m->update("obs_gerp_sales_order", ["product_level4_code" => $g->product_level4_code], ["model_category" => $g->model_category]);
+			
+			//print_r($g); echo "<br/><br/>";
+		}
+		//echo "======================================<br/><br/>";
+	}
+	
 	private function process($filename = "obs_gerp.xls"){
 		set_time_limit(0);
 		
@@ -131,6 +169,8 @@ class Obs_gerp extends CI_Controller {
 			if ($qty_update > 0) $result[] = number_format($qty_update)." updated";
 			if ($qty_fail > 0) $result[] = number_format($qty_fail)." failed";
 		}
+		
+		$this->update_model_category();
 		
 		return $result ? "OBS GERP Sales orders process result:<br/><br/>".implode(",", $result) : null;
 		//echo $result ? "OBS GERP Sales orders process result:<br/><br/>".implode(",", $result) : null;
