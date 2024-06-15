@@ -156,48 +156,79 @@ class Obs_report extends CI_Controller {
 		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "desc"]]);
 		//foreach($gerps as $g){echo $g->create_date." /// ".$g->order_status." - ".$g->line_status."<br/>";}
 		
-		//set sales by division
-		$summary_structure = ["Closed" => 0, "On process" => 0];
-		
-		$subsidiaries = [
-			"LGEPR" =>[
-				"summary" => $summary_structure,
-				"divisions" => [
-					"HA" => [
-						"summary" => $summary_structure,
-						"categories" => [],
-					],
-					"HE" => [
-						"summary" => $summary_structure,
-						"categories" => [],
-					],
-					"BS" => [
-						"summary" => $summary_structure,
-						"categories" => [],
-					],
-				],
-			],
+		//set sales by subsidiaries
+		//print_r($this->gen_m->only("obs_gerp_sales_order", "line_status")); echo "<br/><br/>";
+		$f = [
+			"order_status !=" => "Cancelled",
+			"line_status !=" => "Cancelled",
+			"create_date >=" => $from, 
+			"create_date <=" => $to,
 		];
 		
-		$div_map = [
-			"Airconditioner" => "HA",
-			"AO" => "HE",
-			"AV" => "HE",
-			"Commercial Display_Signage" => "BS",
-			"Cooking Appliance" => "HA",
-			"Monitor" => "BS",
-			"PC" => "BS",
-			"Refrigerator" => "HA",
-			"TV" => "HE",
-			"Washing Machine" => "HA",
+		$categories = [
+			"HA" => ["Refrigerator", "Cooking Appliance", "Washing Machine", "Airconditioner"],
+			"HE" => ["TV", "AV", "AO"],
+			"BS" => ["Monitor", "PC", "Commercial Display_Signage"],
 		];
-		
-		$lvl1_rec = $this->gen_m->only("obs_gerp_sales_order", "product_level1_name", ["product_level1_name !=" => "Not Define"]);
-		foreach($lvl1_rec as $item){
-			$subsidiaries["LGEPR"]["divisions"][$div_map[$item->product_level1_name]]["categories"][$item->product_level1_name]["summary"] = $summary_structure;
-			//echo $item->product_level1_name."<br/>";
+		$divisions = ["HA", "HE", "BS"];
+		$subsidiaries = [];
+		$subsidiaries_rec = $this->gen_m->only("obs_gerp_sales_order", "customer_department", ["customer_department !=" => null]);
+		foreach($subsidiaries_rec as $sub){
+			$sub_total = $sub_closed = $sub_on_process = 0;
+			$f["customer_department"] = $sub->customer_department;
+			
+			$subsidiaries[$sub->customer_department] = [];
+			$subsidiaries[$sub->customer_department]["divisions"] = [];
+			foreach($divisions as $div){
+				$div_total = $div_closed = $div_on_process = 0;
+				
+				$subsidiaries[$sub->customer_department]["divisions"][$div] = [];
+				$subsidiaries[$sub->customer_department]["divisions"][$div]["categories"] = [];
+				foreach($categories[$div] as $cat){
+					$cat_closed = $cat_on_process = 0;
+					$f["product_level1_name"] = $cat;
+					
+					//calculate category amount
+					$w_in = [["field" => "line_status", "values" => ["Closed"]]];
+					$cat_closed = $this->gen_m->sum("obs_gerp_sales_order", "sales_amount", $f, $w_in)->sales_amount;
+					
+					$w_in = [["field" => "line_status", "values" => ["Awaiting Fulfillment", "Awaiting Shipping", "Booked", "Pending pre-billing acceptance"]]];
+					$cat_on_process = $this->gen_m->sum("obs_gerp_sales_order", "sales_amount", $f, $w_in)->sales_amount;
+					
+					$cat_total = $cat_closed + $cat_on_process;
+					//add to division amount
+					$div_total += $cat_total;
+					$div_closed += $cat_closed;
+					$div_on_process += $cat_on_process;
+					
+					//add to subsidiary amount
+					$sub_total += $cat_total;
+					$sub_closed += $cat_closed;
+					$sub_on_process += $cat_on_process;
+					
+					$subsidiaries[$sub->customer_department]["divisions"][$div]["categories"][$cat] = [];
+					$subsidiaries[$sub->customer_department]["divisions"][$div]["categories"][$cat]["summary"] = [
+						"total" => $cat_total,
+						"closed" => $cat_closed,
+						"on_process" => $cat_on_process,
+					];
+				}
+				
+				$subsidiaries[$sub->customer_department]["divisions"][$div]["summary"] = [
+					"total" => $div_total,
+					"closed" => $div_closed,
+					"on_process" => $div_on_process,
+				];
+			}
+			
+			$subsidiaries[$sub->customer_department]["summary"] = [
+				"total" => $sub_total,
+				"closed" => $sub_closed,
+				"on_process" => $sub_on_process,
+			];
 		}
 		
+		/*
 		foreach($subsidiaries as $sub => $subsidiary){
 			echo $sub." ====> ";
 			print_r($subsidiary["summary"]);
@@ -216,74 +247,19 @@ class Obs_report extends CI_Controller {
 					echo "<br/><br/>";
 				}
 			}	
-		}
-		
-		
-		
-		
-		$m_categories = [];
-		$m_categories_rec = $this->gen_m->only("obs_gerp_sales_order", "model_category", ["model_category !=" => null]);
-		foreach($m_categories_rec as $mc) if ($mc->model_category) $m_categories[] = $mc->model_category;
-		//print_r($m_categories); echo "<br/><br/>";
-		
-		$mapping1 = [];
-		$lvl1_mc = $this->gen_m->filter_select("obs_gerp_sales_order", false, ["product_level1_name", "model_category"], null, null, [["field" => "model_category", "values" => $m_categories]], [["product_level1_name", "asc"]], "", "", "model_category");
-		foreach($lvl1_mc as $item){
-			$mapping1[$item->model_category] = $item->product_level1_name;
-			//print_r($item); echo "<br/>";
-		}
-		
-		$mapping2 = [
-			"Refrigerator" => "REF",
-			"Cooking Appliance" => "Cooking",
-			"Washing Machine" => "WM",
-			"Airconditioner" => "AC",
-			"TV" => "TV",
-			"AO" => "AV",
-			"Monitor" => "MNT",
-			"PC" => "PC",
-			"Commercial Display_Signage" => "CS",
-		];
-		
-		
-		
-		/*
-		
-		
-		"REF" => "REF",
-		"O" => "COOK",
-		"O" => "COOK",
-		
-		
-		A/C
-		RAC
-		SAC
-		
-		AUD
-		
-		CAV
-		CTV
-		CVT
-		LCD
-		LTV
-		MNT
-		MWO
-		
-		PC
-		SGN
-		W/M
-		*/
+		} */
 		
 		$data = [
 			"exchange_rate" => $exchange_rate,
 			"from"			=> $from,
 			"to"			=> $to,
+			"subsidiaries" 		=> $subsidiaries,
 			"magentos" 		=> $magentos,
 			"gerps" 		=> $gerps,
 			"main" 			=> "module/obs_report/index",
 		];
 		
-		//$this->load->view('layout', $data);
+		$this->load->view('layout', $data);
 		
 		
 		/*

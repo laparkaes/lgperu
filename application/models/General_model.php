@@ -105,9 +105,14 @@ class General_model extends CI_Model{
 		return $result;
 	}
 	
-	function sum($tablename, $col, $filter = null){
+	function sum($tablename, $col, $w = null, $w_in = null){
 		$this->db->select_sum($col);
-		if ($filter) $this->db->where($filter);
+		if ($w) $this->db->where($w);
+		if ($w_in){
+			$this->db->group_start();
+			foreach($w_in as $item) $this->db->where_in($item["field"], $item["values"]);
+			$this->db->group_end();
+		}
 		$query = $this->db->get($tablename);
 		$result = $query->result();
 		return $result[0];

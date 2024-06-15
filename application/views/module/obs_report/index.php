@@ -23,6 +23,41 @@
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">GERP Orders</h5>
+					<table class="table align-middle">
+						<thead>
+							<tr>
+								<th scope="col">Subsidiary</th>
+								<th scope="col">Division</th>
+								<th scope="col">Category</th>
+								<th scope="col">Total</th>
+								<th scope="col">Closed</th>
+								<th scope="col">On Process</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach($subsidiaries as $sub => $subsidiary){ ?>
+							<tr>
+								<td><?= $sub ?></td>
+								<td></td>
+								<td></td>
+								<td><?= number_format($subsidiary["summary"]["total"], 2) ?></td>
+								<td><?= number_format($subsidiary["summary"]["closed"], 2) ?></td>
+								<td><?= number_format($subsidiary["summary"]["on_process"], 2) ?></td>
+							</tr>
+							<?php } ?>
+							
+						</tbody>
+					</table>
+					<?php print_r($subsidiaries); ?>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">GERP Orders</h5>
 					<table class="table datatable align-middle">
 						<thead>
 							<tr>
