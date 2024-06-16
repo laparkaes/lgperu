@@ -22,33 +22,52 @@
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">GERP Orders</h5>
-					<table class="table align-middle">
+					<h5 class="card-title">OBS Dashboard / <?= $from." ~ ".$to ?></h5>
+					<table class="table align-middle text-center">
 						<thead>
 							<tr>
 								<th scope="col">Subsidiary</th>
 								<th scope="col">Division</th>
-								<th scope="col">Category</th>
-								<th scope="col">Total</th>
-								<th scope="col">Closed</th>
-								<th scope="col">On Process</th>
+								<th scope="col" class="border-end">Category</th>
+								<th scope="col" colspan="2">Sales Projection</th>
+								<th scope="col">Actual</th>
+								<th scope="col">Expected</th>
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach($subsidiaries as $sub => $subsidiary){ ?>
+							<?php foreach($subsidiaries as $sub => $subsidiary){ $total = $subsidiary["summary"]["total"]; ?>
 							<tr>
-								<td><?= $sub ?></td>
+								<td><strong><?= $sub ?></strong></td>
 								<td></td>
-								<td></td>
-								<td><?= number_format($subsidiary["summary"]["total"], 2) ?></td>
-								<td><?= number_format($subsidiary["summary"]["closed"], 2) ?></td>
-								<td><?= number_format($subsidiary["summary"]["on_process"], 2) ?></td>
+								<td class="border-end"></td>
+								<td><strong><?= number_format($subsidiary["summary"]["total"], 2) ?></strong></td>
+								<td><strong><?= number_format($subsidiary["summary"]["total"] / $total * 100, 2) ?>%</strong></td>
+								<td><strong><?= number_format($subsidiary["summary"]["closed"], 2) ?></strong></td>
+								<td><strong><?= number_format($subsidiary["summary"]["on_process"], 2) ?></strong></td>
 							</tr>
-							<?php } ?>
-							
+							<?php foreach($subsidiary["divisions"] as $div => $division){ ?>
+							<tr>
+								<td></td>
+								<td><strong><?= $div ?></strong></td>
+								<td class="border-end"></td>
+								<td><strong><?= number_format($division["summary"]["total"], 2) ?></strong></td>
+								<td><strong><?= number_format($division["summary"]["total"] / $total * 100, 2) ?>%</strong></td>
+								<td><strong><?= number_format($division["summary"]["closed"], 2) ?></strong></td>
+								<td><strong><?= number_format($division["summary"]["on_process"], 2) ?></strong></td>
+							</tr>
+							<?php foreach($division["categories"] as $cat => $category){ ?>
+							<tr>
+								<td></td>
+								<td></td>
+								<td class="border-end"><?= $cat ?></td>
+								<td><?= number_format($category["summary"]["total"], 2) ?></td>
+								<td><?= number_format($category["summary"]["total"] / $total * 100, 2) ?>%</td>
+								<td><?= number_format($category["summary"]["closed"], 2) ?></td>
+								<td><?= number_format($category["summary"]["on_process"], 2) ?></td>
+							</tr>
+							<?php }}} ?>
 						</tbody>
 					</table>
-					<?php print_r($subsidiaries); ?>
 				</div>
 			</div>
 		</div>

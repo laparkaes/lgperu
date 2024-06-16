@@ -80,55 +80,6 @@ class Obs_report extends CI_Controller {
 		return ["summary" => $status_summary, "chart" => $status_chart];
 	}
 	
-	private function get_subsidiaries(){
-		//set LG basic divisions. Use this variables to show what divisions exists in order items
-		//$mc_rec = $this->gen_m->only("obs_magento_item", "model_category");
-		
-		//$status_valid 		= ["complete", "closed"];
-		//$status_on_process	= ["awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed"];
-		
-		//division difine
-		$subsidiaries = [
-			"LGEPR" => [
-				"summary" => ["valid" => 0, "on_process" => 0],
-				"divisions" => [
-					"HA" => [
-						"summary" => ["valid" => 0, "on_process" => 0],
-						"categories" => [
-							"RF" => ["valid" => 0, "on_process" => 0],
-							"CA" => ["valid" => 0, "on_process" => 0],
-							"WM" => ["valid" => 0, "on_process" => 0],
-							"AC" => ["valid" => 0, "on_process" => 0],
-						],
-					],
-					"HE" => [
-						"summary" => ["valid" => 0, "on_process" => 0],
-						"categories" => [
-							"TV" => ["valid" => 0, "on_process" => 0],
-							"AV" => ["valid" => 0, "on_process" => 0],
-							"AO" => ["valid" => 0, "on_process" => 0],
-						],
-					],
-					"BS" => [
-						"summary" => ["valid" => 0, "on_process" => 0],
-						"categories" => [
-							"CS" => ["valid" => 0, "on_process" => 0],
-							"MN" => ["valid" => 0, "on_process" => 0],
-						],
-					],
-					"ETC" => [
-						"summary" => ["valid" => 0, "on_process" => 0],
-						"categories" => [
-							"ZZ" => ["valid" => 0, "on_process" => 0],
-						],
-					],
-				],
-			],
-		];
-		
-		return $subsidiaries;
-	}
-	
 	public function index(){
 		$exchange_rate = 3.8;
 		
@@ -190,10 +141,10 @@ class Obs_report extends CI_Controller {
 					
 					//calculate category amount
 					$w_in = [["field" => "line_status", "values" => ["Closed"]]];
-					$cat_closed = $this->gen_m->sum("obs_gerp_sales_order", "sales_amount", $f, $w_in)->sales_amount;
+					$cat_closed = $this->gen_m->sum("obs_gerp_sales_order", "sales_amount", $f, $w_in)->sales_amount / $exchange_rate;//convert to USD
 					
 					$w_in = [["field" => "line_status", "values" => ["Awaiting Fulfillment", "Awaiting Shipping", "Booked", "Pending pre-billing acceptance"]]];
-					$cat_on_process = $this->gen_m->sum("obs_gerp_sales_order", "sales_amount", $f, $w_in)->sales_amount;
+					$cat_on_process = $this->gen_m->sum("obs_gerp_sales_order", "sales_amount", $f, $w_in)->sales_amount / $exchange_rate;//convert to USD
 					
 					$cat_total = $cat_closed + $cat_on_process;
 					//add to division amount
@@ -260,82 +211,5 @@ class Obs_report extends CI_Controller {
 		];
 		
 		$this->load->view('layout', $data);
-		
-		
-		/*
-		echo "<br/><br/><br/>";
-		$status_rec = $this->gen_m->only("obs_gerp_sales_order", "line_status");
-		print_r($status_rec);
-		echo "<br/><br/><br/>";
-		$status_rec = $this->gen_m->only("obs_gerp_sales_order", "order_status");
-		print_r($status_rec);
-		*/
-		
-		
-		/*
-		//put date range correctly
-		$w = [
-			"local_time >=" => $from." 00:00:00",
-			"local_time <=" => $to." 23:59:59",
-		];
-		
-		//just need to load valid order information
-		
-		//to be used for divisions
-		$mapping = [
-			//category => division
-			"RF" => "HA", "CA" => "HA", "WM" => "HA", "AC" => "HA", 
-			"TV" => "HE", "AV" => "HE", "AO" => "HE", 
-			"CS" => "BS", "MN" => "BS", 
-			"ZZ" => "ETC",
-			//status => status_type
-			"complete" => "valid", //"closed" => "valid", //closed is return
-			"awaiting_transfer" => "on_process", "processing" => "on_process", "holded" => "on_process", "preparing_for_delivery" => "on_process", "picking_for_delivery" => "on_process", "on_delivery" => "on_process", "delivery_completed" => "on_process",
-		];
-		
-		$subsidiaries = $this->get_subsidiaries();
-		
-		$sales_items = $this->gen_m->filter("obs_magento_item", false, $w, null, $w_in, [["local_time", "desc"]]); //print_r($sales_items); echo "<br/><br/>";
-		foreach($sales_items as $si){
-			$subsidiaries["LGEPR"]["divisions"][$mapping[$si->model_category]]["categories"][$si->model_category][$mapping[$si->status]] += $si->amount;
-		}
-		
-		foreach($subsidiaries as $sub => $subsidiary){
-			$divisions = $subsidiary["divisions"];
-			foreach($divisions as $div => $division){
-				$categories = $division["categories"];
-				foreach($categories as $category => $summary){
-					//convert to USD
-					$subsidiaries[$sub]["divisions"][$div]["categories"][$category]["valid"] = round($summary["valid"] / $exchange_rate / 1.18, 2);
-					$subsidiaries[$sub]["divisions"][$div]["categories"][$category]["on_process"] = round($summary["on_process"] / $exchange_rate / 1.18, 2);
-					
-					//add to division summary
-					$subsidiaries[$sub]["divisions"][$div]["summary"]["valid"] += $divisions[$div]["categories"][$category]["valid"];
-					$subsidiaries[$sub]["divisions"][$div]["summary"]["on_process"] += $divisions[$div]["categories"][$category]["on_process"];
-					
-					//add to LGEPR total
-					$subsidiaries[$sub]["summary"]["valid"] += $divisions[$div]["categories"][$category]["valid"];
-					$subsidiaries[$sub]["summary"]["on_process"] += $divisions[$div]["categories"][$category]["on_process"];
-				}
-			}
-		}
-		
-		//by sales status setting
-		$status = [];
-		$status_rec = $this->gen_m->only("obs_magento", "status");
-		foreach($status_rec as $s) $status[$s->status] = ["code" => $s->status, "qty" => 0, "amount" => 0];
-		
-		//sales records load
-		$sales = $this->gen_m->filter("obs_magento", false, $w, null, $w_in, [["local_time", "desc"]]);
-		foreach($sales as $sale){
-			//order by status
-			$status[$sale->status]["qty"]++;
-			$status[$sale->status]["amount"] += $sale->grand_total_purchased / $exchange_rate;
-		}
-		
-		//status process data set
-		$status_process = $this->status_process($status, $exchange_rate);
-		
-		*/
 	}
 }
