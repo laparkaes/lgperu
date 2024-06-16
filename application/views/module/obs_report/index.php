@@ -18,7 +18,7 @@
 				<?php
 				$today = strtotime(date("Y-m-d"));
 				foreach($weeks as $w){ if (strtotime($w["dates"][0]) <= $today){ ?>
-				<option value="<?= $w["week"] ?>">W<?= str_pad($w["week"], 2, '0', STR_PAD_LEFT); ?>, <?= implode("~", $w["dates"]) ?></option>
+				<option value="W<?= $w["week"] ?>">W<?= str_pad($w["week"], 2, '0', STR_PAD_LEFT); ?>, <?= implode("~", $w["dates"]) ?></option>
 				<?php }} ?>
 				<option>By week</option>
 			</select>

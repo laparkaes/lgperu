@@ -161,7 +161,7 @@ class Obs_report extends CI_Controller {
 	
 	public function index(){
 		$exchange_rate = 3.8;
-		$weeks = array_reverse($this->get_weeks_by_year(date("Y"))),//recent week at first
+		$weeks = array_reverse($this->get_weeks_by_year(date("Y"))); //recent week at first
 		
 		//get date range
 		$from = ($this->input->get("f") ? $this->input->get("f") : date("Y-m-01"));
