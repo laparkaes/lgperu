@@ -11,103 +11,59 @@ class Obs_report extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 	}
 	
-	private function status_process($status, $exchange_rate){
-		usort($status, function($a, $b) {
-			return ($a["amount"] < $b["amount"]);
-		});
+	function get_dates_by_week($week, $year){
+		$dateTime = new DateTime();
+		$dateTime->setISODate($year, $week);//1 week: from monday ~ sunday
 		
-		$status_summary = [
-			"total" => [
-				"color"		=> "primary",
-				"color_hex"	=> "#0d6efd",
-				"group"		=> "Total (Valid + On Process)",
-				"list"		=> [],
-				"qty" 		=> 0, 
-				"amount" 	=> 0,
-				"details"	=> [],
-			],
-			"valid" => [
-				"color"		=> "success",
-				"color_hex"	=> "#198754",
-				"group"		=> "Valid",
-				"list"		=> ["complete", "closed"],
-				"qty" 		=> 0, 
-				"amount" 	=> 0,
-				"details"	=> [],
-			],
-			"on_process" => [
-				"color"		=> "warning",
-				"color_hex"	=> "#ffc107",
-				"group"		=> "On Process",
-				"list"		=> ["awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed"],
-				"qty" 		=> 0, 
-				"amount" 	=> 0,
-				"details"	=> [],
-			],
-			/*
-			"invalid" => [
-				"color"		=> "danger",
-				"color_hex"	=> "#dc3545",
-				"group"		=> "Invalid",
-				"list"		=> ["payment_declined", "transfer_cancelled", "canceled"],
-				"qty" 		=> 0, 
-				"amount" 	=> 0,
-				"details"	=> [],
-			],
-			*/
-		];
+		//need from sunday ~ saturday
+		$startDate = date("Y-m-d", strtotime("-1 day", strtotime($dateTime->format('Y-m-d'))));
+		if ((string)$year !== date("Y", strtotime($startDate))) $startDate = $year."-01-01";
 		
-		foreach($status as $s){
-			foreach($status_summary as $ss_code => $ss){
-				if (in_array($s["code"], $ss["list"])){
-					$status_summary[$ss_code]["qty"] += $s["qty"];
-					$status_summary[$ss_code]["amount"] += $s["amount"];
-					$status_summary[$ss_code]["details"][] = $s;
-				}
-			}
-		}
-		$status_summary["total"]["qty"] = $status_summary["valid"]["qty"] + $status_summary["on_process"]["qty"];
-		$status_summary["total"]["amount"] = $status_summary["valid"]["amount"] + $status_summary["on_process"]["amount"];
+		$dateTime->modify('+6 days');//add one week in days
+		$endDate = date("Y-m-d", strtotime("-1 day", strtotime($dateTime->format('Y-m-d'))));
+		if ((string)$year !== date("Y", strtotime($endDate))) $endDate = $year."-12-31";
 		
-		$status_chart = ["amount" => [], "qty" => []];
-		foreach($status_summary as $s){
-			if ($s["group"] !== "Total (Valid + On Process)"){
-				$status_chart["amount"][] = ["value" => round($s["amount"], 2), "name" => $s["group"], "itemStyle" => ["color" => $s["color_hex"]]];
-				$status_chart["qty"][] = ["value" => $s["qty"], "name" => $s["group"], "itemStyle" => ["color" => $s["color_hex"]]];
-			}
-		}
-		
-		return ["summary" => $status_summary, "chart" => $status_chart];
+		return (($startDate === $year."-01-01") and ($endDate === $year."-12-31")) ? null : [$startDate, $endDate];
 	}
 	
-	public function index(){
-		$exchange_rate = 3.8;
+	function get_week_by_date($date){
+		$year = date("Y", strtotime($date));
+		$week = 1;
 		
-		//get date range
-		$from = ($this->input->get("f") ? $this->input->get("f") : date("Y-m-01"));
-		$to = ($this->input->get("t") ? $this->input->get("t") : date("Y-m-t"));
+		while (true){
+			$res = $this->get_dates_by_week($week, $year);
+			if (strtotime($res[1]) < strtotime($date)) $week++; else break;
+		}
 		
-		//set magento data filters
-		$s_m = ["grand_total_purchased", "gerp_order_no", "local_time", "company_name_through_vipkey", "vipkey", "coupon_code", "coupon_rule", "discount_amount", "devices", "status", "customer_group", "department", "province"];
-		$w_m = ["local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"];
-		$w_in_m = [
-			[
-				"field" => "status", 
-				"values" => ["complete", "awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed"],
-			],
-		];
+		return ["week" => $week, "dates" => $res];
+	}
+	
+	function get_weeks_by_year($year){
+		$weeks = [];
+		$i = 0;
+		while(true){
+			$i++;
+			$res = $this->get_dates_by_week($i, 2024);
+			
+			if ($res) $weeks[] = ["week" => $i, "dates" => $res]; else break;
+		}
 		
-		$magentos = $this->gen_m->filter_select("obs_magento", false, $s_m, $w_m, null, $w_in_m, [["local_time", "desc"]]);
-		//foreach($magentos as $m){echo $m->local_time." /// ".$m->status."<br/>";}
+		return $weeks;
+	}
+
+	public function test(){
+		$weeks = $this->get_weeks_by_year(2024);
+		foreach($weeks as $w){
+			print_r($w); echo "<br/>";
+		}
 		
-		//set magento gerp data filters
-		$s_g = ["create_date", "customer_department", "line_status", "order_category", "order_no", "line_no", "model_category", "model", "product_level4_name", "product_level4_code", "item_type_desctiption", "currency", "unit_selling_price", "ordered_qty", "sales_amount", "bill_to_name"];
-		$w_g = ["create_date >=" => $from, "create_date <=" => $to, "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
+		echo "<br/><br/><br/>";
 		
-		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "desc"]]);
-		//foreach($gerps as $g){echo $g->create_date." /// ".$g->order_status." - ".$g->line_status."<br/>";}
+		print_r($this->get_week_by_date("2024-06-03"));
 		
-		//set sales by subsidiaries
+	}
+	
+	private function set_subsidiaries($from, $to, $exchange_rate){
 		//print_r($this->gen_m->only("obs_gerp_sales_order", "line_status")); echo "<br/><br/>";
 		$f = [
 			"order_status !=" => "Cancelled",
@@ -179,7 +135,7 @@ class Obs_report extends CI_Controller {
 			];
 		}
 		
-		/*
+		/* to print data structure
 		foreach($subsidiaries as $sub => $subsidiary){
 			echo $sub." ====> ";
 			print_r($subsidiary["summary"]);
@@ -200,11 +156,45 @@ class Obs_report extends CI_Controller {
 			}	
 		} */
 		
+		return $subsidiaries;
+	}
+	
+	public function index(){
+		$exchange_rate = 3.8;
+		$weeks = array_reverse($this->get_weeks_by_year(date("Y"))),//recent week at first
+		
+		//get date range
+		$from = ($this->input->get("f") ? $this->input->get("f") : date("Y-m-01"));
+		$to = ($this->input->get("t") ? $this->input->get("t") : date("Y-m-t"));
+		
+		//set magento data filters
+		$s_m = ["grand_total_purchased", "gerp_order_no", "local_time", "company_name_through_vipkey", "vipkey", "coupon_code", "coupon_rule", "discount_amount", "devices", "status", "customer_group", "department", "province"];
+		$w_m = ["local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"];
+		$w_in_m = [
+			[
+				"field" => "status", 
+				"values" => ["complete", "awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed"],
+			],
+		];
+		
+		$magentos = $this->gen_m->filter_select("obs_magento", false, $s_m, $w_m, null, $w_in_m, [["local_time", "desc"]]);
+		//foreach($magentos as $m){echo $m->local_time." /// ".$m->status."<br/>";}
+		
+		//set magento gerp data filters
+		$s_g = ["create_date", "customer_department", "line_status", "order_category", "order_no", "line_no", "model_category", "model", "product_level4_name", "product_level4_code", "item_type_desctiption", "currency", "unit_selling_price", "ordered_qty", "sales_amount", "bill_to_name"];
+		$w_g = ["create_date >=" => $from, "create_date <=" => $to, "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
+		
+		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "desc"]]);
+		//foreach($gerps as $g){echo $g->create_date." /// ".$g->order_status." - ".$g->line_status."<br/>";}
+		
+		
+		
 		$data = [
 			"exchange_rate" => $exchange_rate,
+			"weeks"			=> $weeks,
 			"from"			=> $from,
 			"to"			=> $to,
-			"subsidiaries" 		=> $subsidiaries,
+			"subsidiaries" 	=> $this->set_subsidiaries($from, $to, $exchange_rate),
 			"magentos" 		=> $magentos,
 			"gerps" 		=> $gerps,
 			"main" 			=> "module/obs_report/index",

@@ -10,9 +10,22 @@
 	</div>
 	<form class="m-0">
 		<div class="input-group">
-			<input type="date" class="form-control" id="report_from" value="<?= $from ?>" name="f" placeholder="From" max="<?= $to ?>">
+			<select class="form-select" id="sl_date_type">
+				<option>By month</option>
+				<option>By week</option>
+			</select>
+			<select class="form-select" id="sl_date_type">
+				<?php
+				$today = strtotime(date("Y-m-d"));
+				foreach($weeks as $w){ if (strtotime($w["dates"][0]) <= $today){ ?>
+				<option value="<?= $w["week"] ?>">W<?= str_pad($w["week"], 2, '0', STR_PAD_LEFT); ?>, <?= implode("~", $w["dates"]) ?></option>
+				<?php }} ?>
+				<option>By week</option>
+			</select>
+		
+			<!-- input type="date" class="form-control" id="report_from" value="<?= $from ?>" name="f" placeholder="From" max="<?= $to ?>">
 			<span class="input-group-text">~</span>
-			<input type="date" class="form-control" id="report_to" value="<?= $to ?>" name="t" placeholder="To" min="<?= $from ?>">
+			<input type="date" class="form-control" id="report_to" value="<?= $to ?>" name="t" placeholder="To" min="<?= $from ?>" -->
 			<button type="submit" class="btn btn-primary">Submit</button>
 		</div>
 	</form>
@@ -20,6 +33,15 @@
 <section class="section">
 	<div class="row">
 		<div class="col-md-12">
+			<?php 
+			$today = strtotime(date("Y-m-d"));
+			print_r($weeks); echo "<br/><br/>"; 
+			foreach($weeks as $w){
+				if (strtotime($w["dates"][0]) <= $today) echo $w["dates"][1]."<br/>"; 
+			}
+			
+			
+			?>
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">OBS Dashboard / <?= $from." ~ ".$to ?></h5>
