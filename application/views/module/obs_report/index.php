@@ -124,7 +124,7 @@
 								<td><?= $g->line_no ?></td>
 								<td><?= $g->item_type_desctiption ?></td>
 								<td><?= $g->model_category ?></td>
-								<td><?= $g->model."<br/>".str_replace("_", " ", $g->product_level4_name) ?></td>
+								<td><?= $g->model."<br/>".str_replace("_", " ", $g->product_level4_name)."<br/>".$g->product_level1_name ?></td>
 								<td><?= $g->currency ?></td>
 								<td><?= number_format($g->unit_selling_price, 2) ?></td>
 								<td><?= number_format($g->ordered_qty) ?></td>

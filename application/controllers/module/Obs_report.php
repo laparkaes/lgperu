@@ -189,6 +189,63 @@ class Obs_report extends CI_Controller {
 		return $subsidiaries;
 	}
 	
+	private function set_sales($gerps, $from, $to, $exchange_rate){
+		$subsidiaries = $this->gen_m->only("obs_gerp_sales_order", "customer_department", ["create_date >=" => $from, "create_date <=" => $to]);
+		$lvl1s = $this->gen_m->only("obs_gerp_sales_order", "product_level1_name", ["create_date >=" => $from, "create_date <=" => $to]);
+		
+		$sales = [];
+		foreach($subsidiaries as $sub){
+			$sales[$sub->customer_department] = [];
+			$sales[$sub->customer_department]["total"] = 0;
+			$sales[$sub->customer_department]["lvl1s"] = [];
+			foreach($lvl1s as $lvl1){
+				$sales[$sub->customer_department][$lvl1->product_level1_name]["total"] = 0;
+				$sales[$sub->customer_department][$lvl1->product_level1_name]["models"] = [];
+				
+				$models = $this->gen_m->only("obs_gerp_sales_order", "model", ["create_date >=" => $from, "create_date <=" => $to, "product_level1_name" => $lvl1->product_level1_name]);
+				foreach($models as $model){
+					$sales[$sub->customer_department][$lvl1->product_level1_name]["models"][$model->model] = 0;
+				}
+			}
+		}
+		
+		$categories = [
+			"HA" => [
+				"Refrigerator" => 0, 
+				"Cooking Appliance" => 0, 
+				"Washing Machine" => 0, 
+				"Airconditioner" => 0,
+			],
+			"HE" => [
+				"TV" => 0, 
+				"AV" => 0, 
+				"AO" => 0,
+			],
+			"BS" => [
+				"Monitor" => 0, 
+				"PC" => 0, 
+				"Commercial Display_Signage" => 0,
+			],
+		];
+		
+		foreach($gerps as $g){
+			//print_r($g); echo "<br/><br/>";
+			//print_r($g->model); echo "<br/><br/>";
+			$sales[$g->customer_department][$g->product_level1_name]["total"] += $g->sales_amount;
+			$sales[$g->customer_department][$g->product_level1_name]["models"][$g->model] += $g->sales_amount;
+		}
+		
+		/*
+		foreach($sales as $sub => $s){
+			echo $sub."<br/>";
+			foreach($s as $lvl1 => $);
+		}
+		*/
+		
+		echo "<br/><br/>";
+		
+	}
+	
 	public function index(){
 		$exchange_rate = 3.8;
 		
@@ -232,7 +289,7 @@ class Obs_report extends CI_Controller {
 		//foreach($magentos as $m){echo $m->local_time." /// ".$m->status."<br/>";}
 		
 		//set magento gerp data filters
-		$s_g = ["create_date", "customer_department", "line_status", "order_category", "order_no", "line_no", "model_category", "model", "product_level4_name", "product_level4_code", "item_type_desctiption", "currency", "unit_selling_price", "ordered_qty", "sales_amount", "bill_to_name"];
+		$s_g = ["create_date", "customer_department", "line_status", "order_category", "order_no", "line_no", "model_category", "model", "product_level1_name","product_level4_name", "product_level4_code", "item_type_desctiption", "currency", "unit_selling_price", "ordered_qty", "sales_amount", "bill_to_name"];
 		$w_g = ["create_date >=" => $from, "create_date <=" => $to, "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
 		
 		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "desc"]]);
@@ -245,6 +302,7 @@ class Obs_report extends CI_Controller {
 			"from"			=> $from,
 			"to"			=> $to,
 			"subsidiaries" 	=> $this->set_subsidiaries($from, $to, $exchange_rate),
+			//"sales" 		=> $this->set_sales($gerps, $from, $to, $exchange_rate),
 			"magentos" 		=> $magentos,
 			"gerps" 		=> $gerps,
 			"main" 			=> "module/obs_report/index",
