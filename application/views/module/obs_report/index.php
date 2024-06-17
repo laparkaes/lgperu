@@ -8,49 +8,42 @@
 			</ol>
 		</nav>
 	</div>
-	<form class="m-0">
-		<div class="input-group">
-			<select class="form-select" id="sl_date_type">
-				<option>By month</option>
-				<option>By week</option>
-			</select>
-			<select class="form-select" id="sl_date_type">
-				<?php
-				$today = strtotime(date("Y-m-d"));
-				foreach($weeks as $w){ if (strtotime($w["dates"][0]) <= $today){ ?>
-				<option value="W<?= $w["week"] ?>">W<?= str_pad($w["week"], 2, '0', STR_PAD_LEFT); ?>, <?= implode("~", $w["dates"]) ?></option>
-				<?php }} ?>
-				<option>By week</option>
-			</select>
-		
-			<!-- input type="date" class="form-control" id="report_from" value="<?= $from ?>" name="f" placeholder="From" max="<?= $to ?>">
-			<span class="input-group-text">~</span>
-			<input type="date" class="form-control" id="report_to" value="<?= $to ?>" name="t" placeholder="To" min="<?= $from ?>" -->
-			<button type="submit" class="btn btn-primary">Submit</button>
-		</div>
+	<form class="d-flex justify-content-end m-0">
+		<select class="form-select ms-1" id="sl_by_week" name="w">
+			<option value="">By Week</option>
+			<?php
+			$today = strtotime(date("Y-m-d"));
+			foreach($weeks as $w){ ?>
+			<option value="<?= $w["week"] ?>" <?= ($w["week"] == $this->input->get("w")) ? "selected": "" ?>>W<?= str_pad($w["week"], 2, '0', STR_PAD_LEFT); ?> | <?= implode(" ~ ", $w["dates"]) ?></option>
+			<?php } ?>
+		</select>
+		<select class="form-select ms-1" id="sl_by_month" name="m">
+			<option value="">By Month</option>
+			<?php foreach($months as $m){ ?>
+			<option value="<?= $m ?>" <?= ($m == $this->input->get("m")) ? "selected": "" ?>><?= $m ?></option>
+			<?php } ?>
+		</select>
+		<button type="submit" class="btn btn-primary ms-1">Submit</button>
 	</form>
 </div>					
 <section class="section">
 	<div class="row">
 		<div class="col-md-12">
 			<?php 
-			$today = strtotime(date("Y-m-d"));
-			print_r($weeks); echo "<br/><br/>"; 
-			foreach($weeks as $w){
-				if (strtotime($w["dates"][0]) <= $today) echo $w["dates"][1]."<br/>"; 
-			}
-			
 			
 			?>
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">OBS Dashboard / <?= $from." ~ ".$to ?></h5>
+					<div class="d-flex justify-content-between">
+						<h5 class="card-title">OBS Dashboard</h5>
+						<h5 class="card-title"><?= $from." ~ ".$to ?> | <strong>USD</strong></h5>
+					</div>
 					<table class="table align-middle text-center">
 						<thead>
 							<tr>
-								<th scope="col">Subsidiary</th>
-								<th scope="col">Division</th>
-								<th scope="col" class="border-end">Category</th>
+								<th scope="col" style="width: 150px;">Subsidiary</th>
+								<th scope="col" style="width: 150px;">Division</th>
+								<th scope="col" class="border-end" style="width: 250px;">Category</th>
 								<th scope="col" colspan="2">Sales Projection</th>
 								<th scope="col">Actual</th>
 								<th scope="col">Expected</th>
@@ -63,7 +56,7 @@
 								<td></td>
 								<td class="border-end"></td>
 								<td><strong><?= number_format($subsidiary["summary"]["total"], 2) ?></strong></td>
-								<td><strong><?= number_format($subsidiary["summary"]["total"] / $total * 100, 2) ?>%</strong></td>
+								<td><strong><?= $total ? number_format($subsidiary["summary"]["total"] / $total * 100, 2) : "0.00" ?>%</strong></td>
 								<td><strong><?= number_format($subsidiary["summary"]["closed"], 2) ?></strong></td>
 								<td><strong><?= number_format($subsidiary["summary"]["on_process"], 2) ?></strong></td>
 							</tr>
@@ -73,7 +66,7 @@
 								<td><strong><?= $div ?></strong></td>
 								<td class="border-end"></td>
 								<td><strong><?= number_format($division["summary"]["total"], 2) ?></strong></td>
-								<td><strong><?= number_format($division["summary"]["total"] / $total * 100, 2) ?>%</strong></td>
+								<td><strong><?= $total ? number_format($division["summary"]["total"] / $total * 100, 2) : "0.00" ?>%</strong></td>
 								<td><strong><?= number_format($division["summary"]["closed"], 2) ?></strong></td>
 								<td><strong><?= number_format($division["summary"]["on_process"], 2) ?></strong></td>
 							</tr>
@@ -83,7 +76,7 @@
 								<td></td>
 								<td class="border-end"><?= $cat ?></td>
 								<td><?= number_format($category["summary"]["total"], 2) ?></td>
-								<td><?= number_format($category["summary"]["total"] / $total * 100, 2) ?>%</td>
+								<td><?= $total ? number_format($category["summary"]["total"] / $total * 100, 2) : "0.00" ?>%</td>
 								<td><?= number_format($category["summary"]["closed"], 2) ?></td>
 								<td><?= number_format($category["summary"]["on_process"], 2) ?></td>
 							</tr>
@@ -225,6 +218,16 @@ function set_status_chart(){
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+	$("#sl_by_week").on( "change", function() {
+		if ($(this).val() != "") $("#sl_by_month").val("");
+	});
+	
+	$("#sl_by_month").on( "change", function() {
+		if ($(this).val() != "") $("#sl_by_week").val("");
+	});
+	
+	
+	
 	//set_status_chart();
 	
 	$("#report_from").on( "change", function() {

@@ -52,14 +52,44 @@ class Obs_report extends CI_Controller {
 	}
 
 	public function test(){
-		$weeks = $this->get_weeks_by_year(2024);
-		foreach($weeks as $w){
-			print_r($w); echo "<br/>";
+		$exchange_rate = 3.8;
+		$today = date("Y-m-d");
+		
+		$start_time = microtime(true);
+		
+		/* get last 12 weeks summaries / 2.51 sec laptop
+		for($i = 0; $i < 12; $i++){
+			$now = date("Y-m-d", strtotime("-".(7 * $i)." day", strtotime($today)));
+			echo $now."<br/>";
+			
+			$now_w = $this->get_week_by_date($now);
+			print_r($now_w); echo "<br/>";
+			
+			$subsidiaries = $this->set_subsidiaries($now_w["dates"][0], $now_w["dates"][1], $exchange_rate);
+			print_r($subsidiaries); echo "<br/>";
+			
+			echo "<br/>";
+		}
+		*/
+		
+		/* get last 12 months summaries / 2.55 sec laptop
+		*/
+		for($i = 0; $i < 12; $i++){
+			$now = date("Y-m-d", strtotime("-".($i)." month", strtotime($today)));
+			echo $now."<br/>";
+			
+			$from = date("Y-m-01", strtotime($now));
+			$to = date("Y-m-t", strtotime($now));
+			echo $from." ~ ".$to."<br/>";
+			
+			$subsidiaries = $this->set_subsidiaries($from, $to, $exchange_rate);
+			print_r($subsidiaries); echo "<br/>";
+			
+			echo "<br/>";
 		}
 		
-		echo "<br/><br/><br/>";
-		
-		print_r($this->get_week_by_date("2024-06-03"));
+		$end_time = microtime(true);
+		echo "<br/><br/>Exec time: ".number_format($end_time - $start_time, 2)." sec";
 		
 	}
 	
@@ -161,11 +191,32 @@ class Obs_report extends CI_Controller {
 	
 	public function index(){
 		$exchange_rate = 3.8;
-		$weeks = array_reverse($this->get_weeks_by_year(date("Y"))); //recent week at first
 		
-		//get date range
-		$from = ($this->input->get("f") ? $this->input->get("f") : date("Y-m-01"));
-		$to = ($this->input->get("t") ? $this->input->get("t") : date("Y-m-t"));
+		$today = strtotime(date("Y-m-d"));
+		$weeks = array_reverse($this->get_weeks_by_year(date("Y")));//recent week at first
+		foreach($weeks as $i => $w) if (strtotime($w["dates"][0]) > $today) unset($weeks[$i]);//remove future weeks
+		
+		$months = [];
+		$year_act = date("Y");
+		$month_act = date("m");
+		for($i = 12; $i >= 1; $i--){
+			if ($i <= $month_act) $months[] = $year_act."-".str_pad($i, 2, '0', STR_PAD_LEFT);
+		}
+		
+		//set date range
+		if ($this->input->get("w")){//week selected
+			$dates = $this->get_dates_by_week($this->input->get("w"), date("Y"));
+			$from = $dates[0];
+			$to = $dates[1];
+		}elseif ($this->input->get("m")){//month selected
+			$m = strtotime($this->input->get("m"));
+			$from = date("Y-m-01", $m);
+			$to = date("Y-m-t", $m);
+		}else{//default: this week
+			$aux = $this->get_week_by_date(date("Y-m-d"));
+			$from = $aux["dates"][0];
+			$to = $aux["dates"][1];
+		}
 		
 		//set magento data filters
 		$s_m = ["grand_total_purchased", "gerp_order_no", "local_time", "company_name_through_vipkey", "vipkey", "coupon_code", "coupon_rule", "discount_amount", "devices", "status", "customer_group", "department", "province"];
@@ -187,11 +238,10 @@ class Obs_report extends CI_Controller {
 		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "desc"]]);
 		//foreach($gerps as $g){echo $g->create_date." /// ".$g->order_status." - ".$g->line_status."<br/>";}
 		
-		
-		
 		$data = [
 			"exchange_rate" => $exchange_rate,
 			"weeks"			=> $weeks,
+			"months"		=> $months,
 			"from"			=> $from,
 			"to"			=> $to,
 			"subsidiaries" 	=> $this->set_subsidiaries($from, $to, $exchange_rate),
