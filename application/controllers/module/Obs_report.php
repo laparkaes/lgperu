@@ -50,48 +50,6 @@ class Obs_report extends CI_Controller {
 		
 		return $weeks;
 	}
-
-	public function test_history(){
-		$exchange_rate = 3.8;
-		$today = date("Y-m-d");
-		
-		$start_time = microtime(true);
-		
-		/* get last 12 weeks summaries / 2.51 sec laptop / 16.16 sec laptop LG
-		*/
-		for($i = 0; $i < 12; $i++){
-			$now = date("Y-m-d", strtotime("-".(7 * $i)." day", strtotime($today)));
-			echo $now."<br/>";
-			
-			$now_w = $this->get_week_by_date($now);
-			print_r($now_w); echo "<br/>";
-			
-			$subsidiaries = $this->set_subsidiaries($now_w["dates"][0], $now_w["dates"][1], $exchange_rate);
-			print_r($subsidiaries); echo "<br/>";
-			
-			echo "<br/>";
-		}
-		
-		/* get last 12 months summaries / 2.55 sec laptop / 16.99 sec laptop LG
-		for($i = 0; $i < 12; $i++){
-			$now = date("Y-m-d", strtotime("-".($i)." month", strtotime($today)));
-			echo $now."<br/>";
-			
-			$from = date("Y-m-01", strtotime($now));
-			$to = date("Y-m-t", strtotime($now));
-			echo $from." ~ ".$to."<br/>";
-			
-			$subsidiaries = $this->set_subsidiaries($from, $to, $exchange_rate);
-			print_r($subsidiaries); echo "<br/>";
-			
-			echo "<br/>";
-		}
-		*/
-		
-		$end_time = microtime(true);
-		echo "<br/><br/>Exec time: ".number_format($end_time - $start_time, 2)." sec";
-		
-	}
 	
 	private function set_subsidiaries($from, $to, $exchange_rate){
 		//print_r($this->gen_m->only("obs_gerp_sales_order", "line_status")); echo "<br/><br/>";
@@ -103,10 +61,23 @@ class Obs_report extends CI_Controller {
 		];
 		
 		$categories = [
-			"HA" => ["Refrigerator", "Cooking Appliance", "Washing Machine", "Airconditioner"],
-			"HE" => ["TV", "AV", "AO"],
-			"BS" => ["Monitor", "PC", "Commercial Display_Signage"],
+			"HA" => ["REF", "COOK", "W/M", "A/C"],
+			"HE" => ["TV", "AV"],
+			"BS" => ["MNT", "PC", "SGN"],
 		];
+		
+		$category_map = [
+			"REF" => ["REF"],
+			"COOK" => ["MWO", "O", "CVT"],
+			"W/M" => ["W/M"],
+			"A/C" => ["A/C", "RAC", "SAC"],
+			"TV" => ["LCD", "LTV"],
+			"AV" => ["AUD", "CAV"],
+			"MNT" => ["MNT"],
+			"PC" => ["PC"],
+			"SGN" => ["SGN", "CTV"],
+		];
+		
 		$divisions = ["HA", "HE", "BS"];
 		$subsidiaries = [];
 		$subsidiaries_rec = $this->gen_m->only("obs_gerp_sales_order", "customer_department", ["customer_department !=" => null]);
@@ -123,13 +94,14 @@ class Obs_report extends CI_Controller {
 				$subsidiaries[$sub->customer_department]["divisions"][$div]["categories"] = [];
 				foreach($categories[$div] as $cat){
 					$cat_closed = $cat_on_process = 0;
-					$f["product_level1_name"] = $cat;
+					//$f["product_level1_name"] = $cat;
+					$w_in_cat = ["field" => "model_category", "values" => $category_map[$cat]];
 					
 					//calculate category amount
-					$w_in = [["field" => "line_status", "values" => ["Closed"]]];
+					$w_in = [$w_in_cat, ["field" => "line_status", "values" => ["Closed"]]];
 					$cat_closed = $this->gen_m->sum("obs_gerp_sales_order", "sales_amount", $f, $w_in)->sales_amount / $exchange_rate;//convert to USD
 					
-					$w_in = [["field" => "line_status", "values" => ["Awaiting Fulfillment", "Awaiting Shipping", "Booked", "Pending pre-billing acceptance"]]];
+					$w_in = [$w_in_cat, ["field" => "line_status", "values" => ["Awaiting Fulfillment", "Awaiting Shipping", "Booked", "Pending pre-billing acceptance"]]];
 					$cat_on_process = $this->gen_m->sum("obs_gerp_sales_order", "sales_amount", $f, $w_in)->sales_amount / $exchange_rate;//convert to USD
 					
 					$cat_total = $cat_closed + $cat_on_process;
@@ -191,7 +163,28 @@ class Obs_report extends CI_Controller {
 	
 	private function set_sales($gerps, $from, $to, $exchange_rate){
 		$subsidiaries = $this->gen_m->only("obs_gerp_sales_order", "customer_department", ["create_date >=" => $from, "create_date <=" => $to]);
-		$lvl1s = $this->gen_m->only("obs_gerp_sales_order", "product_level1_name", ["create_date >=" => $from, "create_date <=" => $to]);
+		$model_categories = $this->gen_m->only("obs_gerp_sales_order", "model_category", ["create_date >=" => $from, "create_date <=" => $to]);
+		
+		$sales = [];
+		foreach($subsidiaries as $sub) 
+			foreach($model_categories as $mc){
+				if ($mc->model_category){
+					$models = $this->gen_m->only("obs_gerp_sales_order", "model", ["create_date >=" => $from, "create_date <=" => $to, "model_category" => $mc->model_category]);
+					foreach($models as $model) $sales[$sub->customer_department][$mc->model_category][$model->model] = ["qty" => 0, "amount" => 0];
+				}
+			}
+		
+		foreach($gerps as $g) if ($g->sales_amount){
+			$sales[$g->customer_department][$g->model_category][$g->model]["qty"] += $g->ordered_qty;
+			$sales[$g->customer_department][$g->model_category][$g->model]["amount"] += $g->sales_amount;
+		}
+		
+		
+		
+		print_r($sales);
+		
+		/*
+		//$lvl1s = $this->gen_m->only("obs_gerp_sales_order", "product_level1_name", ["create_date >=" => $from, "create_date <=" => $to]);
 		
 		$sales = [];
 		foreach($subsidiaries as $sub){
@@ -237,7 +230,6 @@ class Obs_report extends CI_Controller {
 		
 		print_r($sales);
 		
-		/*
 		foreach($sales as $sub => $s){
 			echo $sub."<br/>";
 			foreach($s as $lvl1 => $);
@@ -248,7 +240,7 @@ class Obs_report extends CI_Controller {
 		
 	}
 	
-	public function test(){
+	public function test_sales_by_models(){
 		$exchange_rate = 3.8;
 		$from = "2024-05-01";
 		$to = "2024-05-31";
@@ -260,6 +252,11 @@ class Obs_report extends CI_Controller {
 		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "desc"]]);
 		
 		$this->set_sales($gerps, $from, $to, $exchange_rate);
+	}
+	
+	public function test(){
+		$mcs = $this->gen_m->only("obs_gerp_sales_order", "model_category");
+		foreach($mcs as $mc) echo $mc->model_category."<br/>";
 	}
 	
 	public function index(){
@@ -327,15 +324,13 @@ class Obs_report extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 
-	public function progress($period){
+	public function progress($period, $qty = 12){
 		$start_time = microtime(true);
-		
-		echo $period."<br/><br/>";
 		
 		$exchange_rate = 3.8;
 		$today = date("Y-m-d");
 		
-		$summaries = [];
+		$headers = $progress = [];
 		
 		switch($period){
 			case "m": 
@@ -344,10 +339,12 @@ class Obs_report extends CI_Controller {
 					$from = date("Y-m-01", strtotime($now));
 					$to = date("Y-m-t", strtotime($now));
 					
-					$summaries[] = [
-						"dates" => [$from, $to],
+					$headers[] = date("M", strtotime($from)) === "Dec" ? date("M", strtotime($from)) : date("M y", strtotime($from));
+					$progress[] = [
 						"subsidiaries" => $this->set_subsidiaries($from, $to, $exchange_rate),
 					];
+					
+					if ($i >= $qty) break;
 				}
 				break;
 			case "w":
@@ -355,18 +352,55 @@ class Obs_report extends CI_Controller {
 					$now = date("Y-m-d", strtotime("-".(7 * $i)." day", strtotime($today)));
 					$now_w = $this->get_week_by_date($now);
 					
-					$summaries[] = [
-						"dates" => [$now_w["dates"][0], $now_w["dates"][1]],
+					$headers[] = "W".$now_w["week"];
+					$progress[] = [
 						"subsidiaries" => $this->set_subsidiaries($now_w["dates"][0], $now_w["dates"][1], $exchange_rate),
 					];
+					
+					if ($i >= $qty) break;
 				}
 				break;
 		}
 		
-		print_r($summaries);
+		/* printring variable
+		foreach($progress as $pro){
+			print_r($pro); echo "<br/><br/><br/>";
+			
+			echo "Month: ".$pro["month"]."<br/>";
+			echo "Week: ".$pro["week"]."<br/>";
+			print_r($pro["dates"]); echo "<br/>";
+			
+			foreach($pro["subsidiaries"] as $sub => $subsidiary){
+				echo $sub." >>> "; print_r($subsidiary["summary"]); echo "<br/>";
+				
+				foreach($subsidiary["divisions"] as $div => $divisions){
+					echo " - ".$div." >>> "; print_r($divisions["summary"]); echo "<br/>";
+					
+					foreach($divisions["categories"] as $cat => $category){
+						echo " --- ".$cat." >>> "; print_r($category["summary"]); echo "<br/>";
+					}
+					
+					echo "<br/>";
+				}
+				
+				echo "<br/>";
+			}
+			
+			echo "<br/><br/><br/>";
+		}
 		
 		$end_time = microtime(true);
 		echo "<br/><br/>Exec time: ".number_format($end_time - $start_time, 2)." sec";
+		*/
+		
+		$data = [
+			"period"		=> $period === "w" ? "Weekly" : "Monthly",
+			"headers"		=> $headers,
+			"progress"		=> $progress,
+			"main" 			=> "module/obs_report/progress",
+		];
+		
+		$this->load->view('layout', $data);
 	}
 
 }

@@ -46,8 +46,8 @@
 					<table class="table align-middle text-center">
 						<thead>
 							<tr>
-								<th scope="col" style="width: 150px;">Subsidiary</th>
-								<th scope="col" style="width: 150px;">Division</th>
+								<th scope="col" style="width: 100px;">Subsidiary</th>
+								<th scope="col" style="width: 100px;">Division</th>
 								<th scope="col" class="border-end" style="width: 250px;">Category</th>
 								<th scope="col" colspan="2">Sales Projection</th>
 								<th scope="col">Actual</th>
@@ -163,7 +163,6 @@
 								<th scope="col">Amount</th>
 								<th scope="col">USD</th>
 							</tr>
-						</thead>
 						</thead>
 						<tbody>
 							<?php foreach($magentos as $m){ $no_tax = $m->grand_total_purchased / 1.18; ?>
