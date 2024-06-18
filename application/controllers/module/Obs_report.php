@@ -326,4 +326,47 @@ class Obs_report extends CI_Controller {
 		
 		$this->load->view('layout', $data);
 	}
+
+	public function progress($period){
+		$start_time = microtime(true);
+		
+		echo $period."<br/><br/>";
+		
+		$exchange_rate = 3.8;
+		$today = date("Y-m-d");
+		
+		$summaries = [];
+		
+		switch($period){
+			case "m": 
+				for($i = 0; $i < 12; $i++){
+					$now = date("Y-m-d", strtotime("-".($i)." month", strtotime($today)));
+					$from = date("Y-m-01", strtotime($now));
+					$to = date("Y-m-t", strtotime($now));
+					
+					$summaries[] = [
+						"dates" => [$from, $to],
+						"subsidiaries" => $this->set_subsidiaries($from, $to, $exchange_rate),
+					];
+				}
+				break;
+			case "w":
+				for($i = 0; $i < 12; $i++){
+					$now = date("Y-m-d", strtotime("-".(7 * $i)." day", strtotime($today)));
+					$now_w = $this->get_week_by_date($now);
+					
+					$summaries[] = [
+						"dates" => [$now_w["dates"][0], $now_w["dates"][1]],
+						"subsidiaries" => $this->set_subsidiaries($now_w["dates"][0], $now_w["dates"][1], $exchange_rate),
+					];
+				}
+				break;
+		}
+		
+		print_r($summaries);
+		
+		$end_time = microtime(true);
+		echo "<br/><br/>Exec time: ".number_format($end_time - $start_time, 2)." sec";
+	}
+
 }
