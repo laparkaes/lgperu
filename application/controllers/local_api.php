@@ -250,7 +250,32 @@ class Local_api extends CI_Controller {
 				"so_fap_slot_date", */
 			];
 			
+			$exchange_rate = 3.8;
 			$res = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s, $filter, null, null, [["create_date", "asc"]]);
+			foreach($res as $r){
+				$r->unit_selling_price = round($r->unit_selling_price / $exchange_rate, 2);
+				$r->sales_amount = round($r->sales_amount / $exchange_rate, 2);
+				$r->tax_amount = round($r->tax_amount / $exchange_rate, 2);
+				$r->charge_amount = round($r->charge_amount / $exchange_rate, 2);
+				$r->line_total = round($r->line_total / $exchange_rate, 2);
+				$r->list_price = round($r->list_price / $exchange_rate, 2);
+				$r->original_list_price = round($r->original_list_price / $exchange_rate, 2);
+			}
+			
+		}else $res = ["msg" => "Error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+	
+	public function get_exchange_rate(){
+		//llamasys/local_api/get_exchange_rate?key=lgepr
+		
+		$key = $this->input->get("key");
+		$res = [];
+		
+		if ($key === "lgepr"){
+			$res = ["exchange_rate" => 3.8];
 		}else $res = ["msg" => "Error"];
 		
 		header('Content-Type: application/json');

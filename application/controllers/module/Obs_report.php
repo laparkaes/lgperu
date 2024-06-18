@@ -51,13 +51,14 @@ class Obs_report extends CI_Controller {
 		return $weeks;
 	}
 
-	public function test(){
+	public function test_history(){
 		$exchange_rate = 3.8;
 		$today = date("Y-m-d");
 		
 		$start_time = microtime(true);
 		
-		/* get last 12 weeks summaries / 2.51 sec laptop
+		/* get last 12 weeks summaries / 2.51 sec laptop / 16.16 sec laptop LG
+		*/
 		for($i = 0; $i < 12; $i++){
 			$now = date("Y-m-d", strtotime("-".(7 * $i)." day", strtotime($today)));
 			echo $now."<br/>";
@@ -70,10 +71,8 @@ class Obs_report extends CI_Controller {
 			
 			echo "<br/>";
 		}
-		*/
 		
-		/* get last 12 months summaries / 2.55 sec laptop
-		*/
+		/* get last 12 months summaries / 2.55 sec laptop / 16.99 sec laptop LG
 		for($i = 0; $i < 12; $i++){
 			$now = date("Y-m-d", strtotime("-".($i)." month", strtotime($today)));
 			echo $now."<br/>";
@@ -87,6 +86,7 @@ class Obs_report extends CI_Controller {
 			
 			echo "<br/>";
 		}
+		*/
 		
 		$end_time = microtime(true);
 		echo "<br/><br/>Exec time: ".number_format($end_time - $start_time, 2)." sec";
@@ -235,6 +235,8 @@ class Obs_report extends CI_Controller {
 			$sales[$g->customer_department][$g->product_level1_name]["models"][$g->model] += $g->sales_amount;
 		}
 		
+		print_r($sales);
+		
 		/*
 		foreach($sales as $sub => $s){
 			echo $sub."<br/>";
@@ -244,6 +246,20 @@ class Obs_report extends CI_Controller {
 		
 		echo "<br/><br/>";
 		
+	}
+	
+	public function test(){
+		$exchange_rate = 3.8;
+		$from = "2024-05-01";
+		$to = "2024-05-31";
+		
+		//set gerp data filters
+		$s_g = ["create_date", "customer_department", "line_status", "order_category", "order_no", "line_no", "model_category", "model", "product_level1_name","product_level4_name", "product_level4_code", "item_type_desctiption", "currency", "unit_selling_price", "ordered_qty", "sales_amount", "bill_to_name"];
+		$w_g = ["create_date >=" => $from, "create_date <=" => $to, "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
+		
+		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "desc"]]);
+		
+		$this->set_sales($gerps, $from, $to, $exchange_rate);
 	}
 	
 	public function index(){
@@ -288,7 +304,7 @@ class Obs_report extends CI_Controller {
 		$magentos = $this->gen_m->filter_select("obs_magento", false, $s_m, $w_m, null, $w_in_m, [["local_time", "desc"]]);
 		//foreach($magentos as $m){echo $m->local_time." /// ".$m->status."<br/>";}
 		
-		//set magento gerp data filters
+		//set gerp data filters
 		$s_g = ["create_date", "customer_department", "line_status", "order_category", "order_no", "line_no", "model_category", "model", "product_level1_name","product_level4_name", "product_level4_code", "item_type_desctiption", "currency", "unit_selling_price", "ordered_qty", "sales_amount", "bill_to_name"];
 		$w_g = ["create_date >=" => $from, "create_date <=" => $to, "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
 		
