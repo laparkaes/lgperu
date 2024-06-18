@@ -61,21 +61,24 @@ class Obs_report extends CI_Controller {
 		];
 		
 		$categories = [
-			"HA" => ["REF", "COOK", "W/M", "A/C"],
+			"HA" => ["REF", "COOK", "W/M", "A/C", "RAC", "SAC"],
 			"HE" => ["TV", "AV"],
-			"BS" => ["MNT", "PC", "SGN"],
+			"BS" => ["MNT", "PC", "SGN", "CTV"],
 		];
 		
 		$category_map = [
 			"REF" => ["REF"],
 			"COOK" => ["MWO", "O", "CVT"],
 			"W/M" => ["W/M"],
-			"A/C" => ["A/C", "RAC", "SAC"],
+			"A/C" => ["A/C"],
+			"RAC" => ["RAC"],
+			"SAC" => ["SAC"],
 			"TV" => ["LCD", "LTV"],
 			"AV" => ["AUD", "CAV"],
 			"MNT" => ["MNT"],
 			"PC" => ["PC"],
-			"SGN" => ["SGN", "CTV"],
+			"SGN" => ["SGN"],
+			"CTV" => ["CTV"],
 		];
 		
 		$divisions = ["HA", "HE", "BS"];
