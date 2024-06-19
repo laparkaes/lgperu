@@ -11,7 +11,7 @@ class Obs_report extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 		
 		$this->division_map = [
-			"HA" => ["REF", "COOK", "W/M", "A/C", "RAC", "SAC"],
+			"HA" => ["REF", "COOK", "W/M", "RAC", "SAC", "A/C"],
 			"HE" => ["TV", "AV"],
 			"BS" => ["MNT", "PC", "SGN", "CTV"],
 		];
@@ -87,13 +87,8 @@ class Obs_report extends CI_Controller {
 			"create_date <=" => $to,
 		];
 		
-		$categories = [
-			"HA" => ["REF", "COOK", "W/M", "A/C", "RAC", "SAC"],
-			"HE" => ["TV", "AV"],
-			"BS" => ["MNT", "PC", "SGN", "CTV"],
-		];
-		
-		$category_map = $this->category_map;
+		$div_map = $this->division_map;
+		$cat_map = $this->category_map;
 		
 		$divisions = ["HA", "HE", "BS"];
 		$subsidiaries = [];
@@ -109,10 +104,10 @@ class Obs_report extends CI_Controller {
 				
 				$subsidiaries[$sub->customer_department]["divisions"][$div] = [];
 				$subsidiaries[$sub->customer_department]["divisions"][$div]["categories"] = [];
-				foreach($categories[$div] as $cat){
+				foreach($div_map[$div] as $cat){
 					$cat_closed = $cat_on_process = 0;
 					//$f["product_level1_name"] = $cat;
-					$w_in_cat = ["field" => "model_category", "values" => $category_map[$cat]];
+					$w_in_cat = ["field" => "model_category", "values" => $cat_map[$cat]];
 					
 					//calculate category amount
 					$w_in = [$w_in_cat, ["field" => "line_status", "values" => ["Closed"]]];
@@ -203,7 +198,7 @@ class Obs_report extends CI_Controller {
 			$cat = $cat_map[$g->model_category];
 			$div = $div_map[$cat];
 			$sales[$g->customer_department][$div][$cat][$g->model]["qty"] += $g->ordered_qty;
-			$sales[$g->customer_department][$div][$cat][$g->model]["amount"] += $g->sales_amount / $exchange_rate;
+			$sales[$g->customer_department][$div][$cat][$g->model]["amount"] += $g->sales_amount / $exchange_rate / 1000;
 		}
 		
 		$div_map = $this->division_map;
@@ -417,4 +412,7 @@ class Obs_report extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 
+	public function tc(){
+		$this->my_func->load_exchange_rate("02062024");
+	}
 }

@@ -83,6 +83,11 @@ class My_func{
 		}else return null;
 	}
 	
+	public function date_convert_6($date_str){//ddmmyyyy > yyyy-mm-dd
+		$date = DateTime::createFromFormat('dmY', $date_str);
+		return $date->format('Y-m-d');
+	}
+	
 	public function get_record($tablename, $data){
 		$record = $this->CI->gen_m->filter($tablename, true, $data);
 		if (!$record){
@@ -97,6 +102,32 @@ class My_func{
 		$new = [];
 		foreach($arr as $val) $new[] = trim($val);
 		return $new;
+	}
+
+	public function load_exchange_rate($date = null){
+		if (!$date) $date = date("dmY");
+		$token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibGdlIiwic3ViIjoibGdlIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIk1hbmFnZXIiLCJTdXBlcnZpc29yIl0sIm5iZiI6MTcxODgxOTgzOSwiZXhwIjoxNzUwMzU1ODM5LCJpc3MiOiJodHRwOi8vand0YXV0aHpzcnYuYXp1cmV3ZWJzaXRlcy5uZXQiLCJhdWQiOiIwOTkxNTNjMjYyNTE0OWJjOGVjYjNlODVlMDNmMDAyMiJ9.1ejIUlAPbq8FhggDzJIhXkYrRCMli1ghC8OI2PETwZc';
+		
+		$ch = curl_init();
+		$url = 'http://serviciosweb.sbs.gob.pe/api/tipocambio/'.$date.'/02';
+		$headers = [
+			'Accept: application/json',
+			'Authorization: Bearer '.$token,
+		];
+		
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+		$response = curl_exec($ch);
+		
+		curl_close($ch);
+
+		$data = json_decode($response, true);
+		if ($data){
+			$res = ["date" => $this->date_convert_6($date),"currency" => "USD", "buy" => str_replace(",", ".", $data["valor_compra"]), "sell" => str_replace(",", ".", $data["valor_venta"])];
+			print_r($res);
+		}else echo "No data";
 	}
 	
 	public function generate_excel_report($filename, $title, $header, $rows){

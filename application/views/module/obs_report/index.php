@@ -8,31 +8,33 @@
 			</ol>
 		</nav>
 	</div>
-	<form class="d-flex justify-content-end m-0">
-		<select class="form-select ms-1" id="sl_by_week" name="w">
-			<option value="">By Week</option>
-			<?php
-			$today = strtotime(date("Y-m-d"));
-			foreach($weeks as $w){ ?>
-			<option value="<?= $w["week"] ?>" <?= ($w["week"] == $this->input->get("w")) ? "selected": "" ?>>W<?= str_pad($w["week"], 2, '0', STR_PAD_LEFT); ?> | <?= implode(" ~ ", $w["dates"]) ?></option>
-			<?php } ?>
-		</select>
-		<select class="form-select ms-1" id="sl_by_month" name="m">
-			<option value="">By Month</option>
-			<?php foreach($months as $m){ ?>
-			<option value="<?= $m ?>" <?= ($m == $this->input->get("m")) ? "selected": "" ?>><?= $m ?></option>
-			<?php } ?>
-		</select>
-		<button type="submit" class="btn btn-primary ms-1">Submit</button>
-	</form>
 </div>					
 <section class="section">
 	<div class="row">
-		<div class="col-md-12">
+		<div class="col-md-6 text-start">
 			<div class="mb-3">
 				<a class="btn btn-primary" target="blank_" href="<?= base_url() ?>module/obs_report/progress/w">Last 12 Weeks</a>
 				<a class="btn btn-primary" target="blank_" href="<?= base_url() ?>module/obs_report/progress/m">Last 12 Months</a>
 			</div>
+		</div>
+		<div class="col-md-6 text-end">
+			<form class="d-flex justify-content-end mb-3">
+				<select class="form-select ms-1" id="sl_by_week" name="w">
+					<option value="">By Week</option>
+					<?php
+					$today = strtotime(date("Y-m-d"));
+					foreach($weeks as $w){ ?>
+					<option value="<?= $w["week"] ?>" <?= ($w["week"] == $this->input->get("w")) ? "selected": "" ?>>W<?= str_pad($w["week"], 2, '0', STR_PAD_LEFT); ?> | <?= implode(" ~ ", $w["dates"]) ?></option>
+					<?php } ?>
+				</select>
+				<select class="form-select ms-1" id="sl_by_month" name="m">
+					<option value="">By Month</option>
+					<?php foreach($months as $m){ ?>
+					<option value="<?= $m ?>" <?= ($m == $this->input->get("m")) ? "selected": "" ?>><?= $m ?></option>
+					<?php } ?>
+				</select>
+				<button type="submit" class="btn btn-primary ms-1">Submit</button>
+			</form>
 		</div>
 	</div>
 	<div class="row">
@@ -118,14 +120,14 @@
 								<div class="col-md-3 col-sm-6">
 									<div class="card">
 										<div class="card-body">
-											<h5 class="card-title"><?= $cat ?></h5>
+											<h5 class="card-title"><?= $cat." │ ".$div." │ ".$subsidiary ?></h5>
 											<div class="overflow-auto" style="height: 500px;">
 												<table class="table">
 													<thead>
 														<tr>
 															<th scope="col">Model</th>
 															<th scope="col" class="text-center">Qty</th>
-															<th scope="col" class="text-end">USD</th>
+															<th scope="col" class="text-end">K USD</th>
 														</tr>
 													</thead>
 													<tbody>
