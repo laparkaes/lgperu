@@ -9,6 +9,33 @@ class Obs_report extends CI_Controller {
 		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
+		
+		$this->division_map = [
+			"HA" => ["REF", "COOK", "W/M", "A/C", "RAC", "SAC"],
+			"HE" => ["TV", "AV"],
+			"BS" => ["MNT", "PC", "SGN", "CTV"],
+		];
+		
+		$this->division_map_inv = [];
+		foreach($this->division_map as $div => $divisions) foreach($divisions as $cat) $this->division_map_inv[$cat] = $div;
+		
+		$this->category_map = [
+			"REF" => ["REF"],
+			"COOK" => ["MWO", "O", "CVT"],
+			"W/M" => ["W/M"],
+			"A/C" => ["A/C"],
+			"RAC" => ["RAC"],
+			"SAC" => ["SAC"],
+			"TV" => ["LCD", "LTV"],
+			"AV" => ["AUD", "CAV"],
+			"MNT" => ["MNT"],
+			"PC" => ["PC"],
+			"SGN" => ["SGN"],
+			"CTV" => ["CTV"],
+		];
+		
+		$this->category_map_inv = [];
+		foreach($this->category_map as $cat => $categories) foreach($categories as $c) $this->category_map_inv[$c] = $cat;
 	}
 	
 	function get_dates_by_week($week, $year){
@@ -66,20 +93,7 @@ class Obs_report extends CI_Controller {
 			"BS" => ["MNT", "PC", "SGN", "CTV"],
 		];
 		
-		$category_map = [
-			"REF" => ["REF"],
-			"COOK" => ["MWO", "O", "CVT"],
-			"W/M" => ["W/M"],
-			"A/C" => ["A/C"],
-			"RAC" => ["RAC"],
-			"SAC" => ["SAC"],
-			"TV" => ["LCD", "LTV"],
-			"AV" => ["AUD", "CAV"],
-			"MNT" => ["MNT"],
-			"PC" => ["PC"],
-			"SGN" => ["SGN"],
-			"CTV" => ["CTV"],
-		];
+		$category_map = $this->category_map;
 		
 		$divisions = ["HA", "HE", "BS"];
 		$subsidiaries = [];
@@ -168,79 +182,76 @@ class Obs_report extends CI_Controller {
 		$subsidiaries = $this->gen_m->only("obs_gerp_sales_order", "customer_department", ["create_date >=" => $from, "create_date <=" => $to]);
 		$model_categories = $this->gen_m->only("obs_gerp_sales_order", "model_category", ["create_date >=" => $from, "create_date <=" => $to]);
 		
+		$div_map = $this->division_map_inv;
+		$cat_map = $this->category_map_inv;
+		
 		$sales = [];
 		foreach($subsidiaries as $sub) 
 			foreach($model_categories as $mc){
 				if ($mc->model_category){
+					$cat = $cat_map[$mc->model_category];
+					
 					$models = $this->gen_m->only("obs_gerp_sales_order", "model", ["create_date >=" => $from, "create_date <=" => $to, "model_category" => $mc->model_category]);
-					foreach($models as $model) $sales[$sub->customer_department][$mc->model_category][$model->model] = ["qty" => 0, "amount" => 0];
+					foreach($models as $model){
+						$div = $div_map[$cat];
+						$sales[$sub->customer_department][$div][$cat][$model->model] = ["qty" => 0, "amount" => 0];
+					}
 				}
 			}
 		
 		foreach($gerps as $g) if ($g->sales_amount){
-			$sales[$g->customer_department][$g->model_category][$g->model]["qty"] += $g->ordered_qty;
-			$sales[$g->customer_department][$g->model_category][$g->model]["amount"] += $g->sales_amount;
+			$cat = $cat_map[$g->model_category];
+			$div = $div_map[$cat];
+			$sales[$g->customer_department][$div][$cat][$g->model]["qty"] += $g->ordered_qty;
+			$sales[$g->customer_department][$div][$cat][$g->model]["amount"] += $g->sales_amount / $exchange_rate;
 		}
 		
-		
-		
-		print_r($sales);
-		
-		/*
-		//$lvl1s = $this->gen_m->only("obs_gerp_sales_order", "product_level1_name", ["create_date >=" => $from, "create_date <=" => $to]);
-		
-		$sales = [];
-		foreach($subsidiaries as $sub){
-			$sales[$sub->customer_department] = [];
-			$sales[$sub->customer_department]["total"] = 0;
-			$sales[$sub->customer_department]["lvl1s"] = [];
-			foreach($lvl1s as $lvl1){
-				$sales[$sub->customer_department][$lvl1->product_level1_name]["total"] = 0;
-				$sales[$sub->customer_department][$lvl1->product_level1_name]["models"] = [];
-				
-				$models = $this->gen_m->only("obs_gerp_sales_order", "model", ["create_date >=" => $from, "create_date <=" => $to, "product_level1_name" => $lvl1->product_level1_name]);
-				foreach($models as $model){
-					$sales[$sub->customer_department][$lvl1->product_level1_name]["models"][$model->model] = 0;
+		$div_map = $this->division_map;
+		foreach($sales as $subsidiary => $sales_sub){
+			foreach($div_map as $div => $categories){
+				foreach($categories as $cat){
+					if (array_key_exists($cat, $sales[$subsidiary][$div])) {
+						uasort($sales[$subsidiary][$div][$cat], function($a, $b) {
+							return $a["amount"] < $b["amount"];
+						});
+					}else $sales[$subsidiary][$div][$cat] = [];
 				}
 			}
 		}
 		
-		$categories = [
-			"HA" => [
-				"Refrigerator" => 0, 
-				"Cooking Appliance" => 0, 
-				"Washing Machine" => 0, 
-				"Airconditioner" => 0,
-			],
-			"HE" => [
-				"TV" => 0, 
-				"AV" => 0, 
-				"AO" => 0,
-			],
-			"BS" => [
-				"Monitor" => 0, 
-				"PC" => 0, 
-				"Commercial Display_Signage" => 0,
-			],
-		];
-		
-		foreach($gerps as $g){
-			//print_r($g); echo "<br/><br/>";
-			//print_r($g->model); echo "<br/><br/>";
-			$sales[$g->customer_department][$g->product_level1_name]["total"] += $g->sales_amount;
-			$sales[$g->customer_department][$g->product_level1_name]["models"][$g->model] += $g->sales_amount;
-		}
-		
-		print_r($sales);
-		
-		foreach($sales as $sub => $s){
-			echo $sub."<br/>";
-			foreach($s as $lvl1 => $);
+		/* use this code to print sales
+		$div_map = $this->division_map;
+		foreach($sales as $subsidiary => $sales_sub){
+			echo $subsidiary."<br/>";
+			
+			foreach($div_map as $div => $categories){
+				echo $div."<br/>";
+				
+				foreach($categories as $cat){
+					echo $cat."<br/>";
+					
+					if (array_key_exists($cat, $sales[$subsidiary][$div])) {
+						uasort($sales[$subsidiary][$div][$cat], function($a, $b) {
+							return $a["amount"] < $b["amount"];
+						});
+						
+						foreach($sales[$subsidiary][$div][$cat] as $model => $data){
+							echo $model." ====> "; print_r($data); echo "<br/>";
+						}
+						
+						//print_r($sales[$subsidiary][$div][$cat]); echo "<br/>";
+						
+					}else $sales[$subsidiary][$div][$cat] = [];
+					
+					echo "<br/>";
+				}
+				echo "<br/>";
+			}
+			echo "<br/>";
 		}
 		*/
-		
-		echo "<br/><br/>";
-		
+	
+		return $sales;
 	}
 	
 	public function test_sales_by_models(){
@@ -318,7 +329,7 @@ class Obs_report extends CI_Controller {
 			"from"			=> $from,
 			"to"			=> $to,
 			"subsidiaries" 	=> $this->set_subsidiaries($from, $to, $exchange_rate),
-			//"sales" 		=> $this->set_sales($gerps, $from, $to, $exchange_rate),
+			"sales" 		=> $this->set_sales($gerps, $from, $to, $exchange_rate),
 			"magentos" 		=> $magentos,
 			"gerps" 		=> $gerps,
 			"main" 			=> "module/obs_report/index",
@@ -342,7 +353,7 @@ class Obs_report extends CI_Controller {
 					$from = date("Y-m-01", strtotime($now));
 					$to = date("Y-m-t", strtotime($now));
 					
-					$headers[] = date("M", strtotime($from)) === "Dec" ? date("M", strtotime($from)) : date("M y", strtotime($from));
+					$headers[] = date("M", strtotime($from)) === "Jan" ? date("M y", strtotime($from)) : date("M", strtotime($from));
 					$progress[] = [
 						"subsidiaries" => $this->set_subsidiaries($from, $to, $exchange_rate),
 					];

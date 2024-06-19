@@ -96,6 +96,66 @@
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
+					<h5 class="card-title">Best Seller</h5>
+					<div class="mb-3">
+						<div class="btn-group" role="group" aria-label="btn_subsidiaries">
+							<?php foreach($sales as $subsidiary => $sales_sub){ ?>
+							<button type="button" class="btn btn-outline-primary btn_bs_sub" value="<?= $subsidiary ?>"><?= $subsidiary ?></button>
+							<?php } ?>
+						</div>
+						<div class="btn-group" role="group" aria-label="btn_divisions">
+							<?php $div_map = $this->division_map; foreach($sales as $subsidiary => $sales_sub) foreach($div_map as $div => $categories){ ?>
+							<button type="button" class="btn btn-outline-primary btn_bs_div" value="<?= $div ?>"><?= $div ?></button>
+							<?php } ?>
+						</div>
+					</div>
+					<div class="row">
+						<?php
+						foreach($sales as $subsidiary => $sales_sub){
+							foreach($div_map as $div => $categories){
+								foreach($categories as $cat){
+								?>
+								<div class="col-md-3 col-sm-6">
+									<div class="card">
+										<div class="card-body">
+											<h5 class="card-title"><?= $cat ?></h5>
+											<div class="overflow-auto" style="height: 500px;">
+												<table class="table">
+													<thead>
+														<tr>
+															<th scope="col">Model</th>
+															<th scope="col" class="text-center">Qty</th>
+															<th scope="col" class="text-end">USD</th>
+														</tr>
+													</thead>
+													<tbody>
+														<?php foreach($sales[$subsidiary][$div][$cat] as $model => $data){ if ($data["qty"]){ ?>
+														<tr>
+															<td><?= $model ?></td>
+															<td class="text-center"><?= number_format($data["qty"]) ?></td>
+															<td class="text-end"><?= number_format($data["amount"], 2) ?></td>
+														</tr>
+														<?php }} ?>
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+								</div>
+								<?php
+								}
+							}
+						}
+						?>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card">
+				<div class="card-body">
 					<h5 class="card-title">GERP Orders</h5>
 					<table class="table datatable align-middle">
 						<thead>
