@@ -351,7 +351,7 @@ class Obs_report extends CI_Controller {
 			],
 		];
 		
-		$magentos = $this->gen_m->filter_select("obs_magento", false, /* $s_m,*/ $w_m, null, $w_in_m, [["local_time", "desc"]]);
+		$magentos = $this->gen_m->filter("obs_magento", false, /* $s_m,*/ $w_m, null, $w_in_m, [["local_time", "desc"]]);
 		//foreach($magentos as $m){echo $m->local_time." /// ".$m->status."<br/>";}
 		
 		//set gerp data filters
