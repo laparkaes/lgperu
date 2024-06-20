@@ -102,54 +102,54 @@
 					<div class="mb-3">
 						<div class="btn-group" role="group" aria-label="btn_subsidiaries">
 							<?php foreach($sales as $subsidiary => $sales_sub){ ?>
-							<button type="button" class="btn btn-outline-primary btn_bs_sub" value="<?= $subsidiary ?>"><?= $subsidiary ?></button>
+							<button type="button" class="btn btn-primary btn_bs" value="<?= $subsidiary ?>"><?= $subsidiary ?></button>
 							<?php } ?>
 						</div>
 						<div class="btn-group" role="group" aria-label="btn_divisions">
 							<?php $div_map = $this->division_map; foreach($sales as $subsidiary => $sales_sub) foreach($div_map as $div => $categories){ ?>
-							<button type="button" class="btn btn-outline-primary btn_bs_div" value="<?= $div ?>"><?= $div ?></button>
+							<button type="button" class="btn btn-primary btn_bs" value="<?= $div ?>"><?= $div ?></button>
 							<?php } ?>
 						</div>
 					</div>
-					<div class="row">
+					<?php foreach($sales as $subsidiary => $sales_sub){ ?>
+					<div class="row bl_bs_<?= $subsidiary ?>">
 						<?php
-						foreach($sales as $subsidiary => $sales_sub){
-							foreach($div_map as $div => $categories){
-								foreach($categories as $cat){
-								?>
-								<div class="col-md-3 col-sm-6">
-									<div class="card">
-										<div class="card-body">
-											<h5 class="card-title"><?= $cat." │ ".$div." │ ".$subsidiary ?></h5>
-											<div class="overflow-auto" style="height: 500px;">
-												<table class="table">
-													<thead>
-														<tr>
-															<th scope="col">Model</th>
-															<th scope="col" class="text-center">Qty</th>
-															<th scope="col" class="text-end">K USD</th>
-														</tr>
-													</thead>
-													<tbody>
-														<?php foreach($sales[$subsidiary][$div][$cat] as $model => $data){ if ($data["qty"]){ ?>
-														<tr>
-															<td><?= $model ?></td>
-															<td class="text-center"><?= number_format($data["qty"]) ?></td>
-															<td class="text-end"><?= number_format($data["amount"], 2) ?></td>
-														</tr>
-														<?php }} ?>
-													</tbody>
-												</table>
-											</div>
-										</div>
+						foreach($div_map as $div => $categories){
+							foreach($categories as $cat){
+							?>
+						<div class="col-md-3 col-sm-6 bl_bs_<?= $div ?>">
+							<div class="card">
+								<div class="card-body">
+									<h5 class="card-title"><?= $cat." │ ".$div." │ ".$subsidiary ?></h5>
+									<div class="overflow-auto" style="height: 500px;">
+										<table class="table">
+											<thead>
+												<tr>
+													<th scope="col">Model</th>
+													<th scope="col" class="text-center">Qty</th>
+													<th scope="col" class="text-end">K USD</th>
+												</tr>
+											</thead>
+											<tbody>
+												<?php foreach($sales[$subsidiary][$div][$cat] as $model => $data){ if ($data["qty"]){ ?>
+												<tr>
+													<td><?= $model ?></td>
+													<td class="text-center"><?= number_format($data["qty"]) ?></td>
+													<td class="text-end"><?= number_format($data["amount"], 2) ?></td>
+												</tr>
+												<?php }} ?>
+											</tbody>
+										</table>
 									</div>
 								</div>
-								<?php
-								}
+							</div>
+						</div>
+							<?php
 							}
 						}
 						?>
 					</div>
+					<?php } ?>
 				</div>
 			</div>
 		</div>
@@ -284,13 +284,31 @@ function set_status_chart(){
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-	$("#sl_by_week").on( "change", function() {
+	$("#sl_by_week").on("change", function() {
 		if ($(this).val() != "") $("#sl_by_month").val("");
 	});
 	
-	$("#sl_by_month").on( "change", function() {
+	$("#sl_by_month").on("change", function() {
 		if ($(this).val() != "") $("#sl_by_week").val("");
 	});
+	
+	$(".btn_bs").on("click", function() {
+		var val = $(this).val();
+		if ($(this).hasClass("btn-primary")){
+			$(".bl_bs_" + val).addClass("d-none");
+			
+			$(this).removeClass("btn-primary")
+			$(this).addClass("btn-outline-primary")
+		}else{
+			$(".bl_bs_" + val).removeClass("d-none");
+			
+			$(this).removeClass("btn-outline-primary")
+			$(this).addClass("btn-primary")
+			
+		}
+		
+	});
+	
 	
 	
 	
