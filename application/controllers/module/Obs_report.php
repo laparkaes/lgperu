@@ -248,24 +248,68 @@ class Obs_report extends CI_Controller {
 	
 		return $sales;
 	}
-	
-	public function test_sales_by_models(){
-		$exchange_rate = 3.8;
-		$from = "2024-05-01";
-		$to = "2024-05-31";
+
+	private function set_magento($magentos, $from, $to, $exchange_rate){
+		$d2b2c = [];
+		$d2b2c_rec = $this->gen_m->only("obs_magento", "company_name_through_vipkey", ["company_name_through_vipkey !=" => "", "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		foreach($d2b2c_rec as $c) $d2b2c[$c->company_name_through_vipkey] = ["company" => $c->company_name_through_vipkey, "qty" => 0, "amount" => 0];
 		
-		//set gerp data filters
-		$s_g = ["create_date", "customer_department", "line_status", "order_category", "order_no", "line_no", "model_category", "model", "product_level1_name","product_level4_name", "product_level4_code", "item_type_desctiption", "currency", "unit_selling_price", "ordered_qty", "sales_amount", "bill_to_name"];
-		$w_g = ["create_date >=" => $from, "create_date <=" => $to, "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
+		$cupons = [];
+		$cupons_rec = $this->gen_m->only_multi("obs_magento", ["coupon_code", "coupon_rule"], ["local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		foreach($cupons_rec as $c) $cupons[$c->coupon_code] = ["code" => $c->coupon_code, "rule" => $c->coupon_rule, "qty" => 0, "amount" => 0];
 		
-		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "desc"]]);
+		foreach($magentos as $m){
+			if ($m->company_name_through_vipkey){
+				$d2b2c[$m->company_name_through_vipkey]["qty"]++;
+				$d2b2c[$m->company_name_through_vipkey]["amount"] += $m->grand_total_purchased / $exchange_rate;
+			}
+			
+			if ($m->coupon_code){
+				$cupons[$m->coupon_code]["qty"]++;
+				$cupons[$m->coupon_code]["amount"] += $m->grand_total_purchased / $exchange_rate;
+			}
+			
+			
+			print_r($m); echo "<br/><br/>";	
+		}
 		
-		$this->set_sales($gerps, $from, $to, $exchange_rate);
+		uasort($d2b2c, function($a, $b) {
+			return $a["amount"] < $b["amount"];
+		});
+		
+		uasort($cupons, function($a, $b) {
+			return $a["amount"] < $b["amount"];
+		});
+		
+		//foreach($d2b2c as $d){print_r($d); echo "<br/>";}
+		//foreach($cupons as $c){print_r($c); echo "<br/>";}
+		
+		return [
+			"d2b2c" => $d2b2c,
+			"cupons" => $cupons,
+		];
 	}
 	
 	public function test(){
-		$mcs = $this->gen_m->only("obs_gerp_sales_order", "model_category");
-		foreach($mcs as $mc) echo $mc->model_category."<br/>";
+		//$mcs = $this->gen_m->only("obs_gerp_sales_order", "model_category");
+		//foreach($mcs as $mc) echo $mc->model_category."<br/>";
+		
+		$from = date("Y-05-01");
+		$to = date("Y-05-t");
+		
+		//set magento data filters
+		$s_m = ["grand_total_purchased", "gerp_order_no", "local_time", "company_name_through_vipkey", "vipkey", "coupon_code", "coupon_rule", "discount_amount", "devices", "status", "customer_group", "department", "province"];
+		$w_m = ["local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"];
+		$w_in_m = [
+			[
+				"field" => "status", 
+				"values" => ["complete", "awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed"],
+			],
+		];
+		
+		$magentos = $this->gen_m->filter("obs_magento", false, $w_m, null, $w_in_m, [["local_time", "desc"]]);
+		
+		$this->set_magento($magentos, $from, $to, 3.8);
 	}
 	
 	public function index(){
@@ -298,7 +342,7 @@ class Obs_report extends CI_Controller {
 		}
 		
 		//set magento data filters
-		$s_m = ["grand_total_purchased", "gerp_order_no", "local_time", "company_name_through_vipkey", "vipkey", "coupon_code", "coupon_rule", "discount_amount", "devices", "status", "customer_group", "department", "province"];
+		//$s_m = ["grand_total_purchased", "gerp_order_no", "local_time", "company_name_through_vipkey", "vipkey", "coupon_code", "coupon_rule", "discount_amount", "devices", "status", "customer_group", "department", "province"];
 		$w_m = ["local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"];
 		$w_in_m = [
 			[
@@ -307,7 +351,7 @@ class Obs_report extends CI_Controller {
 			],
 		];
 		
-		$magentos = $this->gen_m->filter_select("obs_magento", false, $s_m, $w_m, null, $w_in_m, [["local_time", "desc"]]);
+		$magentos = $this->gen_m->filter_select("obs_magento", false, /* $s_m,*/ $w_m, null, $w_in_m, [["local_time", "desc"]]);
 		//foreach($magentos as $m){echo $m->local_time." /// ".$m->status."<br/>";}
 		
 		//set gerp data filters

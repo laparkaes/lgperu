@@ -105,6 +105,16 @@ class General_model extends CI_Model{
 		return $result;
 	}
 	
+	function only_multi($tablename, $field, $where = null){
+		$this->db->select($field);
+		if ($where) $this->db->where($where);
+		foreach($field as $f) $this->db->group_by($f);
+		$this->db->order_by($field[0], "asc");
+		$query = $this->db->get($tablename);
+		$result = $query->result();
+		return $result;
+	}
+	
 	function sum($tablename, $col, $w = null, $w_in = null){
 		$this->db->select_sum($col);
 		if ($w) $this->db->where($w);
