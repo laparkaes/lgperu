@@ -188,7 +188,7 @@ class Obs_gerp extends CI_Controller {
 			set_time_limit(0);
 		
 			$config = [
-				'upload_path'	=> 'upload/',
+				'upload_path'	=> './upload/',
 				'allowed_types'	=> '*',
 				'max_size'		=> 90000,
 				'overwrite'		=> TRUE,
