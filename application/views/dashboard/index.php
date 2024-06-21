@@ -16,6 +16,7 @@
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/invoice">Invoice</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_gerp">OBS - GERP Sales Order</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_magento">OBS - Magento</a>
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_most_likely">OBS - Most Likely (ML)</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_report">OBS - Report</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/product">Product</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/promotion">Promotion</a>
