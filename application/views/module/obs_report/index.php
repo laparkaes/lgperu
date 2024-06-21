@@ -127,7 +127,7 @@
 												<tr>
 													<th scope="col">Model</th>
 													<th scope="col" class="text-center">Qty</th>
-													<th scope="col" class="text-end">K USD</th>
+													<th scope="col" class="text-end text-nowrap">K USD</th>
 												</tr>
 											</thead>
 											<tbody>
@@ -150,6 +150,185 @@
 						?>
 					</div>
 					<?php } ?>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Statistics</h5>
+					<div class="row">
+						<div class="col-12">
+						<?php 
+						$cus_group = $statistics["cus_group"];
+						$devices = $statistics["devices"];
+						$d2b2c = $statistics["d2b2c"];
+						$cupons = $statistics["cupons"];
+						$departments = $statistics["departments"];
+						
+						unset($statistics["cus_group"]);
+						unset($statistics["devices"]);
+						unset($statistics["d2b2c"]);
+						unset($statistics["cupons"]);
+						unset($statistics["departments"]);
+						
+						
+						print_r($statistics);
+						?>
+						</div>
+						<div class="col-md-6">
+							<div class="card">
+								<div class="card-body">
+									<h5 class="card-title">Customer Group</h5>
+									<div class="row">
+										<div class="col-md-6">
+											<div class="overflow-auto">
+												<table class="table">
+													<thead>
+														<tr>
+															<th scope="col">Group</th>
+															<th scope="col" class="text-center">Qty</th>
+															<th scope="col" class="text-end text-nowrap">K USD</th>
+															<th scope="col" class="text-end">Perc.</th>
+														</tr>
+													</thead>
+													<tbody>
+														<?php foreach($cus_group as $item){ if ($item["qty"]){ ?>
+														<tr>
+															<td><?= $item["customer_group"] ?></td>
+															<td class="text-center"><?= number_format($item["qty"]) ?></td>
+															<td class="text-end"><?= number_format($item["amount"], 2) ?></td>
+															<td class="text-end"><?= number_format($item["amount"] * 100 / $cus_group["total"]["amount"], 2) ?>%</td>
+														</tr>
+														<?php }} ?>
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="card">
+								<div class="card-body">
+									<h5 class="card-title">Devices</h5>
+									<div class="row">
+										<div class="col-md-6">
+											<div class="overflow-auto">
+												<table class="table">
+													<thead>
+														<tr>
+															<th scope="col">Device</th>
+															<th scope="col" class="text-center">Qty</th>
+															<th scope="col" class="text-end text-nowrap">K USD</th>
+															<th scope="col" class="text-end">Perc.</th>
+														</tr>
+													</thead>
+													<tbody>
+														<?php foreach($devices as $item){ if ($item["qty"]){ ?>
+														<tr>
+															<td><?= $item["device"] ?></td>
+															<td class="text-center"><?= number_format($item["qty"]) ?></td>
+															<td class="text-end"><?= number_format($item["amount"], 2) ?></td>
+															<td class="text-end"><?= number_format($item["amount"] * 100 / $devices["total"]["amount"], 2) ?>%</td>
+														</tr>
+														<?php }} ?>
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="card">
+								<div class="card-body">
+									<h5 class="card-title">Location</h5>
+									<table class="table">
+										<thead>
+											<tr>
+												<th scope="col">Department</th>
+												<th scope="col">Province</th>
+												<th scope="col" class="text-center">Qty</th>
+												<th scope="col" class="text-end text-nowrap">K USD</th>
+												<th scope="col" class="text-end">Perc.</th>
+											</tr>
+										</thead>
+										<tbody>
+											<?php foreach($departments as $item){ if ($item["qty"]){ ?>
+											<tr>
+												<td><?= $item["department"] ?></td>
+												<td><?= $item["province"] ?></td>
+												<td class="text-center"><?= number_format($item["qty"]) ?></td>
+												<td class="text-end"><?= number_format($item["amount"], 2) ?></td>
+												<td class="text-end"><?= number_format($item["amount"] * 100 / $departments["total"]["amount"], 2) ?>%</td>
+											</tr>
+											<?php }} ?>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="card">
+								<div class="card-body">
+									<h5 class="card-title">D2B2C</h5>
+									<table class="table">
+										<thead>
+											<tr>
+												<th scope="col">Company</th>
+												<th scope="col" class="text-center">Qty</th>
+												<th scope="col" class="text-end text-nowrap">K USD</th>
+												<th scope="col" class="text-end">Perc.</th>
+											</tr>
+										</thead>
+										<tbody>
+											<?php foreach($d2b2c as $item){ if ($item["qty"]){ ?>
+											<tr>
+												<td><?= $item["company"] ?></td>
+												<td class="text-center"><?= number_format($item["qty"]) ?></td>
+												<td class="text-end"><?= number_format($item["amount"], 2) ?></td>
+												<td class="text-end"><?= number_format($item["amount"] * 100 / $d2b2c["total"]["amount"], 2) ?>%</td>
+											</tr>
+											<?php }} ?>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-5">
+							<div class="card">
+								<div class="card-body">
+									<h5 class="card-title">Cupon</h5>
+									<table class="table">
+										<thead>
+											<tr>
+												<th scope="col">Cupon</th>
+												<th scope="col" class="text-center">Qty</th>
+												<th scope="col" class="text-end text-nowrap">K USD</th>
+												<th scope="col" class="text-end">Perc.</th>
+											</tr>
+										</thead>
+										<tbody>
+											<?php foreach($cupons as $item){ if ($item["qty"]){ ?>
+											<tr>
+												<td><?= $item["cupon"] ?></td>
+												<td><?= $item["rule"] ?></td>
+												<td class="text-center"><?= number_format($item["qty"]) ?></td>
+												<td class="text-end"><?= number_format($item["amount"], 2) ?></td>
+												<td class="text-end"><?= number_format($item["amount"] * 100 / $cupons["total"]["amount"], 2) ?>%</td>
+											</tr>
+											<?php }} ?>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
