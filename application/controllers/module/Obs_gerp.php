@@ -186,12 +186,11 @@ class Obs_gerp extends CI_Controller {
 		
 		if ($this->session->userdata('logged_in')){
 			set_time_limit(0);
-			$start_time = microtime(true);
 		
 			$config = [
 				'upload_path'	=> './upload/',
 				'allowed_types'	=> '*',
-				'max_size'		=> 10000,
+				'max_size'		=> 90000,
 				'overwrite'		=> TRUE,
 				'file_name'		=> 'obs_gerp.xls',
 			];
