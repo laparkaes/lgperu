@@ -50,8 +50,23 @@ class Obs_magento extends CI_Controller {
 		];
 		
 		//magento report header
-		$h_magento = ["ID", "Grand Total (Base)", "Grand Total (Purchased)", "Shipping Address", "Shipping and Handling", "Customer name", "SKU", "Level 1 Code", "Level 2 Code", "Level 3 Code", "Level 4 Code", "GERP Type", "GERP Order #"];
-		
+		//$h_magento = ["ID", "Grand Total (Base)", "Grand Total (Purchased)", "Shipping Address", "Shipping and Handling", "Customer name", "SKU", "Level 1 Code", "Level 2 Code", "Level 3 Code", "Level 4 Code", "GERP Type", "GERP Order #"];
+		$h_magento = [
+			"ID", 
+			"Grand Total (Base)", 
+			"Grand Total (Purchased)", 
+			"Shipping Address", 
+			"Shipping and Handling", 
+			"Customer name", 
+			"SKU", 
+			"Level 1 Code", 
+			"Level 2 Code", 
+			"Level 3 Code", 
+			"Level 4 Code", 
+			"GERP Type", 
+			"GERP Order #", 
+		];
+
 		//header validation
 		$is_magento = true;
 		foreach($h as $i => $h_i) if ($h_i !== $h_magento[$i]) $is_magento = false;
@@ -68,7 +83,47 @@ class Obs_magento extends CI_Controller {
 			$now = date('Y-m-d H:i:s', time());
 			
 			//db fields
-			$vars = ["magento_id", "grand_total_base", "grand_total_purchased", "shipping_address", "shipping_and_handling", "customer_name", "sku", "level_1_code", "level_2_code", "level_3_code", "level_4_code", "gerp_type", "gerp_order_no", "warehouse_code", "sku_price", "local_time", "company_name_through_vipkey", "vipkey", "pre_order", "error_code", "price_source", "coupon_code", "coupon_rule", "discount_amount", "devices", "knout_status", "status", "customer_group", "payment_method", "error_status", "opt_in_status", "purchase_date", "gerp_selling_price", "ip_address", "sale_channel", "is_export_order_to_gerp", "sku_without_prefix", "sku_without_prefix_and_suffix", "qty_ordered"];
+			$vars = [
+				"magento_id", 
+				"grand_total_base", 
+				"grand_total_purchased", 
+				"shipping_address", 
+				"shipping_and_handling", 
+				"customer_name", 
+				"sku", 
+				"level_1_code", 
+				"level_2_code", 
+				"level_3_code", 
+				"level_4_code", 
+				"gerp_type", 
+				"gerp_order_no", 
+				"warehouse_code", 
+				"sku_price", 
+				"gerp_selling_price", 
+				"local_time", 
+				"company_name_through_vipkey", 
+				"vipkey", 
+				"pre_order", 
+				"error_code", 
+				"ip_address", 
+				"price_source", 
+				"coupon_code", 
+				"coupon_rule", 
+				"discount_amount", 
+				"sale_channel", 
+				"devices", 
+				"knout_status", 
+				"status", 
+				"customer_group", 
+				"payment_method", 
+				"error_status", 
+				"opt_in_status", 
+				"is_export_order_to_gerp", 
+				"purchase_date", 
+				"sku_without_prefix", 
+				"sku_without_prefix_and_suffix", 
+				"qty_ordered", 
+			];
 			
 			for($i = 2; $i < $max_row; $i++){
 				$row = [];
