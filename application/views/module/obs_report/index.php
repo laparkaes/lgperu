@@ -260,7 +260,7 @@
 												<div class="d-none" id="chart_cus_group_data"><?= json_encode($chart_cus_group) ?></div>
 											</div>
 										</div>
-										<div class="col-md-6" id="chart_cus_group" style="min-height: 270px;"></div>
+										<div class="col-md-6" id="chart_cus_group" style="min-height: 300px;"></div>
 									</div>
 								</div>
 							</div>
@@ -302,7 +302,7 @@
 												<div class="d-none" id="chart_device_data"><?= json_encode($chart_device) ?></div>
 											</div>
 										</div>
-										<div class="col-md-6" id="chart_device" style="min-height: 270px;"></div>
+										<div class="col-md-6" id="chart_device" style="min-height: 300px;"></div>
 									</div>
 								</div>
 							</div>
