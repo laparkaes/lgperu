@@ -10,15 +10,19 @@ class Obs_report extends CI_Controller {
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
 		
+		$ex = $this->gen_m->filter("exchange_rate", false, ["currency_from" => "PEN", "currency_to" => "USD"], null, null, [["date", "desc"]], 1, 0);
+		$this->exchange_rate = $ex ? $ex[0]->sell : 3.8;
+		
+		$this->divisions = ["HA", "HE", "BS"];
 		$this->division_map = [
 			"HA" => ["REF", "COOK", "W/M", "RAC", "SAC", "A/C"],
 			"HE" => ["TV", "AV"],
-			"BS" => ["MNT", "PC", "SGN", "CTV"],
+			"BS" => ["MNT", "PC", "DS", "SGN", "CTV"],
 		];
-		
 		$this->division_map_inv = [];
 		foreach($this->division_map as $div => $divisions) foreach($divisions as $cat) $this->division_map_inv[$cat] = $div;
 		
+		$this->categories = ["REF", "COOK", "W/M", "A/C", "RAC", "SAC", "TV", "AV", "MNT", "PC", "DS", "SGN", "CTV"];
 		$this->category_map = [
 			"REF" => ["REF"],
 			"COOK" => ["MWO", "O", "CVT"],
@@ -30,10 +34,10 @@ class Obs_report extends CI_Controller {
 			"AV" => ["AUD", "CAV"],
 			"MNT" => ["MNT"],
 			"PC" => ["PC"],
+			"DS" => ["DS"],
 			"SGN" => ["SGN"],
 			"CTV" => ["CTV"],
 		];
-		
 		$this->category_map_inv = [];
 		foreach($this->category_map as $cat => $categories) foreach($categories as $c) $this->category_map_inv[$c] = $cat;
 	}
@@ -78,128 +82,135 @@ class Obs_report extends CI_Controller {
 		return $weeks;
 	}
 	
-	private function set_subsidiaries($from, $to, $exchange_rate){
-		//print_r($this->gen_m->only("obs_gerp_sales_order", "line_status")); echo "<br/><br/>";
-		$f = [
-			"order_status !=" => "Cancelled",
-			"line_status !=" => "Cancelled",
-			"create_date >=" => $from, 
-			"create_date <=" => $to,
-		];
+	function get_gerp_iod($from, $to){
+		//set db fields
+		$s_g = ["create_date", "close_date", "customer_department", "line_status", "order_category", "order_no", "line_no", "model_category", "model", "product_level1_name","product_level4_name", "product_level4_code", "item_type_desctiption", "currency", "unit_selling_price", "ordered_qty", "sales_amount", "bill_to_name"];
 		
-		$div_map = $this->division_map;
-		$cat_map = $this->category_map;
+		//load all this month records
+		$w_g = ["create_date >=" => $from, "create_date <=" => $to, "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
+		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "asc"], ["close_date", "asc"]]);
 		
-		$divisions = ["HA", "HE", "BS"];
-		$subsidiaries = [];
-		$subsidiaries_rec = $this->gen_m->only("obs_gerp_sales_order", "customer_department", ["customer_department !=" => null]);
-		foreach($subsidiaries_rec as $sub){
-			$sub_total = $sub_closed = $sub_on_process = 0;
-			$f["customer_department"] = $sub->customer_department;
-			
-			$subsidiaries[$sub->customer_department] = [];
-			$subsidiaries[$sub->customer_department]["divisions"] = [];
-			foreach($divisions as $div){
-				$div_total = $div_closed = $div_on_process = 0;
-				
-				$subsidiaries[$sub->customer_department]["divisions"][$div] = [];
-				$subsidiaries[$sub->customer_department]["divisions"][$div]["categories"] = [];
-				foreach($div_map[$div] as $cat){
-					$cat_closed = $cat_on_process = 0;
-					//$f["product_level1_name"] = $cat;
-					$w_in_cat = ["field" => "model_category", "values" => $cat_map[$cat]];
-					
-					//calculate category amount
-					$w_in = [$w_in_cat, ["field" => "line_status", "values" => ["Closed"]]];
-					$cat_closed = $this->gen_m->sum("obs_gerp_sales_order", "sales_amount", $f, $w_in)->sales_amount / $exchange_rate;//convert to USD
-					
-					$w_in = [$w_in_cat, ["field" => "line_status", "values" => ["Awaiting Fulfillment", "Awaiting Shipping", "Booked", "Pending pre-billing acceptance"]]];
-					$cat_on_process = $this->gen_m->sum("obs_gerp_sales_order", "sales_amount", $f, $w_in)->sales_amount / $exchange_rate;//convert to USD
-					
-					$cat_total = $cat_closed + $cat_on_process;
-					//add to division amount
-					$div_total += $cat_total;
-					$div_closed += $cat_closed;
-					$div_on_process += $cat_on_process;
-					
-					//add to subsidiary amount
-					$sub_total += $cat_total;
-					$sub_closed += $cat_closed;
-					$sub_on_process += $cat_on_process;
-					
-					$subsidiaries[$sub->customer_department]["divisions"][$div]["categories"][$cat] = [];
-					$subsidiaries[$sub->customer_department]["divisions"][$div]["categories"][$cat]["summary"] = [
-						"total" => $cat_total,
-						"closed" => $cat_closed,
-						"on_process" => $cat_on_process,
-					];
-				}
-				
-				$subsidiaries[$sub->customer_department]["divisions"][$div]["summary"] = [
-					"total" => $div_total,
-					"closed" => $div_closed,
-					"on_process" => $div_on_process,
-				];
-			}
-			
-			$subsidiaries[$sub->customer_department]["summary"] = [
-				"total" => $sub_total,
-				"closed" => $sub_closed,
-				"on_process" => $sub_on_process,
-			];
-		}
+		//load all past month closed in this month
+		$w_g_ = ["create_date <" => $from, "close_date >=" => $from, "close_date <=" => $to, "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
+		$gerps_ = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g_, null, null, [["create_date", "asc"], ["close_date", "asc"]]);
 		
-		/* to print data structure
-		foreach($subsidiaries as $sub => $subsidiary){
-			echo $sub." ====> ";
-			print_r($subsidiary["summary"]);
-			echo "<br/><br/>";
-			
-			foreach($subsidiary["divisions"] as $div => $divisions){
-				echo "---";
-				echo $div." ====> ";
-				print_r($divisions["summary"]);
-				echo "<br/><br/>";
-				
-				foreach($divisions["categories"] as $cat => $category){
-					echo "------";
-					echo $cat." ====> ";
-					print_r($category);
-					echo "<br/><br/>";
-				}
-			}	
-		} */
-		
-		return $subsidiaries;
+		//return merged array
+		return array_merge($gerps_, $gerps);
 	}
 	
-	private function set_sales($gerps, $from, $to, $exchange_rate){
-		$subsidiaries = $this->gen_m->only("obs_gerp_sales_order", "customer_department", ["create_date >=" => $from, "create_date <=" => $to]);
-		$model_categories = $this->gen_m->only("obs_gerp_sales_order", "model_category", ["create_date >=" => $from, "create_date <=" => $to]);
+	private function get_dashboard($gerps, $from, $to, $exchange_rate){
+		//structure setting
+		$dash = [];
+		//echo $from." ".$to."<br/>";
+		$subsidiaries = $this->gen_m->only("obs_gerp_sales_order", "customer_department", ["create_date >=" => date("Y-01-01", strtotime($from)), "create_date <=" => date("Y-12-t", strtotime($to))]);
+		foreach($subsidiaries as $sub){
+			$dash[$sub->customer_department] = ["sub" => $sub->customer_department, "div" => "", "cat" => "", "monthly_report" => 0, "ml" => 0, "ml_actual" => 0, "projection" => 0, "projection_per" => 0, "projection_color" => "", "actual" => 0, "actual_per" => 0, "actual_color" => "", "expected" => 0];
+			foreach($this->divisions as $div){
+				$dash[$sub->customer_department."_".$div] = ["sub" => "", "div" => $div, "cat" => "", "monthly_report" => 0, "ml" => 0, "ml_actual" => 0, "projection" => 0, "projection_per" => 0, "projection_color" => "", "actual" => 0, "actual_per" => 0, "actual_color" => "", "expected" => 0];
+				
+				$categories = $this->division_map[$div];
+				foreach($categories as $cat){
+					$dash[$sub->customer_department."_".$div."_".$cat] = ["sub" => "", "div" => "", "cat" => $cat, "monthly_report" => 0, "ml" => 0, "ml_actual" => 0, "projection" => 0, "projection_per" => 0, "projection_color" => "", "actual" => 0, "actual_per" => 0, "actual_color" => "", "expected" => 0];
+				}
+			}
+		}
+		
+		//print_r($dash); echo "<br/><br/>";
+		
+		//get gerp records based on IOD
+		$gerps = $this->get_gerp_iod($from, $to);
 		
 		$div_map = $this->division_map_inv;
 		$cat_map = $this->category_map_inv;
 		
+		$to_time = strtotime($to);
+		
+		foreach($gerps as $item){
+			if ($item->model_category){
+				$cat = $cat_map[$item->model_category];
+				$div = $div_map[$cat];
+				$sub = $item->customer_department;
+				
+				$amount = $item->sales_amount / $exchange_rate / 1000;
+				
+				$dash[$sub]["projection"] += $amount;
+				$dash[$sub."_".$div]["projection"] += $amount;
+				$dash[$sub."_".$div."_".$cat]["projection"] += $amount;
+				if (($item->line_status === "Closed") and (strtotime($item->close_date) <= $to_time)){
+					$dash[$sub]["actual"] += $amount;
+					$dash[$sub."_".$div]["actual"] += $amount;
+					$dash[$sub."_".$div."_".$cat]["actual"] += $amount;
+				}else{
+					$dash[$sub]["expected"] += $amount;
+					$dash[$sub."_".$div]["expected"] += $amount;
+					$dash[$sub."_".$div."_".$cat]["expected"] += $amount;
+				}
+				
+				//echo $sub."_".$div."_".$cat."<br/><br/>"; print_r($item); echo "<br/><br/>";	
+			}
+			
+		}
+		
+		//ML Setting
+		$ml_arr = [];
+		
+		$from_time = strtotime($from);
+		$mls = $this->gen_m->filter("obs_most_likely", false, ["year" => date("Y", $from_time), "month" => date("m", $from_time)]);
+		foreach($mls as $ml){
+			//set ml_arr key
+			$aux = [];
+			if ($ml->subsidiary) $aux[] = $ml->subsidiary;
+			if ($ml->division) $aux[] = $ml->division;
+			if ($ml->category) $aux[] = $ml->category;
+			
+			//assign
+			if ($aux){
+				$key = implode("_", $aux); //echo $key."<br/>";
+				$dash[$key]["monthly_report"] = $ml->monthly_report / 1000;
+				$dash[$key]["ml"] = $ml->ml / 1000;
+				$dash[$key]["ml_actual"] = $ml->ml_actual / 1000;
+				$dash[$key]["projection_per"] = $dash[$key]["ml_actual"] > 0 ? $dash[$key]["projection"] / $dash[$key]["ml_actual"] * 100 : 0;
+				$dash[$key]["projection_color"] = $dash[$key]["projection_per"] >= 100 ? "success" : "danger";
+				$dash[$key]["actual_per"] = $dash[$key]["ml_actual"] > 0 ? $dash[$key]["actual"] / $dash[$key]["ml_actual"] * 100 : 0;
+				$dash[$key]["actual_color"] = $dash[$key]["actual_per"] >= 100 ? "success" : "danger";
+			}
+		}
+		
+		//echo $from." ~ ".$to."<br/>"; print_r($dash); echo "<br/><br/>";
+		//foreach($dash as $key => $d){print_r($d); echo " =====> ".$key."<br/><br/>";}
+		
+		return $dash;
+	}
+	
+	private function get_sales($gerps, $from, $to, $exchange_rate){
+		//structure setting
 		$sales = [];
+		
+		$div_map = $this->division_map_inv;
+		$cat_map = $this->category_map_inv;
+		
+		$subsidiaries = $this->gen_m->only("obs_gerp_sales_order", "customer_department", ["create_date >=" => date("Y-01-01", strtotime($from)), "create_date <=" => date("Y-12-t", strtotime($to))]);
 		foreach($subsidiaries as $sub){
-			foreach($model_categories as $mc){
-				if ($mc->model_category){
-					$cat = $cat_map[$mc->model_category];
-					
-					$models = $this->gen_m->only("obs_gerp_sales_order", "model", ["create_date >=" => $from, "create_date <=" => $to, "model_category" => $mc->model_category]);
-					foreach($models as $model){
-						$div = $div_map[$cat];
-						$sales[$sub->customer_department][$div][$cat][$model->model] = ["qty" => 0, "amount" => 0];
-					}
+			foreach($this->divisions as $div){
+				$categories = $this->division_map[$div];
+				foreach($categories as $cat){
+					$sales[$sub->customer_department][$div][$cat] = [];
 				}
 			}
 		}
 		
-		foreach($gerps as $g) if ($g->sales_amount){
-			$cat = $cat_map[$g->model_category];
-			$div = $div_map[$cat];
-			$sales[$g->customer_department][$div][$cat][$g->model]["qty"] += $g->ordered_qty;
-			$sales[$g->customer_department][$div][$cat][$g->model]["amount"] += $g->sales_amount / $exchange_rate / 1000;
+		$to_time = strtotime($to);
+		foreach($gerps as $g){
+			if ($g->model_category and $g->line_status === "Closed" and (strtotime($g->close_date) <= $to_time)){
+				$cat = $cat_map[$g->model_category];
+				$div = $div_map[$cat];
+				
+				//print_r($g); echo "<br/><br/>";
+				if (!array_key_exists($g->model, $sales[$g->customer_department][$div][$cat])) $sales[$g->customer_department][$div][$cat][$g->model] = ["qty" => 0, "amount" => 0];
+				
+				$sales[$g->customer_department][$div][$cat][$g->model]["qty"] += $g->ordered_qty;
+				$sales[$g->customer_department][$div][$cat][$g->model]["amount"] += $g->sales_amount / $exchange_rate / 1000;	
+			}//else{print_r($g); echo "<br/><br/>";}
 		}
 		
 		$div_map = $this->division_map;
@@ -250,7 +261,7 @@ class Obs_report extends CI_Controller {
 		return $sales;
 	}
 
-	private function set_magento($magentos, $from, $to, $exchange_rate){
+	private function get_magento_statistics($magentos, $from, $to, $exchange_rate){
 		$devices = ["total" => ["device" => "Total", "qty" => 0, "amount" => 0]];
 		$devices_rec = $this->gen_m->only("obs_magento", "devices", ["devices !=" => "", "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
 		foreach($devices_rec as $d) $devices[$d->devices] = ["device" => $d->devices, "qty" => 0, "amount" => 0];
@@ -271,30 +282,27 @@ class Obs_report extends CI_Controller {
 		$departments_rec = $this->gen_m->only_multi("obs_magento", ["department", "province"], ["grand_total_purchased >" => 0, "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
 		foreach($departments_rec as $z) $departments[$z->department."_".$z->province] = ["department" => $z->department, "province" => $z->province, "qty" => 0, "amount" => 0];
 		
-		$time_ranges = [
-			0 => ["qty" => 0, "amount" => 0],//total
-			4 => ["range" => "00 ~ 04", "qty" => 0, "amount" => 0],
-			8 => ["range" => "04 ~ 08", "qty" => 0, "amount" => 0],
-			12 => ["range" => "08 ~ 12", "qty" => 0, "amount" => 0],
-			16 => ["range" => "12 ~ 16", "qty" => 0, "amount" => 0],
-			20 => ["range" => "16 ~ 20", "qty" => 0, "amount" => 0],
-			24 => ["range" => "20 ~ 24", "qty" => 0, "amount" => 0],
-		];
+		$daily = [];
+		$dates_between = $this->my_func->dates_between($from, $to);
+		foreach($dates_between as $item){
+			$daily[date("d", strtotime($item))] = [
+				4 => ["qty" => 0, "amount" => 0],
+				8 => ["qty" => 0, "amount" => 0],
+				12 => ["qty" => 0, "amount" => 0],
+				16 => ["qty" => 0, "amount" => 0],
+				20 => ["qty" => 0, "amount" => 0],
+				24 => ["qty" => 0, "amount" => 0],
+			];
+		}
 		
 		foreach($magentos as $m){
 			$amount = $m->grand_total_purchased / 1.18 / $exchange_rate / 1000;
 			
-			$time_ranges[0]["qty"]++;
-			$time_ranges[0]["amount"] += $amount;
+			$day_i = date("d", strtotime($m->local_time));
+			$hour_i = (((int)(date("H", strtotime($m->local_time)) / 4) + 1) * 4);
 			
-			$hour = date("H", strtotime($m->local_time));
-			foreach($time_ranges as $limit => $data){
-				if ($hour < $limit){
-					$time_ranges[$limit]["qty"]++;
-					$time_ranges[$limit]["amount"] += $amount;
-					break;
-				}
-			}
+			$daily[$day_i][$hour_i]["qty"]++;
+			$daily[$day_i][$hour_i]["amount"] += $amount;	
 			
 			if ($m->devices){
 				$devices["total"]["qty"]++;
@@ -359,7 +367,7 @@ class Obs_report extends CI_Controller {
 		//foreach($d2b2c as $d){print_r($d); echo "<br/>";}
 		//foreach($cupons as $c){print_r($c); echo "<br/>";}
 		//foreach($departments as $d){print_r($d); echo "<br/>";}
-		//foreach($time_ranges as $t){print_r($t); echo "<br/>";}
+		//foreach($daily as $t){print_r($t); echo "<br/>";}
 		
 		return [
 			"cus_group" => $cus_group,
@@ -367,36 +375,13 @@ class Obs_report extends CI_Controller {
 			"d2b2c" => $d2b2c,
 			"cupons" => $cupons,
 			"departments" => $departments,
-			"time_ranges" => $time_ranges,
+			"daily" => $daily,
+			"dates_between" => $dates_between,
 		];
-	}
-	
-	public function test(){
-		//$mcs = $this->gen_m->only("obs_gerp_sales_order", "model_category");
-		//foreach($mcs as $mc) echo $mc->model_category."<br/>";
-		
-		$from = date("Y-05-01");
-		$to = date("Y-05-t");
-		
-		//set magento data filters
-		$s_m = ["grand_total_purchased", "gerp_order_no", "local_time", "company_name_through_vipkey", "vipkey", "coupon_code", "coupon_rule", "discount_amount", "devices", "status", "customer_group", "department", "province"];
-		$w_m = ["local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"];
-		$w_in_m = [
-			[
-				"field" => "status", 
-				"values" => ["complete", "awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed"],
-			],
-		];
-		
-		$magentos = $this->gen_m->filter("obs_magento", false, $w_m, null, $w_in_m, [["local_time", "desc"]]);
-		
-		$statistics = $this->set_magento($magentos, $from, $to, 3.8);
-		
-		print_r($statistics);
 	}
 	
 	public function index(){
-		$exchange_rate = 3.8;
+		$exchange_rate = $this->exchange_rate;
 		
 		$today = strtotime(date("Y-m-d"));
 		$weeks = array_reverse($this->get_weeks_by_year(date("Y")));//recent week at first
@@ -418,14 +403,13 @@ class Obs_report extends CI_Controller {
 			$m = strtotime($this->input->get("m"));
 			$from = date("Y-m-01", $m);
 			$to = date("Y-m-t", $m);
-		}else{//default: this week
-			$aux = $this->get_week_by_date(date("Y-m-d"));
-			$from = $aux["dates"][0];
-			$to = $aux["dates"][1];
+		}else{//default: this month
+			//$aux = $this->get_week_by_date(date("Y-m-d"));
+			$from = date("Y-m-01");
+			$to = date("Y-m-t");
 		}
 		
-		//set magento data filters
-		//$s_m = ["grand_total_purchased", "gerp_order_no", "local_time", "company_name_through_vipkey", "vipkey", "coupon_code", "coupon_rule", "discount_amount", "devices", "status", "customer_group", "department", "province"];
+		//set magento data filters > no IOD based. no close_date field
 		$w_m = ["local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"];
 		$w_in_m = [
 			[
@@ -434,15 +418,10 @@ class Obs_report extends CI_Controller {
 			],
 		];
 		
-		$magentos = $this->gen_m->filter("obs_magento", false, /* $s_m,*/ $w_m, null, $w_in_m, [["local_time", "desc"]]);
-		//foreach($magentos as $m){echo $m->local_time." /// ".$m->status."<br/>";}
+		$magentos = $this->gen_m->filter("obs_magento", false, $w_m, null, $w_in_m, [["local_time", "desc"]]);
 		
-		//set gerp data filters
-		$s_g = ["create_date", "customer_department", "line_status", "order_category", "order_no", "line_no", "model_category", "model", "product_level1_name","product_level4_name", "product_level4_code", "item_type_desctiption", "currency", "unit_selling_price", "ordered_qty", "sales_amount", "bill_to_name"];
-		$w_g = ["create_date >=" => $from, "create_date <=" => $to, "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
-		
-		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "desc"]]);
-		//foreach($gerps as $g){echo $g->create_date." /// ".$g->order_status." - ".$g->line_status."<br/>";}
+		//get gerp records based on IOD
+		$gerps = $this->get_gerp_iod($from, $to);
 		
 		$data = [
 			"exchange_rate" => $exchange_rate,
@@ -450,9 +429,9 @@ class Obs_report extends CI_Controller {
 			"months"		=> $months,
 			"from"			=> $from,
 			"to"			=> $to,
-			"subsidiaries" 	=> $this->set_subsidiaries($from, $to, $exchange_rate),
-			"sales" 		=> $this->set_sales($gerps, $from, $to, $exchange_rate),
-			"statistics" 	=> $this->set_magento($magentos, $from, $to, $exchange_rate),
+			"dashboard" 	=> $this->get_dashboard($gerps, $from, $to, $exchange_rate),
+			"sales" 		=> $this->get_sales($gerps, $from, $to, $exchange_rate),
+			"statistics" 	=> $this->get_magento_statistics($magentos, $from, $to, $exchange_rate),
 			"magentos" 		=> $magentos,
 			"gerps" 		=> $gerps,
 			"main" 			=> "module/obs_report/index",
@@ -461,86 +440,84 @@ class Obs_report extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 
-	public function progress($period, $qty = 12){
+	public function progress($period, $qty = 24){
 		$start_time = microtime(true);
 		
-		$exchange_rate = 3.8;
+		$exchange_rate = $this->exchange_rate;
 		$today = date("Y-m-d");
 		
-		$headers = $progress = [];
+		$headers = $progress = $dates = $row_headers = $dashs = [];
 		
 		switch($period){
 			case "m": 
-				for($i = 0; $i < 12; $i++){
+				for($i = 0; $i < 24; $i++){
 					$now = date("Y-m-d", strtotime("-".($i)." month", strtotime($today)));
 					$from = date("Y-m-01", strtotime($now));
 					$to = date("Y-m-t", strtotime($now));
 					
 					$headers[] = date("M", strtotime($from)) === "Jan" ? date("M y", strtotime($from)) : date("M", strtotime($from));
-					$progress[] = [
-						"subsidiaries" => $this->set_subsidiaries($from, $to, $exchange_rate),
-					];
+					$dates[] = [$from, $to];
 					
 					if ($i >= $qty) break;
 				}
 				break;
 			case "w":
-				for($i = 0; $i < 12; $i++){
+				for($i = 0; $i < 24; $i++){
 					$now = date("Y-m-d", strtotime("-".(7 * $i)." day", strtotime($today)));
 					$now_w = $this->get_week_by_date($now);
 					
 					$headers[] = "W".$now_w["week"];
-					$progress[] = [
-						"subsidiaries" => $this->set_subsidiaries($now_w["dates"][0], $now_w["dates"][1], $exchange_rate),
-					];
+					$dates[] = [$now_w["dates"][0], $now_w["dates"][1]];
 					
 					if ($i >= $qty) break;
 				}
 				break;
 		}
 		
-		/* printring variable
-		foreach($progress as $pro){
-			print_r($pro); echo "<br/><br/><br/>";
-			
-			echo "Month: ".$pro["month"]."<br/>";
-			echo "Week: ".$pro["week"]."<br/>";
-			print_r($pro["dates"]); echo "<br/>";
-			
-			foreach($pro["subsidiaries"] as $sub => $subsidiary){
-				echo $sub." >>> "; print_r($subsidiary["summary"]); echo "<br/>";
-				
-				foreach($subsidiary["divisions"] as $div => $divisions){
-					echo " - ".$div." >>> "; print_r($divisions["summary"]); echo "<br/>";
-					
-					foreach($divisions["categories"] as $cat => $category){
-						echo " --- ".$cat." >>> "; print_r($category["summary"]); echo "<br/>";
-					}
-					
-					echo "<br/>";
-				}
-				
-				echo "<br/>";
+		foreach($dates as $i => $d){
+			$dashs_now = $this->get_dashboard($this->get_gerp_iod($d[0], $d[1]), $d[0], $d[1], $exchange_rate);
+			foreach($dashs_now as $key => $dash){
+				$dashs[$i][$key] = ["actual" => $dash["actual"], "actual_per" => $dash["actual_per"]];
+				$row_headers[] = $key;
 			}
-			
-			echo "<br/><br/><br/>";
 		}
 		
-		$end_time = microtime(true);
-		echo "<br/><br/>Exec time: ".number_format($end_time - $start_time, 2)." sec";
-		*/
+		$row_headers_arr = [];
+		$row_headers = array_unique($row_headers);
+		foreach($row_headers as $rh){
+			$aux = ["sub" => null, "div" => null, "cat" => null, "code" => $rh];
+			$rh_ = explode("_", $rh);
+			switch(count($rh_)){
+				case 1: $aux["sub"] = $rh_[count($rh_) - 1]; break;
+				case 2: $aux["div"] = $rh_[count($rh_) - 1]; break;
+				case 3: $aux["cat"] = $rh_[count($rh_) - 1]; break;
+			}
+			
+			//print_r($aux); echo "<br/><br/>";
+			$row_headers_arr[] = $aux;
+		}
+		
+		//print_r($headers); echo "<br/><br/>";
+		//print_r($dates); echo "<br/><br/>";
+		//print_r($dashs); echo "<br/><br/>";
+		//print_r($row_headers); echo "<br/><br/>";
 		
 		$data = [
-			"period"		=> $period === "w" ? "Weekly" : "Monthly",
-			"headers"		=> $headers,
-			"progress"		=> $progress,
-			"main" 			=> "module/obs_report/progress",
+			"period"	=> $period === "w" ? "Weekly" : "Monthly",
+			"qty"		=> $qty,
+			"headers"	=> $headers,
+			"dashs"		=> $dashs,
+			//"row_headers" => $row_headers,
+			"row_headers" => $row_headers_arr,
+			"main" 		=> "module/obs_report/progress",
 		];
 		
 		$this->load->view('layout', $data);
 	}
 
 	public function tc(){
-		$this->my_func->load_exchange_rate("02062024");
+		//$this->my_func->load_exchange_rate("02062024");
+		echo $this->my_func->last_working_date($dateString = "2024-06-2");
 	}
+	
 }

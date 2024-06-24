@@ -37,11 +37,11 @@
 					<div class="row g-3">
 						<div class="col-md-6">
 							<label class="form-label">First Record</label>
-							<input class="form-control" type="text" value="<?= $sales_first->booked_date ?>" readonly>
+							<input class="form-control" type="text" value="<?= $ml_first->year."-".$ml_first->month ?>" readonly>
 						</div>
 						<div class="col-md-6">
 							<label class="form-label">Last Record</label>
-							<input class="form-control" type="text" value="<?= $sales_last->booked_date ?>" readonly>
+							<input class="form-control" type="text" value="<?= $ml_last->year."-".$ml_last->month ?>" readonly>
 						</div>
 					</div>
 				</div>

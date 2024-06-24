@@ -88,6 +88,34 @@ class My_func{
 		return $date->format('Y-m-d');
 	}
 	
+	public function dates_between($startDate, $endDate){
+		$start = new DateTime($startDate);
+		$end = new DateTime($endDate);
+		$end = $end->modify('+1 day'); // 마지막 날짜를 포함하기 위해 하루를 더함
+
+		$interval = new DateInterval('P1D'); // 1일 간격
+		$dateRange = new DatePeriod($start, $interval, $end);
+
+		$dates = [];
+		foreach ($dateRange as $date) {
+			$dates[] = $date->format('Y-m-d');
+		}
+
+		return $dates;
+	}
+	
+	public function last_working_date($dateString = "2024-01-01"){
+		$date = new DateTime($dateString);
+		$dayOfWeek = $date->format('N');
+		
+		if ($dayOfWeek > 5) {
+			$daysToSubtract = $dayOfWeek - 5;
+			$date->sub(new DateInterval("P{$daysToSubtract}D"));
+		}
+
+		return $date->format('Y-m-d');
+	}
+	
 	public function get_record($tablename, $data){
 		$record = $this->CI->gen_m->filter($tablename, true, $data);
 		if (!$record){
@@ -103,7 +131,9 @@ class My_func{
 		foreach($arr as $val) $new[] = trim($val);
 		return $new;
 	}
-
+	
+	
+	
 	public function load_exchange_rate($date = null){
 		if (!$date) $date = date("dmY");
 		$token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibGdlIiwic3ViIjoibGdlIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIk1hbmFnZXIiLCJTdXBlcnZpc29yIl0sIm5iZiI6MTcxODgxOTgzOSwiZXhwIjoxNzUwMzU1ODM5LCJpc3MiOiJodHRwOi8vand0YXV0aHpzcnYuYXp1cmV3ZWJzaXRlcy5uZXQiLCJhdWQiOiIwOTkxNTNjMjYyNTE0OWJjOGVjYjNlODVlMDNmMDAyMiJ9.1ejIUlAPbq8FhggDzJIhXkYrRCMli1ghC8OI2PETwZc';
@@ -118,6 +148,7 @@ class My_func{
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 5);//max waiting time 5 secs
 
 		$response = curl_exec($ch);
 		

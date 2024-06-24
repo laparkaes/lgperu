@@ -13,8 +13,8 @@
 	<div class="row">
 		<div class="col-md-6 text-start">
 			<div class="mb-3">
-				<a class="btn btn-primary" target="blank_" href="<?= base_url() ?>module/obs_report/progress/w">Last 12 Weeks</a>
-				<a class="btn btn-primary" target="blank_" href="<?= base_url() ?>module/obs_report/progress/m">Last 12 Months</a>
+				<a class="btn btn-primary" target="blank_" href="<?= base_url() ?>module/obs_report/progress/w/12">Weekly Progress</a>
+				<a class="btn btn-primary" target="blank_" href="<?= base_url() ?>module/obs_report/progress/m/12">Monthly Progress</a>
 			</div>
 		</div>
 		<div class="col-md-6 text-end">
@@ -42,52 +42,44 @@
 			<div class="card">
 				<div class="card-body">
 					<div class="d-flex justify-content-between">
-						<h5 class="card-title">OBS Dashboard</h5>
-						<h5 class="card-title"><?= $from." ~ ".$to ?> | <strong>USD</strong></h5>
+						<div class="d-flex justify-content-start align-items-center">
+							<h5 class="card-title me-3">OBS Dashboard, <?= $from." ~ ".$to ?></h5>
+							<span class="badge bg-success">GERP IOD</span>
+						</div>
+						<h5 class="card-title"><strong>K USD</strong></h5>
 					</div>
 					<table class="table align-middle text-center">
 						<thead>
 							<tr>
-								<th scope="col" style="width: 100px;">Subsidiary</th>
-								<th scope="col" style="width: 100px;">Division</th>
-								<th scope="col" class="border-end" style="width: 250px;">Category</th>
-								<th scope="col" colspan="2">Sales Projection</th>
-								<th scope="col">Actual</th>
+								<th scope="col">Subsidiary</th>
+								<th scope="col">Division</th>
+								<th scope="col" class="border-end">Category</th>
+								<th scope="col">Monthly Report</th>
+								<th scope="col">ML</th>
+								<th scope="col" class="border-end">ML Actual</th>
+								<th scope="col" style="width: 180px;">Projection</th>
+								<th scope="col" class="border-end">%</th>
+								<th scope="col" style="width: 180px;">Actual</th>
+								<th scope="col" class="border-end">%</th>
 								<th scope="col">Expected</th>
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach($subsidiaries as $sub => $subsidiary){ $total = $subsidiary["summary"]["total"]; ?>
+							<?php foreach($dashboard as $dash){ ?>
 							<tr>
-								<td><strong><?= $sub ?></strong></td>
-								<td></td>
-								<td class="border-end"></td>
-								<td><strong><?= number_format($subsidiary["summary"]["total"], 2) ?></strong></td>
-								<td><strong><?= $total ? number_format($subsidiary["summary"]["total"] / $total * 100, 2) : "0.00" ?>%</strong></td>
-								<td><strong><?= number_format($subsidiary["summary"]["closed"], 2) ?></strong></td>
-								<td><strong><?= number_format($subsidiary["summary"]["on_process"], 2) ?></strong></td>
+								<td><?= $dash["sub"] ?></td>
+								<td><?= $dash["div"] ?></td>
+								<td class="border-end"><?= $dash["cat"] ?></td>
+								<td><?= $dash["monthly_report"] ? number_format($dash["monthly_report"], 2) : "-" ?></td>
+								<td><?= $dash["ml"] ? number_format($dash["ml"], 2) : "-" ?></td>
+								<td class="border-end"><?= $dash["ml_actual"] ? number_format($dash["ml_actual"], 2) : "-" ?></td>
+								<td><?= $dash["projection"] ? number_format($dash["projection"], 2) : "-" ?></td>
+								<td class="border-end text-<?= $dash["projection_per"] ? $dash["projection_color"] : "" ?>"><?= $dash["projection_per"] ? number_format($dash["projection_per"], 2)."%" : "-" ?></td>
+								<td><?= $dash["actual"] ? number_format($dash["actual"], 2) : "-" ?></td>
+								<td class="border-end text-<?= $dash["actual_per"] ? $dash["actual_color"] : "" ?>"><?= $dash["actual_per"] ? number_format($dash["actual_per"], 2)."%" : "-" ?></td>
+								<td><?= $dash["expected"] ? number_format($dash["expected"], 2) : "-" ?></td>
 							</tr>
-							<?php foreach($subsidiary["divisions"] as $div => $division){ ?>
-							<tr>
-								<td></td>
-								<td><strong><?= $div ?></strong></td>
-								<td class="border-end"></td>
-								<td><strong><?= number_format($division["summary"]["total"], 2) ?></strong></td>
-								<td><strong><?= $total ? number_format($division["summary"]["total"] / $total * 100, 2) : "0.00" ?>%</strong></td>
-								<td><strong><?= number_format($division["summary"]["closed"], 2) ?></strong></td>
-								<td><strong><?= number_format($division["summary"]["on_process"], 2) ?></strong></td>
-							</tr>
-							<?php foreach($division["categories"] as $cat => $category){ ?>
-							<tr>
-								<td></td>
-								<td></td>
-								<td class="border-end"><?= $cat ?></td>
-								<td><?= number_format($category["summary"]["total"], 2) ?></td>
-								<td><?= $total ? number_format($category["summary"]["total"] / $total * 100, 2) : "0.00" ?>%</td>
-								<td><?= number_format($category["summary"]["closed"], 2) ?></td>
-								<td><?= number_format($category["summary"]["on_process"], 2) ?></td>
-							</tr>
-							<?php }}} ?>
+							<?php } ?>
 						</tbody>
 					</table>
 				</div>
@@ -98,7 +90,10 @@
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Best Seller</h5>
+					<div class="d-flex justify-content-start align-items-center">
+						<h5 class="card-title me-3">Best Seller</h5>
+						<span class="badge bg-success">GERP IOD</span>
+					</div>
 					<div class="mb-3">
 						<div class="btn-group" role="group" aria-label="btn_subsidiaries">
 							<?php foreach($sales as $subsidiary => $sales_sub){ ?>
@@ -117,7 +112,7 @@
 						foreach($div_map as $div => $categories){
 							foreach($categories as $cat){
 							?>
-						<div class="col-md-3 col-sm-6 bl_bs_<?= $div ?>">
+						<div class="col-md-4 col-sm-6 bl_bs_<?= $div ?>">
 							<div class="card">
 								<div class="card-body">
 									<h5 class="card-title"><?= $cat." │ ".$div." │ ".$subsidiary ?></h5>
@@ -158,25 +153,76 @@
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Statistics</h5>
+					<div class="d-flex justify-content-start align-items-center">
+						<h5 class="card-title me-3">Statistics</h5>
+						<span class="badge bg-secondary">Magento Sale</span>
+					</div>
 					<div class="row">
 						<div class="col-12">
-						<?php 
+						<?php
+						$dates_between = $statistics["dates_between"];
+						$daily = $statistics["daily"];
 						$cus_group = $statistics["cus_group"];
 						$devices = $statistics["devices"];
 						$d2b2c = $statistics["d2b2c"];
 						$cupons = $statistics["cupons"];
 						$departments = $statistics["departments"];
-						
-						unset($statistics["cus_group"]);
-						unset($statistics["devices"]);
-						unset($statistics["d2b2c"]);
-						unset($statistics["cupons"]);
-						unset($statistics["departments"]);
-						
-						
-						print_r($statistics);
 						?>
+						</div>
+						<div class="col-md-12">
+							<div class="card">
+								<div class="card-body">
+									<h5 class="card-title">Daily</h5>
+									<div id="chart_daily" style="min-height: 500px;"></div>
+									<?php 
+									$chart_daily_values = [4 => [], 8 => [], 12 => [], 16 => [], 20 => [], 24 => []];
+									$chart_daily_xaxis = [];
+									$total = []; 
+									foreach($dates_between as $date){ $day = date("d", strtotime($date));
+										$total[$day] = 0;
+										$chart_daily_xaxis[] = $day;
+									}
+									?>
+									<table class="table text-center">
+										<thead>
+											<tr>
+												<th scope="col" class="text-start">K USD<br/>Hour\Day</th>
+												<?php foreach($dates_between as $date){ $day = date("d", strtotime($date)); ?>
+												<th scope="col"><?= $day ?></th>
+												<?php } ?>
+											</tr>
+										</thead>
+										<tbody>
+											<?php for($i = 1; $i <= 6; $i++){ $time = $i * 4; ?>
+											<tr>
+												<td class="text-start">~ <?= $time ?> Hr</td>
+												<?php foreach($dates_between as $date){ $day = date("d", strtotime($date));
+													$total[$day] += $daily[$day][$time]["amount"];
+													$chart_daily_values[$time][] = round($daily[$day][$time]["amount"], 2);
+												?>
+												<td><?= $daily[$day][$time]["amount"] ? number_format($daily[$day][$time]["amount"], 2) : "-" ?></td>
+												<?php } ?>
+											</tr>
+											<?php } ?>
+											<tr>
+												<th class="text-start">Total</th>
+												<?php foreach($dates_between as $date){ $day = date("d", strtotime($date)); ?>
+												<th><?= $total[$day] ? number_format($total[$day], 2) : "-" ?></th>
+												<?php } ?>
+											</tr>
+										</tbody>
+									</table>
+									<div class="d-none">
+										<div id="chart_daily_xaxis"><?= json_encode($chart_daily_xaxis) ?></div>
+										<div id="chart_daily_4"><?= json_encode($chart_daily_values[4]) ?></div>
+										<div id="chart_daily_8"><?= json_encode($chart_daily_values[8]) ?></div>
+										<div id="chart_daily_12"><?= json_encode($chart_daily_values[12]) ?></div>
+										<div id="chart_daily_16"><?= json_encode($chart_daily_values[16]) ?></div>
+										<div id="chart_daily_20"><?= json_encode($chart_daily_values[20]) ?></div>
+										<div id="chart_daily_24"><?= json_encode($chart_daily_values[24]) ?></div>
+									</div>
+								</div>
+							</div>
 						</div>
 						<div class="col-md-6">
 							<div class="card">
@@ -191,11 +237,17 @@
 															<th scope="col">Group</th>
 															<th scope="col" class="text-center">Qty</th>
 															<th scope="col" class="text-end text-nowrap">K USD</th>
-															<th scope="col" class="text-end">Perc.</th>
+															<th scope="col" class="text-end">%</th>
 														</tr>
 													</thead>
 													<tbody>
-														<?php foreach($cus_group as $item){ if ($item["qty"]){ ?>
+														<?php 
+														$chart_cus_group = [];
+														foreach($cus_group as $item){ 
+															if ($item["qty"]){
+																if ($item["customer_group"] !== "Total") 
+																	$chart_cus_group[] = ["value" => round($item["amount"], 2), "name" => $item["customer_group"]];
+														?>
 														<tr>
 															<td><?= $item["customer_group"] ?></td>
 															<td class="text-center"><?= number_format($item["qty"]) ?></td>
@@ -205,8 +257,10 @@
 														<?php }} ?>
 													</tbody>
 												</table>
+												<div class="d-none" id="chart_cus_group_data"><?= json_encode($chart_cus_group) ?></div>
 											</div>
 										</div>
+										<div class="col-md-6" id="chart_cus_group" style="min-height: 270px;"></div>
 									</div>
 								</div>
 							</div>
@@ -214,7 +268,7 @@
 						<div class="col-md-6">
 							<div class="card">
 								<div class="card-body">
-									<h5 class="card-title">Devices</h5>
+									<h5 class="card-title">Device</h5>
 									<div class="row">
 										<div class="col-md-6">
 											<div class="overflow-auto">
@@ -224,11 +278,18 @@
 															<th scope="col">Device</th>
 															<th scope="col" class="text-center">Qty</th>
 															<th scope="col" class="text-end text-nowrap">K USD</th>
-															<th scope="col" class="text-end">Perc.</th>
+															<th scope="col" class="text-end">%</th>
 														</tr>
 													</thead>
 													<tbody>
-														<?php foreach($devices as $item){ if ($item["qty"]){ ?>
+														<?php 
+														$chart_device = [];
+														foreach($devices as $item){ 
+															if ($item["qty"]){
+																if ($item["device"] !== "Total") 
+																	$chart_device[] = ["value" => round($item["amount"], 2), "name" => $item["device"]];
+																
+														?>
 														<tr>
 															<td><?= $item["device"] ?></td>
 															<td class="text-center"><?= number_format($item["qty"]) ?></td>
@@ -238,17 +299,19 @@
 														<?php }} ?>
 													</tbody>
 												</table>
+												<div class="d-none" id="chart_device_data"><?= json_encode($chart_device) ?></div>
 											</div>
 										</div>
+										<div class="col-md-6" id="chart_device" style="min-height: 270px;"></div>
 									</div>
 								</div>
 							</div>
 						</div>
-						<div class="col-md-3">
+						<div class="col-md-6">
 							<div class="card">
 								<div class="card-body">
 									<h5 class="card-title">Location</h5>
-									<table class="table">
+									<table class="table datatable align-middle">
 										<thead>
 											<tr>
 												<th scope="col">Department</th>
@@ -273,11 +336,11 @@
 								</div>
 							</div>
 						</div>
-						<div class="col-md-4">
+						<div class="col-md-6">
 							<div class="card">
 								<div class="card-body">
 									<h5 class="card-title">D2B2C</h5>
-									<table class="table">
+									<table class="table datatable align-middle">
 										<thead>
 											<tr>
 												<th scope="col">Company</th>
@@ -300,14 +363,15 @@
 								</div>
 							</div>
 						</div>
-						<div class="col-md-5">
+						<div class="col-md-12">
 							<div class="card">
 								<div class="card-body">
 									<h5 class="card-title">Cupon</h5>
-									<table class="table">
+									<table class="table datatable align-middle">
 										<thead>
 											<tr>
 												<th scope="col">Cupon</th>
+												<th scope="col">Rule</th>
 												<th scope="col" class="text-center">Qty</th>
 												<th scope="col" class="text-end text-nowrap">K USD</th>
 												<th scope="col" class="text-end">Perc.</th>
@@ -337,11 +401,15 @@
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">GERP Orders</h5>
+					<div class="d-flex justify-content-start align-items-center">
+						<h5 class="card-title me-3">GERP Orders</h5>
+						<span class="badge bg-success">GERP IOD</span>
+					</div>
 					<table class="table datatable align-middle">
 						<thead>
 							<tr>
 								<th scope="col">Date</th>
+								<th scope="col">Closed</th>
 								<th scope="col">Type</th>
 								<th scope="col">Status</th>
 								<th scope="col">Subsidiary</th>
@@ -362,6 +430,7 @@
 							<?php foreach($gerps as $g){ ?>
 							<tr>
 								<td><div class="text-nowrap"><?= $g->create_date ?></div></td>
+								<td><div class="text-nowrap"><?= $g->close_date ?></div></td>
 								<td><?= $g->order_category ?></td>
 								<td><div style="width: 90px;"><?= $g->line_status ?></div></td>
 								<td><?= $g->customer_department ?></td>
@@ -388,7 +457,10 @@
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Magento Orders</h5>
+					<div class="d-flex justify-content-start align-items-center">
+						<h5 class="card-title me-3">Magento Orders</h5>
+						<span class="badge bg-secondary">Magento Sale</span>
+					</div>
 					<table class="table datatable align-middle">
 						<thead>
 							<tr>
@@ -444,21 +516,33 @@
 </section>
 
 <script>
-function set_status_chart(){
-	var data = JSON.parse($("#status_chart_data").html());
-	
-	echarts.init(document.querySelector("#status_chart_amount")).setOption({
-		title	: {text: 'By Order Amount', left: 'center'},
-		tooltip	: {trigger: 'item'},
-		//legend	: {orient: 'vertical', left: 'left'},
-		series	: [{type: 'pie', data: data.amount, label: {show: false}, labelLine: {show: false}}],
+function set_charts(){
+	//chart_daily
+	echarts.init(document.querySelector("#chart_daily")).setOption({
+		tooltip: {trigger: 'axis', axisPointer: {type: 'cross', label: {backgroundColor: '#6a7985'}}},
+		grid: {left: '3%', right: '3%', bottom: '3%', containLabel: true},
+		xAxis: [{type: 'category', boundaryGap: false, data: JSON.parse($("#chart_daily_xaxis").html())}],
+		yAxis: [{type: 'value'}],
+		series: [
+			{name: '~4 Hr', smooth: true, showSymbol: false, type: 'line', stack: 'Total', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_daily_4").html())},
+			{name: '~8 Hr', smooth: true, showSymbol: false, type: 'line', stack: 'Total', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_daily_8").html())},
+			{name: '~12 Hr', smooth: true, showSymbol: false, type: 'line', stack: 'Total', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_daily_12").html())},
+			{name: '~16 Hr', smooth: true, showSymbol: false, type: 'line', stack: 'Total', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_daily_16").html())},
+			{name: '~20 Hr', smooth: true, showSymbol: false, type: 'line', stack: 'Total', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_daily_20").html())},
+			{name: '~24 Hr', smooth: true, showSymbol: false, type: 'line', stack: 'Total', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_daily_24").html())},
+		]
 	});
 	
-	echarts.init(document.querySelector("#status_chart_qty")).setOption({
-		title	: {text: ' By Order Qty', left: 'center'},
-		tooltip	: {trigger: 'item'},
-		legend	: {orient: 'vertical', left: 'right'},
-		series	: [{type: 'pie', data: data.qty, label: {show: false}, labelLine: {show: false}}],
+	//chart_cus_group
+	echarts.init(document.querySelector("#chart_cus_group")).setOption({
+		tooltip: {trigger: 'item'},
+		series: [{name: 'Customer Group', type: 'pie', radius: '90%', data: JSON.parse($("#chart_cus_group_data").html()),}]
+	});
+	
+	//chart_device
+	echarts.init(document.querySelector("#chart_device")).setOption({
+		tooltip: {trigger: 'item'},
+		series: [{name: 'Device', type: 'pie', radius: '90%', data: JSON.parse($("#chart_device_data").html()),}]
 	});
 }
 
@@ -488,25 +572,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		
 	});
 	
-	
-	
-	
-	//set_status_chart();
-	
-	$("#report_from").on( "change", function() {
-		$("#report_to").attr("min", $(this).val());
-	});
-	
-	$("#report_to").on( "change", function() {
-		$("#report_from").attr("max", $(this).val());
-	});
-	
-	$("#form_upload_magento").submit(function(e) {
-		e.preventDefault();
-		$("#form_upload_magento .sys_msg").html("");
-		ajax_form_warning(this, "module/obs_magento/upload", "Do you upload data?").done(function(res) {
-			swal_redirection(res.type, res.msg, "module/obs_magento");
-		});
-	});
+	set_charts();
 });
 </script>
