@@ -11,7 +11,7 @@ class Obs_report extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 		
 		$ex = $this->gen_m->filter("exchange_rate", false, ["currency_from" => "PEN", "currency_to" => "USD"], null, null, [["date", "desc"]], 1, 0);
-		$this->exchange_rate = $ex ? $ex[0]->sell : 3.8;
+		$this->exchange_rate = $ex ? $ex[0]->sell : 3.718;
 		
 		$this->divisions = ["HA", "HE", "BS"];
 		$this->division_map = [
