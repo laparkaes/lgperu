@@ -721,4 +721,77 @@ class Sell_inout extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
 	}
+
+	public function test(){
+		$prods = [
+			"22MR410-B.AWFQ", 
+			"22SM3G-B.AWF", 
+			"24MS500-B.AWF", 
+			"27KC3PK-C.AWFQ", 
+			"49UM5N-E.AWF", 
+			"49VL5G-A.AWF", 
+			"50NANO80TSA.AWH", 
+			"50QNED80TSA.AWF", 
+			"50UT7300PSA.AWFQ", 
+			"55NANO80TSA.AWF", 
+			"55NANO80TSA.AWH", 
+			"55UK6200PSA.AWF", 
+			"55UT7300PSA.AWFQ", 
+			"65NANO80TSA.AWF", 
+			"65UT7300PSA.AWFQ", 
+			"75QNED80SQA.AWF", 
+			"75QNED85SQA.AWF", 
+			"75QNED90TSA.AWF", 
+			"ACAH045LETB.AAAAAAA", 
+			"AK-W240DCA0.ADGTLAT", 
+			"AN-MR19BA.AWP", 
+			"DF10BVC2S6.BBLGLGP", 
+			"GS66SDP.APZGLPR", 
+			"GS66SXN.APZGLPR", 
+			"GS66SXT.AMCGLPR", 
+			"OLED77G4PSA.AWF", 
+			"OLED77Z3PSA.AWF", 
+			"OLED83C4PSA.AWF", 
+			"PL2.DPERLLK", 
+			"PL2S.DPERLLK", 
+			"TRIPOAUD19.PRO", 
+			"TS1605NS.ASFGLGP", 
+			"USC9S.DGBRPV", 
+			"WD12VVC3S6C.ASSGLGP", 
+			"WT16BVTB.ABMGLGP", 
+			"WT17BV6T.ABMGLGP", 
+			"WT17DV6T.ASFGLGP", 
+			"WT19BV6T.ABMGLGP", 
+			"WT19DV6T.ASFGLGP", 
+		];
+		
+		foreach($prods as $p){
+			$lvl4 = null;
+			$so = $this->gen_m->filter("obs_gerp_sales_order", false, ["model" => $p]);
+			if ($so) $lvl4 = $so[0]->product_level4_name;
+			else{
+				$so = $this->gen_m->filter("dash_sales_order_inquiry", false, ["model" => $p]);
+				if ($so) $lvl4 = $so[0]->pl4_name;
+			}
+			
+			if ($lvl4){
+				$this->create_product($lvl4, $p);
+			}else $p." no line<br/>";
+		}
+	}
+	
+	public function create_product($lvl4, $model){
+		echo $lvl4." ".$model."<br/>";
+		
+		if ($lvl4 === "OLED TV 77 (8K)") $line_id = 319;
+		else $line_id = $this->gen_m->unique("product_line", "line", $lvl4)->line_id;
+		
+		$f = ["line_id" => $line_id, "model" => $model];
+		$prod = $this->gen_m->filter("product", true, $f);
+		if (!$prod) $this->gen_m->insert("product", $f);
+		
+		print_r($f); echo "<br/>";
+		print_r($prod); echo "<br/>";
+		echo "<br/>";
+	}
 }
