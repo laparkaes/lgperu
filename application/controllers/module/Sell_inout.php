@@ -306,17 +306,17 @@ class Sell_inout extends CI_Controller {
 		$products = $this->gen_m->all("product", [["model", "asc"]]);
 		foreach($products as $p){
 			if ($p->line_id){
-				$p_lvl_iv = $lvl_arr[$p->line_id];
-				$p_lvl_iii = $lvl_arr[$p_lvl_iv->parent_id];
-				$p_lvl_ii = $lvl_arr[$p_lvl_iii->parent_id];
-				$p_lvl_i = $lvl_arr[$p_lvl_ii->parent_id];
+				@$p_lvl_iv = $lvl_arr[$p->line_id];
+				@$p_lvl_iii = $lvl_arr[$p_lvl_iv->parent_id];
+				@$p_lvl_ii = $lvl_arr[$p_lvl_iii->parent_id];
+				@$p_lvl_i = $lvl_arr[$p_lvl_ii->parent_id];
 				
-				$p->lines = $p_lvl_i->line; //implode(" > ", [$lvl_i->line, $lvl_ii->line]);
-				$p->lvl_z_id = $p_lvl_i->parent_id;
-				$p->lvl_i_id = $p_lvl_i->line_id;
-				$p->lvl_ii_id = $p_lvl_ii->line_id;
-				$p->lvl_iii_id = $p_lvl_iii->line_id;
-				$p->lvl_iv_id = $p_lvl_iv->line_id;
+				@$p->lines = $p_lvl_i->line; //implode(" > ", [$lvl_i->line, $lvl_ii->line]);
+				@$p->lvl_z_id = $p_lvl_i->parent_id;
+				@$p->lvl_i_id = $p_lvl_i->line_id;
+				@$p->lvl_ii_id = $p_lvl_ii->line_id;
+				@$p->lvl_iii_id = $p_lvl_iii->line_id;
+				@$p->lvl_iv_id = $p_lvl_iv->line_id;
 			}else $p->lines = $p->lvl_z_id = $p->lvl_i_id = $p->lvl_ii_id = $p->lvl_iii_id = $p->lvl_iv_id = "";
 			
 			$product_arr[$p->product_id] = $p;
