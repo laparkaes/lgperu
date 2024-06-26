@@ -127,6 +127,19 @@ class General_model extends CI_Model{
 		$result = $query->result();
 		return $result[0];
 	}
+		
+	function avg($tablename, $col, $w = null, $w_in = null){
+		$this->db->select_avg($col);
+		if ($w) $this->db->where($w);
+		if ($w_in){
+			$this->db->group_start();
+			foreach($w_in as $item) $this->db->where_in($item["field"], $item["values"]);
+			$this->db->group_end();
+		}
+		$query = $this->db->get($tablename);
+		$result = $query->result();
+		return $result[0];
+	}
 	
 	function get_group($tablename, $where, $groups){
 		$this->db->select(implode(",", $groups));

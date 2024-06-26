@@ -132,6 +132,19 @@ class My_func{
 		return $new;
 	}
 	
+	public function get_exchange_rate_month_ttm($date){
+		$from = date("Y-m-01", strtotime($date));
+		$to = date("Y-m-t", strtotime($date));
+		
+		$exchange_rate = $this->CI->gen_m->avg("exchange_rate", "avg", ["date >=" => $from, "date <=" => $to])->avg;
+		if (!$exchange_rate){
+			$last_ex = $this->CI->gen_m->filter("exchange_rate", false, ["currency" => "USD"], null, null, [["date", "desc"]], 1, 0);
+			$exchange_rate = round($last_ex[0]->avg, 2);
+		}
+		
+		return $exchange_rate;
+	}
+	
 	//get random float value between min and max
 	function get_random_float($min, $max, $precision = 2) {
 		$factor = pow(10, $precision);
@@ -139,12 +152,23 @@ class My_func{
 		return $randomInt / $factor;
 	}
 	
-	public function get_exchange_rate_usd($date, $curr_from = "PEN", $curr_to = "USD"){
-		$buy = $this->get_random_float(3.51, 3.91);
-		$sell = $this->get_random_float($buy + 0.03, $buy + 0.3);
-		$avg = ($buy + $sell) / 2;
+	public function get_exchange_rate_usd($date, $currency = "USD"){
+		$sbs = $this->load_exchange_rate_sbs($date);
 		
-		return ["date" => $date, "currency_from" => $curr_from, "currency_to" => $curr_to, "buy" => $buy, "sell" => $sell, "avg" => $avg];
+		if (($sbs !== "No data") and ($sbs !== null)){
+			//print_r($sbs); echo "<br/>";
+			
+			/*
+			$buy = $this->get_random_float(3.51, 3.91);
+			$sell = $this->get_random_float($buy + 0.03, $buy + 0.3);
+			*/
+			
+			$buy = (float)str_replace(",", ".", $sbs["valor_compra"]);
+			$sell = (float)str_replace(",", ".", $sbs["valor_venta"]);
+			$avg = ($buy + $sell) / 2;
+			
+			return ["date" => $date, "currency" => $currency, "buy" => $buy, "sell" => $sell, "avg" => $avg];	
+		}return null;
 	}
 	
 	public function load_exchange_rate_sbs($date = null){
@@ -169,17 +193,7 @@ class My_func{
 		
 		curl_close($ch);
 
-		$data = json_decode($response, true);
-		if ($data){
-			$res = [
-				"date" => $this->date_convert_6($date),
-				"currency_from" => "PEN", 
-				"currency_from" => "USD", 
-				"buy" => str_replace(",", ".", $data["valor_compra"]), 
-				"sell" => str_replace(",", ".", $data["valor_venta"])
-			];
-			print_r($res);
-		}else echo "No data";
+		return json_decode($response, true);
 	}
 	
 	public function generate_excel_report($filename, $title, $header, $rows){
