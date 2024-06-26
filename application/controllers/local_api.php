@@ -126,6 +126,7 @@ class Local_api extends CI_Controller {
 				$r->list_price = round($r->list_price / $exchange_rate, 2);
 				$r->original_list_price = round($r->original_list_price / $exchange_rate, 2);
 				*/
+				$g->sales_amount_usd = $g->sales_amount / $exr_ttm;
 			}
 			
 			$res = ["gerp_iod" => $gerps];
