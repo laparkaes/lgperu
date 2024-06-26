@@ -94,7 +94,11 @@ class Local_api extends CI_Controller {
 				],
 			];
 			
-			$res = ["magentos" => $this->gen_m->filter("obs_magento", false, $w_m, null, $w_in_m, [["local_time", "desc"]])];
+			$exr_ttm = round($this->my_func->get_exchange_rate_month_ttm(date("Y-m-d")), 2);
+			$magentos = $this->gen_m->filter("obs_magento", false, $w_m, null, $w_in_m, [["local_time", "desc"]]);
+			foreach($magentos as $m) $m->grand_total_purchased = $m->grand_total_purchased / $exr_ttm;
+			
+			$res = ["magentos" => $magentos];
 		}else $res = ["msg" => "Error"];
 		
 		header('Content-Type: application/json');
@@ -124,21 +128,9 @@ class Local_api extends CI_Controller {
 			$from = date("Y-m-01");
 			$to = date("Y-m-t");
 			
-			$gerps = $this->get_gerp_iod($from, $to);
 			$exr_ttm = round($this->my_func->get_exchange_rate_month_ttm(date("Y-m-d")), 2);
-			
-			foreach($gerps as $g){
-				/*
-				$r->unit_selling_price = round($r->unit_selling_price / $exchange_rate, 2);
-				$r->sales_amount = round($r->sales_amount / $exchange_rate, 2);
-				$r->tax_amount = round($r->tax_amount / $exchange_rate, 2);
-				$r->charge_amount = round($r->charge_amount / $exchange_rate, 2);
-				$r->line_total = round($r->line_total / $exchange_rate, 2);
-				$r->list_price = round($r->list_price / $exchange_rate, 2);
-				$r->original_list_price = round($r->original_list_price / $exchange_rate, 2);
-				*/
-				$g->sales_amount_usd = $g->sales_amount / $exr_ttm;
-			}
+			$gerps = $this->get_gerp_iod($from, $to);
+			foreach($gerps as $g) $g->sales_amount_usd = $g->sales_amount / $exr_ttm;
 			
 			$res = ["gerp_iods" => $gerps];
 		}else $res = ["msg" => "Error"];
