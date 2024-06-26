@@ -14,6 +14,34 @@ class Local_api extends CI_Controller {
 		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
+		
+		$this->divisions = ["HA", "HE", "BS"];
+		$this->division_map = [
+			"HA" => ["REF", "COOK", "W/M", "RAC", "SAC", "A/C"],
+			"HE" => ["TV", "AV"],
+			"BS" => ["MNT", "PC", "DS", "SGN", "CTV"],
+		];
+		$this->division_map_inv = [];
+		foreach($this->division_map as $div => $divisions) foreach($divisions as $cat) $this->division_map_inv[$cat] = $div;
+		
+		$this->categories = ["REF", "COOK", "W/M", "A/C", "RAC", "SAC", "TV", "AV", "MNT", "PC", "DS", "SGN", "CTV"];
+		$this->category_map = [
+			"REF" => ["REF"],
+			"COOK" => ["MWO", "O", "CVT"],
+			"W/M" => ["W/M"],
+			"A/C" => ["A/C"],
+			"RAC" => ["RAC"],
+			"SAC" => ["SAC"],
+			"TV" => ["LCD", "LTV"],
+			"AV" => ["AUD", "CAV"],
+			"MNT" => ["MNT"],
+			"PC" => ["PC"],
+			"DS" => ["DS"],
+			"SGN" => ["SGN"],
+			"CTV" => ["CTV"],
+		];
+		$this->category_map_inv = [];
+		foreach($this->category_map as $cat => $categories) foreach($categories as $c) $this->category_map_inv[$c] = $cat;
 	}
 	
 	public function test(){
@@ -133,6 +161,8 @@ class Local_api extends CI_Controller {
 			foreach($gerps as $g){
 				$g->line_no = "'".$g->line_no;
 				$g->sales_amount_usd = $g->sales_amount / $exr_ttm;
+				$g->model_category_dash = $g->model_category ? $this->category_map_inv[$g->model_category] : null;
+				$g->division_dash = $g->model_category_dash ? $this->division_map_inv[$g->model_category_dash] : null;
 			}
 			
 			$res = ["gerp_iods" => $gerps];
