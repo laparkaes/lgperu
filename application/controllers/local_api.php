@@ -131,7 +131,7 @@ class Local_api extends CI_Controller {
 			$exr_ttm = round($this->my_func->get_exchange_rate_month_ttm(date("Y-m-d")), 2);
 			$gerps = $this->get_gerp_iod($from, $to);
 			foreach($gerps as $g){
-				$g->line_no = "_".$g->line_no;
+				$g->line_no = "'".$g->line_no;
 				$g->sales_amount_usd = $g->sales_amount / $exr_ttm;
 			}
 			
