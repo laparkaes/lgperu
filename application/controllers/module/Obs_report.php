@@ -10,8 +10,7 @@ class Obs_report extends CI_Controller {
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
 		
-		$ex = $this->gen_m->filter("exchange_rate", false, ["currency_from" => "PEN", "currency_to" => "USD"], null, null, [["date", "desc"]], 1, 0);
-		$this->exchange_rate = $ex ? $ex[0]->sell : 3.718;
+		$this->exchange_rate = round($this->my_func->get_exchange_rate_month_ttm(date("Y-m-d")), 2);
 		
 		$this->divisions = ["HA", "HE", "BS"];
 		$this->division_map = [
