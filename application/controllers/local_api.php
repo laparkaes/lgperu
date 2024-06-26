@@ -171,4 +171,24 @@ class Local_api extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode($res);
 	}
+
+	public function get_obs_ml_month(){
+		//llamasys/local_api/get_obs_gerp_month?key=lgepr
+		
+		if ($this->input->get("key") === "lgepr"){
+			$d = date("Y-05-01");
+			//$d = date("Y-m-d");
+			
+			$mls = $this->gen_m->filter("obs_most_likely", false, ["year" => date("Y", $d), "month" => date("m", $d)]);
+			
+			$res = ["gerp_iods" => $mls];
+		}else $res = ["msg" => "Error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+		
+		
+		
+		
+	}
 }
