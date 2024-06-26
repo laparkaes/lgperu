@@ -96,7 +96,7 @@ class Local_api extends CI_Controller {
 			
 			$exr_ttm = round($this->my_func->get_exchange_rate_month_ttm(date("Y-m-d")), 2);
 			$magentos = $this->gen_m->filter("obs_magento", false, $w_m, null, $w_in_m, [["local_time", "desc"]]);
-			foreach($magentos as $m) $m->grand_total_purchased = $m->grand_total_purchased / $exr_ttm;
+			foreach($magentos as $m) $m->grand_total_purchased_usd = $m->grand_total_purchased / $exr_ttm;
 			
 			$res = ["magentos" => $magentos];
 		}else $res = ["msg" => "Error"];
@@ -130,7 +130,10 @@ class Local_api extends CI_Controller {
 			
 			$exr_ttm = round($this->my_func->get_exchange_rate_month_ttm(date("Y-m-d")), 2);
 			$gerps = $this->get_gerp_iod($from, $to);
-			foreach($gerps as $g) $g->sales_amount_usd = $g->sales_amount / $exr_ttm;
+			foreach($gerps as $g){
+				$g->line_no = "_".$g->line_no;
+				$g->sales_amount_usd = $g->sales_amount / $exr_ttm;
+			}
 			
 			$res = ["gerp_iods" => $gerps];
 		}else $res = ["msg" => "Error"];
