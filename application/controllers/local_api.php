@@ -82,7 +82,7 @@ class Local_api extends CI_Controller {
 		echo json_encode($res);
 	}
 	
-	public function get_obs_magento(){
+	public function get_obs_magento_month(){
 		//llamasys/local_api/get_obs_magento?key=lgepr&f=2024-01-01&t=2024-12-31
 		
 		if ($this->input->get("key") === "lgepr"){
