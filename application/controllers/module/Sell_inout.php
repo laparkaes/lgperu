@@ -774,14 +774,13 @@ class Sell_inout extends CI_Controller {
 				if ($so) $lvl4 = $so[0]->pl4_name;
 			}
 			
-			if ($lvl4){
-				$this->create_product($lvl4, $p);
-			}else $p." no line<br/>";
+			if ($lvl4) $this->create_product($lvl4, $p);
+			else echo $p."<br/>";
 		}
 	}
 	
 	public function create_product($lvl4, $model){
-		echo $lvl4." ".$model."<br/>";
+		//echo $model." ".$lvl4."<br/>";
 		
 		if ($lvl4 === "OLED TV 77 (8K)") $line_id = 319;
 		else $line_id = $this->gen_m->unique("product_line", "line", $lvl4)->line_id;
@@ -790,8 +789,6 @@ class Sell_inout extends CI_Controller {
 		$prod = $this->gen_m->filter("product", true, $f);
 		if (!$prod) $this->gen_m->insert("product", $f);
 		
-		print_r($f); echo "<br/>";
-		print_r($prod); echo "<br/>";
-		echo "<br/>";
+		//print_r($f); echo "<br/>"; print_r($prod); echo "<br/>"; echo "<br/>";
 	}
 }
