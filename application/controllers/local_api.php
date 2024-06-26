@@ -23,7 +23,7 @@ class Local_api extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode(["order_items" => $order_items]);
 	}
-	
+	/*
 	public function get_sales_order(){
 		//llamasys/local_api/get_sales_order?key=lgepr&f=2024-01-01&t=2024-12-31
 		
@@ -67,23 +67,34 @@ class Local_api extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode($res);
 	}
+	*/
+	
+	public function get_exchange_rate(){
+		//llamasys/local_api/get_exchange_rate?key=lgepr
+		
+		$key = $this->input->get("key");
+		$res = [];
+		
+		if ($key === "lgepr") $res = ["exchange_rate_ttm" => round($this->my_func->get_exchange_rate_month_ttm(date("Y-m-d")), 2)];
+		else $res = ["msg" => "Key error."];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
 	
 	public function get_obs_magento(){
 		//llamasys/local_api/get_obs_magento?key=lgepr&f=2024-01-01&t=2024-12-31
 		
-		$res = [];
-		
-		$key = $this->input->get("key");
-		$f = $this->input->get("f");
-		$t = $this->input->get("t");
-		
-		if ($f and $t and ($key === "lgepr")){
-			$filter = [
-				"local_time >=" => $f." 00:00:00",
-				"local_time <=" => $t." 23:59:59",
+		if ($this->input->get("key") === "lgepr"){
+			$w_m = ["local_time >=" => date("Y-m-01 00:00:00")." 00:00:00", "local_time <=" => date("Y-m-t 23:59:59")];
+			$w_in_m = [
+				[
+					"field" => "status", 
+					"values" => ["complete", "awaiting_transfer", "processing", "holded", "preparing_for_delivery", "picking_for_delivery", "on_delivery", "delivery_completed"],
+				],
 			];
 			
-			$res = $this->gen_m->filter("obs_magento_item", false, $filter);
+			$res = ["magentos" => $this->gen_m->filter("obs_magento", false, $w_m, null, $w_in_m, [["local_time", "desc"]])];
 		}else $res = ["msg" => "Error"];
 		
 		header('Content-Type: application/json');
@@ -131,19 +142,6 @@ class Local_api extends CI_Controller {
 			
 			$res = ["gerp_iods" => $gerps];
 		}else $res = ["msg" => "Error"];
-		
-		header('Content-Type: application/json');
-		echo json_encode($res);
-	}
-	
-	public function get_exchange_rate(){
-		//llamasys/local_api/get_exchange_rate?key=lgepr
-		
-		$key = $this->input->get("key");
-		$res = [];
-		
-		if ($key === "lgepr") $res = ["exchange_rate_ttm" => round($this->my_func->get_exchange_rate_month_ttm(date("Y-m-d")), 2)];
-		else $res = ["msg" => "Key error."];
 		
 		header('Content-Type: application/json');
 		echo json_encode($res);
