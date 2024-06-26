@@ -129,7 +129,7 @@ class Local_api extends CI_Controller {
 				$g->sales_amount_usd = $g->sales_amount / $exr_ttm;
 			}
 			
-			$res = ["gerp_iod" => $gerps];
+			$res = ["gerp_iods" => $gerps];
 		}else $res = ["msg" => "Error"];
 		
 		header('Content-Type: application/json');
