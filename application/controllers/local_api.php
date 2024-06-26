@@ -181,7 +181,7 @@ class Local_api extends CI_Controller {
 			
 			$mls = $this->gen_m->filter("obs_most_likely", false, ["year" => date("Y", strtotime($d)), "month" => date("m", strtotime($d))]);
 			
-			$res = ["gerp_iods" => $mls];
+			$res = ["mls" => $mls];
 		}else $res = ["msg" => "Error"];
 		
 		header('Content-Type: application/json');
