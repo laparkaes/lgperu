@@ -27,12 +27,22 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-8">
+		<div class="col-md-6">
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Anything here</h5>
 					<div>
 						Will be developed
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-2">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Functions</h5>
+					<div class="d-grid gap-2 mt-3">
+						<a class="btn btn-primary" href="<?= base_url() ?>/dashboard/update_exchange_rate" target="_blank">Exchange Rate Load</a>
 					</div>
 				</div>
 			</div>

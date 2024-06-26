@@ -132,10 +132,25 @@ class My_func{
 		return $new;
 	}
 	
+	//get random float value between min and max
+	function get_random_float($min, $max, $precision = 2) {
+		$factor = pow(10, $precision);
+		$randomInt = mt_rand($min * $factor, $max * $factor);
+		return $randomInt / $factor;
+	}
 	
+	public function get_exchange_rate_usd($date, $curr_from = "PEN", $curr_to = "USD"){
+		$buy = $this->get_random_float(3.51, 3.91);
+		$sell = $this->get_random_float($buy + 0.03, $buy + 0.3);
+		$avg = ($buy + $sell) / 2;
+		
+		return ["date" => $date, "currency_from" => $curr_from, "currency_to" => $curr_to, "buy" => $buy, "sell" => $sell, "avg" => $avg];
+	}
 	
-	public function load_exchange_rate($date = null){
-		if (!$date) $date = date("dmY");
+	public function load_exchange_rate_sbs($date = null){
+		if ($date) $date = date("dmY", strtotime($date));
+		else $date = date("dmY");
+		
 		$token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibGdlIiwic3ViIjoibGdlIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIk1hbmFnZXIiLCJTdXBlcnZpc29yIl0sIm5iZiI6MTcxODgxOTgzOSwiZXhwIjoxNzUwMzU1ODM5LCJpc3MiOiJodHRwOi8vand0YXV0aHpzcnYuYXp1cmV3ZWJzaXRlcy5uZXQiLCJhdWQiOiIwOTkxNTNjMjYyNTE0OWJjOGVjYjNlODVlMDNmMDAyMiJ9.1ejIUlAPbq8FhggDzJIhXkYrRCMli1ghC8OI2PETwZc';
 		
 		$ch = curl_init();
@@ -156,7 +171,13 @@ class My_func{
 
 		$data = json_decode($response, true);
 		if ($data){
-			$res = ["date" => $this->date_convert_6($date),"currency" => "USD", "buy" => str_replace(",", ".", $data["valor_compra"]), "sell" => str_replace(",", ".", $data["valor_venta"])];
+			$res = [
+				"date" => $this->date_convert_6($date),
+				"currency_from" => "PEN", 
+				"currency_from" => "USD", 
+				"buy" => str_replace(",", ".", $data["valor_compra"]), 
+				"sell" => str_replace(",", ".", $data["valor_venta"])
+			];
 			print_r($res);
 		}else echo "No data";
 	}

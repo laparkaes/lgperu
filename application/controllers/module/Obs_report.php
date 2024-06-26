@@ -515,9 +515,4 @@ class Obs_report extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 
-	public function tc(){
-		//$this->my_func->load_exchange_rate("02062024");
-		echo $this->my_func->last_working_date($dateString = "2024-06-2");
-	}
-	
 }
