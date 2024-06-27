@@ -176,8 +176,7 @@ class Local_api extends CI_Controller {
 		//llamasys/local_api/get_obs_ml_month?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
-			$d = date("Y-05-01");
-			//$d = date("Y-m-d");
+			$d = date("Y-m-d");
 			
 			$mls = $this->gen_m->filter("obs_most_likely", false, ["year" => date("Y", strtotime($d)), "month" => date("m", strtotime($d)), "category !=" => null]);
 			
