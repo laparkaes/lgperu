@@ -179,7 +179,7 @@ class Local_api extends CI_Controller {
 			$d = date("Y-05-01");
 			//$d = date("Y-m-d");
 			
-			$mls = $this->gen_m->filter("obs_most_likely", false, ["year" => date("Y", strtotime($d)), "month" => date("m", strtotime($d))]);
+			$mls = $this->gen_m->filter("obs_most_likely", false, ["year" => date("Y", strtotime($d)), "month" => date("m", strtotime($d)), "category !=" => null]);
 			
 			$res = ["mls" => $mls];
 		}else $res = ["msg" => "Error"];
