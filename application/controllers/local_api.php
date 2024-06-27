@@ -173,7 +173,7 @@ class Local_api extends CI_Controller {
 	}
 
 	public function get_obs_ml_month(){
-		//llamasys/local_api/get_obs_gerp_month?key=lgepr
+		//llamasys/local_api/get_obs_ml_month?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
 			$d = date("Y-05-01");
