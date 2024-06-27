@@ -170,7 +170,6 @@
 						?>
 						</div>
 						<div class="col-md-12">
-						<?= print_r($statistics); ?>
 							<div class="card">
 								<div class="card-body">
 									<h5 class="card-title">Daily</h5>
@@ -184,10 +183,10 @@
 										$chart_daily_xaxis[] = $day;
 									}
 									?>
-									<table class="table text-center">
+									<table class="table text-center" style="font-size: 12px;">
 										<thead>
 											<tr>
-												<th scope="col" class="text-start">K USD<br/>Hour\Day</th>
+												<th scope="col" class="text-start" style="width: 90px;">K USD<br/>Hour\Day</th>
 												<?php foreach($dates_between as $date){ $day = date("d", strtotime($date)); ?>
 												<th scope="col"><?= $day ?></th>
 												<?php } ?>
@@ -521,7 +520,7 @@ function set_charts(){
 	//chart_daily
 	echarts.init(document.querySelector("#chart_daily")).setOption({
 		tooltip: {trigger: 'axis', axisPointer: {type: 'cross', label: {backgroundColor: '#6a7985'}}},
-		grid: {left: '3%', right: '3%', bottom: '3%', containLabel: true},
+		grid: {left: '95px', right: '25px', bottom: '3%', containLabel: true},
 		xAxis: [{type: 'category', boundaryGap: false, data: JSON.parse($("#chart_daily_xaxis").html())}],
 		yAxis: [{type: 'value'}],
 		series: [
