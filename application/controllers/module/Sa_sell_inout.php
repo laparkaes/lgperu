@@ -13,7 +13,15 @@ class Sa_sell_inout extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 	}
 	
-	private function get_sell_inout($customer_id, $product_id){
+	private function get_sell_inout($bill_to){
+		echo $bill_to;
+	}
+	
+	public function test(){
+		$this->get_sell_inout("PE000968001B");
+	}
+	
+	private function get_sell_inout_($customer_id, $product_id){
 		$row  = new stdClass;
 		$row->date = null;
 		$row->u_price = null;
@@ -362,60 +370,6 @@ class Sa_sell_inout extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	public function test_customer(){
-		
-		$customer_ids = [];
-		$customers = array_merge($this->gen_m->only("sell_in", "customer_id"), $this->gen_m->only("sell_out", "customer_id"));
-		foreach($customers as $c) $customer_ids[] = $c->customer_id;
-		
-		array_unique($customer_ids);
-		print_r($customer_ids);
-		
-		//$customers = $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]); print_r($customers);
-	}
-	
-	public function test_sell_inout(){
-		
-		function print_sell_inout($inout){
-			echo "<table>";
-			echo "<tr><td>Date</td><td>U/Price</td><td>Sell-in</td><td>Sell-out</td><td>Stock Customer</td><td>Stock LG</td><td>Stock Diff</td><td>Invoice</td><td>Invoices</td></tr>";
-			
-			foreach($inout as $io){
-				echo "<tr>";
-				echo "<td>".$io->date."</td>";
-				echo "<td>".(($io->u_price > 0) ? $io->currency." ".number_format($io->u_price, 2) : "")."</td>";
-				echo "<td>".$io->sell_in."</td>";
-				echo "<td>".$io->sell_out."</td>";
-				echo "<td>".(($io->sell_out) ? $io->stock_customer : "")."</td>";
-				echo "<td>".$io->stock_lg."</td>";
-				echo "<td>".$io->stock_diff."</td>";
-				echo "<td>".$io->invoice."</td>";
-				echo "<td style='width: 300px;'>"; 
-				//set invoices
-				$aux = [];
-				foreach($io->invoices as $inv){
-					$i_aux = $inv["invoice"];
-					$i_code = ($i_aux) ? $i_aux->invoice : "No Invoice";
-					$i_price = ($i_aux) ? " * ".$i_aux->currency." ".number_format($i_aux->u_price, 2) : "";
-					$aux[] = $i_code." (".number_format($inv["qty"]).$i_price.")";
-				}
-				echo implode("<br/>", $aux);
-				echo "</td>";
-				echo "</tr>";
-			}
-			
-			echo "</table>";
-		}
-		
-		echo "<style>table td{padding: 5px 10px;}</style>";
-		
-		$inout = $this->get_sell_inout(5, 274);
-		if ($inout){
-			//echo "Product: ".$prd->model."<br/><br/>";
-			print_sell_inout($inout);
-		}
-	}
-	
 	private function get_customer($customer, $bill_to_code){
 		$cus = $this->gen_m->unique("customer", "bill_to_code", $bill_to_code);
 		if (!$cus){
@@ -438,7 +392,7 @@ class Sa_sell_inout extends CI_Controller {
 		return $inv;
 	}
 	
-	public function sell_in_excel($sheet){
+	public function sell_in_excel($sheet){//ok 20240627
 		echo "Starting sell-in data save process. Don't close this tab.<br/><br/>";
 		
 		$max_row = $sheet->getHighestRow();
@@ -467,16 +421,68 @@ class Sa_sell_inout extends CI_Controller {
 				if (!$row[$var]) $row[$var] = null;
 			}
 			
-			$row["closed_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('E'.$i)->getFormattedValue())));
+			if ($row["order_qty"]){
+				$row["closed_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('E'.$i)->getFormattedValue())));
+			
+				//filter
+				$w = ["bill_to_code" => $row["bill_to_code"], "model" => $row["model"], "closed_date" => $row["closed_date"], "invoice_no" => $row["invoice_no"]];
+				$si = $this->gen_m->filter("sa_sell_in", false, $w);
+				if ($si){
+					$this->gen_m->update("sa_sell_in", ["sell_in_id" => $si[0]->sell_in_id], $row);
+					$updated++;
+				}else{
+					$this->gen_m->insert("sa_sell_in", $row);
+					$inserted++;
+				}
+			}
+		}
+		
+		echo number_format($inserted)." inserted and ".number_format($updated)." updated.";
+	}
+	
+	public function sell_out_excel($sheet){//ok 20240627
+		echo "Starting sell-in data save process. Don't close this tab.<br/><br/>";
+		
+		$max_row = $sheet->getHighestRow();
+		//$max_row = 2000;
+		
+		$vars = [
+			"year", 
+			"channel", 
+			"account", 
+			"customer_code", 
+			"division", 
+			"line", 
+			"week", 
+			"sunday", 
+			"model", 
+			"suffix", 
+			"units", 
+			"amount", 
+			"stock", 
+		];
+		
+		$updated = $inserted = 0;
+		
+		for($i = 2; $i < $max_row; $i++){
+			$row = [];
+			foreach($vars as $var_i => $var){
+				$row[$var] = trim($sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue());
+				if (!$row[$var]) $row[$var] = null;
+			}
+			
+			$row["sunday"] = date("Y-m-d", strtotime(trim($sheet->getCell('H'.$i)->getFormattedValue())));
+			if (!$row["units"]) $row["units"] = 0;
+			if (!$row["amount"]) $row["amount"] = 0;
 			
 			//filter
-			$w = ["bill_to_code" => $row["bill_to_code"], "model" => $row["model"], "closed_date" => $row["closed_date"], "invoice_no" => $row["invoice_no"]];
-			$si = $this->gen_m->filter("sa_sell_in", false, $w);
-			if ($si){
-				$this->gen_m->update("sa_sell_in", ["sell_in_id" => $si[0]->sell_in_id], $row);
+			$w = ["customer_code" => $row["customer_code"], "sunday" => $row["sunday"], "suffix" => $row["suffix"]];
+			$so = $this->gen_m->filter("sa_sell_out", false, $w);
+			if ($so){
+				$this->gen_m->update("sa_sell_out", ["sell_out_id" => $so[0]->sell_out_id], $row);
 				$updated++;
 			}else{
-				$this->gen_m->insert("sa_sell_in", $row);
+				$this->gen_m->insert("sa_sell_out", $row);
 				$inserted++;
 			}
 		}
@@ -484,45 +490,7 @@ class Sa_sell_inout extends CI_Controller {
 		echo number_format($inserted)." inserted and ".number_format($updated)." updated.";
 	}
 	
-	public function sell_out_excel($sheet){
-		echo "Starting sell-out data save process. Don't close this tab.<br/><br/>";
-		
-		$max_row = $sheet->getHighestRow();
-		//$max_row = 500;
-		
-		//preparing product channel id array
-		$cha_arr = [];
-		$cha_rec = $this->gen_m->all("sell_out_channel");
-		foreach($cha_rec as $cha) $cha_arr[$cha->channel] = $cha->channel_id;
-		
-		$data = [];
-		for ($row = 2; $row <= $max_row; $row++){
-			$qty = trim($sheet->getCell('K'.$row)->getValue());
-			if ($qty != 0){
-				$model = trim($sheet->getCell('J'.$row)->getValue());
-				$product = $this->gen_m->unique("product", "model", $model);
-				if ($product){
-					$customer = $this->get_customer(trim($sheet->getCell('C'.$row)->getValue()), trim($sheet->getCell('D'.$row)->getValue()));
-					
-					$aux = [
-						"customer_id" => ($customer) ? $customer->customer_id : null,
-						"product_id" => ($product) ? $product->product_id : null,
-						"channel_id" => $cha_arr[trim($sheet->getCell('B'.$row)->getFormattedValue())],
-						"date" => date("Y-m-d", strtotime(trim($sheet->getCell('H'.$row)->getFormattedValue()))),
-						"qty" => $qty,
-						"amount" => trim($sheet->getCell('L'.$row)->getValue()),
-						"stock" => trim($sheet->getCell('M'.$row)->getValue()),
-					];
-					
-					if (!$this->gen_m->filter("sell_out", true, $aux)) $data[] = $aux;
-				}else echo "No model registered: ".$model."<br/>";
-			}
-		}
-		
-		echo number_format(($data) ? $this->gen_m->insert_m("sell_out", $data) : 0)." new sell-out registered. You can close this tab now.";
-	}
-	
-	public function process_sell_inout_file(){
+	public function process_sell_inout_file(){//ok 20240627
 		ini_set("memory_limit","1024M");
 		set_time_limit(0);
 		
@@ -559,9 +527,7 @@ class Sa_sell_inout extends CI_Controller {
 			($h[7] === "Order Qty") and 
 			($h[8] === "Unit Selling  Price") and 
 			($h[9] === "Order Amount") and 
-			($h[10] === "Order Amount (PEN)") and 
-			($h[11] === "") and 
-			($h[12] === "")
+			($h[10] === "Order Amount (PEN)")
 		) $f_type = "in";
 		
 		if (
@@ -591,7 +557,7 @@ class Sa_sell_inout extends CI_Controller {
 		}
 	}
 	
-	public function upload_sell_inout_file(){
+	public function upload_sell_inout_file(){//ok 20240627
 		$type = "error"; $url = ""; $msg = "";
 		
 		$config = [
@@ -735,75 +701,5 @@ class Sa_sell_inout extends CI_Controller {
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
-	}
-
-	public function test(){
-		$prods = [
-			"22MR410-B.AWFQ", 
-			"22SM3G-B.AWF", 
-			"24MS500-B.AWF", 
-			"27KC3PK-C.AWFQ", 
-			"49UM5N-E.AWF", 
-			"49VL5G-A.AWF", 
-			"50NANO80TSA.AWH", 
-			"50QNED80TSA.AWF", 
-			"50UT7300PSA.AWFQ", 
-			"55NANO80TSA.AWF", 
-			"55NANO80TSA.AWH", 
-			"55UK6200PSA.AWF", 
-			"55UT7300PSA.AWFQ", 
-			"65NANO80TSA.AWF", 
-			"65UT7300PSA.AWFQ", 
-			"75QNED80SQA.AWF", 
-			"75QNED85SQA.AWF", 
-			"75QNED90TSA.AWF", 
-			"ACAH045LETB.AAAAAAA", 
-			"AK-W240DCA0.ADGTLAT", 
-			"AN-MR19BA.AWP", 
-			"DF10BVC2S6.BBLGLGP", 
-			"GS66SDP.APZGLPR", 
-			"GS66SXN.APZGLPR", 
-			"GS66SXT.AMCGLPR", 
-			"OLED77G4PSA.AWF", 
-			"OLED77Z3PSA.AWF", 
-			"OLED83C4PSA.AWF", 
-			"PL2.DPERLLK", 
-			"PL2S.DPERLLK", 
-			"TRIPOAUD19.PRO", 
-			"TS1605NS.ASFGLGP", 
-			"USC9S.DGBRPV", 
-			"WD12VVC3S6C.ASSGLGP", 
-			"WT16BVTB.ABMGLGP", 
-			"WT17BV6T.ABMGLGP", 
-			"WT17DV6T.ASFGLGP", 
-			"WT19BV6T.ABMGLGP", 
-			"WT19DV6T.ASFGLGP", 
-		];
-		
-		foreach($prods as $p){
-			$lvl4 = null;
-			$so = $this->gen_m->filter("obs_gerp_sales_order", false, ["model" => $p]);
-			if ($so) $lvl4 = $so[0]->product_level4_name;
-			else{
-				$so = $this->gen_m->filter("dash_sales_order_inquiry", false, ["model" => $p]);
-				if ($so) $lvl4 = $so[0]->pl4_name;
-			}
-			
-			if ($lvl4) $this->create_product($lvl4, $p);
-			else echo $p."<br/>";
-		}
-	}
-	
-	public function create_product($lvl4, $model){
-		//echo $model." ".$lvl4."<br/>";
-		
-		if ($lvl4 === "OLED TV 77 (8K)") $line_id = 319;
-		else $line_id = $this->gen_m->unique("product_line", "line", $lvl4)->line_id;
-		
-		$f = ["line_id" => $line_id, "model" => $model];
-		$prod = $this->gen_m->filter("product", true, $f);
-		if (!$prod) $this->gen_m->insert("product", $f);
-		
-		//print_r($f); echo "<br/>"; print_r($prod); echo "<br/>"; echo "<br/>";
 	}
 }
