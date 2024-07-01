@@ -56,7 +56,12 @@
 		<div class="col-md-4">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Upload Data</h5>
+					<div class="d-flex justify-content-between align-items-center">
+						<h5 class="card-title">Upload Data</h5>
+						<div>
+							Templates: <a href="<?= base_url() ?>template/sa_sell_in.xlsx">Sell-In</a> / <a href="<?= base_url() ?>template/sa_sell_out.xlsx">Sell-Out</a>
+						</div>
+					</div>
 					<form class="row g-3" id="form_upload_sell_inout">
 						<div class="col-12">
 							<label class="form-label">File</label>
