@@ -14,82 +14,19 @@
 		<div class="col-md-4">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Show Sell-in/out Report</h5>
+					<h5 class="card-title">Sell-in/out Summary</h5>
 					<form class="row g-3">
 						<div class="col-md-12">
 							<label class="form-label">Customer</label>
 							<select class="form-select" name="cus">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($customers as $c){ if($c->bill_to_code){ ?>
-								<option <?= ($cus == $c->customer_id) ? "selected" : "" ?> value="<?= $c->customer_id ?>">[<?= $c->bill_to_code ?>] <?= $c->customer ?></option>
+								<option <?= ($this->input->get("cus") == $c->bill_to_code) ? "selected" : "" ?> value="<?= $c->bill_to_code ?>">[<?= $c->bill_to_code ?>] <?= $c->bill_to_name ?></option>
 								<?php }} ?>
 							</select>
 						</div>
-						<div class="col-md-3">
-							<label class="form-label">Division</label>
-							<select class="form-select" id="sl_lz" name="lz">
-								<option value="" selected="">Choose...</option>
-								<?php foreach($lvl_z as $l){ $s = ($lz == $l->line_id) ? "selected" : ""; ?>
-								<option value="<?= $l->line_id ?>" <?= $s ?>><?= $l->line ?></option>
-								<?php } ?>
-							</select>
-						</div>
-						<div class="col-md-3">
-							<label class="form-label">Line 1</label>
-							<select class="form-select" id="sl_li" name="li">
-								<option value="" selected="">Choose...</option>
-								<?php foreach($lvl_i as $l){ $d = ($lz == $l->parent_id) ? "" : "d-none"; $s = ($li == $l->line_id) ? "selected" : ""; ?>
-								<option class="sl_li sl_lz_<?= $l->parent_id ?> <?= $d ?>" value="<?= $l->line_id ?>" <?= $s ?>><?= $l->line ?></option>
-								<?php } ?>
-							</select>
-						</div>
-						<div class="col-md-2">
-							<label class="form-label">Line 2</label>
-							<select class="form-select" id="sl_lii" name="lii">
-								<option value="" selected="">Choose...</option>
-								<?php foreach($lvl_ii as $l){ $d = ($li == $l->parent_id) ? "" : "d-none"; $s = ($lii == $l->line_id) ? "selected" : ""; ?>
-								<option class="sl_lii sl_li_<?= $l->parent_id ?> <?= $d ?>" value="<?= $l->line_id ?>" <?= ($lii == $l->line_id) ? "selected" : "" ?>><?= $l->line ?></option>
-								<?php } ?>
-							</select>
-						</div>
-						<div class="col-md-2">
-							<label class="form-label">Line 3</label>
-							<select class="form-select" id="sl_liii" name="liii">
-								<option value="" selected="">Choose...</option>
-								<?php foreach($lvl_iii as $l){ $d = ($lii == $l->parent_id) ? "" : "d-none"; $s = ($liii == $l->line_id) ? "selected" : ""; ?>
-								<option class="sl_liii sl_lii_<?= $l->parent_id ?> <?= $d ?>" value="<?= $l->line_id ?>" <?= ($liii == $l->line_id) ? "selected" : "" ?>><?= $l->line ?></option>
-								<?php } ?>
-							</select>
-						</div>
-						<div class="col-md-2">
-							<label class="form-label">Line 4</label>
-							<select class="form-select" id="sl_liv" name="liv">
-								<option value="" selected="">Choose...</option>
-								<?php foreach($lvl_iv as $l){ $d = ($liii == $l->parent_id) ? "" : "d-none"; $s = ($liv == $l->line_id) ? "selected" : ""; ?>
-								<option class="sl_liv sl_liii_<?= $l->parent_id ?> <?= $d ?>" value="<?= $l->line_id ?>" <?= ($liv == $l->line_id) ? "selected" : "" ?>><?= $l->line ?></option>
-								<?php } ?>
-							</select>
-						</div>
-						<div class="col-md-6">
-							<label class="form-label">Product</label>
-							<select class="form-select" id="sl_prd" name="prd">
-								<option value="" selected="">Choose...</option>
-								<?php foreach($products as $p){ if ($p->line_id){
-									if ($liv) $d = $liv == $p->lvl_iv_id ? "" : "d-none";
-									elseif ($liii) $d = $liii == $p->lvl_iii_id ? "" : "d-none";
-									elseif ($lii) $d = $lii == $p->lvl_ii_id ? "" : "d-none";
-									elseif ($li) $d = $li == $p->lvl_i_id ? "" : "d-none";
-									elseif ($lz) $d = $lz == $p->lvl_z_id ? "" : "d-none";
-									else $d = "d-none";
-									?>
-								<option class="sl_prd prl_<?= $p->lvl_z_id ?> prl_<?= $p->lvl_i_id ?> prl_<?= $p->lvl_ii_id ?> prl_<?= $p->lvl_iii_id ?> prl_<?= $p->lvl_iv_id ?> <?= $d ?>" <?= ($prd == $p->product_id) ? "selected" : "" ?> value="<?= $p->product_id ?>"><?= $p->model ?></option>
-								<?php }} ?>
-							</select>
-						</div>
-						<div class="col-md-6 flex-fill align-self-end">
-							<div class="d-grid gap-2">
-								<button type="submit" class="btn btn-primary">Submit</button>
-							</div>
+						<div class="col-12 text-center pt-3">
+							<button type="submit" class="btn btn-primary">Submit</button>
 						</div>
 					</form>
 				</div>
@@ -105,7 +42,7 @@
 							<select class="form-select" name="cus">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($customers as $c){ if($c->bill_to_code){ ?>
-								<option <?= ($cus == $c->customer_id) ? "selected" : "" ?> value="<?= $c->customer_id ?>"><?= $c->bill_to_code ?> - <?= $c->customer ?></option>
+								<option value="<?= $c->bill_to_code ?>">[<?= $c->bill_to_code ?>] <?= $c->bill_to_name ?></option>
 								<?php }} ?>
 							</select>
 						</div>
@@ -115,6 +52,8 @@
 					</form>
 				</div>
 			</div>
+		</div>
+		<div class="col-md-4">
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Upload Data</h5>
@@ -130,165 +69,134 @@
 				</div>
 			</div>
 		</div>
-		<?php if ($sell_inouts){
-			$high_t = $sell_inouts[0]["qty"];
-			$high_b = $high_t * 0.5;
-			$medium_t = $high_b;
-			$medium_b = $high_t * 0.25;
-			$low_t = $medium_b;
-			$low_b = 0;
-			
-			$arr_h = $arr_m = $arr_l = [];
-			
-			foreach($sell_inouts as $io) switch(true){
-				case (($high_t >= $io["qty"]) and ($io["qty"] > $high_b)): $arr_h[] = $product_arr[$io["product_id"]]->model; break;
-				case (($medium_t >= $io["qty"]) and ($io["qty"] > $medium_b)): $arr_m[] = $product_arr[$io["product_id"]]->model; break;
-				case (($low_t >= $io["qty"]) and ($io["qty"] > $low_b)): $arr_l[] = $product_arr[$io["product_id"]]->model; break;
-			}
-			
-			sort($arr_h);
-			sort($arr_m);
-			sort($arr_l);
-		?>
-		<div class="col-md-4">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">High Rotation</h5>
-					<div class="overflow-auto bl_move" style="max-height: 300px;">
-						<?php if ($arr_h){ ?>
-						<ul class="list-group">
-							<?php foreach($arr_h as $a){ ?>
-							<li class="list-group-item"><?= $a ?></li>
-							<?php } ?>
-						</ul>
-						<?php }else echo "No data"; ?>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-4">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Medium</h5>
-					<div class="overflow-auto bl_move" style="max-height: 300px;">
-						<?php if ($arr_m){ ?>
-						<ul class="list-group">
-							<?php foreach($arr_m as $a){ ?>
-							<li class="list-group-item"><?= $a ?></li>
-							<?php } ?>
-						</ul>
-						<?php }else echo "No data"; ?>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-4">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Low</h5>
-					<div class="overflow-auto bl_move" style="max-height: 300px;">
-						<?php if ($arr_l){ ?>
-						<ul class="list-group">
-							<?php foreach($arr_l as $a){ ?>
-							<li class="list-group-item"><?= $a ?></li>
-							<?php } ?>
-						</ul>
-						<?php }else echo "No data"; ?>
-					</div>
-				</div>
-			</div>
-		</div>
-		<?php } ?>
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Sell-In/Out Report</h5>
-					<?php if ($sell_inouts){ ?>
-					<ul class="nav nav-tabs nav-tabs-bordered" id="myTab" role="tablist">
-						<?php $a = "active"; $s = "selected"; foreach($sell_inouts as $io){ if ($io["ios"]){ ?>
-						<li class="nav-item" role="presentation">
-							<button class="nav-link <?= $a ?>" id="prd<?= $io["product_id"] ?>t-tab" data-bs-toggle="tab" data-bs-target="#prd<?= $io["product_id"] ?>t" type="button" role="tab" aria-controls="prd<?= $io["product_id"] ?>t" aria-selected=" <?= $s ?>"><?= $product_arr[$io["product_id"]]->model ?> (<?= $io["qty"] ?>)</button>
-						</li>
-						<?php $a = $s = ""; }} ?>
-					</ul>
-					<div class="tab-content pt-3">
-						<?php $a = "show active"; foreach($sell_inouts as $io){ if ($io["ios"]){ $ios = $io["ios"]; ?>
-						<div class="tab-pane fade <?= $a ?>" id="prd<?= $io["product_id"] ?>t" role="tabpanel" aria-labelledby="prd<?= $io["product_id"] ?>t-tab">
-							<div class="table-responsive">
-								<table class="table align-middle">
-									<thead>
-										<tr>
-											<th scope="col" style="width: 80px;">#</th>
-											<th scope="col">Date</th>
-											<th scope="col">Sell-in</th>
-											<th scope="col">Sell-out</th>
-											<th scope="col">Stock<br/>(Cust. / LG / Diff)</th>
-											<th scope="col">Alert</th>
-											<!-- th scope="col">Invoice</th -->
-											<th scope="col">Invoices</th>
-											<th scope="col">LG Price</th>
-											<th scope="col">Avg Price</th>
-											<th scope="col">Sele Price</th>
-											<th scope="col">Profit</th>
-										</tr>
-									</thead>
-									<tbody>
-										<?php foreach($ios as $i => $i_io){ ?>
-										<tr>
-											<td class="text-nowrap"><?= number_format($i + 1) ?></td>
-											<td><?= $i_io->date ?></td>
-											<td><?= $i_io->sell_in ?></td>
-											<td><?= $i_io->sell_out ?></td>
-											<td>
-												<?php $aux = [];
-												$aux[] = $i_io->stock_customer ? $i_io->stock_customer : 0;
-												$aux[] = $i_io->stock_lg ? $i_io->stock_lg : 0;
-												$aux[] = $i_io->stock_diff ? $i_io->stock_diff : 0;
-												echo (($i_io->sell_out) ? implode(" / ", $aux) : ""); ?>
-											</td>
-											<td>
-												<?php if ($i_io->sell_out){ switch(true){
-													case (abs($i_io->stock_diff) > 10) : $c = "text-danger"; break;
-													case (abs($i_io->stock_diff) > 5) : $c = "text-warning"; break;
-													default: $c = "text-success";
-												} ?>
-												<i class="bi bi-circle-fill <?= $c ?>"></i>
-												<?php } ?>
-											</td>
-											<!-- td><?= $i_io->invoice ?></td -->
-											<td>
-												<?php 
-												$count = 0; 
-												foreach($i_io->invoices as $inv){
-													$i_aux = $inv["invoice"];
-													$i_code = ($i_aux) ? $i_aux->invoice : "No Invoice";
-													$i_price = ($i_aux) ? " * ".$i_aux->currency." ".number_format($i_aux->u_price, 2) : "";
-													$row = $i_code." (".number_format($inv["qty"]).$i_price.")"; ?>
-												<div class="<?= ($count) ? "d-none ln_inv ln_inv_".$i : "" ?>">
-													<?= $row ?>
-													<?php if ((!$count) and (count($i_io->invoices) > 1)){ ?>
-														<i class="bi bi-caret-down-square ms-1 ctrl_inv" id="ctrl_<?= $i ?>"></i>
+					<?php $rp = [" ", "(", ")", "/"]; ?>
+					<div class="row">
+						<div class="col-md-2">
+							<label class="form-label">Model Category</label>
+							<select class="form-select mb-3" id="sl_mc">
+								<option value="" selected="">--</option>
+								<?php foreach($model_categories as $item){ ?>
+								<option value="<?= str_replace($rp, "_", $item->model_category) ?>"><?= $item->model_category ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Level 1</label>
+							<select class="form-select mb-3" id="sl_lvl1">
+								<option value="" selected="">--</option>
+								<?php foreach($lvl1s as $item){ ?>
+								<option class="sl_lvl1 sl_mc_<?= str_replace($rp, "_", $item->model_category) ?>" value="<?= str_replace(" ", "_", $item->product_level1_name) ?>"><?= $item->product_level1_name ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Level 2</label>
+							<select class="form-select mb-3" id="sl_lvl2">
+								<option value="" selected="">--</option>
+								<?php foreach($lvl2s as $item){ ?>
+								<option class="d-none sl_lvl2 sl_lvl1_<?= str_replace($rp, "_", $item->product_level1_name) ?>" value="<?= str_replace(" ", "_", $item->product_level2_name) ?>"><?= $item->product_level2_name ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Level 3</label>
+							<select class="form-select mb-3" id="sl_lvl3">
+								<option value="" selected="">--</option>
+								<?php foreach($lvl3s as $item){ ?>
+								<option class="d-none sl_lvl3 sl_lvl2_<?= str_replace($rp, "_", $item->product_level2_name) ?>" value="<?= str_replace(" ", "_", $item->product_level3_name) ?>"><?= $item->product_level3_name ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Level 4</label>
+							<select class="form-select mb-3" id="sl_lvl4">
+								<option value="" selected="">--</option>
+								<?php foreach($lvl4s as $item){ ?>
+								<option class="d-none sl_lvl4 sl_lvl3_<?= str_replace($rp, "_", $item->product_level3_name) ?>" value="<?= str_replace(" ", "_", $item->product_level4_name) ?>"><?= $item->product_level4_name ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Model</label>
+							<select class="form-select mb-3" id="sl_mo">
+								<option value="" selected="">--</option>
+								<?php foreach($models as $item){ ?>
+								<option class="sl_mo sl_mc_<?= str_replace($rp, "_", $item->model_category) ?> sl_lvl1_<?= str_replace(" ", "_", $item->product_level1_name) ?> sl_lvl2_<?= str_replace(" ", "_", $item->product_level2_name) ?> sl_lvl3_<?= str_replace(" ", "_", $item->product_level3_name) ?> sl_lvl4_<?= str_replace(" ", "_", $item->product_level4_name) ?>" value="<?= $item->model ?>"><?= $item->model ?></option>
+								<?php } ?>
+							</select>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-12">
+							<ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+								<?php foreach($models as $m){ ?>
+								<li class="nav-item" role="presentation">
+									<button class="nav-link" id="pills-<?= $m->model ?>-tab" data-bs-toggle="pill" data-bs-target="#pills-<?= $m->model ?>" type="button" role="tab" aria-controls="pills-<?= $m->model ?>" aria-selected="true"><?= $m->model ?></button>
+								</li>
+								<?php } ?>
+							</ul>
+							<div class="tab-content pt-2">
+								<?php foreach($models as $m){ ?>
+								<div class="tab-pane fade" id="pills-<?= $m->model ?>" role="tabpanel" aria-labelledby="<?= $m->model ?>-tab">
+									<table class="table align-middle text-center">
+										<thead>
+											<tr>
+												<th scope="col">Date</th>
+												<th scope="col">Type</th>
+												<th scope="col">Qty</th>
+												<th scope="col">Stock Cus</th>
+												<th scope="col">LG</th>
+												<th scope="col">Diff</th>
+												<th scope="col">Alert</th>
+												<th scope="col">Amount</th>
+												<th scope="col">U/Price</th>
+												<th scope="col">U/Cost</th>
+												<th scope="col">U/Profit</th>
+												<th scope="col">Invoices</th>
+											</tr>
+										</thead>
+										<tbody>
+											<?php $list = array_reverse($sell_inouts[$m->model]); foreach($list as $item){ ?>
+											<tr>
+												<td><?= $item->date ?></td>
+												<td><?= $item->type === "in" ? "Sell-In" : "Sell-out" ?></td>
+												<td><?= number_format($item->qty) ?></td>
+												<td><?= $item->type === "out" ? number_format($item->stock_cus) : "" ?></td>
+												<td><?= number_format($item->stock_lg) ?></td>
+												<td><?= $item->type === "out" ? number_format($item->stock_diff) : "" ?></td>
+												<td>
+													<?php
+													if ($item->type === "out"){
+														$val = abs($item->stock_diff);
+														if ($val < 5) $color = "success";
+														else if ($val < 10) $color = "warning";
+														else $color = "danger";
+													?>
+													<i class="bi bi-circle-fill text-<?= $color ?>"></i>
 													<?php } ?>
-												</div>
-												<?php $count++;} ?>
-											</td>
-											<td><?= (($i_io->u_price > 0) ? $i_io->currency." ".number_format($i_io->u_price, 2) : "") ?></td>
-											<td><?= (($i_io->price_avg > 0) ? "S/ ".number_format($i_io->price_avg, 2) : "") ?></td>
-											<td><?= (($i_io->sale_price > 0) ? "S/ ".number_format($i_io->sale_price, 2) : "") ?></td>
-											<td><span class="text-<?= $i_io->profit > 0 ? "success" : "danger" ?>"><?= (($i_io->profit != 0) ? "S/ ".number_format(abs($i_io->profit), 2) : "") ?></span></td>
-										</tr>
-										<?php } ?>
-									</tbody>
-								</table>
+												</td>
+												<td><?= number_format($item->amount, 2) ?></td>
+												<td><?= number_format($item->unit_price, 2) ?></td>
+												<td><?= $item->unit_cost > 0 ? number_format($item->unit_cost, 2) : "-" ?></td>
+												<td><?= (($item->unit_profit > 0) and ($item->unit_cost > 0)) ? number_format($item->unit_profit, 2) : "-" ?></td>
+												<td>
+													<?php foreach($item->invoices as $inv){ ?>
+													<div><?= $inv["no"] ?> (<?= $inv["qty"] ?> * <?= number_format($inv["unit_price"], 2) ?>)</div>
+													<?php } ?>
+												</td>
+											</tr>
+											<?php } ?>
+										</tbody>
+									</table>
+								</div>
+								<?php } ?>
 							</div>
 						</div>
-						<?php $a = ""; }} ?>
 					</div>
-					<?php }else{ ?>
-					<div class="alert alert-primary alert-dismissible fade show text-center mb-0" role="alert">
-						Select customer, product division and line 1 at least to make Sell-In/Out table.
-					</div>
-					<?php } ?>
 				</div>
 			</div>
 		</div>
@@ -311,32 +219,33 @@
 									<thead>
 										<tr>
 											<th scope="col" style="width: 80px;">#</th>
-											<th scope="col">Date</th>
-											<th scope="col">Invoice</th>
-											<th scope="col">Customer</th>
 											<th scope="col">Bill to</th>
-											<th scope="col">Line</th>
+											<th scope="col">Bill name</th>
+											<th scope="col">Date</th>
+											<th scope="col">Division</th>
+											<th scope="col">Level 1</th>
 											<th scope="col">Model</th>
+											<th scope="col">Invoice</th>
 											<th scope="col">Qty</th>
-											<th scope="col"><div class="text-end">U/Price</div></th>
-											<th scope="col"><div class="text-end">Amount</div></th>
+											<th scope="col">U/Price</th>
+											<th scope="col">Amount</th>
 										</tr>
 									</thead>
 									<tbody>
 										<?php foreach($sell_ins as $i => $in){ 
-											$curr = $currency_arr[$in->currency_id];
 											$pre = ($in->order_amount < 0) ? "-" : ""; ?>
 										<tr>
 											<td class="text-nowrap"><?= number_format($i + 1) ?></td>
+											<td><?= $in->bill_to_code ?></td>
+											<td><?= $in->bill_to_name ?></td>
 											<td><?= $in->closed_date ?></td>
-											<td><?= $invoice_arr[$in->invoice_id]->invoice ?></td>
-											<td><?= $customer_arr[$in->customer_id]->customer ?></td>
-											<td><?= $customer_arr[$in->customer_id]->bill_to_code ?></td>
-											<td><?= $product_arr[$in->product_id]->lines ?></td>
-											<td><?= $product_arr[$in->product_id]->model ?></td>
+											<td><?= $in->model_category ?></td>
+											<td><?= $in->product_level1_name ?></td>
+											<td><?= $in->model ?></td>
+											<td><div class="text-nowrap"><?= $in->invoice_no ?></div></td>
 											<td><?= number_format($in->order_qty) ?></td>
-											<td><div class="text-end"><?= $currency_arr[$in->currency_id]->symbol." ".number_format($in->unit_selling_price, 2) ?></div></td>
-											<td><div class="text-end"><?= $pre." ".$curr->symbol." ".number_format(abs($in->order_amount), 2).(($curr->currency !== "PEN") ? " (".$pre." S/ ".number_format(abs($in->order_amount_pen), 2).")" : "") ?></div></td>
+											<td><div class="text-nowrap"><?= $in->currency." ".number_format($in->unit_selling_price, 2) ?></div></td>
+											<td><div class="text-nowrap"><?= $pre." ".$in->currency." ".number_format(abs($in->order_amount), 2) ?></div></td>
 										</tr>
 										<?php } ?>
 									</tbody>
@@ -349,30 +258,32 @@
 									<thead>
 										<tr>
 											<th scope="col" style="width: 80px;">#</th>
-											<th scope="col">Date</th>
-											<th scope="col">Customer</th>
 											<th scope="col">Bill to</th>
+											<th scope="col">Customer</th>
+											<th scope="col">Channel</th>
+											<th scope="col">Date</th>
+											<th scope="col">Division</th>
 											<th scope="col">Line</th>
 											<th scope="col">Model</th>
-											<th scope="col">Channel</th>
-											<th scope="col">Stock</th>
 											<th scope="col">Qty</th>
-											<th scope="col"><div class="text-end">Amount</div></th>
+											<th scope="col">Amount</th>
+											<th scope="col">Stock</th>
 										</tr>
 									</thead>
 									<tbody>
-										<?php foreach($sell_outs as $i => $out){ //sell-out always use PEN ?>
+										<?php foreach($sell_outs as $i => $out){ ?>
 										<tr>
 											<td class="text-nowrap"><?= number_format($i + 1) ?></td>
-											<td><?= $out->date ?></td>
-											<td><?= $customer_arr[$out->customer_id]->customer ?></td>
-											<td><?= $customer_arr[$out->customer_id]->bill_to_code ?></td>
-											<td><?= $product_arr[$out->product_id]->lines ?></td>
-											<td><?= $product_arr[$out->product_id]->model ?></td>
-											<td><?= $channel_arr[$out->channel_id]->channel ?></td>
+											<td><?= $out->customer_code ?></td>
+											<td><?= $out->account ?></td>
+											<td><?= $out->channel ?></td>
+											<td><?= $out->sunday ?></td>
+											<td><?= $out->division ?></td>
+											<td><?= $out->line ?></td>
+											<td><?= $out->suffix ?></td>
+											<td><?= number_format($out->units) ?></td>
+											<td><?= "PEN ".number_format($out->amount, 2) ?></td>
 											<td><?= number_format($out->stock) ?></td>
-											<td><?= number_format($out->qty) ?></td>
-											<td><div class="text-end"><?= "S/ ".number_format($out->amount, 2) ?></div></td>
 										</tr>
 										<?php } ?>
 									</tbody>
@@ -385,10 +296,66 @@
 		</div> 
 	</div>
 </section>
-
-
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+	$('#sl_mc').change(function(){
+		$("#sl_lvl1").val(""); $('#sl_lvl1 option.sl_lvl1').addClass('d-none'); 
+		$("#sl_lvl2").val(""); $('#sl_lvl2 option.sl_lvl2').addClass('d-none'); 
+		$("#sl_lvl3").val(""); $('#sl_lvl3 option.sl_lvl3').addClass('d-none'); 
+		$("#sl_lvl4").val(""); $('#sl_lvl4 option.sl_lvl4').addClass('d-none'); 
+		$("#sl_mo").val(""); $('#sl_mo option.sl_mo').addClass('d-none'); 
+		
+		var selected = $(this).val();
+		if (selected != "") $('option.sl_mc_' + selected).removeClass('d-none');
+		else{
+			$('#sl_lvl1 option.sl_lvl1').removeClass('d-none');
+			$('#sl_mo option.sl_mo').removeClass('d-none');
+		}
+    });
+	
+	$('#sl_lvl1').change(function(){
+		$("#sl_lvl2").val(""); $('#sl_lvl2 option.sl_lvl2').addClass('d-none'); 
+		$("#sl_lvl3").val(""); $('#sl_lvl3 option.sl_lvl3').addClass('d-none'); 
+		$("#sl_lvl4").val(""); $('#sl_lvl4 option.sl_lvl4').addClass('d-none'); 
+		$("#sl_mo").val(""); $('#sl_mo option.sl_mo').addClass('d-none'); 
+		
+		var selected = $(this).val();
+		if (selected != "") $('option.sl_lvl1_' + selected).removeClass('d-none');
+		else $('#sl_mo option.sl_mo_' + $("#sl_mc").val()).removeClass('d-none');
+    });
+	
+	$('#sl_lvl2').change(function(){
+		$("#sl_lvl3").val(""); $('#sl_lvl3 option.sl_lvl3').addClass('d-none'); 
+		$("#sl_lvl4").val(""); $('#sl_lvl4 option.sl_lvl4').addClass('d-none'); 
+		$("#sl_mo").val(""); $('#sl_mo option.sl_mo').addClass('d-none'); 
+		
+		var selected = $(this).val();
+		if (selected != "") $('option.sl_lvl2_' + selected).removeClass('d-none');
+		else $('#sl_mo option.sl_lvl1_' + $("#sl_lvl1").val()).removeClass('d-none');
+    });
+	
+	$('#sl_lvl3').change(function(){
+		$("#sl_lvl4").val(""); $('#sl_lvl4 option.sl_lvl4').addClass('d-none'); 
+		$("#sl_mo").val(""); $('#sl_mo option.sl_mo').addClass('d-none'); 
+		
+		var selected = $(this).val();
+		if (selected != "") $('option.sl_lvl3_' + selected).removeClass('d-none');
+		else $('#sl_mo option.sl_lvl2_' + $("#sl_lvl2").val()).removeClass('d-none');
+    });
+	
+	$('#sl_lvl4').change(function(){
+		$("#sl_mo").val(""); $('#sl_mo option.sl_mo').addClass('d-none'); 
+		
+		var selected = $(this).val();
+		if (selected != "") $('option.sl_lvl4_' + selected).removeClass('d-none');
+		else $('#sl_mo option.sl_lvl3_' + $("#sl_lvl3").val()).removeClass('d-none');
+    });
+	
+	
+	
+	
+	
+	
 	if ($(".bl_move").length > 0){
 		var height_n = Math.max($(".bl_move")[0].clientHeight, $(".bl_move")[1].clientHeight, $(".bl_move")[2].clientHeight);
 		$(".bl_move").height(height_n);
