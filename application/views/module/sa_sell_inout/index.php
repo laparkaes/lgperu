@@ -125,27 +125,18 @@
 								<?php } ?>
 							</select>
 						</div>
-						<div class="col-md-2">
-							<label class="form-label">Model</label>
-							<select class="form-select mb-3" id="sl_mo">
-								<option value="" selected="">--</option>
-								<?php foreach($models as $item){ ?>
-								<option class="sl_mo sl_mc_<?= str_replace($rp, "_", $item->model_category) ?> sl_lvl1_<?= str_replace(" ", "_", $item->product_level1_name) ?> sl_lvl2_<?= str_replace(" ", "_", $item->product_level2_name) ?> sl_lvl3_<?= str_replace(" ", "_", $item->product_level3_name) ?> sl_lvl4_<?= str_replace(" ", "_", $item->product_level4_name) ?>" value="<?= $item->model ?>"><?= $item->model ?></option>
-								<?php } ?>
-							</select>
-						</div>
 					</div>
 					<div class="row">
 						<div class="col-md-12">
-							<ul class="nav nav-pills mb-3" id="summary-tab" role="tablist">
-								<?php foreach($models as $m){ ?>
+							<ul class="nav nav-pills mb-3" id="summary-tab" role="tablist" style="max-height:200px; overflow: auto;">
+								<?php foreach($models as $m){ if (count($sell_inouts[$m->model]) > 0){ ?>
 								<li class="nav-item tab_mc_<?= str_replace($rp, "_", $m->model_category) ?> tab_lvl1_<?= str_replace($rp, "_", $m->product_level1_name) ?> tab_lvl2_<?= str_replace($rp, "_", $m->product_level2_name) ?> tab_lvl3_<?= str_replace($rp, "_", $m->product_level3_name) ?> tab_lvl4_<?= str_replace($rp, "_", $m->product_level4_name) ?> tab_mo_<?= str_replace($rp, "_", $m->model) ?>" role="presentation">
 									<button class="nav-link" id="pills-<?= $m->model ?>-tab" data-bs-toggle="pill" data-bs-target="#pills-<?= $m->model ?>" type="button" role="tab" aria-controls="pills-<?= $m->model ?>" aria-selected="true"><?= $m->model ?></button>
 								</li>
-								<?php } ?>
+								<?php }} ?>
 							</ul>
 							<div class="tab-content pt-2" id="summary-content">
-								<?php foreach($models as $m){ ?>
+								<?php foreach($models as $m){ if (count($sell_inouts[$m->model]) > 0){ ?>
 								<div class="tab-pane fade tab_mc_<?= str_replace($rp, "_", $m->model_category) ?> tab_lvl1_<?= str_replace($rp, "_", $m->product_level1_name) ?> tab_lvl2_<?= str_replace($rp, "_", $m->product_level2_name) ?> tab_lvl3_<?= str_replace($rp, "_", $m->product_level3_name) ?> tab_lvl4_<?= str_replace($rp, "_", $m->product_level4_name) ?> tab_mo_<?= str_replace($rp, "_", $m->model) ?>"" id="pills-<?= $m->model ?>" role="tabpanel" aria-labelledby="<?= $m->model ?>-tab">
 									<table class="table align-middle text-center">
 										<thead>
@@ -161,7 +152,7 @@
 												<th scope="col">U/Price</th>
 												<th scope="col">U/Cost</th>
 												<th scope="col">U/Profit</th>
-												<th scope="col">Invoices</th>
+												<th scope="col" style="width: 320px;">Invoices</th>
 											</tr>
 										</thead>
 										<tbody>
@@ -189,8 +180,8 @@
 												<td><?= $item->unit_cost > 0 ? number_format($item->unit_cost, 2) : "-" ?></td>
 												<td><?= (($item->unit_profit > 0) and ($item->unit_cost > 0)) ? number_format($item->unit_profit, 2) : "-" ?></td>
 												<td>
-													<?php foreach($item->invoices as $inv){ ?>
-													<div><?= $inv["no"] ?> (<?= $inv["qty"] ?> * <?= number_format($inv["unit_price"], 2) ?>)</div>
+													<?php foreach($item->invoices as $i => $inv){ ?>
+													<div class=" <?= ($i > 0) ? "d-none" : "" ?>"><?= $inv["no"] ?> (<?= $inv["qty"] ?> * <?= number_format($inv["unit_price"], 2) ?>)</div>
 													<?php } ?>
 												</td>
 											</tr>
@@ -198,7 +189,7 @@
 										</tbody>
 									</table>
 								</div>
-								<?php } ?>
+								<?php }} ?>
 							</div>
 						</div>
 					</div>
@@ -345,8 +336,43 @@ function set_lvl1(selected){
 	}else set_mc($("#sl_mc").val());
 }
 
-function set_lvl2(){
+function set_lvl2(selected){
+	$("#sl_lvl3").val(""); $('#sl_lvl3 option.sl_lvl3').addClass('d-none'); 
+	$("#sl_lvl4").val(""); $('#sl_lvl4 option.sl_lvl4').addClass('d-none'); 
+	$("#sl_mo").val(""); $('#sl_mo option.sl_mo').addClass('d-none'); 
 	
+	if (selected != ""){
+		$('option.sl_lvl2_' + selected).removeClass('d-none');
+		
+		$("#summary-tab > .nav-item").addClass("d-none");
+		$("#summary-content > .tab-pane").addClass("d-none");
+		$(".tab_lvl2_" + selected).removeClass("d-none");
+	}else set_lvl1($("#sl_lvl1").val());
+}
+
+function set_lvl3(selected){
+	$("#sl_lvl4").val(""); $('#sl_lvl4 option.sl_lvl4').addClass('d-none'); 
+	$("#sl_mo").val(""); $('#sl_mo option.sl_mo').addClass('d-none'); 
+	
+	if (selected != ""){
+		$('option.sl_lvl3_' + selected).removeClass('d-none');
+		
+		$("#summary-tab > .nav-item").addClass("d-none");
+		$("#summary-content > .tab-pane").addClass("d-none");
+		$(".tab_lvl3_" + selected).removeClass("d-none");
+	}else set_lvl2($("#sl_lvl2").val());
+}
+
+function set_lvl4(selected){
+	$("#sl_mo").val(""); $('#sl_mo option.sl_mo').addClass('d-none'); 
+	
+	if (selected != ""){
+		$('option.sl_lvl4_' + selected).removeClass('d-none');
+		
+		$("#summary-tab > .nav-item").addClass("d-none");
+		$("#summary-content > .tab-pane").addClass("d-none");
+		$(".tab_lvl4_" + selected).removeClass("d-none");
+	}else set_lvl3($("#sl_lvl3").val());
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -360,75 +386,20 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 	
 	$('#sl_lvl2').change(function(){
-		$("#sl_lvl3").val(""); $('#sl_lvl3 option.sl_lvl3').addClass('d-none'); 
-		$("#sl_lvl4").val(""); $('#sl_lvl4 option.sl_lvl4').addClass('d-none'); 
-		$("#sl_mo").val(""); $('#sl_mo option.sl_mo').addClass('d-none'); 
-		
-		var selected = $(this).val();
-		if (selected != "") $('option.sl_lvl2_' + selected).removeClass('d-none');
-		else $('#sl_mo option.sl_lvl1_' + $("#sl_lvl1").val()).removeClass('d-none');
+		set_lvl2($(this).val());
     });
 	
 	$('#sl_lvl3').change(function(){
-		$("#sl_lvl4").val(""); $('#sl_lvl4 option.sl_lvl4').addClass('d-none'); 
-		$("#sl_mo").val(""); $('#sl_mo option.sl_mo').addClass('d-none'); 
-		
-		var selected = $(this).val();
-		if (selected != "") $('option.sl_lvl3_' + selected).removeClass('d-none');
-		else $('#sl_mo option.sl_lvl2_' + $("#sl_lvl2").val()).removeClass('d-none');
+		set_lvl3($(this).val());
     });
 	
 	$('#sl_lvl4').change(function(){
-		$("#sl_mo").val(""); $('#sl_mo option.sl_mo').addClass('d-none'); 
-		
-		var selected = $(this).val();
-		if (selected != "") $('option.sl_lvl4_' + selected).removeClass('d-none');
-		else $('#sl_mo option.sl_lvl3_' + $("#sl_lvl3").val()).removeClass('d-none');
+		set_lvl4($(this).val());
     });
 	
 	
 	
 	
-	
-	
-	if ($(".bl_move").length > 0){
-		var height_n = Math.max($(".bl_move")[0].clientHeight, $(".bl_move")[1].clientHeight, $(".bl_move")[2].clientHeight);
-		$(".bl_move").height(height_n);
-	}
-	
-	$('#sl_lz').change(function(){
-		$("#sl_li").val(""); $('#sl_li option.sl_li').addClass('d-none'); $('#sl_li option.sl_lz_' + $(this).val()).removeClass('d-none');
-		$("#sl_lii").val(""); $('#sl_lii option.sl_lii').addClass('d-none');
-		$("#sl_liii").val(""); $('#sl_liii option.sl_liii').addClass('d-none');
-		$("#sl_liv").val(""); $('#sl_liv option.sl_liv').addClass('d-none');
-		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
-    });
-	
-	$('#sl_li').change(function(){
-		$("#sl_lii").val(""); $('#sl_lii option.sl_lii').addClass('d-none'); $('#sl_lii option.sl_li_' + $(this).val()).removeClass('d-none');
-		$("#sl_liii").val(""); $('#sl_liii option.sl_liii').addClass('d-none');
-		$("#sl_liv").val(""); $('#sl_liv option.sl_liv').addClass('d-none');
-		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
-    });
-	
-	$('#sl_lii').change(function(){
-		$("#sl_liii").val(""); $('#sl_liii option.sl_liii').addClass('d-none'); $('#sl_liii option.sl_lii_' + $(this).val()).removeClass('d-none');
-		$("#sl_liv").val(""); $('#sl_liv option.sl_liv').addClass('d-none');
-		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
-    });
-	
-	$('#sl_liii').change(function(){
-		$("#sl_liv").val(""); $('#sl_liv option.sl_liv').addClass('d-none'); $('#sl_liv option.sl_liii_' + $(this).val()).removeClass('d-none');
-		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
-    });
-	
-	$('#sl_liv').change(function(){
-		$("#sl_prd").val(""); $('#sl_prd option.sl_prd').addClass('d-none'); $('#sl_prd option.prl_' + $(this).val()).removeClass('d-none');
-    });
-	
-	$('#sl_lz_report').change(function(){
-		$("#sl_li_report").val(""); $('#sl_li_report option.sl_li').addClass('d-none'); $('#sl_li_report option.sl_lz_' + $(this).val()).removeClass('d-none');
-    });
 	
 	$('.ctrl_inv').click(function(){
 		var ln_i = $(this).attr("id").replace("ctrl_", "");
