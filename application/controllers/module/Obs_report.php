@@ -422,7 +422,7 @@ class Obs_report extends CI_Controller {
 		
 		//get gerp records based on IOD
 		$gerps = $this->get_gerp_iod($from, $to);
-		print_r($gerps);
+		
 		$data = [
 			"exchange_rate" => $exchange_rate,
 			"weeks"			=> $weeks,
