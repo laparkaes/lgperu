@@ -81,20 +81,21 @@ class Obs_report extends CI_Controller {
 		return $weeks;
 	}
 	
-	function get_gerp_iod($from, $to){
+	private function get_gerp_iod($from, $to){
 		//set db fields
 		$s_g = ["create_date", "close_date", "customer_department", "line_status", "order_category", "order_no", "line_no", "model_category", "model", "product_level1_name","product_level4_name", "product_level4_code", "item_type_desctiption", "currency", "unit_selling_price", "ordered_qty", "sales_amount", "bill_to_name"];
 		
 		//load all this month records
-		$w_g = ["create_date >=" => $from, "create_date <=" => $to, "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
-		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "asc"], ["close_date", "asc"]]);
+		$w_g = ["create_date >=" => $from, "create_date <=" => $to, "line_status !=" => "Cancelled"];
+		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "desc"], ["close_date", "desc"]]);
 		
-		//load all past month closed in this month
-		$w_g_ = ["create_date <" => $from, "close_date >=" => $from, "close_date <=" => $to, "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
-		$gerps_ = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g_, null, null, [["create_date", "asc"], ["close_date", "asc"]]);
+		//load no closed orders
+		$w_g_ = ["create_date <" => $from];
+		$w_in_ = [["field" => "line_status", "values" => ["Awaiting Fulfillment", "Awaiting Shipping", "Booked", "Pending pre-billing acceptance"]]];
+		$gerps_ = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g_, null, $w_in_, [["create_date", "desc"], ["close_date", "desc"]]);
 		
 		//return merged array
-		return array_merge($gerps_, $gerps);
+		return array_merge($gerps, $gerps_);
 	}
 	
 	private function get_dashboard($gerps, $from, $to, $exchange_rate){
@@ -421,7 +422,7 @@ class Obs_report extends CI_Controller {
 		
 		//get gerp records based on IOD
 		$gerps = $this->get_gerp_iod($from, $to);
-		
+		print_r($gerps);
 		$data = [
 			"exchange_rate" => $exchange_rate,
 			"weeks"			=> $weeks,
