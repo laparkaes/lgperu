@@ -74,11 +74,11 @@
 				</div>
 			</div>
 		</div>
+		<?php $rp = [" ", "(", ")", "/"]; ?>
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Sell-In/Out Report</h5>
-					<?php $rp = [" ", "(", ")", "/"]; ?>
 					<div class="row">
 						<div class="col-md-2">
 							<label class="form-label">Model Category</label>
@@ -137,16 +137,16 @@
 					</div>
 					<div class="row">
 						<div class="col-md-12">
-							<ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+							<ul class="nav nav-pills mb-3" id="summary-tab" role="tablist">
 								<?php foreach($models as $m){ ?>
-								<li class="nav-item" role="presentation">
+								<li class="nav-item tab_mc_<?= str_replace($rp, "_", $m->model_category) ?> tab_lvl1_<?= str_replace($rp, "_", $m->product_level1_name) ?> tab_lvl2_<?= str_replace($rp, "_", $m->product_level2_name) ?> tab_lvl3_<?= str_replace($rp, "_", $m->product_level3_name) ?> tab_lvl4_<?= str_replace($rp, "_", $m->product_level4_name) ?> tab_mo_<?= str_replace($rp, "_", $m->model) ?>" role="presentation">
 									<button class="nav-link" id="pills-<?= $m->model ?>-tab" data-bs-toggle="pill" data-bs-target="#pills-<?= $m->model ?>" type="button" role="tab" aria-controls="pills-<?= $m->model ?>" aria-selected="true"><?= $m->model ?></button>
 								</li>
 								<?php } ?>
 							</ul>
-							<div class="tab-content pt-2">
+							<div class="tab-content pt-2" id="summary-content">
 								<?php foreach($models as $m){ ?>
-								<div class="tab-pane fade" id="pills-<?= $m->model ?>" role="tabpanel" aria-labelledby="<?= $m->model ?>-tab">
+								<div class="tab-pane fade tab_mc_<?= str_replace($rp, "_", $m->model_category) ?> tab_lvl1_<?= str_replace($rp, "_", $m->product_level1_name) ?> tab_lvl2_<?= str_replace($rp, "_", $m->product_level2_name) ?> tab_lvl3_<?= str_replace($rp, "_", $m->product_level3_name) ?> tab_lvl4_<?= str_replace($rp, "_", $m->product_level4_name) ?> tab_mo_<?= str_replace($rp, "_", $m->model) ?>"" id="pills-<?= $m->model ?>" role="tabpanel" aria-labelledby="<?= $m->model ?>-tab">
 									<table class="table align-middle text-center">
 										<thead>
 											<tr>
@@ -302,31 +302,61 @@
 	</div>
 </section>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-	$('#sl_mc').change(function(){
-		$("#sl_lvl1").val(""); $('#sl_lvl1 option.sl_lvl1').addClass('d-none'); 
-		$("#sl_lvl2").val(""); $('#sl_lvl2 option.sl_lvl2').addClass('d-none'); 
-		$("#sl_lvl3").val(""); $('#sl_lvl3 option.sl_lvl3').addClass('d-none'); 
-		$("#sl_lvl4").val(""); $('#sl_lvl4 option.sl_lvl4').addClass('d-none'); 
-		$("#sl_mo").val(""); $('#sl_mo option.sl_mo').addClass('d-none'); 
+function set_mc(selected){
+	$("#sl_lvl1").val(""); $('#sl_lvl1 option.sl_lvl1').addClass('d-none'); 
+	$("#sl_lvl2").val(""); $('#sl_lvl2 option.sl_lvl2').addClass('d-none'); 
+	$("#sl_lvl3").val(""); $('#sl_lvl3 option.sl_lvl3').addClass('d-none'); 
+	$("#sl_lvl4").val(""); $('#sl_lvl4 option.sl_lvl4').addClass('d-none'); 
+	$("#sl_mo").val(""); $('#sl_mo option.sl_mo').addClass('d-none'); 
+	
+	$("#summary-tab .nav-item .nav-link").removeClass("active");
+	$("#summary-content .tab-pane").removeClass("active show");
+	
+	if (selected != ""){
+		$('option.sl_mc_' + selected).removeClass('d-none');
 		
-		var selected = $(this).val();
-		if (selected != "") $('option.sl_mc_' + selected).removeClass('d-none');
-		else{
-			$('#sl_lvl1 option.sl_lvl1').removeClass('d-none');
-			$('#sl_mo option.sl_mo').removeClass('d-none');
-		}
+		$("#summary-tab > .nav-item").addClass("d-none");
+		$("#summary-content > .tab-pane").addClass("d-none");
+		$(".tab_mc_" + selected).removeClass("d-none");
+	}else{
+		$('#sl_lvl1 option.sl_lvl1').removeClass('d-none');
+		$('#sl_mo option.sl_mo').removeClass('d-none');
+		
+		$("#summary-tab .nav-item").removeClass("d-none");
+		$("#summary-content .tab-pane").removeClass("d-none");
+	}
+}
+
+function set_lvl1(selected){
+	$("#sl_lvl2").val(""); $('#sl_lvl2 option.sl_lvl2').addClass('d-none'); 
+	$("#sl_lvl3").val(""); $('#sl_lvl3 option.sl_lvl3').addClass('d-none'); 
+	$("#sl_lvl4").val(""); $('#sl_lvl4 option.sl_lvl4').addClass('d-none'); 
+	$("#sl_mo").val(""); $('#sl_mo option.sl_mo').addClass('d-none'); 
+	
+	$("#summary-tab .nav-item .nav-link").removeClass("active");
+	$("#summary-content .tab-pane").removeClass("active show");
+
+	if (selected != ""){
+		$('option.sl_lvl1_' + selected).removeClass('d-none');
+		
+		$("#summary-tab > .nav-item").addClass("d-none");
+		$("#summary-content > .tab-pane").addClass("d-none");
+		$(".tab_lvl1_" + selected).removeClass("d-none");
+	}else set_mc($("#sl_mc").val());
+}
+
+function set_lvl2(){
+	
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+	
+	$('#sl_mc').change(function(){
+		set_mc($(this).val());
     });
 	
 	$('#sl_lvl1').change(function(){
-		$("#sl_lvl2").val(""); $('#sl_lvl2 option.sl_lvl2').addClass('d-none'); 
-		$("#sl_lvl3").val(""); $('#sl_lvl3 option.sl_lvl3').addClass('d-none'); 
-		$("#sl_lvl4").val(""); $('#sl_lvl4 option.sl_lvl4').addClass('d-none'); 
-		$("#sl_mo").val(""); $('#sl_mo option.sl_mo').addClass('d-none'); 
-		
-		var selected = $(this).val();
-		if (selected != "") $('option.sl_lvl1_' + selected).removeClass('d-none');
-		else $('#sl_mo option.sl_mo_' + $("#sl_mc").val()).removeClass('d-none');
+		set_lvl1($(this).val());
     });
 	
 	$('#sl_lvl2').change(function(){

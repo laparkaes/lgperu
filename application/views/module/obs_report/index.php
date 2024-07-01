@@ -59,9 +59,9 @@
 								<th scope="col" class="border-end">ML Actual</th>
 								<th scope="col" style="width: 180px;">Projection</th>
 								<th scope="col" class="border-end">%</th>
-								<th scope="col" style="width: 180px;">Actual</th>
+								<th scope="col" style="width: 180px;">Sales IOD</th>
 								<th scope="col" class="border-end">%</th>
-								<th scope="col">Expected</th>
+								<th scope="col">Reserved</th>
 							</tr>
 						</thead>
 						<tbody>
