@@ -154,8 +154,8 @@ class Local_api extends CI_Controller {
 		//llamasys/local_api/get_obs_gerp_month?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
-			$from = date("Y-06-01");
-			$to = date("Y-06-t");
+			$from = date("Y-m-01");
+			$to = date("Y-m-t");
 			
 			$exr_ttm = round($this->my_func->get_exchange_rate_month_ttm(date("Y-m-d")), 2);
 			$gerps = $this->get_gerp_iod($from, $to);
