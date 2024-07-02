@@ -189,228 +189,7 @@ class Sa_sell_inout extends CI_Controller {
 		print_r($summary);
 	}
 	
-	private function get_sell_inout_($customer_id, $product_id){
-		$row  = new stdClass;
-		$row->date = null;
-		$row->u_price = null;
-		$row->currency = null;
-		$row->sell_in = null;
-		$row->sell_out = null;
-		$row->stock_customer = null;
-		$row->stock_lg = null;
-		$row->stock_diff = null;
-		$row->invoice = null;
-		$row->invoices = [];
-		$row->price_avg = null;
-		$row->sale_price = null;
-		$row->profit = null;
-		
-		$w_in = [
-			"order_qty !=" => -1,
-			"customer_id" => $customer_id,
-			"product_id" => $product_id,
-		];
-		
-		//load sell-ins
-		$sell_ins = array_reverse($this->gen_m->filter("sell_in", true, $w_in, null, null, [["closed_date", "desc"], ["order_amount", "desc"]], 10)); //last 10 sell-ins
-		
-		//set first sell-out filter
-		$w_out = [
-			"customer_id" => $w_in["customer_id"],
-			"product_id" => $w_in["product_id"],
-			"date <" => ($sell_ins) ? $sell_ins[0]->closed_date : date("Y-m-d"),
-		];
-		$sell_out_first = $this->gen_m->filter("sell_out", true, $w_out, null, null, [["date", "desc"]], 1);
-		
-		$dates = [strtotime('-4 months')];
-		if ($sell_out_first) $dates[] = strtotime($sell_out_first[0]->date);
-		if ($sell_ins) $dates[] = strtotime($sell_ins[0]->closed_date);
-		
-		$date_start = date("Y-m-d", min($dates));
-
-		//load real sell-in/out
-		unset($w_out["date <"]);
-		$w_in["closed_date >="] = $w_out["date >="] = $date_start;
-		
-		$sell_ins = $this->gen_m->filter("sell_in", true, $w_in, null, null, [["closed_date", "asc"], ["order_amount", "desc"]]);
-		$sell_outs = $this->gen_m->filter("sell_out", true, $w_out, null, null, [["date", "asc"]]);
-		
-		//invoice array
-		$invoices = [];
-		
-		//merge sell-in and Sell-Out
-		$inout = [];
-		
-		foreach($sell_ins as $in){
-			if ($in->closed_date > (($sell_outs) ? $sell_outs[0]->date : date("Y-m-d"))){
-				$currency = $this->gen_m->unique("currency", "currency_id", $in->currency_id);
-				
-				$aux = clone $row;
-				$aux->date = $in->closed_date;
-				$aux->invoice_id = $in->invoice_id;
-				$aux->currency = $currency->symbol;
-				$aux->u_price = $in->unit_selling_price;
-				$aux->sell_in = $in->order_qty;
-				
-				$inout[] = clone $aux;
-				
-				if ($aux->invoice_id){
-					$inv = $this->gen_m->unique("invoice", "invoice_id", $aux->invoice_id);
-					$inv->currency = $currency->symbol;
-					$inv->u_price = $in->unit_selling_price;
-					$invoices[$aux->invoice_id] = clone $inv;
-				}
-			}
-		}
-		
-		foreach($sell_outs as $i => $out){
-			$aux = clone $row;
-			$aux->date = $out->date;
-			$aux->sell_out = $out->qty;
-			$aux->stock_customer = $out->stock;
-			$aux->sale_price = round($out->amount/$out->qty, 2);
-			
-			$inout[] = clone $aux;
-		}
-
-		usort($inout, function($a, $b) {
-			return strtotime($a->date) > strtotime($b->date);
-		});
-		
-		$ranges = [];
-		if ($sell_outs) $ranges[] = ["qty" => $sell_outs[0]->stock, "invoice_id" => ""];
-		
-		foreach($inout as $i => $io){
-			if ($io->sell_in > 0){
-				$io->invoice = (($io->invoice_id > 0) ? $invoices[$io->invoice_id]->invoice : "");
-				$ranges[] = ["qty" => $io->sell_in, "invoice_id" => $io->invoice_id];
-			}elseif ($io->sell_in < 0){
-				$ranges = array_reverse($ranges);//reverse ranges
-				
-				$var = abs($io->sell_in);
-				foreach($ranges as $i_r => $r){
-					$ranges[$i_r]["qty"] = $r["qty"] - $var;
-					
-					if ($ranges[$i_r]["qty"] <= 0){
-						$var = abs($ranges[$i_r]["qty"]);
-						unset($ranges[$i_r]);
-					}else break;
-				}
-				
-				$ranges = array_reverse($ranges);//reverse ranges to original
-			}
-			
-			if ($i){
-				if ($io->sell_out > 0){
-					$var = abs($io->sell_out);
-					foreach($ranges as $i_r => $r){
-						$ranges[$i_r]["qty"] = $r["qty"] - $var;
-						
-						if ($ranges[$i_r]["qty"] <= 0){
-							$var = abs($ranges[$i_r]["qty"]);
-							unset($ranges[$i_r]);
-						}else break;
-					}
-				}elseif ($io->sell_out < 0){
-					//use foreach because of array index
-					foreach($ranges as $i_r => $r){
-						$ranges[$i_r]["qty"] = $r["qty"] + abs($io->sell_out);
-						break;
-					}
-				}
-			}
-			
-			$io->stock_lg = 0;
-			foreach($ranges as $r){
-				$io->stock_lg += $r["qty"];
-				$io->invoices[] = ($r["invoice_id"] > 0) ? ["qty" => $r["qty"], "invoice" => clone $invoices[$r["invoice_id"]]] : ["qty" => $r["qty"], "invoice" => null];
-			}
-			
-			$io->stock_diff = $io->sell_out ? $io->stock_lg - $io->stock_customer : null;
-			
-			$aux_qty = 0;
-			$aux_amount = 0;
-			foreach($io->invoices as $inv){
-				if ($inv["invoice"]){
-					$aux_qty += $inv["qty"];
-					$aux_amount += $inv["qty"] * $inv["invoice"]->u_price;
-				}
-			}
-			
-			$io->price_avg = ($aux_qty > 0) ? $aux_amount / $aux_qty : 0;
-			$io->profit = (($io->price_avg > 0) and ($io->sale_price > 0)) ? round($io->sale_price - $io->price_avg, 2) : 0;
-		}
-		
-		return array_reverse($inout);
-	}
-	
-	private function set_product_ids($lz, $li, $lii, $liii, $liv, $prd){
-		$product_ids = [];
-		
-		switch(true){
-			case ($prd): 
-				$product_ids[] = $prd;
-				break;
-			case ($liv): 
-				$prods = $this->gen_m->filter("product", true, ["line_id" => $liv]);
-				foreach($prods as $p) $product_ids[] = $p->product_id;
-				break;
-			case ($liii):
-				$livs = $this->gen_m->filter("product_line", true, ["parent_id" => $liii]);
-				$l_arr = []; foreach($livs as $l) $l_arr[] = $l->line_id;
-				
-				$prods = $this->gen_m->filter("product", true, null, null, [["field" => "line_id", "values" => $l_arr]]);
-				foreach($prods as $p) $product_ids[] = $p->product_id;
-			
-				break;
-			case ($lii):
-				$liiis = $this->gen_m->filter("product_line", true, ["parent_id" => $lii]);
-				$l_arr = []; foreach($liiis as $l) $l_arr[] = $l->line_id;
-				
-				$livs = $this->gen_m->filter("product_line", true, null, null, [["field" => "parent_id", "values" => $l_arr]]);
-				$l_arr = []; foreach($livs as $l) $l_arr[] = $l->line_id;
-				
-				$prods = $this->gen_m->filter("product", true, null, null, [["field" => "line_id", "values" => $l_arr]]);
-				foreach($prods as $p) $product_ids[] = $p->product_id;
-			
-				break;
-			case ($li):
-				$liis = $this->gen_m->filter("product_line", true, ["parent_id" => $li]);
-				$l_arr = []; foreach($liis as $l) $l_arr[] = $l->line_id;
-				
-				$liiis = $this->gen_m->filter("product_line", true, null, null, [["field" => "parent_id", "values" => $l_arr]]);
-				$l_arr = []; foreach($liiis as $l) $l_arr[] = $l->line_id;
-				
-				$livs = $this->gen_m->filter("product_line", true, null, null, [["field" => "parent_id", "values" => $l_arr]]);
-				$l_arr = []; foreach($livs as $l) $l_arr[] = $l->line_id;
-				
-				$prods = $this->gen_m->filter("product", true, null, null, [["field" => "line_id", "values" => $l_arr]]);
-				foreach($prods as $p) $product_ids[] = $p->product_id;
-			
-				break;
-			case ($lz):
-				$lis = $this->gen_m->filter("product_line", true, ["parent_id" => $lz]);
-				$l_arr = []; foreach($lis as $l) $l_arr[] = $l->line_id;
-				
-				$liis = $this->gen_m->filter("product_line", true, null, null, [["field" => "parent_id", "values" => $l_arr]]);
-				$l_arr = []; foreach($liis as $l) $l_arr[] = $l->line_id;
-				
-				$liiis = $this->gen_m->filter("product_line", true, null, null, [["field" => "parent_id", "values" => $l_arr]]);
-				$l_arr = []; foreach($liiis as $l) $l_arr[] = $l->line_id;
-				
-				$livs = $this->gen_m->filter("product_line", true, null, null, [["field" => "parent_id", "values" => $l_arr]]);
-				$l_arr = []; foreach($livs as $l) $l_arr[] = $l->line_id;
-				
-				$prods = $this->gen_m->filter("product", true, null, null, [["field" => "line_id", "values" => $l_arr]]);
-				foreach($prods as $p) $product_ids[] = $p->product_id;
-			
-				break;
-		}
-		
-		return $product_ids;
-	}
-	
-	private function update_models(){
+	private function update_models(){//ok 2024 0701
 		$s = ["model", "model_category", "product_level1_name", "product_level2_name", "product_level3_name", "product_level4_name"];
 		$models = $this->gen_m->filter_select("sa_sell_in", false, $s, ["product_level4_name !=" => null], null, null, null, null, null, "model");
 		foreach($models as $m){
@@ -419,13 +198,12 @@ class Sa_sell_inout extends CI_Controller {
 		}
 	}
 	
-	public function index(){
+	public function index(){//ok 2024 0701
 		$bill_to_code = $this->input->get("cus");
 		$model_categories = $models = $lvl1s = $lvl2s = $lvl3s = $lvl4s = [];
 		
 		$s = ["product_level1_name", "product_level2_name", "product_level3_name", "product_level4_name", "model_category", "model"];
 		$order = [["model_category", "asc"], ["product_level1_name", "asc"], ["product_level2_name", "asc"], ["product_level3_name", "asc"], ["product_level4_name", "asc"], ["model", "asc"]];
-		//$divisions = $this->gen_m->filter_select("sa_sell_in", false, $s, ["bill_to_code" => $bill_to_code], null, null, $order, null, null, "model");
 		
 		$model_categories = $this->gen_m->filter_select("sa_sell_in", false, $s, ["bill_to_code" => $bill_to_code], null, null, $order, null, null, "model_category");
 		$lvl1s = $this->gen_m->filter_select("sa_sell_in", false, $s, ["bill_to_code" => $bill_to_code], null, null, $order, null, null, "product_level1_name");
@@ -452,28 +230,6 @@ class Sa_sell_inout extends CI_Controller {
 		];
 		
 		$this->load->view('layout', $data);
-	}
-	
-	private function get_customer($customer, $bill_to_code){
-		$cus = $this->gen_m->unique("customer", "bill_to_code", $bill_to_code);
-		if (!$cus){
-			if ($bill_to_code){
-				$cus_id = $this->gen_m->insert("customer", ["customer" => $customer, "bill_to_code" => $bill_to_code]);
-				$cus = $this->gen_m->unique("customer", "customer_id", $cus_id);	
-			}
-		}
-		
-		return $cus;
-	}
-	
-	private function get_invoice($invoice){
-		$inv = $this->gen_m->unique("invoice", "invoice", $invoice);
-		if (!$inv){
-			$inv_id = $this->gen_m->insert("invoice", ["invoice" => $invoice]);
-			$inv = $this->gen_m->unique("invoice", "invoice_id", $inv_id);
-		}
-		
-		return $inv;
 	}
 	
 	public function sell_in_excel($sheet){//ok 20240627
@@ -654,30 +410,46 @@ class Sa_sell_inout extends CI_Controller {
 		$type = "error"; $msg = $url = ""; 
 		
 		$header = [
-			"Customer",
-			"Bill To",
-			"Division",
-			"Line 1",
-			"Line 2",
-			"Line 3",
-			"Line 4",
 			"Model",
+			"Model Category",
+			"Product Level 1",
+			"Product Level 2",
+			"Product Level 3",
+			"Product Level 4",
 			"Date",
-			"U/Price",
-			"Sell-In",
-			"Sell-Out",
-			"Stock Customer",
-			"Stock LG",
-			"Stock Diff",
+			"Type",
+			"Qty",
+			"Stock Cus",
+			"LG",
+			"Diff",
 			"Alert",
-			"Invoice",
+			"Amount",
+			"U/Price",
+			"U/Cost",
+			"U/Profit",
 			"Invoices",
-			"Avg Price",
 		];
 		
 		$rows = [];
 		
-		$cus_id = $this->input->post("cus");
+		$bill_to_code = $this->input->post("cus");
+		
+		$s = ["product_level1_name", "product_level2_name", "product_level3_name", "product_level4_name", "model_category", "model"];
+		$order = [["model_category", "asc"], ["product_level1_name", "asc"], ["product_level2_name", "asc"], ["product_level3_name", "asc"], ["product_level4_name", "asc"], ["model", "asc"]];
+		$models = $this->gen_m->filter_select("sa_sell_in", false, $s, ["bill_to_code" => $bill_to_code], null, null, $order, null, null, "model");
+		
+		$model_list = [];
+		foreach($models as $m) $model_list[] = $m->model;
+		
+		$sell_inouts = $bill_to_code ? $this->get_sell_inout($bill_to_code, $model_list) : [];
+		
+		foreach($models as $m){
+			print_r($m); echo "<br/>";
+			print_r($sell_inouts[$m->model]); echo "<br/>";
+			echo "<br/>";
+		}
+		
+		/*
 		$customer_ids = [];
 		if ($cus_id) $customer_ids[] = $this->input->post("cus");
 		else{
@@ -766,6 +538,8 @@ class Sa_sell_inout extends CI_Controller {
 				$msg = "Sell-In/Out report has been created. (".number_Format(microtime(true) - $start_time, 3)." sec)";
 			}else $msg = "No data to make report.";
 		}else $msg = "Select customer, product division and product line 1 to generate report.";
+		
+		*/
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);

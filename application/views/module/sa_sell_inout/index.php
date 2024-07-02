@@ -430,7 +430,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_exp_report").submit(function(e) {
 		e.preventDefault();
 		$("#form_exp_report .sys_msg").html("");
-		ajax_form_warning(this, "module/sell_inout/exp_report", "Do you want to export sell-in/out report in excel?").done(function(res) {
+		ajax_form_warning(this, "module/sa_sell_inout/exp_report", "Do you want to export sell-in/out report in excel?").done(function(res) {
 			if (res.type == "success") swal_open_tab(res.type, res.msg, res.url);
 			else swal(res.type, res.msg);
 		});
