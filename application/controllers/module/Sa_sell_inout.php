@@ -306,23 +306,26 @@ class Sa_sell_inout extends CI_Controller {
 				if (!$row[$var]) $row[$var] = null;
 			}
 			
-			$row["sunday"] = date("Y-m-d", strtotime(trim($sheet->getCell('H'.$i)->getFormattedValue())));
-			if (!$row["units"]) $row["units"] = 0;
-			if (!$row["amount"]) $row["amount"] = 0;
-			
-			//filter
-			$w = [
-				"customer_code" => $row["customer_code"],
-				"sunday" => $row["sunday"],
-				"suffix" => $row["suffix"],
-			];
-			$so = $this->gen_m->filter("sa_sell_out", false, $w);
-			if ($so){
-				$this->gen_m->update("sa_sell_out", ["sell_out_id" => $so[0]->sell_out_id], $row);
-				$updated++;
-			}else{
-				$this->gen_m->insert("sa_sell_out", $row);
-				$inserted++;
+			if ($row["units"]){
+				$row["sunday"] = date("Y-m-d", strtotime(trim($sheet->getCell('H'.$i)->getFormattedValue())));
+				
+				if (!$row["units"]) $row["units"] = 0;
+				if (!$row["amount"]) $row["amount"] = 0;
+				
+				//filter
+				$w = [
+					"customer_code" => $row["customer_code"],
+					"sunday" => $row["sunday"],
+					"suffix" => $row["suffix"],
+				];
+				$so = $this->gen_m->filter("sa_sell_out", false, $w);
+				if ($so){
+					$this->gen_m->update("sa_sell_out", ["sell_out_id" => $so[0]->sell_out_id], $row);
+					$updated++;
+				}else{
+					$this->gen_m->insert("sa_sell_out", $row);
+					$inserted++;
+				}
 			}
 		}
 		
