@@ -311,7 +311,12 @@ class Sa_sell_inout extends CI_Controller {
 			if (!$row["amount"]) $row["amount"] = 0;
 			
 			//filter
-			$so = $this->gen_m->filter("sa_sell_out", false, $row);
+			$w = [
+				"customer_code" => $row["customer_code"],
+				"sunday" => $row["sunday"],
+				"suffix" => $row["suffix"],
+			];
+			$so = $this->gen_m->filter("sa_sell_out", false, $w);
 			if ($so){
 				$this->gen_m->update("sa_sell_out", ["sell_out_id" => $so[0]->sell_out_id], $row);
 				$updated++;
