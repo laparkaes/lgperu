@@ -1,0 +1,7 @@
+{
+    "require": {
+        "phpoffice/phpspreadsheet": "^1.29",
+        "smalot/pdfparser": "^2.9",
+        "thiagoalessio/tesseract_ocr": "^2.13"
+    }
+}

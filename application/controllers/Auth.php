@@ -1,0 +1,83 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Auth extends CI_Controller {
+
+	public function __construct(){
+		parent::__construct();
+		
+		date_default_timezone_set('America/Lima');
+		$this->load->model('general_model', 'gen_m');
+	}
+	
+	public function login(){
+		if ($this->session->userdata('logged_in')) redirect("/dashboard");
+		
+		//$data = ["password" => password_hash("1234567890a", PASSWORD_BCRYPT)];
+		
+		$this->load->view('auth/login');
+	}
+	
+	public function login_process(){
+		$type = "error"; $msg = $url = "";
+		
+		$employee = $this->gen_m->unique("employee", "ep_mail", $this->input->post("ep_mail"));
+		if ($employee){
+			if (password_verify($this->input->post("password"), $employee->password)){
+				
+				unset($employee->location_id);
+				unset($employee->department_id);
+				unset($employee->password);
+				unset($employee->is_supervised);
+				unset($employee->valid);
+				
+				$session_data = array(
+					"emp" => $employee,
+					"logged_in" => true
+				);
+				$this->session->set_userdata($session_data);
+				
+				
+				$type = "success";
+				$msg = "Welcome!";
+				$url = base_url()."dashboard";
+			}else $msg = "Wrong password.";
+		}else $msg = "Employee doesn't exists.";
+		
+		//$msg = password_hash("1234567890a", PASSWORD_BCRYPT);
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
+	}
+	
+	public function logout(){
+		$this->session->sess_destroy();
+		redirect("/", 'refresh');
+	}
+	
+	public function change_password(){
+		if (!$this->session->userdata('logged_in')) redirect("/auth/login");
+		
+		$this->load->view('auth/change_password');
+	}
+	
+	public function change_password_process(){
+		$type = "error"; $msg = $url = "";
+		
+		if ($this->input->post("password_n") === $this->input->post("password_c")){
+			$employee = $this->gen_m->unique("employee", "employee_id", $this->session->userdata('emp')->employee_id);
+			if (password_verify($this->input->post("password"), $employee->password)){
+				if ($this->gen_m->update("employee", ["employee_id" => $employee->employee_id], ["password" => password_hash($this->input->post("password_n"), PASSWORD_BCRYPT)])){
+					$this->session->sess_destroy();
+					
+					$type = "success";
+					$msg = "Password changed. Please login again.";
+					$url = "auth/login";
+				}else $msg = "Internal error. Try again.";
+			}else $msg = "Password error.";
+		}else $msg = "Password confirm error.";
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
+	}
+}
