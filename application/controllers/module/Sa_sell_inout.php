@@ -247,7 +247,7 @@ class Sa_sell_inout extends CI_Controller {
 		
 		$updated = $inserted = 0;
 		
-		for($i = 2; $i < $max_row; $i++){
+		for($i = 2; $i <= $max_row; $i++){
 			$row = [];
 			foreach($vars as $var_i => $var){
 				$row[$var] = trim($sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue());
@@ -299,7 +299,7 @@ class Sa_sell_inout extends CI_Controller {
 		
 		$updated = $inserted = 0;
 		
-		for($i = 2; $i < $max_row; $i++){
+		for($i = 2; $i <= $max_row; $i++){
 			$row = [];
 			foreach($vars as $var_i => $var){
 				$row[$var] = trim($sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue());

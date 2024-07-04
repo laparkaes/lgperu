@@ -125,7 +125,7 @@ class Obs_magento extends CI_Controller {
 				"qty_ordered", 
 			];
 			
-			for($i = 2; $i < $max_row; $i++){
+			for($i = 2; $i <= $max_row; $i++){
 				$row = [];
 				foreach($vars as $var_i => $var) $row[$var] = str_replace("N/A", null, $sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue());
 				

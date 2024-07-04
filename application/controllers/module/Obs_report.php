@@ -98,6 +98,52 @@ class Obs_report extends CI_Controller {
 		return array_merge($gerps, $gerps_);
 	}
 	
+	public function test(){
+		$gerps = $this->get_gerp_iod(date("Y-m-01"), date("Y-m-t"));
+		
+		if ($gerps){
+			$date_min = date('Y-m-d', strtotime('-1 week', strtotime($gerps[count($gerps)-1]->create_date)));
+			$date_max = date('Y-m-d', strtotime('+1 week', strtotime($gerps[0]->create_date)));
+			
+			echo $date_min." ".$date_max; echo "<br/><br/>";
+		
+			$s_m = [
+			
+			
+/*
+	7 	customer_name 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
+	14 	gerp_order_no 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
+	17 	local_time 	timestamp 			예 	NULL 			변경 변경 	삭제 삭제 	
+	18 	company_name_through_vipkey 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
+	19 	vipkey 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
+	23 	coupon_code 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
+	24 	coupon_rule 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
+	25 	discount_amount 	float 			예 	NULL 			변경 변경 	삭제 삭제 	
+	26 	devices 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
+	27 	knout_status 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
+	29 	customer_group 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
+	30 	payment_method 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
+	33 	purchase_date 	timestamp 			예 	NULL 			변경 변경 	삭제 삭제 	
+	35 	ip_address 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
+	41 	zipcode 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
+	42 	department 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
+	43 	province 
+*/			
+			
+			
+			];
+			$w_m = ["gerp_order_no !=" => "", "local_time >=" => $date_min." 00:00:00", "local_time <=" => $date_max." 23:59:59"];
+			$magentos = $this->gen_m->filter_select("obs_magento", false, $s_m, $w_m);
+		
+		
+		
+			foreach($gerps as $g){
+				print_r($g); echo "<br/><br/>";
+			}
+		}
+		
+	}
+	
 	private function get_dashboard($gerps, $from, $to, $exchange_rate){
 		//structure setting
 		$dash = [];
