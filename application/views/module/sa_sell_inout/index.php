@@ -139,7 +139,7 @@
 								<?php foreach($models as $m){ if (count($sell_inouts[$m->model]) > 0){ ?>
 								<div class="tab-pane fade tab_mc_<?= str_replace($rp, "_", $m->model_category) ?> tab_lvl1_<?= str_replace($rp, "_", $m->product_level1_name) ?> tab_lvl2_<?= str_replace($rp, "_", $m->product_level2_name) ?> tab_lvl3_<?= str_replace($rp, "_", $m->product_level3_name) ?> tab_lvl4_<?= str_replace($rp, "_", $m->product_level4_name) ?> tab_mo_<?= str_replace($rp, "_", $m->model) ?>"" id="pills-<?= $m->model ?>" role="tabpanel" aria-labelledby="<?= $m->model ?>-tab">
 									<table class="table align-middle text-center">
-										<thead>
+										<thead style="position: sticky; top: 60px;">
 											<tr>
 												<th scope="col">Date</th>
 												<th scope="col">Type</th>
@@ -180,9 +180,11 @@
 												<td><?= $item->unit_cost > 0 ? number_format($item->unit_cost, 2) : "-" ?></td>
 												<td><?= (($item->unit_profit > 0) and ($item->unit_cost > 0)) ? number_format($item->unit_profit, 2) : "-" ?></td>
 												<td>
-													<?php foreach($item->invoices as $i => $inv){ ?>
-													<div class=" <?= ($i > 0) ? "d-none" : "" ?>"><?= $inv["no"] ?> (<?= $inv["qty"] ?> * <?= number_format($inv["unit_price"], 2) ?>)</div>
-													<?php } ?>
+													<div style="max-height: 50px; overflow: auto;">
+														<?php foreach($item->invoices as $i => $inv){ ?>
+														<div class="text-start"><?= $inv["no"] ?> (<?= $inv["qty"] ?> * <?= number_format($inv["unit_price"], 2) ?>)</div>
+														<?php } ?>
+													</div>
 												</td>
 											</tr>
 											<?php } ?>

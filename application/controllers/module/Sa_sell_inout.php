@@ -43,6 +43,62 @@ class Sa_sell_inout extends CI_Controller {
 		return ($qty > 0 ? round($amount / $qty, 2) : 0);
 	}
 	
+	private function get_last_key($arr, $key){
+		$now_i = array_key_first($arr);
+		foreach($arr as $i => $a){
+			if ($key == $i) break;
+			else $now_i = $i;
+		}
+		
+		return $now_i;
+	}
+
+	private function clean_sell_ins($sell_ins){
+		/* print before
+		$l_model = "";
+		foreach($sell_ins as $i => $in){
+			if ($in->qty != -1){
+				if ($l_model !== $in->model){echo "<br/>"; $l_model = $in->model;}
+				echo $i." / ".$in->date." / ".$in->qty." / ".$in->u_price." / ".$in->model."<br/>";
+			}
+		}
+		*/
+		
+		foreach($sell_ins as $i => $in){
+			if ($in->qty != -1){
+				if ($in->qty < 0){
+					//clean sell in
+					$now_i = $this->get_last_key($sell_ins, $i);
+					$remove_qty = $in->qty;
+					
+					//echo "[[[[[[[[".$now_i."/// remove: ".$remove_qty."]]]]]]]]]<br/>";
+					while($in->model === $sell_ins[$now_i]->model and ($remove_qty < 0)){
+						$sell_ins[$now_i]->qty += $remove_qty;
+						if ($sell_ins[$now_i]->qty <= 0){
+							$remove_qty = abs($sell_ins[$now_i]->qty);
+							unset($sell_ins[$now_i]);
+							$now_i = $this->get_last_key($sell_ins, $now_i);
+						}else break;
+					}
+					unset($sell_ins[$i]);
+				}
+			}
+		}
+		
+		/* print after
+		echo "<br/><br/>----------------------------------<br/><br/>";
+		$l_model = "";
+		foreach($sell_ins as $i => $in){
+			if ($in->qty != -1){
+				if ($l_model !== $in->model){echo "<br/>"; $l_model = $in->model;}
+				echo $i." / ".$in->date." / ".$in->qty." / ".$in->u_price." / ".$in->model."<br/>";
+			}
+		}
+		*/
+		
+		return $sell_ins;
+	}
+	
 	private function get_sell_inout($bill_to, $models_arr){//ok 2024 0629
 		$sell_inouts = [];
 		foreach($models_arr as $m) $sell_inouts[$m] = [];
@@ -72,8 +128,11 @@ class Sa_sell_inout extends CI_Controller {
 		];
 		
 		$sell_ins = $this->gen_m->filter_select("sa_sell_in", false, $s_in, ["bill_to_code" => $bill_to, "order_qty !=" => 0], null, [["field" => "model", "values" => $models_arr]], [["date", "asc"]]);
+		$sell_ins = $this->clean_sell_ins($sell_ins);
 		foreach($sell_ins as $si){
-			if ($si->qty != -1){
+			//if ($si->qty != -1){
+			if ($si->qty > 0){
+				//print_r($si); echo "<br/>";
 				$si->unit_price = round($si->amount / $si->qty, 2);
 				
 				$aux = clone $structure;
@@ -395,10 +454,6 @@ class Sa_sell_inout extends CI_Controller {
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
-	}
-
-	public function test(){
-		$rows = $this->get_rows("PE001351001B");
 	}
 
 	private function get_rows($bill_to_code = "PE001351001B"){
