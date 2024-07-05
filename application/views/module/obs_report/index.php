@@ -44,7 +44,8 @@
 					<div class="d-flex justify-content-between">
 						<div class="d-flex justify-content-start align-items-center">
 							<h5 class="card-title me-3">OBS Dashboard, <?= $from." ~ ".$to ?></h5>
-							<span class="badge bg-success">GERP IOD</span>
+							<span class="badge bg-success me-3">GERP IOD</span>
+							<span class="badge bg-primary">ER: <?= $this->exchange_rate ?></span>
 						</div>
 						<h5 class="card-title"><strong>K USD</strong></h5>
 					</div>
@@ -412,6 +413,7 @@
 								<th scope="col">Closed</th>
 								<th scope="col">Type</th>
 								<th scope="col">Status</th>
+								<th scope="col">Delivery</th>
 								<th scope="col">Subsidiary</th>
 								<th scope="col">Group</th>
 								<th scope="col">Order</th>
@@ -432,7 +434,8 @@
 								<td><div class="text-nowrap"><?= $g->create_date ?></div></td>
 								<td><div class="text-nowrap"><?= $g->close_date ?></div></td>
 								<td><?= $g->order_category ?></td>
-								<td><div style="width: 90px;"><?= $g->line_status ?></div></td>
+								<td><div style="max-width: 90px;"><?= $g->line_status ?></div></td>
+								<td><?= $g->delivery ?></td>
 								<td><?= $g->customer_department ?></td>
 								<td><?= $g->bill_to_name ?></td>
 								<td><?= $g->order_no ?></td>

@@ -81,99 +81,6 @@ class Obs_report extends CI_Controller {
 		return $weeks;
 	}
 	
-	private function get_gerp_iod($from, $to){
-		//set db fields
-		$s_g = ["create_date", "close_date", "customer_department", "line_status", "order_category", "order_no", "line_no", "model_category", "model", "product_level1_name","product_level4_name", "product_level4_code", "item_type_desctiption", "currency", "unit_selling_price", "ordered_qty", "sales_amount", "bill_to_name"];
-		
-		//load all this month records
-		$w_g = ["create_date >=" => $from, "create_date <=" => $to, "line_status !=" => "Cancelled"];
-		$gerps = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "desc"], ["close_date", "desc"]]);
-		
-		//load no closed orders
-		$w_g_ = ["create_date <" => $from];
-		$w_in_ = [["field" => "line_status", "values" => ["Awaiting Fulfillment", "Awaiting Shipping", "Booked", "Pending pre-billing acceptance"]]];
-		$gerps_ = $this->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g_, null, $w_in_, [["create_date", "desc"], ["close_date", "desc"]]);
-		
-		//return merged array
-		return array_merge($gerps, $gerps_);
-	}
-	
-	public function test(){
-		$from = date("Y-05-01");
-		$to = date("Y-05-t");
-		
-		$gerps = $this->get_gerp_iod($from, $to);
-		
-		if ($gerps){
-			$date_min = date('Y-m-d', strtotime('-1 week', strtotime($gerps[count($gerps)-1]->create_date)));
-			$date_max = date('Y-m-d', strtotime('+1 week', strtotime($gerps[0]->create_date)));
-			
-			echo $date_min." ".$date_max; echo "<br/><br/>";
-		
-			$s_m = [
-				"gerp_order_no", 
-				"local_time", 
-				"customer_name", 
-				"company_name_through_vipkey", 
-				"vipkey", 
-				"coupon_code", 
-				"coupon_rule", 
-				"discount_amount", 
-				"devices", 
-				"knout_status", 
-				"customer_group", 
-				"payment_method", 
-				"purchase_date", 
-				"ip_address", 
-				"zipcode", 
-				"department", 
-				"province", 
-			];
-			$w_m = ["gerp_order_no !=" => "", "local_time >=" => $date_min." 00:00:00", "local_time <=" => $date_max." 23:59:59"];
-			$magentos = $this->gen_m->filter_select("obs_magento", false, $s_m, $w_m);
-			
-			$magentos_arr = [];
-			foreach($magentos as $m) $magentos_arr[$m->gerp_order_no] = $m;
-			
-			$m_blank = [
-				"local_time" => null, 
-				"customer_name" => null, 
-				"company_name_through_vipkey" => null, 
-				"vipkey" => null, 
-				"coupon_code" => null, 
-				"coupon_rule" => null, 
-				"discount_amount" => null, 
-				"devices" => null, 
-				"knout_status" => null, 
-				"customer_group" => null, 
-				"payment_method" => null, 
-				"purchase_date" => null, 
-				"ip_address" => null, 
-				"zipcode" => null, 
-				"department" => null, 
-				"province" => null, 
-			];
-			
-			$rows = [];
-			foreach($gerps as $g){
-				$g_arr = [];
-				foreach($g as $key => $val) $g_arr[$key] = $val;
-				
-				if (array_key_exists($g->order_no, $magentos_arr)){
-					$m_arr = [];
-					foreach($magentos_arr[$g->order_no] as $key => $val) $m_arr[$key] = $val;
-					
-					$rows[] = array_merge($g_arr, $m_arr);
-				}else $rows[] = array_merge($g_arr, $m_blank);
-			}
-			
-			foreach($rows as $row){
-				print_r($row); echo "<br/><br/>";
-			}
-		}
-		
-	}
-	
 	private function get_dashboard($gerps, $from, $to, $exchange_rate){
 		//structure setting
 		$dash = [];
@@ -194,7 +101,7 @@ class Obs_report extends CI_Controller {
 		//print_r($dash); echo "<br/><br/>";
 		
 		//get gerp records based on IOD
-		$gerps = $this->get_gerp_iod($from, $to);
+		$gerps = $this->my_func->get_gerp_iod($from, $to);
 		
 		$div_map = $this->division_map_inv;
 		$cat_map = $this->category_map_inv;
@@ -212,19 +119,25 @@ class Obs_report extends CI_Controller {
 				$dash[$sub]["projection"] += $amount;
 				$dash[$sub."_".$div]["projection"] += $amount;
 				$dash[$sub."_".$div."_".$cat]["projection"] += $amount;
-				if (($item->line_status === "Closed") and (strtotime($item->close_date) <= $to_time)){
-					$dash[$sub]["actual"] += $amount;
-					$dash[$sub."_".$div]["actual"] += $amount;
-					$dash[$sub."_".$div."_".$cat]["actual"] += $amount;
-				}else{
-					$dash[$sub]["expected"] += $amount;
-					$dash[$sub."_".$div]["expected"] += $amount;
-					$dash[$sub."_".$div."_".$cat]["expected"] += $amount;
-				}
 				
-				//echo $sub."_".$div."_".$cat."<br/><br/>"; print_r($item); echo "<br/><br/>";	
+				switch($item->delivery){
+					case "M-1": 
+						$dash[$sub]["actual"] += $amount;
+						$dash[$sub."_".$div]["actual"] += $amount;
+						$dash[$sub."_".$div."_".$cat]["actual"] += $amount;
+						break;
+					case "M": 
+						$dash[$sub]["actual"] += $amount;
+						$dash[$sub."_".$div]["actual"] += $amount;
+						$dash[$sub."_".$div."_".$cat]["actual"] += $amount;
+						break;
+					case "M+1": 
+						$dash[$sub]["expected"] += $amount;
+						$dash[$sub."_".$div]["expected"] += $amount;
+						$dash[$sub."_".$div."_".$cat]["expected"] += $amount;
+						break;
+				}
 			}
-			
 		}
 		
 		//ML Setting
@@ -457,8 +370,6 @@ class Obs_report extends CI_Controller {
 	}
 	
 	public function index(){
-		$exchange_rate = $this->exchange_rate;
-		
 		$today = strtotime(date("Y-m-d"));
 		$weeks = array_reverse($this->get_weeks_by_year(date("Y")));//recent week at first
 		foreach($weeks as $i => $w) if (strtotime($w["dates"][0]) > $today) unset($weeks[$i]);//remove future weeks
@@ -485,6 +396,8 @@ class Obs_report extends CI_Controller {
 			$to = date("Y-m-t");
 		}
 		
+		$this->exchange_rate = round($this->my_func->get_exchange_rate_month_ttm($to), 2);
+		
 		//set magento data filters > no IOD based. no close_date field
 		$w_m = ["local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"];
 		$w_in_m = [
@@ -497,17 +410,17 @@ class Obs_report extends CI_Controller {
 		$magentos = $this->gen_m->filter("obs_magento", false, $w_m, null, $w_in_m, [["local_time", "desc"]]);
 		
 		//get gerp records based on IOD
-		$gerps = $this->get_gerp_iod($from, $to);
+		$gerps = $this->my_func->get_gerp_iod($from, $to);
 		
 		$data = [
-			"exchange_rate" => $exchange_rate,
+			"exchange_rate" => $this->exchange_rate,
 			"weeks"			=> $weeks,
 			"months"		=> $months,
 			"from"			=> $from,
 			"to"			=> $to,
-			"dashboard" 	=> $this->get_dashboard($gerps, $from, $to, $exchange_rate),
-			"sales" 		=> $this->get_sales($gerps, $from, $to, $exchange_rate),
-			"statistics" 	=> $this->get_magento_statistics($magentos, $from, $to, $exchange_rate),
+			"dashboard" 	=> $this->get_dashboard($gerps, $from, $to, $this->exchange_rate),
+			"sales" 		=> $this->get_sales($gerps, $from, $to, $this->exchange_rate),
+			"statistics" 	=> $this->get_magento_statistics($magentos, $from, $to, $this->exchange_rate),
 			"magentos" 		=> $magentos,
 			"gerps" 		=> $gerps,
 			"main" 			=> "module/obs_report/index",
@@ -551,7 +464,7 @@ class Obs_report extends CI_Controller {
 		}
 		
 		foreach($dates as $i => $d){
-			$dashs_now = $this->get_dashboard($this->get_gerp_iod($d[0], $d[1]), $d[0], $d[1], $exchange_rate);
+			$dashs_now = $this->get_dashboard($this->my_func->get_gerp_iod($d[0], $d[1]), $d[0], $d[1], $exchange_rate);
 			foreach($dashs_now as $key => $dash){
 				$dashs[$i][$key] = ["actual" => $dash["actual"], "actual_per" => $dash["actual_per"]];
 				$row_headers[] = $key;

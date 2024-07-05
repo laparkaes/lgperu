@@ -178,7 +178,7 @@
 												<td><?= number_format($item->amount, 2) ?></td>
 												<td><?= number_format($item->unit_price, 2) ?></td>
 												<td><?= $item->unit_cost > 0 ? number_format($item->unit_cost, 2) : "-" ?></td>
-												<td><?= (($item->unit_profit > 0) and ($item->unit_cost > 0)) ? number_format($item->unit_profit, 2) : "-" ?></td>
+												<td><?= (($item->type === "out") and ($item->unit_profit > 0) and ($item->unit_cost > 0)) ? number_format($item->unit_profit, 2) : "-" ?></td>
 												<td>
 													<div style="max-height: 50px; overflow: auto;">
 														<?php foreach($item->invoices as $i => $inv){ ?>

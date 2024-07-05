@@ -54,6 +54,19 @@ class My_func{
 		return $res;
 	}
 	
+	public function arr_trim($arr){
+		$new = [];
+		foreach($arr as $val) $new[] = trim($val);
+		return $new;
+	}
+	
+	public function get_random_float($min, $max, $precision = 2) {//get random float value between min and max
+		$factor = pow(10, $precision);
+		$randomInt = mt_rand($min * $factor, $max * $factor);
+		return $randomInt / $factor;
+	}
+	
+	//date format handler
 	public function date_convert($date){//dd/mm/yyyy > yyyy-mm-dd
 		$aux = explode("/", $date);
 		if (count($aux) > 2) return $aux[2]."-".$aux[1]."-".$aux[0];
@@ -115,8 +128,9 @@ class My_func{
 
 		return $date->format('Y-m-d');
 	}
+	//date format handler - end
 	
-	public function get_record($tablename, $data){
+	/* public function get_record($tablename, $data){
 		$record = $this->CI->gen_m->filter($tablename, true, $data);
 		if (!$record){
 			$this->CI->gen_m->insert($tablename, $data);
@@ -124,17 +138,14 @@ class My_func{
 		}
 		
 		return $record[0];
-	}
+	}*/
 	
-	public function arr_trim($arr){
-		$new = [];
-		foreach($arr as $val) $new[] = trim($val);
-		return $new;
-	}
-	
+	//exchange rate handler
 	public function get_exchange_rate_month_ttm($date){
 		$from = date("Y-m-01", strtotime($date));
 		$to = date("Y-m-t", strtotime($date));
+		
+		echo $from." ".$to;
 		
 		$exchange_rate = $this->CI->gen_m->avg("exchange_rate", "avg", ["date >=" => $from, "date <=" => $to])->avg;
 		if (!$exchange_rate){
@@ -143,13 +154,6 @@ class My_func{
 		}
 		
 		return $exchange_rate;
-	}
-	
-	//get random float value between min and max
-	function get_random_float($min, $max, $precision = 2) {
-		$factor = pow(10, $precision);
-		$randomInt = mt_rand($min * $factor, $max * $factor);
-		return $randomInt / $factor;
 	}
 	
 	public function get_exchange_rate_usd($date, $currency = "USD"){
@@ -195,6 +199,7 @@ class My_func{
 
 		return json_decode($response, true);
 	}
+	//exchange rate handler - end
 	
 	public function generate_excel_report($filename, $title, $header, $rows){
 		$url = "";
@@ -238,5 +243,112 @@ class My_func{
 		}
 		
 		return $url;
+	}
+
+	//gerp sales order merged with magento data
+	public function get_gerp_iod($from, $to){
+		//set db fields
+		$s_g = ["create_date", "close_date", "customer_department", "line_status", "order_category", "order_no", "line_no", "model_category", "model", "product_level1_name","product_level4_name", "product_level4_code", "item_type_desctiption", "currency", "unit_selling_price", "ordered_qty", "sales_amount", "bill_to_name"];
+		
+		//load all this month records
+		$w_g = ["create_date >=" => $from, "create_date <=" => $to, "line_status !=" => "Cancelled"];
+		$gerps = $this->CI->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g, null, null, [["create_date", "desc"], ["close_date", "desc"]]);
+		
+		//load closed on this month
+		$w_g_ = ["create_date <" => $from, "close_date >=" => $from, "close_date <=" => $to, "line_status !=" => "Cancelled"];
+		$w_in_ = [["field" => "line_status", "values" => ["Awaiting Fulfillment", "Awaiting Shipping", "Booked", "Pending pre-billing acceptance", "Closed"]]];
+		$gerps_ = $this->CI->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g_, null, $w_in_, [["create_date", "desc"], ["close_date", "desc"]]);
+		
+		//load no closed orders
+		$w_g__ = ["create_date <" => $from, "line_status !=" => "Cancelled"];
+		$w_in__ = [["field" => "line_status", "values" => ["Awaiting Fulfillment", "Awaiting Shipping", "Booked", "Pending pre-billing acceptance"]]];
+		$gerps__ = $this->CI->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g_, null, $w_in_, [["create_date", "desc"], ["close_date", "desc"]]);
+		
+		//merge gerp records
+		$rows = [];
+		
+		$gerps = array_merge($gerps, $gerps_, $gerps__);
+		if ($gerps){
+			$date_min = date('Y-m-d', strtotime('-1 week', strtotime($gerps[count($gerps)-1]->create_date)));
+			$date_max = date('Y-m-d', strtotime('+1 week', strtotime($gerps[0]->create_date)));
+			
+			$s_m = [
+				"gerp_order_no", 
+				"local_time", 
+				"customer_name", 
+				"company_name_through_vipkey", 
+				"vipkey", 
+				"coupon_code", 
+				"coupon_rule", 
+				"discount_amount", 
+				"devices", 
+				"knout_status", 
+				"customer_group", 
+				"payment_method", 
+				"purchase_date", 
+				"ip_address", 
+				"zipcode", 
+				"department", 
+				"province", 
+			];
+			$w_m = ["gerp_order_no !=" => "", "local_time >=" => $date_min." 00:00:00", "local_time <=" => $date_max." 23:59:59"];
+			$magentos = $this->CI->gen_m->filter_select("obs_magento", false, $s_m, $w_m);
+			
+			$magentos_arr = [];
+			foreach($magentos as $m) $magentos_arr[$m->gerp_order_no] = $m;
+			
+			$m_blank = [
+				"local_time" => null, 
+				"customer_name" => null, 
+				"company_name_through_vipkey" => null, 
+				"vipkey" => null, 
+				"coupon_code" => null, 
+				"coupon_rule" => null, 
+				"discount_amount" => null, 
+				"devices" => null, 
+				"knout_status" => null, 
+				"customer_group" => null, 
+				"payment_method" => null, 
+				"purchase_date" => null, 
+				"ip_address" => null, 
+				"zipcode" => null, 
+				"department" => null, 
+				"province" => null, 
+			];
+			
+			
+			$time_from = strtotime($from);
+			$time_to = strtotime($to);
+			
+			foreach($gerps as $g){
+				$create_time = strtotime($g->create_date);
+				$close_time = strtotime($g->close_date);
+				
+				if ($g->line_status === "Closed"){
+					if ($create_time < $time_from) $g->delivery = "M-1";
+					elseif ($close_time <= $time_to) $g->delivery = "M";
+					else $g->delivery = "M+1";
+				}else $g->delivery = "M+1";
+				
+				$g_arr = [];
+				foreach($g as $key => $val) $g_arr[$key] = $val;
+				
+				if (array_key_exists($g->order_no, $magentos_arr)){
+					$m_arr = [];
+					foreach($magentos_arr[$g->order_no] as $key => $val) $m_arr[$key] = $val;
+					
+					$rows[] = array_merge($g_arr, $m_arr);
+				}else $rows[] = array_merge($g_arr, $m_blank);
+			}
+		}
+		
+		//sort by date asc
+		usort($rows, function($a, $b) {
+			return strtotime($a["close_date"]) < strtotime($b["close_date"]);
+		});
+		
+		//foreach($rows as $row){print_r($row); echo "<br/><br/>";}
+		
+		return json_decode(json_encode($rows), false);
 	}
 }
