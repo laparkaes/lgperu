@@ -44,7 +44,22 @@ class Local_api extends CI_Controller {
 		foreach($this->category_map as $cat => $categories) foreach($categories as $c) $this->category_map_inv[$c] = $cat;
 	}
 	
-	private function get_week_by_date($date){
+	function get_dates_by_week($week, $year){
+		$dateTime = new DateTime();
+		$dateTime->setISODate($year, $week);//1 week: from monday ~ sunday
+		
+		//need from sunday ~ saturday
+		$startDate = date("Y-m-d", strtotime("-1 day", strtotime($dateTime->format('Y-m-d'))));
+		if ((string)$year !== date("Y", strtotime($startDate))) $startDate = $year."-01-01";
+		
+		$dateTime->modify('+6 days');//add one week in days
+		$endDate = date("Y-m-d", strtotime("-1 day", strtotime($dateTime->format('Y-m-d'))));
+		if ((string)$year !== date("Y", strtotime($endDate))) $endDate = $year."-12-31";
+		
+		return (($startDate === $year."-01-01") and ($endDate === $year."-12-31")) ? null : [$startDate, $endDate];
+	}
+	
+	function get_week_by_date($date){
 		$year = date("Y", strtotime($date));
 		$week = 1;
 		
