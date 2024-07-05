@@ -44,7 +44,7 @@ class Local_api extends CI_Controller {
 		foreach($this->category_map as $cat => $categories) foreach($categories as $c) $this->category_map_inv[$c] = $cat;
 	}
 	
-	function get_week_by_date($date){
+	private function get_week_by_date($date){
 		$year = date("Y", strtotime($date));
 		$week = 1;
 		
