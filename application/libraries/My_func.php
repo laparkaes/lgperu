@@ -145,7 +145,7 @@ class My_func{
 		$from = date("Y-m-01", strtotime($date));
 		$to = date("Y-m-t", strtotime($date));
 		
-		echo $from." ".$to;
+		//echo $from." ".$to;
 		
 		$exchange_rate = $this->CI->gen_m->avg("exchange_rate", "avg", ["date >=" => $from, "date <=" => $to])->avg;
 		if (!$exchange_rate){

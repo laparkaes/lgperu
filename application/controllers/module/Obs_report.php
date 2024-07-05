@@ -369,6 +369,132 @@ class Obs_report extends CI_Controller {
 		];
 	}
 	
+	public function test(){
+		$from = "2024-05-01";
+		$to = "2024-05-31";
+		
+		$this->exchange_rate = round($this->my_func->get_exchange_rate_month_ttm($to), 2);
+		
+		$gerps = $this->my_func->get_gerp_iod($from, $to);
+		
+		$devices = ["total" => ["device" => "Total", "qty" => 0, "amount" => 0]];
+		$devices_rec = $this->gen_m->only("obs_magento", "devices", ["devices !=" => "", "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		foreach($devices_rec as $d) $devices[$d->devices] = ["device" => $d->devices, "qty" => 0, "amount" => 0];
+		
+		$cus_group = ["total" => ["customer_group" => "Total", "qty" => 0, "amount" => 0]];
+		$cus_group_rec = $this->gen_m->only("obs_magento", "customer_group", ["customer_group !=" => "", "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		foreach($cus_group_rec as $c) $cus_group[$c->customer_group] = ["customer_group" => $c->customer_group, "qty" => 0, "amount" => 0];
+		
+		$d2b2c = ["total" => ["company" => "Total", "qty" => 0, "amount" => 0]];
+		$d2b2c_rec = $this->gen_m->only("obs_magento", "company_name_through_vipkey", ["grand_total_purchased >" => 0, "company_name_through_vipkey !=" => "", "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		foreach($d2b2c_rec as $c) $d2b2c[$c->company_name_through_vipkey] = ["company" => $c->company_name_through_vipkey, "qty" => 0, "amount" => 0];
+		
+		$cupons = ["total" => ["cupon" => "Total", "rule" => "", "qty" => 0, "amount" => 0]];
+		$cupons_rec = $this->gen_m->only_multi("obs_magento", ["coupon_code", "coupon_rule"], ["grand_total_purchased >" => 0, "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		foreach($cupons_rec as $c) $cupons[$c->coupon_code] = ["cupon" => $c->coupon_code, "rule" => $c->coupon_rule, "qty" => 0, "amount" => 0];
+		
+		$departments = ["total" => ["department" => "Total", "province" => "", "qty" => 0, "amount" => 0]];
+		$departments_rec = $this->gen_m->only_multi("obs_magento", ["department", "province"], ["grand_total_purchased >" => 0, "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		foreach($departments_rec as $z) $departments[$z->department."_".$z->province] = ["department" => $z->department, "province" => $z->province, "qty" => 0, "amount" => 0];
+		
+		$daily = [];
+		$dates_between = $this->my_func->dates_between($from, $to);
+		foreach($dates_between as $item){
+			$daily[date("d", strtotime($item))] = [
+				4 => ["qty" => 0, "amount" => 0],
+				8 => ["qty" => 0, "amount" => 0],
+				12 => ["qty" => 0, "amount" => 0],
+				16 => ["qty" => 0, "amount" => 0],
+				20 => ["qty" => 0, "amount" => 0],
+				24 => ["qty" => 0, "amount" => 0],
+			];
+		}
+		
+		foreach($gerps as $g){
+			$amount = $g->sales_amount / 1.18 / $this->exchange_rate / 1000;
+			
+			$day_i = date("d", strtotime($g->local_time));
+			$hour_i = (((int)(date("H", strtotime($g->local_time)) / 4) + 1) * 4);
+			
+			$daily[$day_i][$hour_i]["qty"]++;
+			$daily[$day_i][$hour_i]["amount"] += $amount;	
+			
+			if ($g->devices){
+				$devices["total"]["qty"]++;
+				$devices["total"]["amount"] += $amount;
+				$devices[$g->devices]["qty"]++;
+				$devices[$g->devices]["amount"] += $amount;
+			}
+			
+			if ($g->customer_group){
+				$cus_group["total"]["qty"]++;
+				$cus_group["total"]["amount"] += $amount;
+				$cus_group[$g->customer_group]["qty"]++;
+				$cus_group[$g->customer_group]["amount"] += $amount;
+			}
+			
+			if ($g->company_name_through_vipkey){
+				$d2b2c["total"]["qty"]++;
+				$d2b2c["total"]["amount"] += $amount;
+				$d2b2c[$g->company_name_through_vipkey]["qty"]++;
+				$d2b2c[$g->company_name_through_vipkey]["amount"] += $amount;
+			}
+			
+			if ($g->coupon_code){
+				$cupons["total"]["qty"]++;
+				$cupons["total"]["amount"] += $amount;
+				$cupons[$g->coupon_code]["qty"]++;
+				$cupons[$g->coupon_code]["amount"] += $amount;
+			}
+			
+			if ($g->department){
+				$departments["total"]["qty"]++;
+				$departments["total"]["amount"] += $amount;
+				$departments[$g->department."_".$g->province]["qty"]++;
+				$departments[$g->department."_".$g->province]["amount"] += $amount;
+			}
+			
+			//print_r($m); echo "<br/><br/>";	
+		}
+		
+		uasort($devices, function($a, $b) {
+			return $a["amount"] < $b["amount"];
+		});
+		
+		uasort($cus_group, function($a, $b) {
+			return $a["amount"] < $b["amount"];
+		});
+		
+		uasort($d2b2c, function($a, $b) {
+			return $a["amount"] < $b["amount"];
+		});
+		
+		uasort($cupons, function($a, $b) {
+			return $a["amount"] < $b["amount"];
+		});
+		
+		uasort($departments, function($a, $b) {
+			return $a["amount"] < $b["amount"];
+		});
+		
+		//foreach($cus_group as $C){print_r($C); echo "<br/>";}
+		//foreach($devices as $d){print_r($d); echo "<br/>";}
+		//foreach($d2b2c as $d){print_r($d); echo "<br/>";}
+		//foreach($cupons as $c){print_r($c); echo "<br/>";}
+		//foreach($departments as $d){print_r($d); echo "<br/>";}
+		//foreach($daily as $t){print_r($t); echo "<br/>";}
+		
+		return [
+			"cus_group" => $cus_group,
+			"devices" => $devices,
+			"d2b2c" => $d2b2c,
+			"cupons" => $cupons,
+			"departments" => $departments,
+			"daily" => $daily,
+			"dates_between" => $dates_between,
+		];
+	}
+	
 	public function index(){
 		$today = strtotime(date("Y-m-d"));
 		$weeks = array_reverse($this->get_weeks_by_year(date("Y")));//recent week at first
