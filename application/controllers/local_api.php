@@ -130,7 +130,7 @@ class Local_api extends CI_Controller {
 				$g->line_no = "'".$g->line_no;
 				$g->sales_amount_usd = $g->sales_amount / $exr_ttm;
 				$g->dash_division = $g->model_category ? $this->category_map_inv[$g->model_category] : null;
-				$g->dash_company = $g->model_category_dash ? $this->division_map_inv[$g->model_category_dash] : null;
+				$g->dash_company = $g->dash_division ? $this->division_map_inv[$g->dash_division] : null;
 				$g->dash_status = $g->line_status === "Closed" ? "Closed" : "Reserved";
 				$g->dash_week = $g->close_date ? $this->get_week_by_date($g->close_date)["week"] : "Reserved";
 			}
