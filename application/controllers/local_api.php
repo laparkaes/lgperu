@@ -44,6 +44,18 @@ class Local_api extends CI_Controller {
 		foreach($this->category_map as $cat => $categories) foreach($categories as $c) $this->category_map_inv[$c] = $cat;
 	}
 	
+	function get_week_by_date($date){
+		$year = date("Y", strtotime($date));
+		$week = 1;
+		
+		while (true){
+			$res = $this->get_dates_by_week($week, $year);
+			if (strtotime($res[1]) < strtotime($date)) $week++; else break;
+		}
+		
+		return ["week" => $week, "dates" => $res];
+	}
+	
 	public function test(){
 		$order_items = $this->gen_m->all("order_item");
 		
@@ -117,8 +129,10 @@ class Local_api extends CI_Controller {
 			foreach($gerps as $g){
 				$g->line_no = "'".$g->line_no;
 				$g->sales_amount_usd = $g->sales_amount / $exr_ttm;
-				$g->model_category_dash = $g->model_category ? $this->category_map_inv[$g->model_category] : null;
-				$g->division_dash = $g->model_category_dash ? $this->division_map_inv[$g->model_category_dash] : null;
+				$g->dash_division = $g->model_category ? $this->category_map_inv[$g->model_category] : null;
+				$g->dash_company = $g->model_category_dash ? $this->division_map_inv[$g->model_category_dash] : null;
+				$g->dash_status = $g->line_status === "Closed" ? "Closed" : "Reserved";
+				$g->dash_week = $g->close_date ? $this->get_week_by_date($g->close_date)["week"] : "Reserved";
 			}
 			
 			$res = ["gerp_iods" => $gerps];
