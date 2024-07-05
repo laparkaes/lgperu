@@ -207,7 +207,6 @@ class Sa_sell_inout extends CI_Controller {
 		
 		//load sell-in records and insert to model array
 		$s_in = [
-			"sell_in_id as id",
 			"model",
 			"closed_date as date",
 			"invoice_no",
@@ -242,7 +241,6 @@ class Sa_sell_inout extends CI_Controller {
 		
 		//load sell-out records and insert to model array
 		$s_out = [
-			"sell_out_id as id",
 			"suffix as model",
 			"sunday as date",
 			"units as qty",

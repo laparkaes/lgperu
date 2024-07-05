@@ -99,7 +99,10 @@ class Obs_report extends CI_Controller {
 	}
 	
 	public function test(){
-		$gerps = $this->get_gerp_iod(date("Y-m-01"), date("Y-m-t"));
+		$from = date("Y-05-01");
+		$to = date("Y-05-t");
+		
+		$gerps = $this->get_gerp_iod($from, $to);
 		
 		if ($gerps){
 			$date_min = date('Y-m-d', strtotime('-1 week', strtotime($gerps[count($gerps)-1]->create_date)));
@@ -108,37 +111,64 @@ class Obs_report extends CI_Controller {
 			echo $date_min." ".$date_max; echo "<br/><br/>";
 		
 			$s_m = [
-			
-			
-/*
-	7 	customer_name 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
-	14 	gerp_order_no 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
-	17 	local_time 	timestamp 			예 	NULL 			변경 변경 	삭제 삭제 	
-	18 	company_name_through_vipkey 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
-	19 	vipkey 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
-	23 	coupon_code 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
-	24 	coupon_rule 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
-	25 	discount_amount 	float 			예 	NULL 			변경 변경 	삭제 삭제 	
-	26 	devices 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
-	27 	knout_status 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
-	29 	customer_group 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
-	30 	payment_method 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
-	33 	purchase_date 	timestamp 			예 	NULL 			변경 변경 	삭제 삭제 	
-	35 	ip_address 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
-	41 	zipcode 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
-	42 	department 	varchar(250) 	utf8_general_ci 		예 	NULL 			변경 변경 	삭제 삭제 	
-	43 	province 
-*/			
-			
-			
+				"gerp_order_no", 
+				"local_time", 
+				"customer_name", 
+				"company_name_through_vipkey", 
+				"vipkey", 
+				"coupon_code", 
+				"coupon_rule", 
+				"discount_amount", 
+				"devices", 
+				"knout_status", 
+				"customer_group", 
+				"payment_method", 
+				"purchase_date", 
+				"ip_address", 
+				"zipcode", 
+				"department", 
+				"province", 
 			];
 			$w_m = ["gerp_order_no !=" => "", "local_time >=" => $date_min." 00:00:00", "local_time <=" => $date_max." 23:59:59"];
 			$magentos = $this->gen_m->filter_select("obs_magento", false, $s_m, $w_m);
-		
-		
-		
+			
+			$magentos_arr = [];
+			foreach($magentos as $m) $magentos_arr[$m->gerp_order_no] = $m;
+			
+			$m_blank = [
+				"local_time" => null, 
+				"customer_name" => null, 
+				"company_name_through_vipkey" => null, 
+				"vipkey" => null, 
+				"coupon_code" => null, 
+				"coupon_rule" => null, 
+				"discount_amount" => null, 
+				"devices" => null, 
+				"knout_status" => null, 
+				"customer_group" => null, 
+				"payment_method" => null, 
+				"purchase_date" => null, 
+				"ip_address" => null, 
+				"zipcode" => null, 
+				"department" => null, 
+				"province" => null, 
+			];
+			
+			$rows = [];
 			foreach($gerps as $g){
-				print_r($g); echo "<br/><br/>";
+				$g_arr = [];
+				foreach($g as $key => $val) $g_arr[$key] = $val;
+				
+				if (array_key_exists($g->order_no, $magentos_arr)){
+					$m_arr = [];
+					foreach($magentos_arr[$g->order_no] as $key => $val) $m_arr[$key] = $val;
+					
+					$rows[] = array_merge($g_arr, $m_arr);
+				}else $rows[] = array_merge($g_arr, $m_blank);
+			}
+			
+			foreach($rows as $row){
+				print_r($row); echo "<br/><br/>";
 			}
 		}
 		

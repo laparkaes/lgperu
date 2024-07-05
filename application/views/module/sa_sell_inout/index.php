@@ -141,7 +141,6 @@
 									<table class="table align-middle text-center">
 										<thead style="position: sticky; top: 60px;">
 											<tr>
-												<th scope="col">ID</th>
 												<th scope="col">Date</th>
 												<th scope="col">Type</th>
 												<th scope="col">Qty</th>
@@ -159,7 +158,6 @@
 										<tbody>
 											<?php $list = array_reverse($sell_inouts[$m->model]); foreach($list as $item){ ?>
 											<tr>
-												<td><?= $item->id ?></td>
 												<td><?= $item->date ?></td>
 												<td><?= $item->type === "in" ? "Sell-In" : "Sell-out" ?></td>
 												<td><?= number_format($item->qty) ?></td>
