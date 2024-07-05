@@ -132,8 +132,8 @@ class Local_api extends CI_Controller {
 		return array_merge($gerps, $gerps_);
 	}
 	
-	public function get_obs_gerp_month(){
-		//llamasys/local_api/get_obs_gerp_month?key=lgepr
+	public function get_obs_sales(){
+		//llamasys/local_api/get_obs_sales?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
 			$from = date("Y-m-01");
