@@ -51,51 +51,6 @@ class Local_api extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode(["order_items" => $order_items]);
 	}
-	/*
-	public function get_sales_order(){
-		//llamasys/local_api/get_sales_order?key=lgepr&f=2024-01-01&t=2024-12-31
-		
-		$res = [];
-		
-		$key = $this->input->get("key");
-		$f = $this->input->get("f");
-		$t = $this->input->get("t");
-		
-		if ($f and $t and ($key === "lgepr")){
-			$filter = [
-				"order_date >=" => $f,
-				"order_date <=" => $t,
-			];
-			
-			$res = $this->gen_m->filter("dash_sales_order_inquiry", false, $filter);
-		}else $res = ["msg" => "Error"];
-		
-		header('Content-Type: application/json');
-		echo json_encode($res);
-	}
-	
-	public function get_closed_order(){
-		//llamasys/local_api/get_closed_order?key=lgepr&f=2024-01-01&t=2024-12-31
-		
-		$res = [];
-		
-		$key = $this->input->get("key");
-		$f = $this->input->get("f");
-		$t = $this->input->get("t");
-		
-		if ($f and $t and ($key === "lgepr")){
-			$filter = [
-				"order_date >=" => $f,
-				"order_date <=" => $t,
-			];
-			
-			$res = $this->gen_m->filter("dash_closed_order_inquiry", false, $filter);
-		}else $res = ["msg" => "Error"];
-		
-		header('Content-Type: application/json');
-		echo json_encode($res);
-	}
-	*/
 	
 	public function get_exchange_rate(){
 		//llamasys/local_api/get_exchange_rate?key=lgepr

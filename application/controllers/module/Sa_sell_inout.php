@@ -73,12 +73,14 @@ class Sa_sell_inout extends CI_Controller {
 					
 					//echo "[[[[[[[[".$now_i."/// remove: ".$remove_qty."]]]]]]]]]<br/>";
 					while($in->model === $sell_ins[$now_i]->model and ($remove_qty < 0)){
-						$sell_ins[$now_i]->qty += $remove_qty;
-						if ($sell_ins[$now_i]->qty <= 0){
-							$remove_qty = abs($sell_ins[$now_i]->qty);
-							unset($sell_ins[$now_i]);
-							$now_i = $this->get_last_key($sell_ins, $now_i);
-						}else break;
+						if (abs($in->unit_selling_price) === abs($sell_ins[$now_i]->unit_selling_price)){
+							$sell_ins[$now_i]->qty += $remove_qty;
+							if ($sell_ins[$now_i]->qty <= 0){
+								$remove_qty = abs($sell_ins[$now_i]->qty);
+								unset($sell_ins[$now_i]);
+								$now_i = $this->get_last_key($sell_ins, $now_i);
+							}else break;	
+						}
 					}
 					unset($sell_ins[$i]);
 				}
@@ -99,12 +101,97 @@ class Sa_sell_inout extends CI_Controller {
 		return $sell_ins;
 	}
 	
-	private function get_sell_inout($bill_to, $models_arr){//ok 2024 0629
-		$sell_inouts = [];
-		foreach($models_arr as $m) $sell_inouts[$m] = [];
+	public function test_sell_in(){
+		$bill_to_code = "PE000801001B";
+		
+		$s = ["product_level1_name", "product_level2_name", "product_level3_name", "product_level4_name", "model_category", "model"];
+		$order = [["model_category", "asc"], ["product_level1_name", "asc"], ["product_level2_name", "asc"], ["product_level3_name", "asc"], ["product_level4_name", "asc"], ["model", "asc"]];
+		
+		$models = $this->gen_m->filter_select("sa_sell_in", false, $s, ["bill_to_code" => $bill_to_code], null, null, $order, null, null, "model");
+		
+		$model_list = [];
+		foreach($models as $m) $model_list[] = $m->model;
+		
+		$ins_model = [];
+		foreach($model_list as $m) $ins_model[$m] = [];
+		
+		$s_in = [
+			"sell_in_id as id",
+			"model",
+			"closed_date as date",
+			"invoice_no",
+			"order_qty as qty",
+			"order_amount_pen as amount",
+			"unit_selling_price",
+		];
+		
+		$sell_ins = $this->gen_m->filter_select("sa_sell_in", false, $s_in, ["bill_to_code" => $bill_to_code, "order_qty !=" => -1, "invoice_no !=" => "(blank)"], null, [["field" => "model", "values" => $model_list]], [["date", "asc"], ["qty", "desc"]]);
+		foreach($sell_ins as $in) $ins_model[$in->model][] = $in;
+		
+		foreach($ins_model as $model => $ins){
+			echo $model." ================= <br/>";
+			
+			$ins_model[$model] = $this->clean_sell_ins($ins_model[$model]);
+			
+			foreach($ins_model[$model] as $in){
+				print_r($in);
+				echo "<br/>";
+			}
+			
+			echo "<br/><br/>";
+		}
+	}
+	
+	public function test_sell_out(){
+		$bill_to_code = "PE000801001B";
+		
+		$s = ["product_level1_name", "product_level2_name", "product_level3_name", "product_level4_name", "model_category", "model"];
+		$order = [["model_category", "asc"], ["product_level1_name", "asc"], ["product_level2_name", "asc"], ["product_level3_name", "asc"], ["product_level4_name", "asc"], ["model", "asc"]];
+		
+		$models = $this->gen_m->filter_select("sa_sell_in", false, $s, ["bill_to_code" => $bill_to_code], null, null, $order, null, null, "model");
+		
+		$model_list = [];
+		foreach($models as $m) $model_list[] = $m->model;
+		
+		$outs_model = [];
+		foreach($model_list as $m) $outs_model[$m] = [];
+		
+		$s_out = [
+			"sell_out_id as id",
+			"suffix as model",
+			"sunday as date",
+			"units as qty",
+			"amount",
+			"stock",
+		];
+		
+		$sell_outs = $this->gen_m->filter_select("sa_sell_out", false, $s_out, ["customer_code" => $bill_to_code, "units !=" => 0], null, [["field" => "suffix", "values" => $model_list]], [["date", "asc"]]);
+		foreach($sell_outs as $out) $outs_model[$out->model][] = $out;
+		
+		foreach($outs_model as $model => $ins){
+			echo $model." ================= <br/>";
+			
+			//$outs_model[$model] = $this->clean_sell_ins($outs_model[$model]);
+			
+			foreach($outs_model[$model] as $out){
+				print_r($out);
+				echo "<br/>";
+			}
+			
+			echo "<br/><br/>";
+		}
+	}
+	
+	private function get_sell_inout($bill_to_code, $model_list){//ok 2024 0629
+		$sell_inouts = $ins_model = [];
+		foreach($model_list as $m){
+			$sell_inouts[$m] = [];
+			$ins_model[$m] = [];
+		}
 		
 		//use for each sell-in & sell-out item
 		$structure = new stdClass;
+		$structure->id = 0;
 		$structure->type = "";
 		$structure->date = "";
 		$structure->qty = 0;
@@ -120,22 +207,28 @@ class Sa_sell_inout extends CI_Controller {
 		
 		//load sell-in records and insert to model array
 		$s_in = [
+			"sell_in_id as id",
 			"model",
 			"closed_date as date",
 			"invoice_no",
 			"order_qty as qty",
 			"order_amount_pen as amount",
+			"unit_selling_price",
 		];
 		
-		$sell_ins = $this->gen_m->filter_select("sa_sell_in", false, $s_in, ["bill_to_code" => $bill_to, "order_qty !=" => 0], null, [["field" => "model", "values" => $models_arr]], [["date", "asc"]]);
-		$sell_ins = $this->clean_sell_ins($sell_ins);
-		foreach($sell_ins as $si){
-			//if ($si->qty != -1){
-			if ($si->qty > 0){
-				//print_r($si); echo "<br/>";
+		//set sell ins buy model
+		$sell_ins = $this->gen_m->filter_select("sa_sell_in", false, $s_in, ["bill_to_code" => $bill_to_code, "order_qty !=" => -1, "invoice_no !=" => "(blank)"], null, [["field" => "model", "values" => $model_list]], [["date", "asc"], ["qty", "desc"]]);
+		foreach($sell_ins as $in) $ins_model[$in->model][] = $in;
+		
+		//clean negative sell ins
+		foreach($ins_model as $model => $ins){
+			$ins_model[$model] = $this->clean_sell_ins($ins_model[$model]);
+			
+			foreach($ins_model[$model] as $si){
 				$si->unit_price = round($si->amount / $si->qty, 2);
 				
 				$aux = clone $structure;
+				//$aux->type = $si->id;
 				$aux->type = "in";
 				$aux->date = $si->date;
 				$aux->qty = $si->qty;
@@ -149,6 +242,7 @@ class Sa_sell_inout extends CI_Controller {
 		
 		//load sell-out records and insert to model array
 		$s_out = [
+			"sell_out_id as id",
 			"suffix as model",
 			"sunday as date",
 			"units as qty",
@@ -156,11 +250,12 @@ class Sa_sell_inout extends CI_Controller {
 			"stock",
 		];
 		
-		$sell_outs = $this->gen_m->filter_select("sa_sell_out", false, $s_out, ["customer_code" => $bill_to, "units >" => 0], null, [["field" => "suffix", "values" => $models_arr]], [["date", "asc"]]);
+		$sell_outs = $this->gen_m->filter_select("sa_sell_out", false, $s_out, ["customer_code" => $bill_to_code, "units !=" => 0], null, [["field" => "suffix", "values" => $model_list]], [["date", "asc"]]);
 		foreach($sell_outs as $so){
 			$so->unit_price = round($so->amount / $so->qty, 2);
 			
 			$aux = clone $structure;
+			//$aux->type = $so->id;
 			$aux->type = "out";
 			$aux->date = $so->date;
 			$aux->qty = $so->qty;
