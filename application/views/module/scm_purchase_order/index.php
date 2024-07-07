@@ -24,8 +24,8 @@
 							<label class="form-label">Template</label>
 							<select class="form-select" name="po_template">
 								<option value="" selected="">Choose...</option>
-								<?php foreach($purchase_order_temps as $t){ ?>
-								<option value="<?= $t->template_id ?>"><?= $t->template ?></option>
+								<?php foreach($po_templates as $item){ ?>
+								<option value="<?= $item->template_id ?>"><?= $item->template ?></option>
 								<?php } ?>
 							</select>
 						</div>
@@ -33,9 +33,9 @@
 							<label class="form-label">Ship to</label>
 							<select class="form-select" id="sl_ship_to" name="ship_to">
 								<option value="" selected="">Choose...</option>
-								<?php foreach($ship_tos as $s){ if($s->ship_to_code){ ?>
-								<option value="<?= $s->ship_to_id ?>" class="c_all c_<?= $s->customer_id ?>"><?= $s->op ?></option>
-								<?php }} ?>
+								<?php foreach($ship_tos as $item){ ?>
+								<option value="<?= $item->ship_to_id ?>">[<?= $item->bill_to_code ?>] <?= $item->bill_to_name ?> / [<?= $item->ship_to_code ?>] <?= $item->address ?></option>
+								<?php } ?>
 							</select>
 						</div>
 						<div class="col-md-12 flex-fill align-self-end pt-3">
@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_convert_po").submit(function(e) {
 		e.preventDefault();
 		$("#form_convert_po .sys_msg").html("");
-		ajax_form_warning(this, "module/purchase_order/convert_po", "Do you want to convert PO to Excel?").done(function(res) {
+		ajax_form_warning(this, "module/scm_purchase_order/convert_po", "Do you want to convert PO to Excel?").done(function(res) {
 			swal_open_tab(res.type, res.msg, res.url);
 		});
 	});

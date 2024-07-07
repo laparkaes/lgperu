@@ -629,5 +629,60 @@ class Obs_report extends CI_Controller {
 		
 		$this->load->view('layout', $data);
 	}
-
+	
+	private function get_statistics($gerps, $from, $to){
+		$devices = ["total" => ["device" => "Total", "qty" => 0, "amount" => 0]];
+		$devices_rec = $this->gen_m->only("obs_magento", "devices", ["devices !=" => "", "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		foreach($devices_rec as $d) $devices[$d->devices] = ["device" => $d->devices, "qty" => 0, "amount" => 0];
+		
+		$cus_group = ["total" => ["customer_group" => "Total", "qty" => 0, "amount" => 0]];
+		$cus_group_rec = $this->gen_m->only("obs_magento", "customer_group", ["customer_group !=" => "", "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		foreach($cus_group_rec as $c) $cus_group[$c->customer_group] = ["customer_group" => $c->customer_group, "qty" => 0, "amount" => 0];
+		
+		$d2b2c = ["total" => ["company" => "Total", "qty" => 0, "amount" => 0]];
+		$d2b2c_rec = $this->gen_m->only("obs_magento", "company_name_through_vipkey", ["grand_total_purchased >" => 0, "company_name_through_vipkey !=" => "", "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		foreach($d2b2c_rec as $c) $d2b2c[$c->company_name_through_vipkey] = ["company" => $c->company_name_through_vipkey, "qty" => 0, "amount" => 0];
+		
+		$cupons = ["total" => ["cupon" => "Total", "rule" => "", "qty" => 0, "amount" => 0]];
+		$cupons_rec = $this->gen_m->only_multi("obs_magento", ["coupon_code", "coupon_rule"], ["grand_total_purchased >" => 0, "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		foreach($cupons_rec as $c) $cupons[$c->coupon_code] = ["cupon" => $c->coupon_code, "rule" => $c->coupon_rule, "qty" => 0, "amount" => 0];
+		
+		$departments = ["total" => ["department" => "Total", "province" => "", "qty" => 0, "amount" => 0]];
+		$departments_rec = $this->gen_m->only_multi("obs_magento", ["department", "province"], ["grand_total_purchased >" => 0, "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		foreach($departments_rec as $z) $departments[$z->department."_".$z->province] = ["department" => $z->department, "province" => $z->province, "qty" => 0, "amount" => 0];
+		
+		$daily = [];
+		$dates_between = $this->my_func->dates_between($from, $to);
+		foreach($dates_between as $item){
+			$daily[date("d", strtotime($item))] = [
+				4 => ["qty" => 0, "amount" => 0],
+				8 => ["qty" => 0, "amount" => 0],
+				12 => ["qty" => 0, "amount" => 0],
+				16 => ["qty" => 0, "amount" => 0],
+				20 => ["qty" => 0, "amount" => 0],
+				24 => ["qty" => 0, "amount" => 0],
+			];
+		}
+		
+		foreach($devices as $item){print_r($item); echo "<br/>";}
+		
+		
+		echo "<br/><br/><br/>";
+		
+		foreach($gerps as $item){
+			print_r($item); echo "<br/><br/>";
+		}
+	}
+	
+	public function summary(){
+		$from = date("Y-m-01");
+		$to = date("Y-m-t");
+		
+		$gerps = $this->my_func->get_gerp_iod($from, $to);
+		
+		
+		$this->get_statistics($gerps, $from, $to);
+		
+		//foreach($gerps as $g){ print_r($g); echo "<br/><br/>"; }
+	}
 }

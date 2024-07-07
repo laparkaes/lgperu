@@ -170,6 +170,81 @@ class Scm_purchase_order extends CI_Controller {
 	}
 	
 	private function sodimac($rows_input, $ship_to){
+		
+		foreach($rows_input as $i => $row){
+			echo $i." >>>>>>>>>>> ";
+			print_r($row);
+			echo "<br/>";
+		}
+		
+		/*
+		$rows = $products = [];
+		
+		$i = 0;
+		$limit = count($rows_input);
+		$currency = "PEN";
+		
+		//foreach($rows_input as $i => $r){
+		while($i < $limit){
+			$r = $rows_input[$i];
+			
+			switch($r){
+				case "Creada por": 
+					$po_num = $rows_input[$i-1];
+					break;
+				case "Fecha Emision":
+					$issue_date = date('Ymd', strtotime($rows_input[$i+1]));
+					$i++;
+					break;
+				case "Fecha Recibo Esperada":
+					$arrival_date = date('Ymd', strtotime($rows_input[$i+1]));
+					$i++;
+					break;
+				case "Monto Total":
+					$i++;
+					$products = [];
+					while(true){
+						$prod = [];
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						$prod[] = $rows_input[$i]; $i++;
+						
+						$products[] = $prod;
+						if ($rows_input[$i] === "TOTAL") break;
+					}
+					
+					break;
+			}
+			
+			if ($products) foreach($products as $p){
+				//set model
+				$sku = trim($p[2]);
+				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
+				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
+				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
+				
+				$qty = intval(str_replace(',', '.', str_replace('.', '', $p[8])));
+				$unit_price = floatval(str_replace(',', '.', str_replace('.', '', $p[7])));
+				
+				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $model, $qty, $unit_price, $issue_date, $ship_to->customer->customer);
+			}
+			
+			$products = [];
+			$i++;
+		}
+		
+		return $rows;
+		*/
+	}
+	
+	private function sodimac_maestro($rows_input, $ship_to){
 		$rows = $products = [];
 		
 		$i = 0;
@@ -323,6 +398,7 @@ class Scm_purchase_order extends CI_Controller {
 			case "hiraoka_sku": $rows = $this->hiraoka_sku($rows, $ship_to); break;
 			case "estilos_sku": $rows = $this->estilos_sku($rows, $ship_to); break;
 			case "sodimac": $rows = $this->sodimac($rows, $ship_to); break;
+			case "sodimac_maestro": $rows = $this->sodimac_maestro($rows, $ship_to); break;
 			case "chancafe": $rows = $this->chancafe($rows, $ship_to); break;
 			default: $rows = [];
 		}
@@ -395,11 +471,10 @@ class Scm_purchase_order extends CI_Controller {
 		
 		/* pdf to excel 
 		*/
-		$filename = './test_files/scm_po_chancafe/OC 011-469 LG RODRIGUEZ DE MENDOZA.pdf';
+		$filename = './test_files/PO_-_Sodimac/OC_4285202.pdf';
 		//$filename = './test_files/scm_po_hiraoka/132527 LG - LB - VES_TIENDAS.pdf';
-		$po_template = $this->gen_m->unique("purchase_order_template", "template_id", 6);//chancafe
-		$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", 149);//chancafe
-		$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
+		$po_template = $this->gen_m->unique("scm_purchase_order_template", "template_id", 7, false);//sodimac
+		$ship_to = $this->gen_m->unique("scm_ship_to", "ship_to_id", 19, false);//sodimac
 		
 		echo $this->pdf_to_excel($filename, $po_template, $ship_to);
 		
@@ -451,8 +526,8 @@ class Scm_purchase_order extends CI_Controller {
 			*/
 			
 			$po_file = './upload/scm_po_file'.$result["file_ext"];
-			$po_template = $this->gen_m->unique("purchase_order_template", "template_id", $this->input->post("po_template"));
-			$ship_to = $this->gen_m->unique("customer_ship_to", "ship_to_id", $this->input->post("ship_to"));
+			$po_template = $this->gen_m->unique("scm_purchase_order_template", "template_id", $this->input->post("po_template"), false);
+			$ship_to = $this->gen_m->unique("scm_ship_to", "ship_to_id", $this->input->post("ship_to"), false);
 			
 			if ($po_template and $ship_to){
 				$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
@@ -482,33 +557,10 @@ class Scm_purchase_order extends CI_Controller {
 	}
 	
 	public function index(){
-		$po_templates_words = [];
-		$po_templates_rec = $this->gen_m->all("scm_purchase_order_template", [["template", "asc"]]);
-		foreach($po_templates_rec as $temp) $po_templates_words[] = $temp->customer_word;
-		$po_templates_words = array_unique($po_templates_words);
-
-		$customer_ids = [];
-		foreach($po_templates_words as $word){
-			$customer_recs = $this->gen_m->filter("customer", true, null, [["field" => "customer", "values" => [$word]]]);
-			foreach($customer_recs as $cus) $customer_ids[] = $cus->customer_id;
-		}
-
-		$ship_tos = $this->gen_m->filter("customer_ship_to", true, null, null, [["field" => "customer_id", "values" => $customer_ids]], [["ship_to_code", "asc"], ["address", "asc"]]);
-		foreach($ship_tos as $i => $s){
-			if ($s->address){
-				$cus = $this->gen_m->unique("customer", "customer_id", $s->customer_id);
-				$s->op = $cus->customer." ** ".$cus->bill_to_code." ** ".$s->ship_to_code." ** ".$s->address;	
-			}else unset($ship_tos[$i]);
-		}
-		
-		usort($ship_tos, function($a, $b) {
-			return strcmp($a->op, $b->op);
-		});
-		
 		$data = [
-			"purchase_order_temps" => $po_templates_rec,
-			"ship_tos" => $ship_tos,
-			"main" => "module/purchase_order/index",
+			"po_templates" => $this->gen_m->filter("scm_purchase_order_template", true, ["valid" => true], null, null, [["template", "asc"]]),
+			"ship_tos" => $this->gen_m->filter("scm_ship_to", false, null, null, null, [["bill_to_name", "asc"], ["address", "asc"]]),
+			"main" => "module/scm_purchase_order/index",
 		];
 		
 		$this->load->view('layout', $data);

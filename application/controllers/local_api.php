@@ -44,33 +44,6 @@ class Local_api extends CI_Controller {
 		foreach($this->category_map as $cat => $categories) foreach($categories as $c) $this->category_map_inv[$c] = $cat;
 	}
 	
-	function get_dates_by_week($week, $year){
-		$dateTime = new DateTime();
-		$dateTime->setISODate($year, $week);//1 week: from monday ~ sunday
-		
-		//need from sunday ~ saturday
-		$startDate = date("Y-m-d", strtotime("-1 day", strtotime($dateTime->format('Y-m-d'))));
-		if ((string)$year !== date("Y", strtotime($startDate))) $startDate = $year."-01-01";
-		
-		$dateTime->modify('+6 days');//add one week in days
-		$endDate = date("Y-m-d", strtotime("-1 day", strtotime($dateTime->format('Y-m-d'))));
-		if ((string)$year !== date("Y", strtotime($endDate))) $endDate = $year."-12-31";
-		
-		return (($startDate === $year."-01-01") and ($endDate === $year."-12-31")) ? null : [$startDate, $endDate];
-	}
-	
-	function get_week_by_date($date){
-		$year = date("Y", strtotime($date));
-		$week = 1;
-		
-		while (true){
-			$res = $this->get_dates_by_week($week, $year);
-			if (strtotime($res[1]) < strtotime($date)) $week++; else break;
-		}
-		
-		return ["week" => $week, "dates" => $res];
-	}
-	
 	public function test(){
 		$order_items = $this->gen_m->all("order_item");
 		
@@ -135,23 +108,8 @@ class Local_api extends CI_Controller {
 	public function get_obs_sales(){
 		//llamasys/local_api/get_obs_sales?key=lgepr
 		
-		if ($this->input->get("key") === "lgepr"){
-			$from = date("Y-m-01");
-			$to = date("Y-m-t");
-			
-			$exr_ttm = round($this->my_func->get_exchange_rate_month_ttm(date("Y-m-d")), 2);
-			$gerps = $this->my_func->get_gerp_iod($from, $to);
-			foreach($gerps as $g){
-				$g->line_no = "'".$g->line_no;
-				$g->sales_amount_usd = $g->sales_amount / $exr_ttm;
-				$g->dash_division = $g->model_category ? $this->category_map_inv[$g->model_category] : null;
-				$g->dash_company = $g->dash_division ? $this->division_map_inv[$g->dash_division] : null;
-				$g->dash_status = $g->line_status === "Closed" ? "Closed" : "Reserved";
-				$g->dash_week = $g->close_date ? "W".$this->get_week_by_date($g->close_date)["week"] : "Reserved";
-			}
-			
-			$res = ["gerp_iods" => $gerps];
-		}else $res = ["msg" => "Error"];
+		if ($this->input->get("key") === "lgepr") $res = ["gerp_iods" => $this->my_func->get_gerp_iod(date("Y-m-01"), date("Y-m-t"))];
+		else $res = ["msg" => "Error"];
 		
 		header('Content-Type: application/json');
 		echo json_encode($res);

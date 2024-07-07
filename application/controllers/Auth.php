@@ -21,7 +21,7 @@ class Auth extends CI_Controller {
 	public function login_process(){
 		$type = "error"; $msg = $url = "";
 		
-		$employee = $this->gen_m->unique("employee", "ep_mail", $this->input->post("ep_mail"));
+		$employee = $this->gen_m->unique("hr_employee", "ep_mail", $this->input->post("ep_mail"));
 		if ($employee){
 			if (password_verify($this->input->post("password"), $employee->password)){
 				unset($employee->password);
@@ -65,9 +65,9 @@ class Auth extends CI_Controller {
 		$type = "error"; $msg = $url = "";
 		
 		if ($this->input->post("password_n") === $this->input->post("password_c")){
-			$employee = $this->gen_m->unique("employee", "employee_id", $this->session->userdata('emp')->employee_id);
+			$employee = $this->gen_m->unique("hr_employee", "employee_id", $this->session->userdata('emp')->employee_id);
 			if (password_verify($this->input->post("password"), $employee->password)){
-				if ($this->gen_m->update("employee", ["employee_id" => $employee->employee_id], ["password" => password_hash($this->input->post("password_n"), PASSWORD_BCRYPT)])){
+				if ($this->gen_m->update("hr_employee", ["employee_id" => $employee->employee_id], ["password" => password_hash($this->input->post("password_n"), PASSWORD_BCRYPT)])){
 					$this->session->sess_destroy();
 					
 					$type = "success";

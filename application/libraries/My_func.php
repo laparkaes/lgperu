@@ -130,6 +130,33 @@ class My_func{
 	}
 	//date format handler - end
 	
+	public function get_dates_by_week($week, $year){
+		$dateTime = new DateTime();
+		$dateTime->setISODate($year, $week);//1 week: from monday ~ sunday
+		
+		//need from sunday ~ saturday
+		$startDate = date("Y-m-d", strtotime("-1 day", strtotime($dateTime->format('Y-m-d'))));
+		if ((string)$year !== date("Y", strtotime($startDate))) $startDate = $year."-01-01";
+		
+		$dateTime->modify('+6 days');//add one week in days
+		$endDate = date("Y-m-d", strtotime("-1 day", strtotime($dateTime->format('Y-m-d'))));
+		if ((string)$year !== date("Y", strtotime($endDate))) $endDate = $year."-12-31";
+		
+		return (($startDate === $year."-01-01") and ($endDate === $year."-12-31")) ? null : [$startDate, $endDate];
+	}
+	
+	public function get_week_by_date($date){
+		$year = date("Y", strtotime($date));
+		$week = 1;
+		
+		while (true){
+			$res = $this->get_dates_by_week($week, $year);
+			if (strtotime($res[1]) < strtotime($date)) $week++; else break;
+		}
+		
+		return ["week" => $week, "dates" => $res];
+	}
+	
 	/* public function get_record($tablename, $data){
 		$record = $this->CI->gen_m->filter($tablename, true, $data);
 		if (!$record){
@@ -316,13 +343,48 @@ class My_func{
 				"province" => null, 
 			];
 			
-			
 			$time_from = strtotime($from);
 			$time_to = strtotime($to);
+			$er_ttm = round($this->CI->my_func->get_exchange_rate_month_ttm(date("Y-m-d", strtotime($to))), 2);
+			
+			$divisions = ["HA", "HE", "BS"];
+			$division_map = [
+				"HA" => ["REF", "COOK", "W/M", "RAC", "SAC", "A/C"],
+				"HE" => ["TV", "AV"],
+				"BS" => ["MNT", "PC", "DS", "SGN", "CTV"],
+			];
+			$division_map_inv = [];
+			foreach($division_map as $div => $divisions) foreach($divisions as $cat) $division_map_inv[$cat] = $div;
+			
+			$categories = ["REF", "COOK", "W/M", "A/C", "RAC", "SAC", "TV", "AV", "MNT", "PC", "DS", "SGN", "CTV"];
+			$category_map = [
+				"REF" => ["REF"],
+				"COOK" => ["MWO", "O", "CVT"],
+				"W/M" => ["W/M"],
+				"A/C" => ["A/C"],
+				"RAC" => ["RAC"],
+				"SAC" => ["SAC"],
+				"TV" => ["LCD", "LTV"],
+				"AV" => ["AUD", "CAV"],
+				"MNT" => ["MNT"],
+				"PC" => ["PC"],
+				"DS" => ["DS"],
+				"SGN" => ["SGN"],
+				"CTV" => ["CTV"],
+			];
+			$category_map_inv = [];
+			foreach($category_map as $cat => $categories) foreach($categories as $c) $category_map_inv[$c] = $cat;
 			
 			foreach($gerps as $g){
 				$create_time = strtotime($g->create_date);
 				$close_time = strtotime($g->close_date);
+				
+				$g->line_no = "'".$g->line_no;
+				$g->sales_amount_usd = ($g->currency == "PEN") ? round($g->sales_amount / $er_ttm, 2) : $g->sales_amount;
+				$g->dash_division = $g->model_category ? $category_map_inv[$g->model_category] : null;
+				$g->dash_company = $g->dash_division ? $division_map_inv[$g->dash_division] : null;
+				$g->dash_status = $g->line_status === "Closed" ? "Closed" : "Reserved";
+				$g->dash_week = $g->close_date ? "W".$this->get_week_by_date($g->close_date)["week"] : "Reserved";
 				
 				if ($g->line_status === "Closed"){
 					if ($create_time < $time_from) $g->delivery = "M-1";
@@ -344,7 +406,11 @@ class My_func{
 		
 		//sort by date asc
 		usort($rows, function($a, $b) {
-			return strtotime($a["close_date"]) < strtotime($b["close_date"]);
+			$a_close = strtotime($a["close_date"]);
+			$b_close = strtotime($b["close_date"]);
+			
+			if ($a_close == $b_close) return (strtotime($a["purchase_date"]) < strtotime($b["purchase_date"]));
+			else return ($a_close < $b_close);
 		});
 		
 		//foreach($rows as $row){print_r($row); echo "<br/><br/>";}

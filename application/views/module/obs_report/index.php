@@ -199,7 +199,7 @@
 												<td class="text-start">~ <?= $time ?> Hr</td>
 												<?php foreach($dates_between as $date){ $day = date("d", strtotime($date));
 													$total[$day] += $daily[$day][$time]["amount"];
-													$chart_daily_values[$time][] = round($daily[$day][$time]["amount"], 2);
+													$chart_daily_values[$time][] = (date("d", strtotime($date)) <= date("d")) ? round($daily[$day][$time]["amount"], 2) : null;
 												?>
 												<td><?= $daily[$day][$time]["amount"] ? number_format($daily[$day][$time]["amount"], 2) : "-" ?></td>
 												<?php } ?>
@@ -208,7 +208,7 @@
 											<tr>
 												<th class="text-start">Total</th>
 												<?php foreach($dates_between as $date){ $day = date("d", strtotime($date)); ?>
-												<th><?= $total[$day] ? number_format($total[$day], 2) : "-" ?></th>
+												<th><?= $total[$day] ? number_format($total[$day], 2) : "0.00" ?></th>
 												<?php } ?>
 											</tr>
 										</tbody>
