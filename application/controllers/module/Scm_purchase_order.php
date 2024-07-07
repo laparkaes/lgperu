@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-class Purchase_order extends CI_Controller {
+class Scm_purchase_order extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
@@ -11,10 +11,6 @@ class Purchase_order extends CI_Controller {
 		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
-		$this->color_rgb = [
-			"green" => "198754",
-			"red" => "dc3545",
-		];
 	}
 	
 	private function make_row($po_num, $ship_to_code, $currency, $arrival_date, $model, $qty, $unit_price, $issue_date, $customer_name){
@@ -487,7 +483,7 @@ class Purchase_order extends CI_Controller {
 	
 	public function index(){
 		$po_templates_words = [];
-		$po_templates_rec = $this->gen_m->all("purchase_order_template", [["template", "asc"]]);
+		$po_templates_rec = $this->gen_m->all("scm_purchase_order_template", [["template", "asc"]]);
 		foreach($po_templates_rec as $temp) $po_templates_words[] = $temp->customer_word;
 		$po_templates_words = array_unique($po_templates_words);
 

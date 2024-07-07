@@ -28,11 +28,12 @@
 			<ul class="d-flex align-items-center">
 				<li class="nav-item dropdown pe-3">
 					<a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-						<i class="bi bi-person-circle" style="font-size: 2em;"></i><span class="dropdown-toggle ps-2"><?= $this->session->userdata('emp')->name ?></span>
+						<i class="bi bi-person-circle" style="font-size: 2em;"></i><span class="dropdown-toggle ps-2"><?= $this->session->userdata('name') ?></span>
 					</a>
 					<ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
 						<li class="dropdown-header">
-							<span><?= $this->session->userdata('emp')->employee_number ?></span>
+							<h6><?= $this->session->userdata('department') ?></h6>
+							<span><?= $this->session->userdata('employee_number') ?></span>
 						</li>
 						<li>
 							<hr class="dropdown-divider">

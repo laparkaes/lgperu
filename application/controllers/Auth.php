@@ -24,15 +24,15 @@ class Auth extends CI_Controller {
 		$employee = $this->gen_m->unique("employee", "ep_mail", $this->input->post("ep_mail"));
 		if ($employee){
 			if (password_verify($this->input->post("password"), $employee->password)){
-				
-				unset($employee->location_id);
-				unset($employee->department_id);
 				unset($employee->password);
 				unset($employee->is_supervised);
 				unset($employee->valid);
 				
 				$session_data = array(
-					"emp" => $employee,
+					"employee_id" => $employee->employee_id,
+					"employee_number" => $employee->employee_number,
+					"name" => $employee->name,
+					"department" => $employee->department,
 					"logged_in" => true
 				);
 				$this->session->set_userdata($session_data);

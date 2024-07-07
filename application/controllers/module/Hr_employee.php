@@ -7,7 +7,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 
-class Employee extends CI_Controller {
+class Hr_employee extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
@@ -15,10 +15,8 @@ class Employee extends CI_Controller {
 		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model','gen_m');
-		$this->load->model('employee_model', 'emp_m');
 		$this->load->model('vacation_model', 'vac_m');
 		$this->load->model('working_hour_model', 'whour_m');
-		$this->nav_menu = ["hr", "employee"];
 	}
 	
 	private function excel_date_to_php($value){
@@ -26,46 +24,11 @@ class Employee extends CI_Controller {
 	}
 
 	public function index(){
-		$page = $this->input->get("page"); if (!$page) $page = 1;
-		
-		$locs = [];
-		$locs_rec = $this->gen_m->all("location");
-		foreach($locs_rec as $l) $locs[$l->location_id] = $l;
-		
-		$depts = [];
-		$depts_rec = $this->gen_m->all("department");
-		foreach($depts_rec as $d) $depts[$d->department_id] = $d;
-		
-		$orgs = [];
-		$orgs_rec = $this->gen_m->all("organization");
-		foreach($orgs_rec as $o) $orgs[$o->organization_id] = $o;
-		
-		$subs = [];
-		$subs_rec = $this->gen_m->all("subsidiary");
-		foreach($subs_rec as $s) $subs[$s->subsidiary_id] = $s;
-		
-		$employees = $this->emp_m->all([["name", "asc"]]);
-		foreach($employees as $emp){
-			if ($emp->department_id){
-				$dept = $depts[$emp->department_id];
-				$org = $orgs[$dept->organization_id];
-				$sub = $subs[$org->subsidiary_id];
-				
-				$emp->department = $dept->department;
-				$emp->organization = $org->organization;
-				$emp->subsidiary = $sub->subsidiary;
-			}else{
-				$emp->department = "";
-				$emp->organization = "";
-				$emp->subsidiary = "";
-			}
-			
-			$emp->location = ($emp->location_id) ? $locs[$emp->location_id]->location : "";
-		}
+		$employees = $this->gen_m->filter("hr_employee", true, null, null, null, [["subsidiary", "asc"], ["organization", "asc"], ["department", "asc"], ["name", "asc"]]);
 		
 		$data = [
 			"employees" => $employees,
-			"main" => "module/employee/index",
+			"main" => "module/hr_employee/index",
 		];
 		$this->load->view('layout', $data);
 	}
@@ -189,16 +152,4 @@ class Employee extends CI_Controller {
 		else echo "No record.";
 	}
 
-	public function update_ep_mail(){
-		$aux = json_decode('[["M60682453","andre.cho"],["M75951391","muhyun.han"],["M875S9193","wonshik.woo"],["PR001100","julio.mendozanoel"],["PR001703","cesar.zavaleta"],["PR001724","eduardo.miranda"],["PR001736","enrique.salazar"],["PR001762","elizabeth.mg"],["PR001808","pedro.paucar"],["PR001847","celia.obregon"],["PR001849","melisa.carbajal"],["PR001871","mariela.carbajal"],["PR008144","juan.chug"],["PR008161","diana.kanagusuku"],["PR008200","hector.zena"],["PR008206","andy.jimenez"],["PR008208","fatima.quiroz"],["PR008210","bion.hwang"],["PR008255","pilar.montano"],["PR008295","bo.seo"],["PR008451","patricia.pandolfi"],["PR008457","lesly.pizarro"],["PR008522","juan.pinillos"],["PR008612","jimmy.bautista"],["PR008641","jorge.calderon"],["PR008644","gladimir.jimenez"],["PR008652","jhony.laura"],["PR008656","ruben.armas"],["PR008667","christian.pastor"],["PR008672","fernando.novoa"],["PR008733","kurt.valdiviezo"],["PR008737","roberto.kawano"],["PR008754","edwin.galindo"],["PR008756","wagner.rojas"],["PR008770","claudia.torres"],["PR008780","rony.cortez"],["PR008793","paco.shim"],["PR008857","gari.luna"],["PR008860","susanae.jacinto"],["PR008901","richard.gil"],["PR008934","fabiola.garcia"],["PR008941","jhenmi.susaya"],["PR008956","juan.depaz"],["PR008969","lauco.neyra"],["PR008978","roberto.morales"],["PR008985","ricardo.alvarez"],["PR008997","javier.reategui"],["PR009011","ricardo.kanai"],["PR009015","deborah.vassallo"],["PR009027","elizabeth.gallegos"],["PR009031","arturo.huanca"],["PR009033","dario.vargas"],["PR009060","markus.caballero"],["PR009062","angella.castro"],["PR009064","chabelly.vargas"],["PR009070","giuliana.parra"],["PR009082","liz.llajaruna"],["PR009088","andreac.alfaro"],["PR009092","luis.pena"],["PR009100","jhon.flores"],["PR009102","jose.sarmiento"],["PR009103","sergio.bernabe"],["PR009105","alvaro.benavides"],["PR009109","christianr.arapa"],["PR009113","raul.oh"],["PR009115","jeongmo.gang"],["PR009119","teddy.nacimento"],["PR009129","mario.rosazza"],["PR009130","milagros.lengua"],["PR009132","marissela.torres"],["PR009133","esteban.lugo"],["PR009134","alfredo.carrillo"],["PR009153","cynthia.montero"],["PR009156","rodrigo.oyarce"],["PR009160","diego.irazabal"],["PR009162","alex1.delgado"],["PR009163","leslie.chavez"],["PR009172","rocio.carrasco"],["PR009174","danny.romero"],["PR009175","madeleyne.velasquez"],["PR009177","alfredo.calderon"],["PR009179","angel.coral"],["PR009180","pamela.astuhuaman"],["PR009182","andre.cho"],["PR009184","carlos.hinostroza"],["PR009190","carla.zapata"],["PR009200","ana.perales"],["PR009201","jhan.calua"],["PR009204","ricardo.alcazar"],["PR009206","ricardo.padilla"],["PR009207","brian.oyola"],["PR009210","elizabeth.sampe"],["PR009212","evelyn.cruz"],["PR009216","renato.freundt"],["PR009220","silvana.chavez"],["PR009224","sanguk.jeong"],["PR009226","patrick.lee"],["PR009229","ignacio.arellano"],["PR009230","seongmin1.lee"],["PR009232","agustin.fajardo"],["PR009234","sofia.huby"],["PR009236","freddy.vega"],["PR009237","dikharla.martinez"],["PR009238","yanira.morante"],["PR009239","wilmer.mallma"],["PR009242","cesar.rucoba"],["PR009243","ronald.chavez"],["PR009244","xilena.quezada"],["PR009246","milagros.arenas"],["PR009248","andrea.coria"],["PR009249","angelica.ginocchio"],["PR009250","morella.ruiz"],["PR009252","anaclaudia.yepez"],["PR009254","jose.altamirano"],["PR009255","hans.beuermann"],["PR009257","cristal.kim"],["PR009261","malena.taboada"],["PR009262","fernando.aquino"],["PR009263","alexia.mindikowski"],["PR009264","diego.ferreira"],["PR009265","ernesto.caceres"],["PR009266","simon.ma"],["PR009267","cinthia.rojas"],["PR009268","guido.granado"],["PR009269","leticia.cho"],["PR009270","jcarlos.morales"],["PR009274","patriciar.gonzalez"],["PR009275","aline.dasilva"],["PR009277","miluska.quispe"],["PR009286","luis.gallardo"],["PR009287","jose.rabanal"],["PR009289","laura.soplin"],["PR009291","josem.castillo"],["PR009293","luana.aita"],["PR009297","wonshik.woo"],["PR009299","jean.aguero"],["PR009301","kelly.hernandez"],["PR009303","edgard.chara"],["PR009305","luisangel.rodriguez"],["PR009309","maria.pomacaja"],["PR009310","francisco.cruz"],["PR009311","paola.avalos"],["PR009317","gianpierre.serna"],["PR009319","cesar.caballero"],["PR009321","jeter.retto"],["PR009323","andrea.riveros"],["PR009325","david.choi"],["PR009326","natali.andrade"],["PR009327","patricia.rivas"],["PR009329","muhyun.han"],["PR009331","martin.namuche"],["PR009333","diana.sanchez"],["PR009335","luis.suarez"],["PR009337","georgio.park"]]');
-		
-		foreach($aux as $a){
-			$emp = $this->gen_m->unique("employee", "employee_number", $a[0]);
-			
-			$this->gen_m->update("employee", ["employee_id" => $emp->employee_id], ["ep_mail" => $a[1]]);
-			print_r($a); echo "<br/>";
-			print_r($emp); echo "<br/>";
-			echo "<br/>";
-		}
-	}
 }
