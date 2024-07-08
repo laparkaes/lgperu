@@ -304,6 +304,55 @@ class Scm_purchase_order extends CI_Controller {
 		return $rows;
 	}
 	
+	private function metro($rows_input, $ship_to){//ok 2024 0707
+		$rows = [];
+		
+		//purchase order number
+		$po_num = trim(explode(" ", $rows_input[2])[1]);
+		
+		//issue date: Viernes , Junio 28 , 2024
+		$aux = explode(" , ", "Viernes , Junio 28 , 2024");
+		$aux[1] = explode(" ", $aux[1]);
+		
+		$meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+		$issue_date = date("Ymd", strtotime($aux[2]."-".(array_search($aux[1][0], $meses) + 1)."-".$aux[1][1]));
+		
+		//arrival_date: 04.07.2024
+		$aux = explode(".", $rows_input[5]);
+		$arrival_date = $aux[2].$aux[1].$aux[0];
+		
+		$currency = "PEN";
+		
+		$len = count($rows_input); $indicator = 0;
+		for($i = 39; $i < $len; $i++){
+			if ($rows_input[$i] === "Total Sin Impuestos") break;
+			elseif (is_numeric(explode(" ", str_replace(",", "", $rows_input[$i]))[0])){
+				
+				$aux = array_values(array_filter(explode(" ", $rows_input[$i])));
+				
+				switch($indicator){
+					case 0://indicator 0 => sku_cus
+						$sku_cus = $aux[2];
+						$sku_customer = $this->gen_m->filter("scm_sku", false, ["bill_to_code" => $ship_to->bill_to_code, "sku_customer" => $sku_cus]);
+						$sku = ($sku_customer) ? $sku_customer[0]->sku : "No SKU: ".$sku_cus;
+						
+						$indicator = 1;
+						break;
+					case 1://indicator 1 => unit_price, qty
+						$unit_price = $aux[0];
+						$qty = $aux[3];
+						
+						$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $sku, $qty, $unit_price, $issue_date, $ship_to->bill_to_name);
+						
+						$indicator = 0;
+						break;
+				}
+			}
+		}
+		
+		return $rows;
+	}
+	
 	public function conecta_excel($filename, $ship_to){//ok 2024 0707
 		$rows = [];
 		
@@ -347,6 +396,7 @@ class Scm_purchase_order extends CI_Controller {
 			case "sodimac": $rows = $this->sodimac($rows, $ship_to); break;
 			case "sodimac_maestro": $rows = $this->sodimac_maestro($rows, $ship_to); break;
 			case "chancafe": $rows = $this->chancafe($rows, $ship_to); break;
+			case "metro": $rows = $this->metro($rows, $ship_to); break;
 			default: $rows = [];
 		}
 		
@@ -418,10 +468,10 @@ class Scm_purchase_order extends CI_Controller {
 		
 		/* pdf to excel 
 		*/
-		$filename = './test_files/PO_-_Sodimac/OC_4285202.pdf';
+		$filename = './test_files/scm_po_metro/8201266917.pdf';
 		//$filename = './test_files/scm_po_hiraoka/132527 LG - LB - VES_TIENDAS.pdf';
-		$po_template = $this->gen_m->unique("scm_purchase_order_template", "template_id", 7, false);//sodimac
-		$ship_to = $this->gen_m->unique("scm_ship_to", "ship_to_id", 21, false);//sodimac
+		$po_template = $this->gen_m->unique("scm_purchase_order_template", "template_id", 8, false);//sodimac
+		$ship_to = $this->gen_m->unique("scm_ship_to", "ship_to_id", 22, false);//sodimac
 		
 		echo $this->pdf_to_excel($filename, $po_template, $ship_to);
 		
