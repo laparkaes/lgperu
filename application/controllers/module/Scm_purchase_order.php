@@ -562,4 +562,48 @@ class Scm_purchase_order extends CI_Controller {
 		
 		$this->load->view('layout', $data);
 	}
+
+	public function add_sku(){
+		$type = "error"; $msg = "";
+		$data = $this->input->post();
+	
+		if (!$data["bill_to_code"]) $msg = "Select a customer.";
+		elseif (!$data["sku"]) $msg = "Enter SKU (LG product model).";
+		elseif (!$data["sku_customer"]) $msg = "Enter customer SKU.";
+		elseif ($this->gen_m->filter("scm_sku", false, $data)) $msg = "SKU already exists.";
+		
+		
+		if (!$msg){
+			if ($this->gen_m->insert("scm_sku", $data)){
+				$type = "success";
+				$msg = "Customer SKU has been registered.";
+			}else $msg = "An error ocurred. Try again.";
+		}
+	
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg]);
+	}
+	
+	public function add_ship_to(){
+		$type = "error"; $msg = "";
+		$data = $this->input->post();
+	
+		if (!$data["bill_to_code"]) $msg = "Select a customer.";
+		elseif (!$data["ship_to_code"]) $msg = "Enter ship to code.";
+		elseif (!$data["address"]) $msg = "Enter customer address.";
+		elseif ($this->gen_m->filter("scm_ship_to", false, ["bill_to_code" => $data["bill_to_code"], "ship_to_code" => $data["ship_to_code"]])) $msg = "Ship to code already exists.";
+		
+		
+		if (!$msg){
+			$data["bill_to_name"] = $this->gen_m->unique("scm_ship_to", "bill_to_code", $data["bill_to_code"], false)->bill_to_name;
+			if ($this->gen_m->insert("scm_ship_to", $data)){
+				$type = "success";
+				$msg = "Customer ship to has been registered.";
+			}else $msg = "An error ocurred. Try again.";
+		}
+	
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg]);
+	}
+	
 }
