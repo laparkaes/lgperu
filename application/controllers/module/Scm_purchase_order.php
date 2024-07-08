@@ -170,11 +170,67 @@ class Scm_purchase_order extends CI_Controller {
 	}
 	
 	private function sodimac($rows_input, $ship_to){
+		$po_num  = str_replace("Nº", "", str_replace("Centro Distribucion", "", $rows_input[1]));
+		$issue_date = date('Ymd', strtotime($rows_input[7]));
+		$arrival_date = date('Ymd', strtotime($rows_input[8]));
+		$currency = "PEN";
 		
+		echo $po_num."<br/>";
+		echo $issue_date."<br/>";
+		echo $arrival_date."<br/>";
+		
+		$limit = count($rows_input);
+		
+		for($i = 83; $i < $limit; $i++){
+			
+			$row = explode(" ", str_replace("\t", " ", $rows_input[$i]));
+			print_R($row); echo "<br/>";
+			
+			$len = count($row);
+			
+			//set qty
+			$qty = $row[$len-2];
+			
+			//set unit price
+			$aux = explode(",", $row[$len-3]);
+			$aux[0] = str_replace(".", "", $aux[0]);
+			$unit_price = $aux[0] + ($aux[1] / 1000);
+			
+			//set sku: length 7 => 4189760, 423555X, 4235584, 4189760, 4189760 from examples
+			$sku = substr($row[1], 0, 7);
+			/*
+			$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
+			$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
+			$model = ($prod) ? $prod->model : "No SKU: ".$sku;
+			*/
+			
+			echo "qty: ".$qty."<br/>";
+			echo "unit_price: ".$unit_price."<br/>";
+			echo "sku: ".$sku."<br/>";
+			
+			//print_R($rows_input[$i]); echo "<br/>";
+			//print_R(json_encode($rows_input[$i])); echo "<br/>";
+			echo "<br/>";
+		}
+		
+		echo "<br/><br/><br/>";
+
+
+/*
+				$sku = trim($p[2]);
+				
+				
+				$qty = intval(str_replace(',', '.', str_replace('.', '', $p[8])));
+				$unit_price = floatval(str_replace(',', '.', str_replace('.', '', $p[7])));
+				
+				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $model, $qty, $unit_price, $issue_date, $ship_to->customer->customer);
+*/
+
+
 		foreach($rows_input as $i => $row){
 			echo $i." >>>>>>>>>>> ";
-			print_r($row);
-			echo "<br/>";
+			print_r($row); echo " >>>>>>>>>>>>> ";
+			print_r(json_encode($row)); echo "<br/>";
 		}
 		
 		/*
