@@ -339,7 +339,7 @@ class Scm_purchase_order extends CI_Controller {
 						$indicator = 1;
 						break;
 					case 1://indicator 1 => unit_price, qty
-						$unit_price = $aux[0];
+						$unit_price = str_replace(",", "", $aux[0]);
 						$qty = $aux[3];
 						
 						$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $sku, $qty, $unit_price, $issue_date, $ship_to->bill_to_name);
