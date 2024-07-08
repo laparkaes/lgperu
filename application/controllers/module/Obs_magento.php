@@ -127,7 +127,7 @@ class Obs_magento extends CI_Controller {
 			
 			for($i = 2; $i <= $max_row; $i++){
 				$row = [];
-				foreach($vars as $var_i => $var) $row[$var] = str_replace("N/A", null, $sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue());
+				foreach($vars as $var_i => $var) $row[$var] = trim(str_replace("N/A", null, $sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue()));
 				
 				//unique gerp_order_no
 				$row["gerp_order_no"] = explode("\n", $row["gerp_order_no"])[0];
