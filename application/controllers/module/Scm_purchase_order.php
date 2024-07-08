@@ -52,7 +52,7 @@ class Scm_purchase_order extends CI_Controller {
 		];
 	}
 	
-	private function hiraoka_pre($rows_input, $ship_to){
+	private function hiraoka_pre($rows_input, $ship_to){//ok 2024 0707
 		$rows = [];
 		
 		$po_num = trim(explode(" ", $rows_input[5])[4]);
@@ -74,22 +74,21 @@ class Scm_purchase_order extends CI_Controller {
 				preg_match('/[a-z]+/i', $aux_text, $matches, PREG_OFFSET_CAPTURE);
 				
 				$total = substr($aux_text, 0, $matches[0][1]);
-				$sku = trim($aux[1]);
 				$qty = trim($aux[3]);
-				$unit_price = trim($aux[4]);
+				$unit_price = str_replace(",", "", trim($aux[4]));
 				
-				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
-				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
-				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
+				$sku_cus = trim($aux[1]);
+				$sku_customer = $this->gen_m->filter("scm_sku", false, ["bill_to_code" => $ship_to->bill_to_code, "sku_customer" => $sku_cus]);
+				$sku = ($sku_customer) ? $sku_customer[0]->sku : "No SKU: ".$sku_cus;
 				
-				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $model, $qty, str_replace(",", "", $unit_price), $issue_date, $ship_to->customer->customer);
+				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $sku, $qty, $unit_price, $issue_date, $ship_to->bill_to_name);
 			}
 		}
 		
 		return $rows;
 	}
 	
-	private function hiraoka_sku($rows_input, $ship_to){
+	private function hiraoka_sku($rows_input, $ship_to){//ok 2024 0707
 		$rows = [];
 		
 		$po_num = trim(explode(" ", $rows_input[5])[4]);
@@ -111,15 +110,14 @@ class Scm_purchase_order extends CI_Controller {
 				preg_match('/[a-z]+/i', $aux_text, $matches, PREG_OFFSET_CAPTURE);
 				
 				$total = substr($aux_text, 0, $matches[0][1]);
-				$sku = substr(trim($aux[0]), strlen((string)$prod_num));//need to work with sku = [num][sku] => need to extract num value
 				$qty = trim($aux[2]);
 				$unit_price = trim($aux[3]);
 				
-				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
-				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
-				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
+				$sku_cus = substr(trim($aux[0]), strlen((string)$prod_num));//need to work with sku = [num][sku] => need to extract num value
+				$sku_customer = $this->gen_m->filter("scm_sku", false, ["bill_to_code" => $ship_to->bill_to_code, "sku_customer" => $sku_cus]);
+				$sku = ($sku_customer) ? $sku_customer[0]->sku : "No SKU: ".$sku_cus;
 				
-				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $model, $qty, str_replace(",", "", $unit_price), $issue_date, $ship_to->customer->customer);
+				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $sku, $qty, $unit_price, $issue_date, $ship_to->bill_to_name);
 				
 				$prod_num++;
 			}
@@ -128,7 +126,7 @@ class Scm_purchase_order extends CI_Controller {
 		return $rows;
 	}
 	
-	private function estilos_sku($rows_input, $ship_to){
+	private function estilos_sku($rows_input, $ship_to){//ok 2024 0707
 		$rows = [];
 		
 		$po_num = trim(array_values(array_filter(explode(" ", $rows_input[0])))[5]);
@@ -153,38 +151,32 @@ class Scm_purchase_order extends CI_Controller {
 			if (is_numeric($aux[0]) and (count($aux) > 9)){
 				foreach($aux as $a) if (is_numeric(str_replace(",", "", $a))) $numeric[] = $a; else $no_numeric[] = $a;
 				
-				$sku = (int)$numeric[0];
-				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
-				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
-				
-				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
 				$qty = (int)trim($numeric[1]);
 				$unit_price = str_replace(",", "", $numeric[count($numeric) - 4]);
-				$total = $unit_price * $qty;
-
-				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $model, $qty, str_replace(",", "", $unit_price), $issue_date, $ship_to->customer->customer);
+				
+				$sku_cus = (int)$numeric[0];
+				$sku_customer = $this->gen_m->filter("scm_sku", false, ["bill_to_code" => $ship_to->bill_to_code, "sku_customer" => $sku_cus]);
+				$sku = ($sku_customer) ? $sku_customer[0]->sku : "No SKU: ".$sku_cus;
+				
+				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $sku, $qty, $unit_price, $issue_date, $ship_to->bill_to_name);
 			}
 		}
 		
 		return $rows;
 	}
 	
-	private function sodimac($rows_input, $ship_to){
+	private function sodimac($rows_input, $ship_to){//ok 2024 0707
+		$rows = [];
+		
 		$po_num  = str_replace("Nº", "", str_replace("Centro Distribucion", "", $rows_input[1]));
 		$issue_date = date('Ymd', strtotime($rows_input[7]));
 		$arrival_date = date('Ymd', strtotime($rows_input[8]));
 		$currency = "PEN";
 		
-		echo $po_num."<br/>";
-		echo $issue_date."<br/>";
-		echo $arrival_date."<br/>";
-		
 		$limit = count($rows_input);
 		
 		for($i = 83; $i < $limit; $i++){
-			
 			$row = explode(" ", str_replace("\t", " ", $rows_input[$i]));
-			print_R($row); echo "<br/>";
 			
 			$len = count($row);
 			
@@ -196,44 +188,18 @@ class Scm_purchase_order extends CI_Controller {
 			$aux[0] = str_replace(".", "", $aux[0]);
 			$unit_price = $aux[0] + ($aux[1] / 1000);
 			
-			//set sku: length 7 => 4189760, 423555X, 4235584, 4189760, 4189760 from examples
-			$sku = substr($row[1], 0, 7);
-			/*
-			$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
-			$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
-			$model = ($prod) ? $prod->model : "No SKU: ".$sku;
-			*/
+			//set sku: always length is 7 => 4189760, 423555X, 4235584, 4189760, 4189760 from examples
+			$sku_cus = substr($row[1], 0, 7);
+			$sku_customer = $this->gen_m->filter("scm_sku", false, ["bill_to_code" => $ship_to->bill_to_code, "sku_customer" => $sku_cus]);
+			$sku = ($sku_customer) ? $sku_customer[0]->sku : "No SKU: ".$sku_cus;
 			
-			echo "qty: ".$qty."<br/>";
-			echo "unit_price: ".$unit_price."<br/>";
-			echo "sku: ".$sku."<br/>";
-			
-			//print_R($rows_input[$i]); echo "<br/>";
-			//print_R(json_encode($rows_input[$i])); echo "<br/>";
-			echo "<br/>";
+			$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $sku, $qty, $unit_price, $issue_date, $ship_to->bill_to_name);
 		}
 		
-		echo "<br/><br/><br/>";
-
-
-/*
-				$sku = trim($p[2]);
-				
-				
-				$qty = intval(str_replace(',', '.', str_replace('.', '', $p[8])));
-				$unit_price = floatval(str_replace(',', '.', str_replace('.', '', $p[7])));
-				
-				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $model, $qty, $unit_price, $issue_date, $ship_to->customer->customer);
-*/
-
-
-		foreach($rows_input as $i => $row){
-			echo $i." >>>>>>>>>>> ";
-			print_r($row); echo " >>>>>>>>>>>>> ";
-			print_r(json_encode($row)); echo "<br/>";
-		}
-		
-		/*
+		return $rows;
+	}
+	
+	private function sodimac_maestro($rows_input, $ship_to){//ok 2024 0707
 		$rows = $products = [];
 		
 		$i = 0;
@@ -280,83 +246,15 @@ class Scm_purchase_order extends CI_Controller {
 			}
 			
 			if ($products) foreach($products as $p){
-				//set model
-				$sku = trim($p[2]);
-				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
-				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
-				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
-				
 				$qty = intval(str_replace(',', '.', str_replace('.', '', $p[8])));
 				$unit_price = floatval(str_replace(',', '.', str_replace('.', '', $p[7])));
 				
-				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $model, $qty, $unit_price, $issue_date, $ship_to->customer->customer);
-			}
-			
-			$products = [];
-			$i++;
-		}
-		
-		return $rows;
-		*/
-	}
-	
-	private function sodimac_maestro($rows_input, $ship_to){
-		$rows = $products = [];
-		
-		$i = 0;
-		$limit = count($rows_input);
-		$currency = "PEN";
-		
-		//foreach($rows_input as $i => $r){
-		while($i < $limit){
-			$r = $rows_input[$i];
-			
-			switch($r){
-				case "Creada por": 
-					$po_num = $rows_input[$i-1];
-					break;
-				case "Fecha Emision":
-					$issue_date = date('Ymd', strtotime($rows_input[$i+1]));
-					$i++;
-					break;
-				case "Fecha Recibo Esperada":
-					$arrival_date = date('Ymd', strtotime($rows_input[$i+1]));
-					$i++;
-					break;
-				case "Monto Total":
-					$i++;
-					$products = [];
-					while(true){
-						$prod = [];
-						$prod[] = $rows_input[$i]; $i++;
-						$prod[] = $rows_input[$i]; $i++;
-						$prod[] = $rows_input[$i]; $i++;
-						$prod[] = $rows_input[$i]; $i++;
-						$prod[] = $rows_input[$i]; $i++;
-						$prod[] = $rows_input[$i]; $i++;
-						$prod[] = $rows_input[$i]; $i++;
-						$prod[] = $rows_input[$i]; $i++;
-						$prod[] = $rows_input[$i]; $i++;
-						$prod[] = $rows_input[$i]; $i++;
-						
-						$products[] = $prod;
-						if ($rows_input[$i] === "TOTAL") break;
-					}
-					
-					break;
-			}
-			
-			if ($products) foreach($products as $p){
 				//set model
-				$sku = trim($p[2]);
-				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
-				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
-				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
+				$sku_cus = trim($p[2]);
+				$sku_customer = $this->gen_m->filter("scm_sku", false, ["bill_to_code" => $ship_to->bill_to_code, "sku_customer" => $sku_cus]);
+				$sku = ($sku_customer) ? $sku_customer[0]->sku : "No SKU: ".$sku_cus;
 				
-				$qty = intval(str_replace(',', '.', str_replace('.', '', $p[8])));
-				$unit_price = floatval(str_replace(',', '.', str_replace('.', '', $p[7])));
-				
-				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $model, $qty, $unit_price, $issue_date, $ship_to->customer->customer);
+				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $sku, $qty, $unit_price, $issue_date, $ship_to->bill_to_name);
 			}
 			
 			$products = [];
@@ -366,7 +264,7 @@ class Scm_purchase_order extends CI_Controller {
 		return $rows;
 	}
 	
-	private function chancafe($rows_input, $ship_to){
+	private function chancafe($rows_input, $ship_to){//ok 2024 0707
 		$rows = [];
 		
 		$po_num = trim(explode(" ", $rows_input[14])[3]);
@@ -392,32 +290,21 @@ class Scm_purchase_order extends CI_Controller {
 				
 				$qty = trim(str_replace("UND", "", $aux[1]));
 				$unit_price = trim(str_replace(",", "", $aux[2]));
-				$total = $unit_price * $qty;
-				$sku = trim($aux[8]);
 				
-				$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
-				$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
-				$model = ($prod) ? $prod->model : "No SKU: ".$sku;
-				/*
-				echo $i." ====> ";
-				echo strlen($r);
-				echo " ====> ";
-				print_r($aux); echo "<br/>";
-				echo $sku." /// ".$model." /// ".$qty." /// ".$unit_price." /// ".$total;
-				echo "<br/><br/>";
-				*/
-				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $model, $qty, str_replace(",", "", $unit_price), $issue_date, $ship_to->customer->customer);
+				$sku_cus = trim($aux[8]);
+				$sku_customer = $this->gen_m->filter("scm_sku", false, ["bill_to_code" => $ship_to->bill_to_code, "sku_customer" => $sku_cus]);
+				$sku = ($sku_customer) ? $sku_customer[0]->sku : "No SKU: ".$sku_cus;
+				
+				$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $sku, $qty, $unit_price, $issue_date, $ship_to->bill_to_name);
 			}
 			
 			if ($r === "MARCA") $is_product = true;
-			
-			
 		}
 		
 		return $rows;
 	}
 	
-	public function conecta_excel($filename, $ship_to){
+	public function conecta_excel($filename, $ship_to){//ok 2024 0707
 		$rows = [];
 		
 		$spreadsheet = IOFactory::load($filename);
@@ -426,18 +313,22 @@ class Scm_purchase_order extends CI_Controller {
 		$max_row = $sheet->getHighestRow();
 		
 		for ($row = 2; $row <= $max_row; $row++){
+			$po_num = trim($sheet->getCell('A'.$row)->getValue());
+			$currency = trim($sheet->getCell('I'.$row)->getValue());
+			$qty = trim($sheet->getCell('U'.$row)->getValue());
+			$unit_price = trim($sheet->getCell('R'.$row)->getValue());
+			
 			$aux = explode("-", trim($sheet->getCell('G'.$row)->getValue()));
 			$issue_date = $aux[0].$aux[1].$aux[2];
 			
 			$aux = explode("-", trim($sheet->getCell('H'.$row)->getValue()));
 			$arrival_date = $aux[0].$aux[1].$aux[2];
 			
-			$sku = trim($sheet->getCell('K'.$row)->getValue());
-			$prod_sku = $this->gen_m->unique("product_sku", "sku", $sku);
-			$prod = ($prod_sku) ? $this->gen_m->unique("product", "product_id", $prod_sku->product_id) : null;
-			$model = ($prod) ? $prod->model : "No SKU: ".$sku;
+			$sku_cus = trim($sheet->getCell('K'.$row)->getValue());
+			$sku_customer = $this->gen_m->filter("scm_sku", false, ["bill_to_code" => $ship_to->bill_to_code, "sku_customer" => $sku_cus]);
+			$sku = ($sku_customer) ? $sku_customer[0]->sku : "No SKU: ".$sku_cus;
 			
-			$rows[] = $this->make_row(trim($sheet->getCell('A'.$row)->getValue()), $ship_to->ship_to_code, trim($sheet->getCell('I'.$row)->getValue()), $arrival_date, $model, trim($sheet->getCell('U'.$row)->getValue()), trim($sheet->getCell('R'.$row)->getValue()), $issue_date, $ship_to->customer->customer);
+			$rows[] = $this->make_row($po_num, $ship_to->ship_to_code, $currency, $arrival_date, $sku, $qty, $unit_price, $issue_date, $ship_to->bill_to_name);
 		}
 		
 		return $rows;
@@ -530,7 +421,7 @@ class Scm_purchase_order extends CI_Controller {
 		$filename = './test_files/PO_-_Sodimac/OC_4285202.pdf';
 		//$filename = './test_files/scm_po_hiraoka/132527 LG - LB - VES_TIENDAS.pdf';
 		$po_template = $this->gen_m->unique("scm_purchase_order_template", "template_id", 7, false);//sodimac
-		$ship_to = $this->gen_m->unique("scm_ship_to", "ship_to_id", 19, false);//sodimac
+		$ship_to = $this->gen_m->unique("scm_ship_to", "ship_to_id", 21, false);//sodimac
 		
 		echo $this->pdf_to_excel($filename, $po_template, $ship_to);
 		

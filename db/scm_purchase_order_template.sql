@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- 생성 시간: 24-07-07 17:18
+-- 생성 시간: 24-07-08 00:07
 -- 서버 버전: 10.4.24-MariaDB
 -- PHP 버전: 7.4.29
 
@@ -47,7 +47,7 @@ INSERT INTO `scm_purchase_order_template` (`template_id`, `template`, `customer_
 (4, 'Sodimac - Maestro (PDF)', 'sodimac', 'sodimac_maestro', NULL, 1),
 (5, 'Estilos SKU (PDF)', 'estilos', 'estilos_sku', NULL, 1),
 (6, 'Chancafe (PDF)', 'chancafe', 'chancafe', NULL, 1),
-(7, 'Sodimac', 'sodimac', 'sodimac', NULL, 1);
+(7, 'Sodimac (PDF)', 'sodimac', 'sodimac', NULL, 1);
 
 --
 -- 덤프된 테이블의 인덱스
