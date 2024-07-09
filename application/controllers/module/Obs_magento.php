@@ -148,7 +148,9 @@ class Obs_magento extends CI_Controller {
 				$row["department"] = $address_aux[count($address_aux)-2];
 				$row["province"] = $address_aux[count($address_aux)-3];
 				
-				$magento = $this->gen_m->unique("obs_magento", "magento_id", $row["magento_id"], false);
+				//print_r($row); echo "<br/><br/>";
+				
+				$magento = $this->gen_m->unique("obs_magento", "gerp_order_no", $row["gerp_order_no"], false);
 				if ($magento){
 					$row["updated"] = $now;
 					

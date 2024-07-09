@@ -1,0 +1,16 @@
+ID,Grand Total (Base),Grand Total (Purchased),Shipping Address,Shipping and Handling,Customer name,SKU,Level 1 Code,Level 2 Code,Level 3 Code,Level 4 Code,GERP Type,GERP Order #,Warehouse Code,SKU PRICE,Gerp Selling Price,Local Time,Company Name Through VipKey,VipKey,Pre-Order,Error Code,IP Address,Price Source,Coupon Code,Coupon Rule,Discount Amount,Sale Channel,Devices,Knout Status,Status,Customer Group,Payment Method,Error Status,Opt-in status,Is Export Order To GERP,Purchase Date,Order Referral Source,SKU Without Prefix,SKU Without Prefix And Suffix,Qty Ordered
+1.29001E+11,3285.44,3285.44,"Av. Buena Vista 325, 302, Urbanización Chacarilla del Estanque,Lima,Lima,150130",0,Ilídio Duarte Gomes Dias,"PE.55QNED85TSA.AWF, 
+PE.EW.PRATV12N0084",PE.55QNED85TSA.AWF: TV,PE.55QNED85TSA.AWF: TVLE,PE.55QNED85TSA.AWF: TVLE55,PE.55QNED85TSA.AWF: TVLE55NU,both,"
+1000447595","
+N4E-GS-ESALE","3,099.00
+186.44","PE.55QNED85TSA.AWF: 2626.270000,PE.EW.PRATV12N0084: 158.000000",2024-07-02 14:41,N/A,N/A,N/A,N/A,2.19.54.12,N/A,N/A,N/A,0,Magento,PC,Accept,complete,B2C,mercadopago_global_ticket,N/A,N/A,1,2024-07-02 20:41,N/A,"55QNED85TSA.AWF
+EW.PRATV12N0084","55QNED85TSA
+EW",2
+1.29001E+11,1598.99,1598.99,"Pasaje Quiñones 123 (Dpto. 602) - Urbanización Clarke,Piura,Piura,200101",0,Carlos Guarda,PE.WT17DV6.ASFGLGP,PE.WT17DV6.ASFGLGP: WM,PE.WT17DV6.ASFGLGP: WMWL,PE.WT17DV6.ASFGLGP: WMWLTL,PE.WT17DV6.ASFGLGP: WMWLTLTA,omd,1000447594,N4E-GS-ESALE,"1,598.99",PE.WT17DV6.ASFGLGP: 1355.080000,2024-07-02 14:48,N/A,N/A,N/A,N/A,190.98.161.47,N/A,N/A,N/A,0,Magento,PC,Challenge,on_delivery,NOT LOGGED IN,mercadopago_global_credit_card,N/A,N/A,1,2024-07-02 20:48,N/A,WT17DV6.ASFGLGP,WT17DV6,1
+1.29001E+11,1448,1448,"Mz g lote 15 coop la floresta chaclacayo,Lima,Lima,150107",0,Rosa Ivonne Alanya Cabezas,"PE.MS2032GAS.BBKGLPR, 
+PE.WT9GL.AESGLGP","PE.MS2032GAS.BBKGLPR: CA,PE.WT9GL.AESGLGP: WM","PE.MS2032GAS.BBKGLPR: CAMW,PE.WT9GL.AESGLGP: WMWL","PE.MS2032GAS.BBKGLPR: CAMWCT,PE.WT9GL.AESGLGP: WMWLTL","PE.MS2032GAS.BBKGLPR: CAMWCTSF,PE.WT9GL.AESGLGP: WMWLTLFA",omd,"1000447597
+1000447597","N4E-GS-ESALE
+N4E-GS-ESALE","999.00
+449.00","PE.MS2032GAS.BBKGLPR: 380.510000,PE.WT9GL.AESGLGP: 846.610000",2024-07-02 15:01,N/A,N/A,N/A,N/A,23.213.29.78,N/A,N/A,N/A,0,Magento,Mobile,Accept,complete,B2C,mercadopago_global_credit_card,N/A,N/A,1,2024-07-02 21:01,N/A,"MS2032GAS.BBKGLPR
+WT9GL.AESGLGP","MS2032GAS
+WT9GL",2

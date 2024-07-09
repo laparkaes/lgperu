@@ -102,7 +102,10 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-12 text-end">
+		<div class="col-md-8">
+			echasdflkjasdf
+		</div>
+		<div class="col-md-4 text-end">
 			<span class="text-danger">Contact with PI if you want to remove wrong data.</span>
 		</div>
 	</div>
