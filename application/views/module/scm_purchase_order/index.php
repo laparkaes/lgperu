@@ -103,7 +103,9 @@
 			</div>
 		</div>
 		<div class="col-md-8">
-			echasdflkjasdf
+			<?php foreach($po_templates as $item){ ?>
+			<img src="<?= base_url() ?>template/po/<?= $item->filename ?>" class="po_img w-100 d-none" id="po_img_<?= $item->template_id ?>">
+			<?php } ?>
 		</div>
 		<div class="col-md-4 text-end">
 			<span class="text-danger">Contact with PI if you want to remove wrong data.</span>
@@ -113,7 +115,8 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 	$("#sl_po_template").on("change", function() {
-		if ($(this).val() != "") alert($(this).val());
+		$(".po_img").addClass("d-none");
+		if ($(this).val() != "") $("#po_img_" + $(this).val()).removeClass("d-none");
 	});
 	
 	$("#form_convert_po").submit(function(e) {
