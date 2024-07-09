@@ -47,7 +47,9 @@ INSERT INTO `scm_purchase_order_template` (`template_id`, `template`, `customer_
 (4, 'Sodimac - Maestro (PDF)', 'sodimac', 'sodimac_maestro', 'po_sodimac_maestro.png', 1),
 (5, 'Estilos SKU (PDF)', 'estilos', 'estilos_sku', 'po_estilos.png', 1),
 (6, 'Chancafe (PDF)', 'chancafe', 'chancafe', 'po_chancafe.png', 1),
-(7, 'Sodimac (PDF)', 'sodimac', 'sodimac', 'po_sodimac.png', 1);
+(7, 'Sodimac (PDF)', 'sodimac', 'sodimac', 'po_sodimac.png', 1),
+(8, 'Metro (PDF)', 'metro', 'metro', 'po_metro.png', 1);
+
 
 --
 -- 덤프된 테이블의 인덱스

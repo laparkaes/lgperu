@@ -289,7 +289,7 @@ class My_func{
 		//load no closed orders
 		$w_g__ = ["create_date <" => $from, "line_status !=" => "Cancelled"];
 		$w_in__ = [["field" => "line_status", "values" => ["Awaiting Fulfillment", "Awaiting Shipping", "Booked", "Pending pre-billing acceptance"]]];
-		$gerps__ = $this->CI->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g_, null, $w_in_, [["create_date", "desc"], ["close_date", "desc"]]);
+		$gerps__ = $this->CI->gen_m->filter_select("obs_gerp_sales_order", false, $s_g, $w_g__, null, $w_in__, [["create_date", "desc"], ["close_date", "desc"]]);
 		
 		//merge gerp records
 		$rows = [];
