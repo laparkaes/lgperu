@@ -65,7 +65,7 @@
 						</div>
 						<div class="col-md-2">
 							<label class="form-label">Category</label>
-							<?php $list = ["TV", "AV", "REF", "WM", "Cooking", "MWO", "HA", "HE", "Common"]; sort($list); ?>
+							<?php $list = ["TV", "AV", "REF", "WM", "Cooking", "MWO", "HA", "HE"]; sort($list); $list[] = "Common"; ?>
 							<select class="form-select" name="category_id">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($list as $item){ ?>
@@ -73,13 +73,27 @@
 								<?php } ?>
 							</select>
 						</div>
+						<div class="col-md-2">
+							<label class="form-label">Project Type</label>
+							<?php $list = ["TV", "AV", "REF", "WM", "Cooking", "MWO", "HA", "HE"]; sort($list); $list[] = "Common"; ?>
+							<select class="form-select" name="category_id">
+								<option value="" selected="">Choose...</option>
+								<?php foreach($list as $item){ ?>
+								<option value="<?= $item ?>"><?= $item ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Period</label>
+							<div class="input-group">
+								<input type="date" class="form-control">
+								<span class="input-group-text">~</span>
+								<input type="date" class="form-control">
+							</div>
+						</div>
 						<div class="col-md-6">
 							<label class="form-label">Días Emitidos</label>
 							<input class="form-control" name="model">
-						</div>
-						<div class="col-md-6">
-							<label class="form-label">Period</label>
-							<input type="date" class="form-control" name="model">
 						</div>
 						<div class="col-md-6">
 							<label class="form-label">Currency</label>
