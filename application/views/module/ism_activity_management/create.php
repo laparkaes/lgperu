@@ -91,11 +91,7 @@
 								<input type="date" class="form-control">
 							</div>
 						</div>
-						<div class="col-md-6">
-							<label class="form-label">Días Emitidos</label>
-							<input class="form-control" name="model">
-						</div>
-						<div class="col-md-6">
+						<div class="col-md-1">
 							<label class="form-label">Currency</label>
 							<?php $list = ["PEN", "USD"]; sort($list); ?>
 							<select class="form-select" name="category_id">
@@ -105,11 +101,11 @@
 								<?php } ?>
 							</select>
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-3">
 							<label class="form-label">Amount</label>
 							<input class="form-control" name="model">
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-2">
 							<label class="form-label">Approval Status</label>
 							<?php $list = ["Aprobado", "En proceso", "Cancelado"]; sort($list); ?>
 							<select class="form-select" name="category_id">
@@ -119,7 +115,7 @@
 								<?php } ?>
 							</select>
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-2">
 							<label class="form-label">Acitivty Status</label>
 							<?php $list = ["En proceso", "Finalizado", "Cancelado"]; sort($list); ?>
 							<select class="form-select" name="category_id">
@@ -128,6 +124,10 @@
 								<option value="<?= $item ?>"><?= $item ?></option>
 								<?php } ?>
 							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Días Emitidos</label>
+							<input class="form-control" name="model">
 						</div>
 						<div class="col-md-6">
 							<label class="form-label">Vendor</label>
