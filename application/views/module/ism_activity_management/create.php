@@ -95,7 +95,6 @@
 							<label class="form-label">Currency</label>
 							<?php $list = ["PEN", "USD"]; sort($list); ?>
 							<select class="form-select" name="category_id">
-								<option value="" selected="">Choose...</option>
 								<?php foreach($list as $item){ ?>
 								<option value="<?= $item ?>"><?= $item ?></option>
 								<?php } ?>
