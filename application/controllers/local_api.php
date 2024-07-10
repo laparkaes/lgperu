@@ -98,7 +98,7 @@ class Local_api extends CI_Controller {
 		echo json_encode($res);
 	}
 	
-	public function get_division(){
+	public function get_divisions(){
 		//llamasys/local_api/get_division?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
