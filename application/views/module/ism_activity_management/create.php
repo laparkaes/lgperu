@@ -135,11 +135,11 @@
 							</select>
 						</div>
 						<div class="col-md-2">
-							<label class="form-label">Factura</label>
+							<label class="form-label">Invoice Number</label>
 							<input class="form-control" name="model">
 						</div>
 						<div class="col-md-2">
-							<label class="form-label">Issue Date</label>
+							<label class="form-label">Invoice Date</label>
 							<input type="date" class="form-control" name="model">
 						</div>
 						<div class="col-md-2">
@@ -154,7 +154,7 @@
 						</div>
 						<div class="col-md-6">
 							<label class="form-label">Invoice Description</label>
-							<input type="date" class="form-control" name="model">
+							<input class="form-control" name="model">
 						</div>
 						<div class="col-md-12">
 							<label class="form-label">Detail</label>
