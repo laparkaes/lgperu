@@ -83,7 +83,7 @@
 								<?php } ?>
 							</select>
 						</div>
-						<div class="col-md-2">
+						<div class="col-md-4">
 							<label class="form-label">Period</label>
 							<div class="input-group">
 								<input type="date" class="form-control">
