@@ -55,7 +55,7 @@
 						</div>
 						<div class="col-md-2">
 							<label class="form-label">Retail</label>
-							<?php $list = ["Almacen", "Hiraoka", "Saga", "Ripley", "Oechsle", "Conecta", "Plaza Vea", "Tottus", "Metro", "Wong", "Promart", "Sodimac", "Credivargas", "Estilos", "Rubi", "Varios"]; sort($list); ?>
+							<?php $list = ["Hiraoka", "Saga", "Ripley", "Oechsle", "Conecta", "Plaza Vea", "Tottus", "Metro", "Wong", "Promart", "Sodimac", "Credivargas", "Estilos", "Rubi"]; sort($list); $list[] = "Almacen"; $list[] = "Varios"; ?>
 							<select class="form-select" name="category_id">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($list as $item){ ?>
