@@ -114,7 +114,7 @@ class Local_api extends CI_Controller {
 		echo json_encode($res);
 	}
 	
-	public function get_category(){
+	public function get_categories(){
 		//llamasys/local_api/get_category?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
