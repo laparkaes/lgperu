@@ -49,15 +49,11 @@
 								<?php } ?>
 							</select>
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-2">
 							<label class="form-label">Approval</label>
 							<input class="form-control" name="model">
 						</div>
-						<div class="col-md-6">
-							<label class="form-label">Días Emitidos</label>
-							<input class="form-control" name="model">
-						</div>
-						<div class="col-md-6">
+						<div class="col-md-2">
 							<label class="form-label">Retail</label>
 							<?php $list = ["Almacen", "Hiraoka", "Saga", "Ripley", "Oechsle", "Conecta", "Plaza Vea", "Tottus", "Metro", "Wong", "Promart", "Sodimac", "Credivargas", "Estilos", "Rubi", "Varios"]; sort($list); ?>
 							<select class="form-select" name="category_id">
@@ -67,7 +63,7 @@
 								<?php } ?>
 							</select>
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-2">
 							<label class="form-label">Category</label>
 							<?php $list = ["TV", "AV", "REF", "WM", "Cooking", "MWO", "HA", "HE", "Common"]; sort($list); ?>
 							<select class="form-select" name="category_id">
@@ -76,6 +72,10 @@
 								<option value="<?= $item ?>"><?= $item ?></option>
 								<?php } ?>
 							</select>
+						</div>
+						<div class="col-md-6">
+							<label class="form-label">Días Emitidos</label>
+							<input class="form-control" name="model">
 						</div>
 						<div class="col-md-6">
 							<label class="form-label">Period</label>
