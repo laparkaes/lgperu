@@ -101,7 +101,13 @@ class Local_api extends CI_Controller {
 	public function get_division(){
 		//llamasys/local_api/get_division?key=lgepr
 		
-		if ($this->input->get("key") === "lgepr") $res = [["division" => "H&A"], ["division" => "HE"], ["division" => "BS"]];
+		if ($this->input->get("key") === "lgepr"){
+			$res = [
+				["seq" => 1, "division" => "H&A"], 
+				["seq" => 2, "division" => "HE"], 
+				["seq" => 3, "division" => "BS"],
+			];
+		}
 		else $res = ["msg" => "Error"];
 		
 		header('Content-Type: application/json');
@@ -113,9 +119,17 @@ class Local_api extends CI_Controller {
 		
 		if ($this->input->get("key") === "lgepr"){
 			$res = [
-				["division" => "H&A", "categry" => "REF"], ["division" => "H&A", "categry" => "Cooking"], ["division" => "H&A", "categry" => "W/M"], ["division" => "H&A", "categry" => "RAC"], ["division" => "H&A", "categry" => "SAC"], ["division" => "H&A", "categry" => "Chiller"], 
-				["division" => "HE", "categry" => "TV"], ["division" => "HE", "categry" => "AV"],
-				["division" => "BS", "categry" => "MNT"], ["division" => "BS", "categry" => "Signage"], ["division" => "BS", "categry" => "Commercial TV"],
+				["seq" => 1, "division" => "H&A", "categry" => "REF"], 
+				["seq" => 2, "division" => "H&A", "categry" => "Cooking"], 
+				["seq" => 3, "division" => "H&A", "categry" => "W/M"], 
+				["seq" => 4, "division" => "H&A", "categry" => "RAC"], 
+				["seq" => 5, "division" => "H&A", "categry" => "SAC"], 
+				["seq" => 6, "division" => "H&A", "categry" => "Chiller"], 
+				["seq" => 7, "division" => "HE", "categry" => "TV"], 
+				["seq" => 8, "division" => "HE", "categry" => "AV"],
+				["seq" => 9, "division" => "BS", "categry" => "MNT"], 
+				["seq" => 10, "division" => "BS", "categry" => "Signage"], 
+				["seq" => 11, "division" => "BS", "categry" => "Commercial TV"],
 			];
 		}else $res = ["msg" => "Error"];
 		
