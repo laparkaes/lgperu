@@ -97,6 +97,24 @@ class Local_api extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode($res);
 	}
+	
+	public function get_filters(){
+		//llamasys/local_api/get_filters?key=lgepr
+		
+		if ($this->input->get("key") === "lgepr"){
+			$res = [
+				"division" => ["H&A", "HE", "BS"],
+				"categry" => [
+					["H&A", "REF"], ["H&A", "Cooking"], ["H&A", "W/M"], ["H&A", "RAC"], ["H&A", "SAC"], ["H&A", "Chiller"], 
+					["HE", "TV"], ["HE", "AV"],
+					["BS", "MNT"], ["BS", "Signage"], ["BS", "Commercial TV"],
+				],
+			];
+		}else $res = ["msg" => "Error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
 
 	public function get_obs_ml_month(){
 		//llamasys/local_api/get_obs_ml_month?key=lgepr

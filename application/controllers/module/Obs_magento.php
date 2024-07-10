@@ -131,36 +131,37 @@ class Obs_magento extends CI_Controller {
 				
 				//unique gerp_order_no
 				$row["gerp_order_no"] = explode("\n", $row["gerp_order_no"])[0];
-				
-				//line change char working
-				$row["sku"] = str_replace(", \n", "**", $row["sku"]);
-				$row["warehouse_code"] = str_replace("\n", "**", $row["warehouse_code"]);
-				$row["sku_price"] = str_replace("\n", "**", $row["sku_price"]);
-				$row["sku_without_prefix"] = str_replace("\n", "**", $row["sku_without_prefix"]);
-				$row["sku_without_prefix_and_suffix"] = str_replace("\n", "**", $row["sku_without_prefix_and_suffix"]);
-				
-				//comma working
-				$row["gerp_selling_price"] = str_replace(",", "**", $row["gerp_selling_price"]);
-				
-				//address working
-				$address_aux = explode(",", $row["shipping_address"]);
-				$row["zipcode"] = $address_aux[count($address_aux)-1];
-				$row["department"] = $address_aux[count($address_aux)-2];
-				$row["province"] = $address_aux[count($address_aux)-3];
-				
-				//print_r($row); echo "<br/><br/>";
-				
-				$magento = $this->gen_m->unique("obs_magento", "gerp_order_no", $row["gerp_order_no"], false);
-				if ($magento){
-					$row["updated"] = $now;
+				if ($row["gerp_order_no"]){
+					//line change char working
+					$row["sku"] = str_replace(", \n", "**", $row["sku"]);
+					$row["warehouse_code"] = str_replace("\n", "**", $row["warehouse_code"]);
+					$row["sku_price"] = str_replace("\n", "**", $row["sku_price"]);
+					$row["sku_without_prefix"] = str_replace("\n", "**", $row["sku_without_prefix"]);
+					$row["sku_without_prefix_and_suffix"] = str_replace("\n", "**", $row["sku_without_prefix_and_suffix"]);
 					
-					if ($this->gen_m->update("obs_magento", ["obs_magento_id" => $magento->obs_magento_id], $row)) $qty_update++;
-					else $qty_fail++;
-				}else{
-					$row["registered"] = $row["updated"] = $now;
+					//comma working
+					$row["gerp_selling_price"] = str_replace(",", "**", $row["gerp_selling_price"]);
 					
-					if ($this->gen_m->insert("obs_magento", $row)) $qty_insert++;
-					else $qty_fail++;
+					//address working
+					$address_aux = explode(",", $row["shipping_address"]);
+					$row["zipcode"] = $address_aux[count($address_aux)-1];
+					$row["department"] = $address_aux[count($address_aux)-2];
+					$row["province"] = $address_aux[count($address_aux)-3];
+					
+					//print_r($row); echo "<br/><br/>";
+					
+					$magento = $this->gen_m->unique("obs_magento", "gerp_order_no", $row["gerp_order_no"], false);
+					if ($magento){
+						$row["updated"] = $now;
+						
+						if ($this->gen_m->update("obs_magento", ["obs_magento_id" => $magento->obs_magento_id], $row)) $qty_update++;
+						else $qty_fail++;
+					}else{
+						$row["registered"] = $row["updated"] = $now;
+						
+						if ($this->gen_m->insert("obs_magento", $row)) $qty_insert++;
+						else $qty_fail++;
+					}
 				}
 				
 				//item processing
