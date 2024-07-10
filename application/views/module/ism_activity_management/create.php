@@ -25,15 +25,7 @@
 							<label class="form-label">Title</label>
 							<input class="form-control" name="model" required>
 						</div>
-						<div class="col-md-6">
-							<label class="form-label">Approval</label>
-							<input class="form-control" name="model">
-						</div>
-						<div class="col-md-6">
-							<label class="form-label">Días Emitidos</label>
-							<input class="form-control" name="model">
-						</div>
-						<div class="col-md-6">
+						<div class="col-md-2">
 							<label class="form-label">PR PIC</label>
 							<?php $list = ["HSAD", "LG"]; sort($list); ?>
 							<select class="form-select" name="category_id">
@@ -43,11 +35,11 @@
 								<?php } ?>
 							</select>
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-2">
 							<label class="form-label">PR Number</label>
 							<input class="form-control" name="model">
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-2">
 							<label class="form-label">PR Buyer</label>
 							<?php $list = ["Andy", "Jetter"]; sort($list); ?>
 							<select class="form-select" name="category_id">
@@ -56,6 +48,14 @@
 								<option value="<?= $item ?>"><?= $item ?></option>
 								<?php } ?>
 							</select>
+						</div>
+						<div class="col-md-6">
+							<label class="form-label">Approval</label>
+							<input class="form-control" name="model">
+						</div>
+						<div class="col-md-6">
+							<label class="form-label">Días Emitidos</label>
+							<input class="form-control" name="model">
 						</div>
 						<div class="col-md-6">
 							<label class="form-label">Retail</label>
