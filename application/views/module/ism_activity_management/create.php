@@ -91,6 +91,16 @@
 								<input type="date" class="form-control">
 							</div>
 						</div>
+						<div class="col-md-4">
+							<label class="form-label">Vendor</label>
+							<?php $list = ["ACTION VISUAL NOW E.I.R.L.", "ACTIVA GROUP S.A.C.", "ARK INSIDE S.R.L", "CONSORCIO DE NEGOCIOS Y PROYECTOS S.A.C.", "HS AD LATIN AMERICA S.A. SUCURSAL DEL PERU", "INDESIGN PROJECTS PERU S.A.C", "INTEGRACION LOGISTICA INLOG S.A.C", "LB FABRICANTES", "METAGRAF S.A.C.", "MORRIS PERU S.A.C.", "METRICA COMUNICACION ESTRATEGICA S.A.C.", "QUALITY ZONE", "PEVISO INGENIEROS S.A.C", "SAR AMBIENTAL SA", "RISING SUN BUSINESS GROUP S.A.C", "SISTEMA DE IMPRESIONES S.A.", "SURPACK S.A", "URBANA COMUNICACION VISUAL S.A.C.", "TBS ARQUITECTURA S.A.C.", "America Móvil Perú S.A.C", "DHL EXPRESS PERU SAC", "DONG IL DESIGN CO.,LTD.", "OHSUNG ELECTRONICS U.S.A., INC.", "LINE GNC CO., LTD", "MAERSK LOGISTICS & SERVICES PERU S.A", "PALACIOS Y ASOCIADOS AGENTES DE ADUANA SA"]; sort($list); ?>
+							<select class="form-select" name="category_id">
+								<option value="" selected="">Choose...</option>
+								<?php foreach($list as $item){ ?>
+								<option value="<?= $item ?>"><?= $item ?></option>
+								<?php } ?>
+							</select>
+						</div>
 						<div class="col-md-1">
 							<label class="form-label">Currency</label>
 							<?php $list = ["PEN", "USD"]; sort($list); ?>
@@ -127,16 +137,6 @@
 						<div class="col-md-2">
 							<label class="form-label">Días Emitidos</label>
 							<input class="form-control" name="model">
-						</div>
-						<div class="col-md-6">
-							<label class="form-label">Vendor</label>
-							<?php $list = ["ACTION VISUAL NOW E.I.R.L.", "ACTIVA GROUP S.A.C.", "ARK INSIDE S.R.L", "CONSORCIO DE NEGOCIOS Y PROYECTOS S.A.C.", "HS AD LATIN AMERICA S.A. SUCURSAL DEL PERU", "INDESIGN PROJECTS PERU S.A.C", "INTEGRACION LOGISTICA INLOG S.A.C", "LB FABRICANTES", "METAGRAF S.A.C.", "MORRIS PERU S.A.C.", "METRICA COMUNICACION ESTRATEGICA S.A.C.", "QUALITY ZONE", "PEVISO INGENIEROS S.A.C", "SAR AMBIENTAL SA", "RISING SUN BUSINESS GROUP S.A.C", "SISTEMA DE IMPRESIONES S.A.", "SURPACK S.A", "URBANA COMUNICACION VISUAL S.A.C.", "TBS ARQUITECTURA S.A.C.", "America Móvil Perú S.A.C", "DHL EXPRESS PERU SAC", "DONG IL DESIGN CO.,LTD.", "OHSUNG ELECTRONICS U.S.A., INC.", "LINE GNC CO., LTD", "MAERSK LOGISTICS & SERVICES PERU S.A", "PALACIOS Y ASOCIADOS AGENTES DE ADUANA SA"]; sort($list); ?>
-							<select class="form-select" name="category_id">
-								<option value="" selected="">Choose...</option>
-								<?php foreach($list as $item){ ?>
-								<option value="<?= $item ?>"><?= $item ?></option>
-								<?php } ?>
-							</select>
 						</div>
 						<div class="col-md-6">
 							<label class="form-label">Glosa</label>
