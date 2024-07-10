@@ -125,7 +125,7 @@
 							</select>
 						</div>
 						<div class="col-md-2">
-							<label class="form-label">Acitivty Status</label>
+							<label class="form-label">Activity Status</label>
 							<?php $list = ["En proceso", "Finalizado", "Cancelado"]; sort($list); ?>
 							<select class="form-select" name="category_id">
 								<option value="" selected="">Choose...</option>
@@ -135,28 +135,30 @@
 							</select>
 						</div>
 						<div class="col-md-2">
-							<label class="form-label">Días Emitidos</label>
-							<input class="form-control" name="model">
-						</div>
-						<div class="col-md-6">
-							<label class="form-label">Glosa</label>
-							<input class="form-control" name="model">
-						</div>
-						<div class="col-md-6">
-							<label class="form-label">Emisión</label>
-							<input class="form-control" name="model">
-						</div>
-						<div class="col-md-6">
 							<label class="form-label">Factura</label>
 							<input class="form-control" name="model">
 						</div>
-						<div class="col-md-6">
-							<label class="form-label">Status 2</label>
-							<input class="form-control" name="model">
+						<div class="col-md-2">
+							<label class="form-label">Issue Date</label>
+							<input type="date" class="form-control" name="model">
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Invoice Status</label>
+							<?php $list = ["Aprobado", "En proceso", "Cancelado"]; sort($list); ?>
+							<select class="form-select" name="category_id">
+								<option value="" selected="">Choose...</option>
+								<?php foreach($list as $item){ ?>
+								<option value="<?= $item ?>"><?= $item ?></option>
+								<?php } ?>
+							</select>
 						</div>
 						<div class="col-md-6">
-							<label class="form-label">Glosa</label>
-							<input class="form-control" name="model">
+							<label class="form-label">Invoice Description</label>
+							<input type="date" class="form-control" name="model">
+						</div>
+						<div class="col-md-12">
+							<label class="form-label">Detail</label>
+							<textarea class="form-control"></textarea>
 						</div>
 						<div class="text-center pt-3">
 							<button type="submit" class="btn btn-primary">Submit</button>
