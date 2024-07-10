@@ -103,9 +103,9 @@ class Local_api extends CI_Controller {
 		
 		if ($this->input->get("key") === "lgepr"){
 			$res = [
-				["division" => "H&A", "seq" => "'01"], 
-				["division" => "HE", "seq" => "'02"], 
-				["division" => "BS", "seq" => "'03"],
+				["division" => "H&A", "order" => "a"], 
+				["division" => "HE", "order" => "b"], 
+				["division" => "BS", "order" => "c"],
 			];
 		}
 		else $res = ["msg" => "Error"];
