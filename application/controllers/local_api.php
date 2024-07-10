@@ -119,17 +119,17 @@ class Local_api extends CI_Controller {
 		
 		if ($this->input->get("key") === "lgepr"){
 			$res = [
-				["seq" => 1, "division" => "H&A", "categry" => "REF"], 
-				["seq" => 2, "division" => "H&A", "categry" => "Cooking"], 
-				["seq" => 3, "division" => "H&A", "categry" => "W/M"], 
-				["seq" => 4, "division" => "H&A", "categry" => "RAC"], 
-				["seq" => 5, "division" => "H&A", "categry" => "SAC"], 
-				["seq" => 6, "division" => "H&A", "categry" => "Chiller"], 
-				["seq" => 7, "division" => "HE", "categry" => "TV"], 
-				["seq" => 8, "division" => "HE", "categry" => "AV"],
-				["seq" => 9, "division" => "BS", "categry" => "MNT"], 
-				["seq" => 10, "division" => "BS", "categry" => "Signage"], 
-				["seq" => 11, "division" => "BS", "categry" => "Commercial TV"],
+				["division" => "H&A", "categry" => "REF", "order" => "a"], 
+				["division" => "H&A", "categry" => "Cooking", "order" => "b"], 
+				["division" => "H&A", "categry" => "W/M", "order" => "c"], 
+				["division" => "H&A", "categry" => "RAC", "order" => "d"], 
+				["division" => "H&A", "categry" => "SAC", "order" => "e"], 
+				["division" => "H&A", "categry" => "Chiller", "order" => "f"], 
+				["division" => "HE", "categry" => "TV", "order" => "g"], 
+				["division" => "HE", "categry" => "AV", "order" => "h"],
+				["division" => "BS", "categry" => "MNT", "order" => "i"], 
+				["division" => "BS", "categry" => "Signage", "order" => "j"], 
+				["division" => "BS", "categry" => "Commercial TV", "order" => "k"],
 			];
 		}else $res = ["msg" => "Error"];
 		
