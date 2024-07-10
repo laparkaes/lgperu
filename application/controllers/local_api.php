@@ -98,23 +98,32 @@ class Local_api extends CI_Controller {
 		echo json_encode($res);
 	}
 	
-	public function get_filters(){
-		//llamasys/local_api/get_filters?key=lgepr
+	public function get_division(){
+		//llamasys/local_api/get_division?key=lgepr
+		
+		if ($this->input->get("key") === "lgepr") $res = [["division" => "H&A"], ["division" => "HE"], ["division" => "BS"]];
+		else $res = ["msg" => "Error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+	
+	public function get_category(){
+		//llamasys/local_api/get_category?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
 			$res = [
-				"division" => ["H&A", "HE", "BS"],
-				"categry" => [
-					["H&A", "REF"], ["H&A", "Cooking"], ["H&A", "W/M"], ["H&A", "RAC"], ["H&A", "SAC"], ["H&A", "Chiller"], 
-					["HE", "TV"], ["HE", "AV"],
-					["BS", "MNT"], ["BS", "Signage"], ["BS", "Commercial TV"],
-				],
+				["division" => "H&A", "categry" => "REF"], ["division" => "H&A", "categry" => "Cooking"], ["division" => "H&A", "categry" => "W/M"], ["division" => "H&A", "categry" => "RAC"], ["division" => "H&A", "categry" => "SAC"], ["division" => "H&A", "categry" => "Chiller"], 
+				["division" => "HE", "categry" => "TV"], ["division" => "HE", "categry" => "AV"],
+				["division" => "BS", "categry" => "MNT"], ["division" => "BS", "categry" => "Signage"], ["division" => "BS", "categry" => "Commercial TV"],
 			];
 		}else $res = ["msg" => "Error"];
 		
 		header('Content-Type: application/json');
 		echo json_encode($res);
 	}
+	
+				
 
 	public function get_obs_ml_month(){
 		//llamasys/local_api/get_obs_ml_month?key=lgepr
