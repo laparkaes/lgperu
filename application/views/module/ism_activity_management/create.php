@@ -41,7 +41,7 @@
 						</div>
 						<div class="col-md-2">
 							<label class="form-label">PR Buyer</label>
-							<?php $list = ["Andy", "Jetter"]; sort($list); ?>
+							<?php $list = ["Andy", "Jeter"]; sort($list); ?>
 							<select class="form-select" name="category_id">
 								<option value="" selected="">Choose...</option>
 								<?php foreach($list as $item){ ?>
