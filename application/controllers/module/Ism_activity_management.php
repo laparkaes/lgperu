@@ -34,4 +34,23 @@ class Ism_activity_management extends CI_Controller {
 		
 		$this->load->view('layout', $data);
 	}
+	
+	public function add_activity(){
+		$type = "error"; $msg = ""; $url = "module/scm_purchase_order";
+		
+		$activity = $this->input->post();
+		if ($activity["title"]){
+			foreach($activity as $key => $item) if (!$item) $activity[$key] = null;
+			
+			$activity["registered"] = date('Y-m-d H:i:s', time());
+			$activity_id = $this->gen_m->insert("ism_activity", $activity);
+			
+			$type = "success";
+			$msg = "Activity has been registered";
+			$url = "module/scm_purchase_order/edit/".$activity_id;
+		}else $msg = "Activity title is required field.";
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
+	}
 }
