@@ -632,23 +632,23 @@ class Obs_report extends CI_Controller {
 	
 	private function get_statistics($gerps, $from, $to){
 		$devices = ["total" => ["device" => "Total", "qty" => 0, "amount" => 0]];
-		$devices_rec = $this->gen_m->only("obs_magento", "devices", ["devices !=" => "", "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		$devices_rec = $this->gen_m->only("obs_magento", "devices", ["devices !=" => ""]);
 		foreach($devices_rec as $d) $devices[$d->devices] = ["device" => $d->devices, "qty" => 0, "amount" => 0];
 		
 		$cus_group = ["total" => ["customer_group" => "Total", "qty" => 0, "amount" => 0]];
-		$cus_group_rec = $this->gen_m->only("obs_magento", "customer_group", ["customer_group !=" => "", "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		$cus_group_rec = $this->gen_m->only("obs_magento", "customer_group", ["customer_group !=" => ""]);
 		foreach($cus_group_rec as $c) $cus_group[$c->customer_group] = ["customer_group" => $c->customer_group, "qty" => 0, "amount" => 0];
 		
 		$d2b2c = ["total" => ["company" => "Total", "qty" => 0, "amount" => 0]];
-		$d2b2c_rec = $this->gen_m->only("obs_magento", "company_name_through_vipkey", ["grand_total_purchased >" => 0, "company_name_through_vipkey !=" => "", "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		$d2b2c_rec = $this->gen_m->only("obs_magento", "company_name_through_vipkey", ["company_name_through_vipkey !=" => ""]);
 		foreach($d2b2c_rec as $c) $d2b2c[$c->company_name_through_vipkey] = ["company" => $c->company_name_through_vipkey, "qty" => 0, "amount" => 0];
 		
-		$cupons = ["total" => ["cupon" => "Total", "rule" => "", "qty" => 0, "amount" => 0]];
-		$cupons_rec = $this->gen_m->only_multi("obs_magento", ["coupon_code", "coupon_rule"], ["grand_total_purchased >" => 0, "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
-		foreach($cupons_rec as $c) $cupons[$c->coupon_code] = ["cupon" => $c->coupon_code, "rule" => $c->coupon_rule, "qty" => 0, "amount" => 0];
+		$cupons = ["total" => ["code" => "Total", "rule" => "", "qty" => 0, "amount" => 0]];
+		$cupons_rec = $this->gen_m->only_multi("obs_magento", ["coupon_code", "coupon_rule"], ["coupon_code !=" => ""]);
+		foreach($cupons_rec as $c) $cupons[$c->coupon_code] = ["code" => $c->coupon_code, "rule" => $c->coupon_rule, "qty" => 0, "amount" => 0];
 		
 		$departments = ["total" => ["department" => "Total", "province" => "", "qty" => 0, "amount" => 0]];
-		$departments_rec = $this->gen_m->only_multi("obs_magento", ["department", "province"], ["grand_total_purchased >" => 0, "local_time >=" => $from." 00:00:00", "local_time <=" => $to." 23:59:59"]);
+		$departments_rec = $this->gen_m->only_multi("obs_magento", ["department", "province"], ["province !=" => ""]);
 		foreach($departments_rec as $z) $departments[$z->department."_".$z->province] = ["department" => $z->department, "province" => $z->province, "qty" => 0, "amount" => 0];
 		
 		$daily = [];
@@ -664,14 +664,61 @@ class Obs_report extends CI_Controller {
 			];
 		}
 		
-		foreach($devices as $item){print_r($item); echo "<br/>";}
-		
+		foreach($departments as $i => $item){echo $i." >>>> "; print_r($item); echo "<br/>";}
 		
 		echo "<br/><br/><br/>";
 		
 		foreach($gerps as $item){
-			print_r($item); echo "<br/><br/>";
+			//device
+			if ($item->devices){
+				$devices[$item->devices]["qty"]++;
+				$devices[$item->devices]["amount"] += $item->sales_amount_usd;
+				$devices["total"]["qty"]++;
+				$devices["total"]["amount"] += $item->sales_amount_usd;	
+			}//else echo "No devices<br/><br/>";
+			
+			//cus_group
+			if ($item->customer_group){
+				$cus_group[$item->customer_group]["qty"]++;
+				$cus_group[$item->customer_group]["amount"] += $item->sales_amount_usd;
+				$cus_group["total"]["qty"]++;
+				$cus_group["total"]["amount"] += $item->sales_amount_usd;	
+			}
+			
+			//d2b2c
+			if ($item->company_name_through_vipkey){
+				$d2b2c[$item->company_name_through_vipkey]["qty"]++;
+				$d2b2c[$item->company_name_through_vipkey]["amount"] += $item->sales_amount_usd;
+				$d2b2c["total"]["qty"]++;
+				$d2b2c["total"]["amount"] += $item->sales_amount_usd;	
+			}
+			
+			//cupons
+			if ($item->coupon_code){
+				$cupons[$item->coupon_code]["qty"]++;
+				$cupons[$item->coupon_code]["amount"] += $item->sales_amount_usd;
+				$cupons["total"]["qty"]++;
+				$cupons["total"]["amount"] += $item->sales_amount_usd;	
+			}
+			
+			//cupons
+			if ($item->province){
+				$departments[$item->department."_".$item->province]["qty"]++;
+				$departments[$item->department."_".$item->province]["amount"] += $item->sales_amount_usd;
+				$departments["total"]["qty"]++;
+				$departments["total"]["amount"] += $item->sales_amount_usd;	
+			}
+			
+			if ($item->order_no){
+			echo $item->order_no." /// ".$item->local_time." /// ".$item->line_status."<br/>";
+			print_r($item); 
+			echo "<br/><br/>";	
+			}
+			
 		}
+		
+		foreach($departments as $i => $item){echo $i." >>>> "; print_r($item); echo "<br/>";}
+		
 	}
 	
 	public function summary(){
