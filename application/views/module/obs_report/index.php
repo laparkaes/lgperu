@@ -174,23 +174,39 @@
 						?>
 						</div>
 						<div class="col-md-12">
+							<div class="d-none">
+								<div id="chart_purchase_xaxis"><?= json_encode($days) ?></div>
+								<div id="chart_purchase_amount_4"><?= json_encode($purchase_amount[4]) ?></div>
+								<div id="chart_purchase_amount_8"><?= json_encode($purchase_amount[8]) ?></div>
+								<div id="chart_purchase_amount_12"><?= json_encode($purchase_amount[12]) ?></div>
+								<div id="chart_purchase_amount_16"><?= json_encode($purchase_amount[16]) ?></div>
+								<div id="chart_purchase_amount_20"><?= json_encode($purchase_amount[20]) ?></div>
+								<div id="chart_purchase_amount_24"><?= json_encode($purchase_amount[24]) ?></div>
+								<div id="chart_purchase_amount_total"><?= json_encode($purchase_amount["total"]) ?></div>
+								<div id="chart_closed_amount"><?= json_encode($closed_amount) ?></div>
+								<div id="chart_purchase_qty_4"><?= json_encode($purchase_qty[4]) ?></div>
+								<div id="chart_purchase_qty_8"><?= json_encode($purchase_qty[8]) ?></div>
+								<div id="chart_purchase_qty_12"><?= json_encode($purchase_qty[12]) ?></div>
+								<div id="chart_purchase_qty_16"><?= json_encode($purchase_qty[16]) ?></div>
+								<div id="chart_purchase_qty_20"><?= json_encode($purchase_qty[20]) ?></div>
+								<div id="chart_purchase_qty_24"><?= json_encode($purchase_qty[24]) ?></div>
+								<div id="chart_purchase_qty_total"><?= json_encode($purchase_qty["total"]) ?></div>
+								<div id="chart_closed_qty"><?= json_encode($closed_qty) ?></div>
+							</div>
 							<div class="card">
 								<div class="card-body">
-									<h5 class="card-title">Daily Purchase by Hour Range & Closed Order</h5>
-									<div id="chart_purchase" style="min-height: 400px;"></div>
-									<div class="d-none">
-										<div id="chart_purchase_xaxis"><?= json_encode($days) ?></div>
-										<div id="chart_purchase_amount_4"><?= json_encode($purchase_amount[4]) ?></div>
-										<div id="chart_purchase_amount_8"><?= json_encode($purchase_amount[8]) ?></div>
-										<div id="chart_purchase_amount_12"><?= json_encode($purchase_amount[12]) ?></div>
-										<div id="chart_purchase_amount_16"><?= json_encode($purchase_amount[16]) ?></div>
-										<div id="chart_purchase_amount_20"><?= json_encode($purchase_amount[20]) ?></div>
-										<div id="chart_purchase_amount_24"><?= json_encode($purchase_amount[24]) ?></div>
-										<div id="chart_purchase_amount_total"><?= json_encode($purchase_amount["total"]) ?></div>
-										<div id="chart_closed_amount"><?= json_encode($closed_amount) ?></div>
-									</div>
+									<h5 class="card-title">Daily Purchase Amount by Hour Range & IOD</h5>
+									<div id="chart_purchase_amount" style="min-height: 400px;"></div>
 								</div>
 							</div>
+							<div class="card">
+								<div class="card-body">
+									<h5 class="card-title">Daily Purchase Qty by Hour Range & IOD</h5>
+									<div id="chart_purchase_qty" style="min-height: 400px;"></div>
+								</div>
+							</div>
+							
+									
 						</div>
 						<div class="col-md-6">
 							<div class="card">
@@ -432,9 +448,9 @@
 
 <script>
 function set_charts(){
-	//chart_purchase
-	echarts.init(document.querySelector("#chart_purchase")).setOption({
-		legend: {data: ['~4 Hr', '~8 Hr', '~12 Hr', '~16 Hr', '~20 Hr', '~24 Hr', 'Total', 'Closed Amount']},
+	//chart_purchase_amount
+	echarts.init(document.querySelector("#chart_purchase_amount")).setOption({
+		legend: {data: ['~4 Hr', '~8 Hr', '~12 Hr', '~16 Hr', '~20 Hr', '~24 Hr', 'Total', 'IOD']},
 		tooltip: {trigger: 'axis', axisPointer: {type: 'cross', label: {backgroundColor: '#6a7985'}}},
 		grid: {left: '30px', right: '30px', top: '0%', bottom: '3%', containLabel: true},
 		xAxis: [{type: 'category', boundaryGap: false, data: JSON.parse($("#chart_purchase_xaxis").html())}],
@@ -447,7 +463,26 @@ function set_charts(){
 			{name: '~20 Hr', type: 'bar', stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_amount_20").html())},
 			{name: '~24 Hr', type: 'bar', stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_amount_24").html())},
 			{name: 'Total', barWidth: 5, type: 'bar', stack: 'total', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_amount_total").html())},
-			{name: 'Closed Amount', type: 'line', emphasis: {focus: 'series'}, data: JSON.parse($("#chart_closed_amount").html())},
+			{name: 'IOD', type: 'line', emphasis: {focus: 'series'}, data: JSON.parse($("#chart_closed_amount").html())},
+		]
+	});
+	
+	//chart_purchase_qty
+	echarts.init(document.querySelector("#chart_purchase_qty")).setOption({
+		legend: {data: ['~4 Hr', '~8 Hr', '~12 Hr', '~16 Hr', '~20 Hr', '~24 Hr', 'Total', 'IOD']},
+		tooltip: {trigger: 'axis', axisPointer: {type: 'cross', label: {backgroundColor: '#6a7985'}}},
+		grid: {left: '30px', right: '30px', top: '0%', bottom: '3%', containLabel: true},
+		xAxis: [{type: 'category', boundaryGap: false, data: JSON.parse($("#chart_purchase_xaxis").html())}],
+		yAxis: [{show: false, type: 'value'}],
+		series: [
+			{name: '~4 Hr', type: 'bar', stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_qty_4").html()), barGap: 0},
+			{name: '~8 Hr', type: 'bar', stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_qty_8").html())},
+			{name: '~12 Hr', type: 'bar', stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_qty_12").html())},
+			{name: '~16 Hr', type: 'bar', stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_qty_16").html())},
+			{name: '~20 Hr', type: 'bar', stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_qty_20").html())},
+			{name: '~24 Hr', type: 'bar', stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_qty_24").html())},
+			{name: 'Total', barWidth: 5, type: 'bar', stack: 'total', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_qty_total").html())},
+			{name: 'IOD', type: 'line', emphasis: {focus: 'series'}, data: JSON.parse($("#chart_closed_qty").html())},
 		]
 	});
 	
