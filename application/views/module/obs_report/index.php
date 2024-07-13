@@ -154,15 +154,12 @@
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<div class="d-flex justify-content-start align-items-center">
-						<h5 class="card-title me-3">Statistics</h5>
-						<span class="badge bg-secondary">Magento Sale</span>
-					</div>
+					<h5 class="card-title">Statistics</h5>
 					<div class="row">
 						<div class="col-12">
 						<?php
 						$dates_between = $statistics["dates_between"];
-						$daily = $statistics["daily"];
+						$purchase = $statistics["purchase"];
 						$cus_group = $statistics["cus_group"];
 						$devices = $statistics["devices"];
 						$d2b2c = $statistics["d2b2c"];
@@ -173,23 +170,24 @@
 						<div class="col-md-12">
 							<div class="card">
 								<div class="card-body">
-									<h5 class="card-title">Daily</h5>
-									<div id="chart_daily" style="min-height: 500px;"></div>
+									<h5 class="card-title">Purchase</h5>
+									<div id="chart_purchase" style="min-height: 500px;"></div>
 									<?php 
-									$chart_daily_values = [4 => [], 8 => [], 12 => [], 16 => [], 20 => [], 24 => []];
-									$chart_daily_xaxis = [];
+									$chart_purchase_values = [4 => [], 8 => [], 12 => [], 16 => [], 20 => [], 24 => []];
+									$chart_purchase_total = [];
+									$chart_purchase_xaxis = [];
 									$total = []; 
 									foreach($dates_between as $date){ $day = date("d", strtotime($date));
 										$total[$day] = 0;
-										$chart_daily_xaxis[] = $day;
+										$chart_purchase_xaxis[] = $day;
 									}
 									?>
 									<table class="table text-center" style="font-size: 12px;">
 										<thead>
 											<tr>
-												<th scope="col" class="text-start" style="width: 90px;">K USD<br/>Hour\Day</th>
+												<th scope="col" class="text-start">K USD<br/>Hour\Day</th>
 												<?php foreach($dates_between as $date){ $day = date("d", strtotime($date)); ?>
-												<th scope="col"><?= $day ?></th>
+												<th scope="col" style="width: 60px;"><?= $day ?></th>
 												<?php } ?>
 											</tr>
 										</thead>
@@ -198,29 +196,30 @@
 											<tr>
 												<td class="text-start">~ <?= $time ?> Hr</td>
 												<?php foreach($dates_between as $date){ $day = date("d", strtotime($date));
-													$total[$day] += $daily[$day][$time]["amount"];
-													$chart_daily_values[$time][] = (date("d", strtotime($date)) <= date("d")) ? round($daily[$day][$time]["amount"], 2) : null;
+													$total[$day] += $purchase[$day][$time]["amount"];
+													$chart_purchase_values[$time][] = (date("d", strtotime($date)) <= date("d")) ? round($purchase[$day][$time]["amount"], 2) : null;
 												?>
-												<td><?= $daily[$day][$time]["amount"] ? number_format($daily[$day][$time]["amount"], 2) : "-" ?></td>
+												<td><?= $purchase[$day][$time]["amount"] ? number_format($purchase[$day][$time]["amount"], 2) : "-" ?></td>
 												<?php } ?>
 											</tr>
 											<?php } ?>
 											<tr>
 												<th class="text-start">Total</th>
-												<?php foreach($dates_between as $date){ $day = date("d", strtotime($date)); ?>
+												<?php foreach($dates_between as $date){ $day = date("d", strtotime($date)); if ($total[$day]) $chart_purchase_total[] = round($total[$day], 2); ?>
 												<th><?= $total[$day] ? number_format($total[$day], 2) : "0.00" ?></th>
 												<?php } ?>
 											</tr>
 										</tbody>
 									</table>
 									<div class="d-none">
-										<div id="chart_daily_xaxis"><?= json_encode($chart_daily_xaxis) ?></div>
-										<div id="chart_daily_4"><?= json_encode($chart_daily_values[4]) ?></div>
-										<div id="chart_daily_8"><?= json_encode($chart_daily_values[8]) ?></div>
-										<div id="chart_daily_12"><?= json_encode($chart_daily_values[12]) ?></div>
-										<div id="chart_daily_16"><?= json_encode($chart_daily_values[16]) ?></div>
-										<div id="chart_daily_20"><?= json_encode($chart_daily_values[20]) ?></div>
-										<div id="chart_daily_24"><?= json_encode($chart_daily_values[24]) ?></div>
+										<div id="chart_purchase_xaxis"><?= json_encode($chart_purchase_xaxis) ?></div>
+										<div id="chart_purchase_4"><?= json_encode($chart_purchase_values[4]) ?></div>
+										<div id="chart_purchase_8"><?= json_encode($chart_purchase_values[8]) ?></div>
+										<div id="chart_purchase_12"><?= json_encode($chart_purchase_values[12]) ?></div>
+										<div id="chart_purchase_16"><?= json_encode($chart_purchase_values[16]) ?></div>
+										<div id="chart_purchase_20"><?= json_encode($chart_purchase_values[20]) ?></div>
+										<div id="chart_purchase_24"><?= json_encode($chart_purchase_values[24]) ?></div>
+										<div id="chart_purchase_total"><?= json_encode($chart_purchase_total) ?></div>
 									</div>
 								</div>
 							</div>
@@ -308,7 +307,7 @@
 								</div>
 							</div>
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-4">
 							<div class="card">
 								<div class="card-body">
 									<h5 class="card-title">Location</h5>
@@ -323,13 +322,21 @@
 											</tr>
 										</thead>
 										<tbody>
-											<?php foreach($departments as $item){ if ($item["qty"]){ ?>
+											<?php foreach($departments as $item){ ?>
 											<tr>
 												<td><?= $item["department"] ?></td>
-												<td><?= $item["province"] ?></td>
+												<td></td>
 												<td class="text-center"><?= number_format($item["qty"]) ?></td>
 												<td class="text-end"><?= number_format($item["amount"], 2) ?></td>
 												<td class="text-end"><?= number_format($item["amount"] * 100 / $departments["total"]["amount"], 2) ?>%</td>
+											</tr>
+											<?php foreach($item["provinces"] as $pro){ ?>
+											<tr>
+												<td></td>
+												<td><?= $pro["province"] ?></td>
+												<td class="text-center"><?= number_format($pro["qty"]) ?></td>
+												<td class="text-end"><?= number_format($pro["amount"], 2) ?></td>
+												<td class="text-end"><?= number_format($pro["amount"] * 100 / $departments["total"]["amount"], 2) ?>%</td>
 											</tr>
 											<?php }} ?>
 										</tbody>
@@ -337,7 +344,7 @@
 								</div>
 							</div>
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-4">
 							<div class="card">
 								<div class="card-body">
 									<h5 class="card-title">D2B2C</h5>
@@ -364,7 +371,7 @@
 								</div>
 							</div>
 						</div>
-						<div class="col-md-12">
+						<div class="col-md-4">
 							<div class="card">
 								<div class="card-body">
 									<h5 class="card-title">Cupon</h5>
@@ -381,11 +388,11 @@
 										<tbody>
 											<?php foreach($cupons as $item){ if ($item["qty"]){ ?>
 											<tr>
-												<td><?= $item["cupon"] ?></td>
-												<td><?= $item["rule"] ?></td>
+												<td><?= $item["code"] ?></td>
+												<td><div class="text-truncate" style="width: 180px;"><?= $item["rule"] ?></div></td>
 												<td class="text-center"><?= number_format($item["qty"]) ?></td>
 												<td class="text-end"><?= number_format($item["amount"], 2) ?></td>
-												<td class="text-end"><?= number_format($item["amount"] * 100 / $cupons["total"]["amount"], 2) ?>%</td>
+												<td class="text-end"><?= number_format($item["per"], 2) ?>%</td>
 											</tr>
 											<?php }} ?>
 										</tbody>
@@ -520,19 +527,20 @@
 
 <script>
 function set_charts(){
-	//chart_daily
-	echarts.init(document.querySelector("#chart_daily")).setOption({
+	//chart_purchase
+	echarts.init(document.querySelector("#chart_purchase")).setOption({
 		tooltip: {trigger: 'axis', axisPointer: {type: 'cross', label: {backgroundColor: '#6a7985'}}},
-		grid: {left: '95px', right: '25px', bottom: '3%', containLabel: true},
-		xAxis: [{type: 'category', boundaryGap: false, data: JSON.parse($("#chart_daily_xaxis").html())}],
-		yAxis: [{type: 'value'}],
+		grid: {left: '120px', right: '30px', bottom: '3%', containLabel: true},
+		xAxis: [{type: 'category', boundaryGap: false, data: JSON.parse($("#chart_purchase_xaxis").html())}],
+		yAxis: [{show: false, type: 'value'}],
 		series: [
-			{name: '~4 Hr', smooth: true, showSymbol: false, type: 'line', stack: 'Total', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_daily_4").html())},
-			{name: '~8 Hr', smooth: true, showSymbol: false, type: 'line', stack: 'Total', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_daily_8").html())},
-			{name: '~12 Hr', smooth: true, showSymbol: false, type: 'line', stack: 'Total', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_daily_12").html())},
-			{name: '~16 Hr', smooth: true, showSymbol: false, type: 'line', stack: 'Total', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_daily_16").html())},
-			{name: '~20 Hr', smooth: true, showSymbol: false, type: 'line', stack: 'Total', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_daily_20").html())},
-			{name: '~24 Hr', smooth: true, showSymbol: false, type: 'line', stack: 'Total', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_daily_24").html())},
+			{name: '~4 Hr', showSymbol: false, type: 'bar', barGap: 0, stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_4").html())},
+			{name: '~8 Hr', showSymbol: false, type: 'bar', stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_8").html())},
+			{name: '~12 Hr', showSymbol: false, type: 'bar', stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_12").html())},
+			{name: '~16 Hr', showSymbol: false, type: 'bar', stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_16").html())},
+			{name: '~20 Hr', showSymbol: false, type: 'bar', stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_20").html())},
+			{name: '~24 Hr', showSymbol: false, type: 'bar', stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_24").html())},
+			{name: 'Total', barWidth: 5, showSymbol: false, type: 'bar', stack: 'total', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_total").html())},
 		]
 	});
 	
