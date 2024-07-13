@@ -667,11 +667,15 @@ class Obs_report extends CI_Controller {
 		$provinces_rec = $this->gen_m->only_multi("obs_magento", ["department", "province"], ["province !=" => ""]);
 		foreach($provinces_rec as $z) if ($z->province) $provinces[$z->department."_".$z->province] = ["department" => $z->department, "province" => $z->province, "qty" => 0, "amount" => 0];
 		
+		$days = [];
 		$purchase = [];
 		$closed = [];
 		$dates_between = $this->my_func->dates_between($from, $to);
 		foreach($dates_between as $item){
-			$purchase[date("d", strtotime($item))] = [
+			$day = date("d", strtotime($item));
+			$days[] = $day;
+			
+			$purchase[$day] = [
 				4 => ["qty" => 0, "amount" => 0],
 				8 => ["qty" => 0, "amount" => 0],
 				12 => ["qty" => 0, "amount" => 0],
@@ -786,14 +790,54 @@ class Obs_report extends CI_Controller {
 		foreach($closed as $i => $item){echo $i." >>>> "; print_r($item); echo "<br/>";} echo "<br/><br/><br/>";
 		*/
 		
+		$purchase_qty = [4 => [], 8 => [], 12 => [], 16 => [], 20 => [], 24 => [], "total" => []];
+		$purchase_amount = [4 => [], 8 => [], 12 => [], 16 => [], 20 => [], 24 => [], "total" => []];
+		
+		foreach($purchase as $i => $item){
+			$qty = $amount = 0;
+			
+			foreach($item as $hr => $val){
+				//echo $i." >>>>>> "; echo $hr." >>>>>> "; print_r($val); echo "<br/><br/>";
+				
+				$qty += $val["qty"];
+				$amount += $val["amount"];
+				
+				$purchase_qty[$hr][] = $val["qty"] ? $val["qty"] : null;
+				$purchase_amount[$hr][] = $val["amount"] ? round($val["amount"], 2) : null;
+				
+			}
+			
+			$purchase_qty["total"][] = $qty ? $qty : null;
+			$purchase_amount["total"][] = $amount ? round($amount, 2) : null;
+		}
+		
+		$closed_qty = [];
+		$closed_amount = [];
+		
+		foreach($closed as $i => $item){
+			//echo $i." >>>>>> "; print_r($item); echo "<br/><br/>";
+			
+			$closed_qty[] = $item["qty"] ? $item["qty"] : null;
+			$closed_amount[] = $item["amount"] ? round($item["amount"], 2) : null;
+		}
+		
+		//print_r($purchase_qty);
+		//echo "<br/><br/><br/>";
+		//print_r($purchase_amount);
+		
 		return [
 			"devices" => $devices,
 			"cus_group" => $cus_group,
 			"d2b2c" => $d2b2c,
 			"cupons" => $cupons,
 			"departments" => $departments,
+			"days" => $days,
 			"purchase" => $purchase,
+			"purchase_qty" => $purchase_qty,
+			"purchase_amount" => $purchase_amount,
 			"closed" => $closed,
+			"closed_qty" => $closed_qty,
+			"closed_amount" => $closed_amount,
 			"dates_between" => $dates_between,
 		];
 	}
