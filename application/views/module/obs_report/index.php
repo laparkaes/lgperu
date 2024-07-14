@@ -168,8 +168,9 @@
 						$closed_amount = $statistics["closed_amount"];
 						$cus_group = $statistics["cus_group"];
 						$devices = $statistics["devices"];
-						$d2b2c = $statistics["d2b2c"];
 						$cupons = $statistics["cupons"];
+						$d2b2c = $statistics["d2b2c"];
+						$models = $statistics["models"];
 						$departments = $statistics["departments"];
 						?>
 						</div>
@@ -205,8 +206,38 @@
 									<div id="chart_purchase_qty" style="min-height: 400px;"></div>
 								</div>
 							</div>
-							
-									
+						</div>
+						<div class="col-md-12">
+							<div class="card">
+								<div class="card-body">
+									<h5 class="card-title">Best Seller</h5>
+									<table class="table datatable align-middle">
+										<thead>
+											<tr>
+												<th scope="col">Department</th>
+												<th scope="col">Province</th>
+												<th scope="col" class="text-center">Qty</th>
+												<th scope="col" class="text-end text-nowrap">K USD</th>
+												<th scope="col" class="text-end">Perc.</th>
+											</tr>
+										</thead>
+										<tbody>
+											<?php foreach($departments as $item){ ?>
+											<tr>
+												<td><?= $item["department"] ?></td>
+												<td></td>
+												<td class="text-center"><?= number_format($item["qty"]) ?></td>
+												<td class="text-end"><?= number_format($item["amount"]/1000, 2) ?></td>
+												<td class="text-end"><?= number_format($item["amount"] * 100 / $departments["total"]["amount"], 2) ?>%</td>
+											</tr>
+											<?php } ?>
+										</tbody>
+									</table>
+									<?php
+									foreach($models as $i => $item){echo $i." >>>> "; print_r($item); echo "<br/>";} echo "<br/><br/><br/>";
+									?>
+								</div>
+							</div>
 						</div>
 						<div class="col-md-6">
 							<div class="card">
