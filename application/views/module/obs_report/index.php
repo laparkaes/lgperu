@@ -55,97 +55,32 @@
 								<th scope="col">Subsidiary</th>
 								<th scope="col">Division</th>
 								<th scope="col" class="border-end">Category</th>
-								<th scope="col">Monthly Report</th>
-								<th scope="col">ML</th>
-								<th scope="col" class="border-end">ML Actual</th>
-								<th scope="col" style="width: 180px;">Projection</th>
-								<th scope="col" class="border-end">%</th>
-								<th scope="col" style="width: 180px;">Sales IOD</th>
-								<th scope="col" class="border-end">%</th>
-								<th scope="col">Reserved</th>
+								<th scope="col" style="width: 200px;">Target</th>
+								<th scope="col" style="width: 120px;" class="border-end">%</th>
+								<th scope="col" style="width: 200px;">ML Actual</th>
+								<th scope="col" style="width: 120px;" class="border-end">%</th>
+								<th scope="col" style="width: 200px;" class="border-end">Closed</th>
+								<th scope="col" style="width: 200px;">M-1</th>
+								<th scope="col" style="width: 200px;">Reserved</th>
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach($dashboard as $dash){ ?>
+							<?php foreach($dashboard as $dash){ if($dash["closed"]){ ?>
 							<tr>
 								<td><?= $dash["sub"] ?></td>
 								<td><?= $dash["div"] ?></td>
 								<td class="border-end"><?= $dash["cat"] ?></td>
-								<td><?= $dash["monthly_report"] ? number_format($dash["monthly_report"], 2) : "-" ?></td>
-								<td><?= $dash["ml"] ? number_format($dash["ml"], 2) : "-" ?></td>
-								<td class="border-end"><?= $dash["ml_actual"] ? number_format($dash["ml_actual"], 2) : "-" ?></td>
-								<td><?= $dash["projection"] ? number_format($dash["projection"], 2) : "-" ?></td>
-								<td class="border-end text-<?= $dash["projection_per"] ? $dash["projection_color"] : "" ?>"><?= $dash["projection_per"] ? number_format($dash["projection_per"], 2)."%" : "-" ?></td>
-								<td><?= $dash["actual"] ? number_format($dash["actual"], 2) : "-" ?></td>
-								<td class="border-end text-<?= $dash["actual_per"] ? $dash["actual_color"] : "" ?>"><?= $dash["actual_per"] ? number_format($dash["actual_per"], 2)."%" : "-" ?></td>
-								<td><?= $dash["expected"] ? number_format($dash["expected"], 2) : "-" ?></td>
+								<td><?= $dash["target"] ? number_format($dash["target"], 2) : "-" ?></td>
+								<td class="border-end text-<?= $dash["target_per"] ? $dash["target_color"] : "" ?>"><?= $dash["target_per"] ? number_format($dash["target_per"], 2)."%" : "-" ?></td>
+								<td><?= $dash["ml_actual"] ? number_format($dash["ml_actual"], 2) : "-" ?></td>
+								<td class="border-end text-<?= $dash["ml_per"] ? $dash["ml_color"] : "" ?>"><?= $dash["ml_per"] ? number_format($dash["ml_per"], 2)."%" : "-" ?></td>
+								<td class="border-end"><?= $dash["closed"] ? number_format($dash["closed"], 2) : "-" ?></td>
+								<td><?= $dash["m-1"] ? number_format($dash["m-1"], 2) : "-" ?></td>
+								<td><?= $dash["reserved"] ? number_format($dash["reserved"], 2) : "-" ?></td>
 							</tr>
-							<?php } ?>
+							<?php }} ?>
 						</tbody>
 					</table>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-md-12">
-			<div class="card">
-				<div class="card-body">
-					<div class="d-flex justify-content-start align-items-center">
-						<h5 class="card-title me-3">Best Seller</h5>
-						<span class="badge bg-success">GERP IOD</span>
-					</div>
-					<div class="mb-3">
-						<div class="btn-group" role="group" aria-label="btn_subsidiaries">
-							<?php foreach($sales as $subsidiary => $sales_sub){ ?>
-							<button type="button" class="btn btn-primary btn_bs" value="<?= $subsidiary ?>"><?= $subsidiary ?></button>
-							<?php } ?>
-						</div>
-						<div class="btn-group" role="group" aria-label="btn_divisions">
-							<?php $div_map = $this->division_map; foreach($sales as $subsidiary => $sales_sub) foreach($div_map as $div => $categories){ ?>
-							<button type="button" class="btn btn-primary btn_bs" value="<?= $div ?>"><?= $div ?></button>
-							<?php } ?>
-						</div>
-					</div>
-					<?php foreach($sales as $subsidiary => $sales_sub){ ?>
-					<div class="row bl_bs_<?= $subsidiary ?>">
-						<?php
-						foreach($div_map as $div => $categories){
-							foreach($categories as $cat){
-							?>
-						<div class="col-md-4 col-sm-6 bl_bs_<?= $div ?>">
-							<div class="card">
-								<div class="card-body">
-									<h5 class="card-title"><?= $cat." │ ".$div." │ ".$subsidiary ?></h5>
-									<div class="overflow-auto" style="height: 500px;">
-										<table class="table">
-											<thead>
-												<tr>
-													<th scope="col">Model</th>
-													<th scope="col" class="text-center">Qty</th>
-													<th scope="col" class="text-end text-nowrap">K USD</th>
-												</tr>
-											</thead>
-											<tbody>
-												<?php foreach($sales[$subsidiary][$div][$cat] as $model => $data){ if ($data["qty"]){ ?>
-												<tr>
-													<td><?= $model ?></td>
-													<td class="text-center"><?= number_format($data["qty"]) ?></td>
-													<td class="text-end"><?= number_format($data["amount"], 2) ?></td>
-												</tr>
-												<?php }} ?>
-											</tbody>
-										</table>
-									</div>
-								</div>
-							</div>
-						</div>
-							<?php
-							}
-						}
-						?>
-					</div>
-					<?php } ?>
 				</div>
 			</div>
 		</div>
@@ -214,28 +149,31 @@
 									<table class="table datatable align-middle">
 										<thead>
 											<tr>
-												<th scope="col">Department</th>
-												<th scope="col">Province</th>
-												<th scope="col" class="text-center">Qty</th>
-												<th scope="col" class="text-end text-nowrap">K USD</th>
-												<th scope="col" class="text-end">Perc.</th>
+												<th scope="col">Company</th>
+												<th scope="col">Division</th>
+												<th scope="col">Category</th>
+												<th scope="col">Model</th>
+												<th scope="col">Product Level 1</th>
+												<th scope="col">Product Level 4</th>
+												<th scope="col">Qty</th>
+												<th scope="col"><div class="text-end">Amount (USD)</div></th>
 											</tr>
 										</thead>
 										<tbody>
-											<?php foreach($departments as $item){ ?>
+											<?php foreach($models as $item){ ?>
 											<tr>
-												<td><?= $item["department"] ?></td>
-												<td></td>
-												<td class="text-center"><?= number_format($item["qty"]) ?></td>
-												<td class="text-end"><?= number_format($item["amount"]/1000, 2) ?></td>
-												<td class="text-end"><?= number_format($item["amount"] * 100 / $departments["total"]["amount"], 2) ?>%</td>
+												<td><?= $this->dash_company[$item["company"]] ?></td>
+												<td><?= $this->dash_division[$item["division"]] ?></td>
+												<td><?= $item["model_category"] ?></td>
+												<td><?= $item["model"] ?></td>
+												<td><?= $item["product_level1_name"] ?></td>
+												<td><?= $item["product_level4_name"] ?></td>
+												<td><?= number_format($item["qty"]) ?></td>
+												<td><div class="text-end"><?= number_format($item["amount"], 2) ?></div></td>
 											</tr>
 											<?php } ?>
 										</tbody>
 									</table>
-									<?php
-									foreach($models as $i => $item){echo $i." >>>> "; print_r($item); echo "<br/>";} echo "<br/><br/><br/>";
-									?>
 								</div>
 							</div>
 						</div>
@@ -404,7 +342,7 @@
 											<?php foreach($cupons as $item){ if ($item["qty"]){ ?>
 											<tr>
 												<td><?= $item["code"] ?></td>
-												<td><div class="text-truncate" style="width: 180px;"><?= $item["rule"] ?></div></td>
+												<td><div class="text-truncate" style="width: 150px;"><?= $item["rule"] ?></div></td>
 												<td class="text-center"><?= number_format($item["qty"]) ?></td>
 												<td class="text-end"><?= number_format($item["amount"]/1000, 2) ?></td>
 												<td class="text-end"><?= number_format($item["per"], 2) ?>%</td>

@@ -39,6 +39,23 @@ class Obs_report extends CI_Controller {
 		];
 		$this->category_map_inv = [];
 		foreach($this->category_map as $cat => $categories) foreach($categories as $c) $this->category_map_inv[$c] = $cat;
+		
+		$this->dash_company = ["HA" => "H&A", "HE" => "HE", "BS" => "BS"];
+		$this->dash_division = [
+			"REF" => "REF", 
+			"COOK" => "Cooking", 
+			"W/M" => "W/M", 
+			"A/C" => "Chiller", 
+			"RAC" => "RAC", 
+			"SAC" => "SAC", 
+			"TV" => "LTV", 
+			"AV" => "AV", 
+			"MNT" => "MNT", 
+			"PC" => "PC", 
+			"DS" => "DS", 
+			"SGN" => "Signage", 
+			"CTV" => "Commercial TV",
+		];
 	}
 	
 	function get_dates_by_week($week, $year){
@@ -87,13 +104,13 @@ class Obs_report extends CI_Controller {
 		//echo $from." ".$to."<br/>";
 		$subsidiaries = $this->gen_m->only("obs_gerp_sales_order", "customer_department", ["create_date >=" => date("Y-01-01", strtotime($from)), "create_date <=" => date("Y-12-t", strtotime($to))]);
 		foreach($subsidiaries as $sub){
-			$dash[$sub->customer_department] = ["sub" => $sub->customer_department, "div" => "", "cat" => "", "monthly_report" => 0, "ml" => 0, "ml_actual" => 0, "projection" => 0, "projection_per" => 0, "projection_color" => "", "actual" => 0, "actual_per" => 0, "actual_color" => "", "expected" => 0];
+			$dash[$sub->customer_department] = ["sub" => $sub->customer_department, "div" => "", "cat" => "", "target" => 0, "ml" => 0, "ml_actual" => 0, "closed" => 0, "closed_per" => 0, "closed_color" => "", "m-1" => 0, "reserved" => 0];
 			foreach($this->divisions as $div){
-				$dash[$sub->customer_department."_".$div] = ["sub" => "", "div" => $div, "cat" => "", "monthly_report" => 0, "ml" => 0, "ml_actual" => 0, "projection" => 0, "projection_per" => 0, "projection_color" => "", "actual" => 0, "actual_per" => 0, "actual_color" => "", "expected" => 0];
+				$dash[$sub->customer_department."_".$div] = ["sub" => "", "div" => $div, "cat" => "", "target" => 0, "ml" => 0, "ml_actual" => 0, "closed" => 0, "closed_per" => 0, "closed_color" => "", "m-1" => 0, "reserved" => 0];
 				
 				$categories = $this->division_map[$div];
 				foreach($categories as $cat){
-					$dash[$sub->customer_department."_".$div."_".$cat] = ["sub" => "", "div" => "", "cat" => $cat, "monthly_report" => 0, "ml" => 0, "ml_actual" => 0, "projection" => 0, "projection_per" => 0, "projection_color" => "", "actual" => 0, "actual_per" => 0, "actual_color" => "", "expected" => 0];
+					$dash[$sub->customer_department."_".$div."_".$cat] = ["sub" => "", "div" => "", "cat" => $cat, "target" => 0, "ml" => 0, "ml_actual" => 0, "closed" => 0, "closed_per" => 0, "closed_color" => "", "m-1" => 0, "reserved" => 0];
 				}
 			}
 		}
@@ -116,25 +133,25 @@ class Obs_report extends CI_Controller {
 				
 				$amount = $item->sales_amount / $exchange_rate / 1000;
 				
-				$dash[$sub]["projection"] += $amount;
-				$dash[$sub."_".$div]["projection"] += $amount;
-				$dash[$sub."_".$div."_".$cat]["projection"] += $amount;
-				
 				switch($item->delivery){
 					case "M-1": 
-						$dash[$sub]["actual"] += $amount;
-						$dash[$sub."_".$div]["actual"] += $amount;
-						$dash[$sub."_".$div."_".$cat]["actual"] += $amount;
+						$dash[$sub]["m-1"] += $amount;
+						$dash[$sub."_".$div]["m-1"] += $amount;
+						$dash[$sub."_".$div."_".$cat]["m-1"] += $amount;
+						
+						$dash[$sub]["closed"] += $amount;
+						$dash[$sub."_".$div]["closed"] += $amount;
+						$dash[$sub."_".$div."_".$cat]["closed"] += $amount;
 						break;
 					case "M": 
-						$dash[$sub]["actual"] += $amount;
-						$dash[$sub."_".$div]["actual"] += $amount;
-						$dash[$sub."_".$div."_".$cat]["actual"] += $amount;
+						$dash[$sub]["closed"] += $amount;
+						$dash[$sub."_".$div]["closed"] += $amount;
+						$dash[$sub."_".$div."_".$cat]["closed"] += $amount;
 						break;
 					case "M+1": 
-						$dash[$sub]["expected"] += $amount;
-						$dash[$sub."_".$div]["expected"] += $amount;
-						$dash[$sub."_".$div."_".$cat]["expected"] += $amount;
+						$dash[$sub]["reserved"] += $amount;
+						$dash[$sub."_".$div]["reserved"] += $amount;
+						$dash[$sub."_".$div."_".$cat]["reserved"] += $amount;
 						break;
 				}
 			}
@@ -155,13 +172,12 @@ class Obs_report extends CI_Controller {
 			//assign
 			if ($aux){
 				$key = implode("_", $aux); //echo $key."<br/>";
-				$dash[$key]["monthly_report"] = $ml->monthly_report / 1000;
-				$dash[$key]["ml"] = $ml->ml / 1000;
+				$dash[$key]["target"] = $ml->target / 1000;
+				$dash[$key]["target_per"] = $dash[$key]["target"] > 0 ? $dash[$key]["closed"] / $dash[$key]["target"] * 100 : 0;
+				$dash[$key]["target_color"] = $dash[$key]["target_per"] >= 100 ? "success" : "danger";
 				$dash[$key]["ml_actual"] = $ml->ml_actual / 1000;
-				$dash[$key]["projection_per"] = $dash[$key]["ml_actual"] > 0 ? $dash[$key]["projection"] / $dash[$key]["ml_actual"] * 100 : 0;
-				$dash[$key]["projection_color"] = $dash[$key]["projection_per"] >= 100 ? "success" : "danger";
-				$dash[$key]["actual_per"] = $dash[$key]["ml_actual"] > 0 ? $dash[$key]["actual"] / $dash[$key]["ml_actual"] * 100 : 0;
-				$dash[$key]["actual_color"] = $dash[$key]["actual_per"] >= 100 ? "success" : "danger";
+				$dash[$key]["ml_per"] = $dash[$key]["ml_actual"] > 0 ? $dash[$key]["closed"] / $dash[$key]["ml_actual"] * 100 : 0;
+				$dash[$key]["ml_color"] = $dash[$key]["ml_per"] >= 100 ? "success" : "danger";
 			}
 		}
 		
@@ -544,7 +560,20 @@ class Obs_report extends CI_Controller {
 		
 		$models = [];
 		$models_rec = $this->gen_m->only_multi("obs_gerp_sales_order", ["product_level1_name", "product_level4_name", "model_category", "model"]);
-		foreach($models_rec as $m) if ($m->model_category) $models[$m->model] = ["model_category" => $m->model_category, "product_level1_name" => $m->product_level1_name, "product_level4_name" => $m->product_level4_name, "model" => $m->model, "qty" => 0, "amount" => 0];
+		foreach($models_rec as $m) if ($m->model_category){
+			$div = $this->category_map_inv[$m->model_category];
+			$com = $this->division_map_inv[$div];
+			
+			$models[$m->model] = [
+				"company" => $com, 
+				"division" => $div, 
+				"model_category" => $m->model_category, 
+				"product_level1_name" => $m->product_level1_name, 
+				"product_level4_name" => $m->product_level4_name, 
+				"model" => $m->model, 
+				"qty" => 0, 
+				"amount" => 0];
+		}
 		
 		$days = [];
 		$purchase = [];
