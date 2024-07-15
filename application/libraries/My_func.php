@@ -406,16 +406,8 @@ class My_func{
 		
 		//sort by date asc
 		usort($rows, function($a, $b) {
-			$a_create = strtotime($a["create_date"]);
-			$b_create = strtotime($b["create_date"]);
-			
-			if ($a_create == $b_create){
-				$a_close = strtotime($a["close_date"]);
-				$b_close = strtotime($b["close_date"]);
-				
-				if ($a_close == $b_close) return (strtotime($a["purchase_date"]) < strtotime($b["purchase_date"]));
-				else return ($a_close < $b_close);
-			}else return ($a_create < $b_create);
+			if ($a["create_date"] === $b["create_date"]) return (strtotime($a["local_time"]) < strtotime($b["local_time"]));
+			else return (strtotime($a["create_date"]) < strtotime($b["create_date"]));
 		});
 		
 		//foreach($rows as $row){print_r($row); echo "<br/><br/>";}

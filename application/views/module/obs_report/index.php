@@ -68,8 +68,8 @@
 							<?php foreach($dashboard as $dash){ if($dash["closed"]){ ?>
 							<tr>
 								<td><?= $dash["sub"] ?></td>
-								<td><?= $dash["div"] ?></td>
-								<td class="border-end"><?= $dash["cat"] ?></td>
+								<td><?= $dash["div"] ? $this->dash_company[$dash["div"]] : "" ?></td>
+								<td class="border-end"><?= $dash["cat"] ? $this->dash_division[$dash["cat"]] : "" ?></td>
 								<td><?= $dash["target"] ? number_format($dash["target"], 2) : "-" ?></td>
 								<td class="border-end text-<?= $dash["target_per"] ? $dash["target_color"] : "" ?>"><?= $dash["target_per"] ? number_format($dash["target_per"], 2)."%" : "-" ?></td>
 								<td><?= $dash["ml_actual"] ? number_format($dash["ml_actual"], 2) : "-" ?></td>
@@ -366,7 +366,7 @@
 					<table class="table datatable align-middle">
 						<thead>
 							<tr>
-								<th scope="col">Date</th>
+								<th scope="col">Created</th>
 								<th scope="col">Closed</th>
 								<th scope="col">Type</th>
 								<th scope="col">Status</th>
@@ -388,7 +388,7 @@
 						<tbody>
 							<?php foreach($gerps as $g){ ?>
 							<tr>
-								<td><div class="text-nowrap"><?= $g->create_date ?></div></td>
+								<td><div class="text-nowrap"><?= $g->create_date ?><?= $g->local_time ? "<br/>".explode(" ", $g->local_time)[1] : "" ?></div></td>
 								<td><div class="text-nowrap"><?= $g->close_date ?></div></td>
 								<td><?= $g->order_category ?></td>
 								<td><div style="max-width: 90px;"><?= $g->line_status ?></div></td>

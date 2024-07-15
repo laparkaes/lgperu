@@ -98,32 +98,27 @@ class Obs_report extends CI_Controller {
 		return $weeks;
 	}
 	
-	private function get_dashboard($gerps, $from, $to, $exchange_rate){
+	private function get_dashboard($gerps, $from, $to){
 		//structure setting
 		$dash = [];
 		//echo $from." ".$to."<br/>";
 		$subsidiaries = $this->gen_m->only("obs_gerp_sales_order", "customer_department", ["create_date >=" => date("Y-01-01", strtotime($from)), "create_date <=" => date("Y-12-t", strtotime($to))]);
 		foreach($subsidiaries as $sub){
-			$dash[$sub->customer_department] = ["sub" => $sub->customer_department, "div" => "", "cat" => "", "target" => 0, "ml" => 0, "ml_actual" => 0, "closed" => 0, "closed_per" => 0, "closed_color" => "", "m-1" => 0, "reserved" => 0];
+			$dash[$sub->customer_department] = ["sub" => $sub->customer_department, "div" => "", "cat" => "", "target" => 0, "target_per" => 0, "target_color" => 0, "ml" => 0, "ml_actual" => 0, "ml_per" => 0, "ml_color" => 0, "closed" => 0, "closed_per" => 0, "closed_color" => "", "m-1" => 0, "reserved" => 0];
 			foreach($this->divisions as $div){
-				$dash[$sub->customer_department."_".$div] = ["sub" => "", "div" => $div, "cat" => "", "target" => 0, "ml" => 0, "ml_actual" => 0, "closed" => 0, "closed_per" => 0, "closed_color" => "", "m-1" => 0, "reserved" => 0];
+				$dash[$sub->customer_department."_".$div] = ["sub" => "", "div" => $div, "cat" => "", "target" => 0, "target_per" => 0, "target_color" => 0, "ml" => 0, "ml_actual" => 0, "ml_per" => 0, "ml_color" => 0, "closed" => 0, "closed_per" => 0, "closed_color" => "", "m-1" => 0, "reserved" => 0];
 				
 				$categories = $this->division_map[$div];
 				foreach($categories as $cat){
-					$dash[$sub->customer_department."_".$div."_".$cat] = ["sub" => "", "div" => "", "cat" => $cat, "target" => 0, "ml" => 0, "ml_actual" => 0, "closed" => 0, "closed_per" => 0, "closed_color" => "", "m-1" => 0, "reserved" => 0];
+					$dash[$sub->customer_department."_".$div."_".$cat] = ["sub" => "", "div" => "", "cat" => $cat, "target" => 0, "target_per" => 0, "target_color" => 0, "ml" => 0, "ml_actual" => 0, "ml_per" => 0, "ml_color" => 0, "closed" => 0, "closed_per" => 0, "closed_color" => "", "m-1" => 0, "reserved" => 0];
 				}
 			}
 		}
 		
 		//print_r($dash); echo "<br/><br/>";
 		
-		//get gerp records based on IOD
-		$gerps = $this->my_func->get_gerp_iod($from, $to);
-		
 		$div_map = $this->division_map_inv;
 		$cat_map = $this->category_map_inv;
-		
-		$to_time = strtotime($to);
 		
 		foreach($gerps as $item){
 			if ($item->model_category){
@@ -131,7 +126,7 @@ class Obs_report extends CI_Controller {
 				$div = $div_map[$cat];
 				$sub = $item->customer_department;
 				
-				$amount = $item->sales_amount / $exchange_rate / 1000;
+				$amount = $item->sales_amount / $this->exchange_rate / 1000;
 				
 				switch($item->delivery){
 					case "M-1": 
@@ -436,7 +431,7 @@ class Obs_report extends CI_Controller {
 			"months"		=> $months,
 			"from"			=> $from,
 			"to"			=> $to,
-			"dashboard" 	=> $this->get_dashboard($gerps, $from, $to, $this->exchange_rate),
+			"dashboard" 	=> $this->get_dashboard($gerps, $from, $to),
 			"sales" 		=> $this->get_sales($gerps, $from, $to, $this->exchange_rate),
 			"statistics" 	=> $this->get_statistics($gerps, $from, $to),
 			//"magentos" 		=> $magentos,
@@ -654,7 +649,13 @@ class Obs_report extends CI_Controller {
 			}
 			
 			//purchase time
-			if (($item->sales_amount_usd > 0) and (strtotime(date("Y-m-01")) <= (strtotime($item->local_time)))){
+			$limit_min = strtotime(date("Y-m-01 00:00:00", strtotime($from)));
+			$limit_max = strtotime(date("Y-m-t 23:59:59", strtotime($to)));
+			
+			$local_time = strtotime($item->local_time);
+			$closed_time = strtotime($item->close_date);
+			
+			if (($item->sales_amount_usd > 0) and ($limit_min <= $local_time) and ($local_time <= $limit_max)){
 				$day_i = date("d", strtotime($item->local_time));
 				$hour_i = (((int)(date("H", strtotime($item->local_time)) / 4) + 1) * 4);
 				
@@ -663,7 +664,7 @@ class Obs_report extends CI_Controller {
 			}
 			
 			//closed date
-			if (($item->sales_amount_usd > 0) and (strtotime(date("Y-m-01")) <= (strtotime($item->close_date)))){
+			if (($item->sales_amount_usd > 0) and ($limit_min <= $closed_time) and ($closed_time <= $limit_max)){
 				$day_i = date("d", strtotime($item->close_date));
 				
 				$closed[$day_i]["qty"]++;
@@ -723,8 +724,8 @@ class Obs_report extends CI_Controller {
 				
 			}
 			
-			$purchase_qty["total"][] = $qty ? $qty : null;
-			$purchase_amount["total"][] = $amount ? round($amount, 2) : null;
+			$purchase_qty["total"][] = $qty ? $qty : 0;
+			$purchase_amount["total"][] = $amount ? round($amount, 2) : 0;
 		}
 		
 		$closed_qty = [];
@@ -733,8 +734,8 @@ class Obs_report extends CI_Controller {
 		foreach($closed as $i => $item){
 			//echo $i." >>>>>> "; print_r($item); echo "<br/><br/>";
 			
-			$closed_qty[] = $item["qty"] ? $item["qty"] : null;
-			$closed_amount[] = $item["amount"] ? round($item["amount"], 2) : null;
+			$closed_qty[] = $item["qty"] ? $item["qty"] : 0;
+			$closed_amount[] = $item["amount"] ? round($item["amount"], 2) : 0;
 		}
 		
 		//print_r($purchase_qty);
