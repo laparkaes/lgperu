@@ -11,24 +11,14 @@
 </div>					
 <section class="section">
 	<div class="row">
-		<div class="col-md-6 text-start">
+		<div class="col-md-10 text-start">
 			<div class="mb-3">
-				<a class="btn btn-primary" target="blank_" href="<?= base_url() ?>module/obs_report/progress/w/12">Weekly Progress</a>
-				<a class="btn btn-primary" target="blank_" href="<?= base_url() ?>module/obs_report/progress/m/12">Monthly Progress</a>
+				<a class="btn btn-primary" target="blank_" href="<?= base_url() ?>module/obs_report/progress/12">Monthly Progress</a>
 			</div>
 		</div>
-		<div class="col-md-6 text-end">
+		<div class="col-md-2 text-end">
 			<form class="d-flex justify-content-end mb-3">
-				<select class="form-select ms-1" id="sl_by_week" name="w">
-					<option value="">By Week</option>
-					<?php
-					$today = strtotime(date("Y-m-d"));
-					foreach($weeks as $w){ ?>
-					<option value="<?= $w["week"] ?>" <?= ($w["week"] == $this->input->get("w")) ? "selected": "" ?>>W<?= str_pad($w["week"], 2, '0', STR_PAD_LEFT); ?> | <?= implode(" ~ ", $w["dates"]) ?></option>
-					<?php } ?>
-				</select>
 				<select class="form-select ms-1" id="sl_by_month" name="m">
-					<option value="">By Month</option>
 					<?php foreach($months as $m){ ?>
 					<option value="<?= $m ?>" <?= ($m == $this->input->get("m")) ? "selected": "" ?>><?= $m ?></option>
 					<?php } ?>
@@ -42,12 +32,8 @@
 			<div class="card">
 				<div class="card-body">
 					<div class="d-flex justify-content-between">
-						<div class="d-flex justify-content-start align-items-center">
-							<h5 class="card-title me-3">OBS Dashboard, <?= $from." ~ ".$to ?></h5>
-							<span class="badge bg-success me-3">GERP IOD</span>
-							<span class="badge bg-primary">ER: <?= $this->exchange_rate ?></span>
-						</div>
-						<h5 class="card-title"><strong>K USD</strong></h5>
+						<h5 class="card-title me-3">OBS Dashboard, <?= $from." ~ ".$to ?></h5>
+						<h5 class="card-title"><strong>ER: <?= $this->exchange_rate ?> / K USD</strong></h5>
 					</div>
 					<table class="table align-middle text-center">
 						<thead>
@@ -404,7 +390,7 @@
 								<td><?= number_format($g->unit_selling_price, 2) ?></td>
 								<td><?= number_format($g->ordered_qty) ?></td>
 								<td><?= number_format($g->sales_amount, 2) ?></td>
-								<td><?= number_format($g->sales_amount / $exchange_rate, 2) ?></td>
+								<td><?= number_format($g->sales_amount_usd, 2) ?></td>
 							</tr>
 							<?php } ?>
 						</tbody>
@@ -422,7 +408,7 @@ function set_charts(){
 		legend: {data: ['~4 Hr', '~8 Hr', '~12 Hr', '~16 Hr', '~20 Hr', '~24 Hr', 'Total', 'IOD']},
 		tooltip: {trigger: 'axis', axisPointer: {type: 'cross', label: {backgroundColor: '#6a7985'}}},
 		grid: {left: '30px', right: '30px', top: '0%', bottom: '3%', containLabel: true},
-		xAxis: [{type: 'category', boundaryGap: false, data: JSON.parse($("#chart_purchase_xaxis").html())}],
+		xAxis: [{type: 'category', data: JSON.parse($("#chart_purchase_xaxis").html())}],
 		yAxis: [{show: false, type: 'value'}],
 		series: [
 			{name: '~4 Hr', type: 'bar', stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_amount_4").html()), barGap: 0},
@@ -441,7 +427,7 @@ function set_charts(){
 		legend: {data: ['~4 Hr', '~8 Hr', '~12 Hr', '~16 Hr', '~20 Hr', '~24 Hr', 'Total', 'IOD']},
 		tooltip: {trigger: 'axis', axisPointer: {type: 'cross', label: {backgroundColor: '#6a7985'}}},
 		grid: {left: '30px', right: '30px', top: '0%', bottom: '3%', containLabel: true},
-		xAxis: [{type: 'category', boundaryGap: false, data: JSON.parse($("#chart_purchase_xaxis").html())}],
+		xAxis: [{type: 'category', data: JSON.parse($("#chart_purchase_xaxis").html())}],
 		yAxis: [{show: false, type: 'value'}],
 		series: [
 			{name: '~4 Hr', type: 'bar', stack: 'hr', areaStyle: {}, emphasis: {focus: 'series'}, data: JSON.parse($("#chart_purchase_qty_4").html()), barGap: 0},
