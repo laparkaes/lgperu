@@ -1,17 +1,16 @@
 <div class="d-flex justify-content-between align-items-start">
 	<div class="pagetitle">
-		<h1>Edit Product</h1>
+		<h1>Create Activity</h1>
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item">SOM</li>
-				<li class="breadcrumb-item"><a href="<?= base_url() ?>module/product">Product</a></li>
+				<li class="breadcrumb-item">ISM - Activity Management</li>
 				<li class="breadcrumb-item active">Edit</li>
 			</ol>
 		</nav>
 	</div>
 	<div>
-		<a type="button" class="btn btn-success" href="<?= base_url() ?>module/product">
+		<a type="button" class="btn btn-success" href="<?= base_url() ?>module/ism_activity_management">
 			<i class="bi bi-arrow-left"></i>
 		</a>
 	</div>
@@ -21,65 +20,153 @@
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Edit Product</h5>
-					<form class="row g-3" id="form_update_product">
-						<div class="col-md-3">
-							<label class="form-label">Category</label>
-							<select class="form-select" name="category_id">
-								<option value ="" selected="">Choose...</option>
-								<?php foreach($categories as $c){ if ($c->category){ ?>
-								<option value="<?= $c->category_id ?>"><?= $c->category ?></option>
-								<?php }} ?>
-							</select>
+					<h5 class="card-title">Edit Activity</h5>
+					<form class="row" id="form_update_activity">
+						<input type="hidden" name="activity_id" value="<?= $activity->activity_id ?>">
+						<div class="col-md-8">
+							<div class="card">
+								<div class="card-body">
+									<h5 class="card-title">Activity Information</h5>
+									<div class="row g-3">
+										<div class="col-md-12">
+											<label class="form-label">Title</label>
+											<input class="form-control" name="title" value="<?= $activity->title ?>" required>
+										</div>
+										<div class="col-md-4">
+											<label class="form-label">PR PIC</label>
+											<?php $list = ["HSAD", "LG"]; sort($list); ?>
+											<select class="form-select" name="pr_pic">
+												<option value="" selected="">Choose...</option>
+												<?php foreach($list as $item){ $s = $item === $activity->pr_pic ? "selected" : ""; ?>
+												<option value="<?= $item ?>" <?= $s ?>><?= $item ?></option>
+												<?php } ?>
+											</select>
+										</div>
+										<div class="col-md-4">
+											<label class="form-label">PR Number</label>
+											<input class="form-control" name="pr_number" value="<?= $activity->pr_number ?>">
+										</div>
+										<div class="col-md-4">
+											<label class="form-label">PR Buyer</label>
+											<?php $list = ["Andy", "Jeter"]; sort($list); ?>
+											<select class="form-select" name="pr_buyer">
+												<option value="" selected="">Choose...</option>
+												<?php foreach($list as $item){ $s = $item === $activity->pr_buyer ? "selected" : ""; ?>
+												<option value="<?= $item ?>" <?= $s ?>><?= $item ?></option>
+												<?php } ?>
+											</select>
+										</div>
+										<div class="col-md-4">
+											<label class="form-label">Approval N°</label>
+											<input class="form-control" name="approval_no" value="<?= $activity->approval_no ?>">
+										</div>
+										<div class="col-md-4">
+											<label class="form-label">Retail</label>
+											<?php $list = ["Hiraoka", "Saga", "Ripley", "Oechsle", "Conecta", "Plaza Vea", "Tottus", "Metro", "Wong", "Promart", "Sodimac", "Credivargas", "Estilos", "Rubi"]; sort($list); $list[] = "Almacen"; $list[] = "Varios"; ?>
+											<select class="form-select" name="retail">
+												<option value="" selected="">Choose...</option>
+												<?php foreach($list as $item){ $s = $item === $activity->retail ? "selected" : ""; ?>
+												<option value="<?= $item ?>" <?= $s ?>><?= $item ?></option>
+												<?php } ?>
+											</select>
+										</div>
+										<div class="col-md-4">
+											<label class="form-label">Category</label>
+											<?php $list = ["TV", "AV", "REF", "WM", "Cooking", "MWO", "HA", "HE"]; $list[] = "Common"; ?>
+											<select class="form-select" name="category">
+												<option value="" selected="">Choose...</option>
+												<?php foreach($list as $item){ $s = $item === $activity->category ? "selected" : ""; ?>
+												<option value="<?= $item ?>" <?= $s ?>><?= $item ?></option>
+												<?php } ?>
+											</select>
+										</div>
+										<div class="col-md-4">
+											<label class="form-label">Project Type</label>
+											<?php $list = ["0 Other", "1 Mantenimiento", "2 Transportation", "3 Graphic", "4 Branding", "5 POP", "7 Production", "8 Installation", "9 Remodelacion /Actualization"]; ?>
+											<select class="form-select" name="project_type">
+												<option value="" selected="">Choose...</option>
+												<?php foreach($list as $item){ $s = $item === $activity->project_type ? "selected" : ""; ?>
+												<option value="<?= $item ?>" <?= $s ?>><?= $item ?></option>
+												<?php } ?>
+											</select>
+										</div>
+										<div class="col-md-4">
+											<label class="form-label">Currency</label>
+											<?php $list = ["PEN", "USD"]; sort($list); ?>
+											<select class="form-select" name="currency">
+												<?php foreach($list as $item){ $s = $item === $activity->currency ? "selected" : ""; ?>
+												<option value="<?= $item ?>" <?= $s ?>><?= $item ?></option>
+												<?php } ?>
+											</select>
+										</div>
+										<div class="col-md-4">
+											<label class="form-label">Amount</label>
+											<input class="form-control" name="amount" value="<?= $activity->amount ?>">
+										</div>
+										<div class="col-md-8">
+											<label class="form-label">Period</label>
+											<div class="input-group">
+												<input type="date" class="form-control" name="period_from" value="<?= $activity->period_from ?>">
+												<span class="input-group-text">~</span>
+												<input type="date" class="form-control" name="period_to" value="<?= $activity->period_to ?>">
+											</div>
+										</div>
+										<div class="col-md-4">
+											<label class="form-label">Activity Status</label>
+											<?php $list = ["En proceso", "Aprobado", "Finalizado", "Cancelado"]; ?>
+											<select class="form-select" name="activity_status">
+												<?php foreach($list as $item){ $s = $item === $activity->activity_status ? "selected" : ""; ?>
+												<option value="<?= $item ?>" <?= $s ?>><?= $item ?></option>
+												<?php } ?>
+											</select>
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
-						<div class="col-md-3">
-							<label class="form-label">Division</label>
-							<select class="form-select" id="sl_lvl0">
-								<option value ="" selected="">Choose...</option>
-								<?php foreach($lines as $l){ if ($l->level == 0){ ?>
-								<option value="<?= $l->line_id ?>"><?= $l->line ?></option>
-								<?php }} ?>
-							</select>
-						</div>
-						<div class="col-md-6">
-							<label class="form-label">Model</label>
-							<input class="form-control" name="model">
-						</div>
-						<div class="col-md-3">
-							<label class="form-label">Product Level 1</label>
-							<select class="form-select" id="sl_lvl1">
-								<option value ="" selected="">Choose...</option>
-								<?php foreach($lines as $l){ if ($l->level == 1){ ?>
-								<option class="d-none p_<?= $l->parent_id ?>" value="<?= $l->line_id ?>"><?= $l->line ?></option>
-								<?php }} ?>
-							</select>
-						</div>
-						<div class="col-md-3">
-							<label class="form-label">Product Level 2</label>
-							<select class="form-select" id="sl_lvl2">
-								<option value ="" selected="">Choose...</option>
-								<?php foreach($lines as $l){ if ($l->level == 2){ ?>
-								<option class="d-none p_<?= $l->parent_id ?>" value="<?= $l->line_id ?>"><?= $l->line ?></option>
-								<?php }} ?>
-							</select>
-						</div>
-						<div class="col-md-3">
-							<label class="form-label">Product Level 3</label>
-							<select class="form-select" id="sl_lvl3">
-								<option value ="" selected="">Choose...</option>
-								<?php foreach($lines as $l){ if ($l->level == 3){ ?>
-								<option class="d-none p_<?= $l->parent_id ?>" value="<?= $l->line_id ?>"><?= $l->line ?></option>
-								<?php }} ?>
-							</select>
-						</div>
-						<div class="col-md-3">
-							<label class="form-label">Product Level 4</label>
-							<select class="form-select" id="sl_lvl4" name="line_id">
-								<option value="" selected="">Choose...</option>
-								<?php foreach($lines as $l){ if ($l->level == 4){ ?>
-								<option class="d-none p_<?= $l->parent_id ?>" value="<?= $l->line_id ?>"><?= $l->line ?></option>
-								<?php }} ?>
-							</select>
+						<div class="col-md-4">
+							<div class="card">
+								<div class="card-body">
+									<h5 class="card-title">Invoice</h5>
+									<div class="row g-3">
+										<div class="col-md-6">
+											<label class="form-label">Invoice Number</label>
+											<input class="form-control" name="invoice_number" value="<?= $activity->invoice_number ?>">
+										</div>
+										<div class="col-md-6">
+											<label class="form-label">Invoice Date</label>
+											<input type="date" class="form-control" name="invoice_date" value="<?= $activity->invoice_date ?>">
+										</div>
+										<div class="col-md-6">
+											<label class="form-label">Invoice Status</label>
+											<?php $list = ["En proceso", "Aprobado", "Cancelado"]; ?>
+											<select class="form-select" name="invoice_status">
+												<?php foreach($list as $item){ $s = $item === $activity->invoice_status ? "selected" : ""; ?>
+												<option value="<?= $item ?>" <?= $s ?>><?= $item ?></option>
+												<?php } ?>
+											</select>
+										</div>
+										<div class="col-md-6">
+											<label class="form-label">Vendor</label>
+											<?php $list = ["ACTION VISUAL NOW E.I.R.L.", "ACTIVA GROUP S.A.C.", "ARK INSIDE S.R.L", "CONSORCIO DE NEGOCIOS Y PROYECTOS S.A.C.", "HS AD LATIN AMERICA S.A. SUCURSAL DEL PERU", "INDESIGN PROJECTS PERU S.A.C", "INTEGRACION LOGISTICA INLOG S.A.C", "LB FABRICANTES", "METAGRAF S.A.C.", "MORRIS PERU S.A.C.", "METRICA COMUNICACION ESTRATEGICA S.A.C.", "QUALITY ZONE", "PEVISO INGENIEROS S.A.C", "SAR AMBIENTAL SA", "RISING SUN BUSINESS GROUP S.A.C", "SISTEMA DE IMPRESIONES S.A.", "SURPACK S.A", "URBANA COMUNICACION VISUAL S.A.C.", "TBS ARQUITECTURA S.A.C.", "America Móvil Perú S.A.C", "DHL EXPRESS PERU SAC", "DONG IL DESIGN CO.,LTD.", "OHSUNG ELECTRONICS U.S.A., INC.", "LINE GNC CO., LTD", "MAERSK LOGISTICS & SERVICES PERU S.A", "PALACIOS Y ASOCIADOS AGENTES DE ADUANA SA"]; sort($list); ?>
+											<select class="form-select" name="vendor">
+												<option value="" selected="">Choose...</option>
+												<?php foreach($list as $item){ $s = $item === $activity->vendor ? "selected" : ""; ?>
+												<option value="<?= $item ?>" <?= $s ?>><?= $item ?></option>
+												<?php } ?>
+											</select>
+										</div>
+										<div class="col-md-12">
+											<label class="form-label">Invoice Description</label>
+											<input class="form-control" name="invoice_description" value="<?= $activity->invoice_description ?>">
+										</div>
+										<div class="col-md-12">
+											<label class="form-label">Detail</label>
+											<textarea class="form-control" name="detail"><?= $activity->detail ?></textarea>
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
 						<div class="text-center pt-3">
 							<button type="submit" class="btn btn-primary">Submit</button>
@@ -93,26 +180,12 @@
 </section>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-	$('#sl_lvl0').change(function(){
-		$("#sl_lvl1").val(""); $('#sl_lvl1 option').addClass('d-none'); $('#sl_lvl1 option.p_' + $(this).val()).removeClass('d-none');
-		$("#sl_lvl2").val(""); $('#sl_lvl2 option').addClass('d-none');
-		$("#sl_lvl3").val(""); $('#sl_lvl3 option').addClass('d-none');
-		$("#sl_lvl4").val(""); $('#sl_lvl4 option').addClass('d-none');
-    });
-	
-	$('#sl_lvl1').change(function(){
-		$("#sl_lvl2").val(""); $('#sl_lvl2 option').addClass('d-none'); $('#sl_lvl2 option.p_' + $(this).val()).removeClass('d-none');
-		$("#sl_lvl3").val(""); $('#sl_lvl3 option').addClass('d-none');
-		$("#sl_lvl4").val(""); $('#sl_lvl4 option').addClass('d-none');
-    });
-	
-	$('#sl_lvl2').change(function(){
-		$("#sl_lvl3").val(""); $('#sl_lvl3 option').addClass('d-none'); $('#sl_lvl3 option.p_' + $(this).val()).removeClass('d-none');
-		$("#sl_lvl4").val(""); $('#sl_lvl4 option').addClass('d-none');
-    });
-	
-	$('#sl_lvl3').change(function(){
-		$("#sl_lvl4").val(""); $('#sl_lvl4 option').addClass('d-none'); $('#sl_lvl4 option.p_' + $(this).val()).removeClass('d-none');
-    });
+	$("#form_update_activity").submit(function(e) {
+		e.preventDefault();
+		$("#form_update_activity .sys_msg").html("");
+		ajax_form_warning(this, "module/ism_activity_management/update_activity", "Do you want to updated this activity?").done(function(res) {
+			swal_redirection(res.type, res.msg, res.url);
+		});
+	});
 });
 </script>

@@ -25,10 +25,7 @@ class Ism_activity_management extends CI_Controller {
 	}
 	
 	public function create(){
-		$lines = $this->gen_m->all("product_line", [["line", "asc"]]);
-		
 		$data = [
-			"lines" => $lines,
 			"main" => "module/ism_activity_management/create",
 		];
 		
@@ -36,7 +33,7 @@ class Ism_activity_management extends CI_Controller {
 	}
 	
 	public function add_activity(){
-		$type = "error"; $msg = ""; $url = "module/scm_purchase_order";
+		$type = "error"; $msg = ""; $url = "module/ism_activity_management";
 		
 		$activity = $this->input->post();
 		if ($activity["title"]){
@@ -47,10 +44,39 @@ class Ism_activity_management extends CI_Controller {
 			
 			$type = "success";
 			$msg = "Activity has been registered";
-			$url = "module/scm_purchase_order/edit/".$activity_id;
+			$url = "module/ism_activity_management/edit/".$activity_id;
 		}else $msg = "Activity title is required field.";
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
 	}
+	
+	public function edit($activity_id){
+		$data = [
+			"activity" => $this->gen_m->unique("ism_activity", "activity_id", $activity_id),
+			"main" => "module/ism_activity_management/edit",
+		];
+		
+		$this->load->view('layout', $data);
+	}
+	
+	public function update_activity(){
+		$type = "error"; $msg = ""; $url = "module/ism_activity_management";
+		
+		$activity = $this->input->post();
+		if ($activity["title"]){
+			foreach($activity as $key => $item) if (!$item) $activity[$key] = null;
+			
+			$this->gen_m->update("ism_activity", ["activity_id" => $activity["activity_id"]], $activity);
+			
+			$type = "success";
+			$msg = "Activity has been updated";
+			$url = "module/ism_activity_management/edit/".$activity["activity_id"];
+		}else $msg = "Activity title is required field.";
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
+	}
+	
+	
 }
