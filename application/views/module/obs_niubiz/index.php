@@ -167,6 +167,8 @@ $js_niubiz_production = "https://static-content.vnforapps.com/elements/v1/payfor
 </div>
 
 <script>
+//https://desarrolladores.niubiz.com.pe/docs/formulario-desacoplado
+
 function sendPayment() {
 	//general configuration
 	

@@ -139,7 +139,6 @@ class My_niubiz{
 			}else $result["msg"] = $session_token["msg"];
 		}else $result["msg"] = $access_token["msg"];
 		
-		
 		return $result;
 	}
 }
