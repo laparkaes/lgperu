@@ -477,7 +477,8 @@ class Obs_report extends CI_Controller {
 			$from = date("Y-m-01", strtotime($now));
 			$to = date("Y-m-t", strtotime($now));
 			
-			$headers[] = date("M", strtotime($from)) === "Jan" ? date("M y", strtotime($from)) : date("M", strtotime($from));
+			//$headers[] = date("M", strtotime($from)) === "Jan" ? date("M y", strtotime($from)) : date("M", strtotime($from));
+			$headers[] = date("M y", strtotime($from));
 			$dates[] = [$from, $to];
 			
 			if ($i >= $qty) break;
@@ -493,9 +494,9 @@ class Obs_report extends CI_Controller {
 		
 		$chart_target = $chart_ml = $chart_closed = [];
 		foreach($dashs as $i => $dash){
-			$chart_target[] = $dash["LGEPR"]["target"];
-			$chart_ml[] = $dash["LGEPR"]["ml_actual"];
-			$chart_closed[] = $dash["LGEPR"]["closed"];
+			$chart_target[] = round($dash["LGEPR"]["target"], 2);
+			$chart_ml[] = round($dash["LGEPR"]["ml_actual"], 2);
+			$chart_closed[] = round($dash["LGEPR"]["closed"], 2);
 		}
 		
 		/* data print 
