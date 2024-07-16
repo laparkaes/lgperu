@@ -38,18 +38,23 @@ class My_niubiz{
 		]);
 
 		$response = curl_exec($curl);
-		//$err = curl_error($curl);
+		$err = curl_error($curl);
 
 		curl_close($curl);
 		
-		//setting return array
-		$result = ["success" => false, "msg" => null, "token" => null];
-		
-		if ($response === "Unauthorized access") $result["msg"] = $response." (Wrong username or password.)";
+		if ($err) $result["msg"] = "cURL Error #:" . $err;
 		else{
-			$result["success"] = true;
-			$result["token"] = $response;	
+			//setting return array
+			$result = ["success" => false, "msg" => null, "token" => null];
+			
+			if ($response === "Unauthorized access") $result["msg"] = $response." (Wrong username or password.)";
+			else{
+				$result["success"] = true;
+				$result["token"] = $response;	
+			}
 		}
+		
+		
 
 		return $result;
     }
@@ -79,19 +84,63 @@ class My_niubiz{
 		]);
 
 		$response = curl_exec($curl);
-		//$err = curl_error($curl);
+		$err = curl_error($curl);
 
 		curl_close($curl);
 		
-		/*
-		if ($err) {
-		  echo "cURL Error #:" . $err;
-		} else {
-		  echo $response;
+		if ($err) $result["msg"] = "cURL Error #:" . $err;
+		else{
+			//setting return array
+			$result = ["success" => false, "sessionKey" => null, "expirationTime" => null, "errorCode" => null, "errorMessage" => null, "data" => null];
+			
+			if ($response === "Unauthorized access") $result["errorMessage"] = $response." (Wrong session token.)";
+			elseif ($response === "Not Acceptable"){
+				//return in plain text. May be this is fraude case
+				$result["errorCode"] = 406;
+				$result["errorMessage"] = $response;
+			}else{
+				$response = json_decode($response);
+				if (property_exists($response, "errorCode")){//error ocurred
+					//{"errorCode":400,"errorMessage":"Token has been used before","data":{}} <= one of cases
+					$result["errorCode"] = $response->errorCode;
+					$result["errorMessage"] = $response->errorMessage;
+					$result["data"] = $response->data;
+				}else{
+					//{"sessionKey":"aa3e2b595ec2442b253c18e98c095d507591b0b140fc19f77045b093223411a4","expirationTime":1721160740592}
+					$result["success"] = true;
+					$result["sessionKey"] = $response->sessionKey;
+					$result["expirationTime"] = $response->expirationTime;
+				}
+			}
 		}
-		*/
+		
+		return $result;
 	}
 	
-	
+	public function get_session_key($session_token_data = null){
+		$result = ["success" => false, "msg" => null];
+		if (!$session_token_data) $result["msg"] = "Session token data is null.";
+		
+		if ($result["msg"]) return $result;
+		
+		//generaete access token
+		$access_token = $this->access_token();
+		echo "Access token result:<br/>"; print_r($access_token); echo "<br/><br/>";
+		
+		if ($access_token["success"]){
+			//generate session token
+			$session_token = $this->session_token($access_token["token"], $session_token_data);
+			echo "Access token result:<br/>"; print_r($session_token); echo "<br/><br/>";
+		
+			if ($session_token["success"]){
+				
+				$result["success"] = true;
+				$result["msg"] = $session_token["errorMessage"];
+			}else $result["msg"] = $session_token["msg"];
+		}else $result["msg"] = $access_token["msg"];
+		
+		
+		return $result;
+	}
 }
 ?>
