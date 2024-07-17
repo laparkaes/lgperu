@@ -539,6 +539,6 @@ class Obs_report extends CI_Controller {
 		
 		$statistics = $this->get_statistics($gerps, $from, $to);
 		
-		print_r($statistics);
+		print_r($statistics["closed_amount"]);
 	}
 }
