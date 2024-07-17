@@ -14,18 +14,19 @@ class Obs_report extends CI_Controller {
 		
 		$this->divisions = ["HA", "HE", "BS"];
 		$this->division_map = [
-			"HA" => ["REF", "COOK", "W/M", "RAC", "SAC", "A/C"],
+			"HA" => ["REF", "COOK", "W/M", "CDT", "RAC", "SAC", "A/C"],
 			"HE" => ["TV", "AV"],
 			"BS" => ["MNT", "PC", "DS", "SGN", "CTV"],
 		];
 		$this->division_map_inv = [];
 		foreach($this->division_map as $div => $divisions) foreach($divisions as $cat) $this->division_map_inv[$cat] = $div;
 		
-		$this->categories = ["REF", "COOK", "W/M", "A/C", "RAC", "SAC", "TV", "AV", "MNT", "PC", "DS", "SGN", "CTV"];
+		$this->categories = ["REF", "COOK", "W/M", "CDT", "A/C", "RAC", "SAC", "TV", "AV", "MNT", "PC", "DS", "SGN", "CTV"];
 		$this->category_map = [
 			"REF" => ["REF"],
 			"COOK" => ["MWO", "O", "CVT"],
 			"W/M" => ["W/M"],
+			"CDT" => ["CDT"],
 			"A/C" => ["A/C"],
 			"RAC" => ["RAC"],
 			"SAC" => ["SAC"],
@@ -45,6 +46,7 @@ class Obs_report extends CI_Controller {
 			"REF" => "REF", 
 			"COOK" => "Cooking", 
 			"W/M" => "W/M", 
+			"CDT" => "CDT", 
 			"A/C" => "Chiller", 
 			"RAC" => "RAC", 
 			"SAC" => "SAC", 
