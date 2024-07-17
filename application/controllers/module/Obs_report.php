@@ -530,4 +530,15 @@ class Obs_report extends CI_Controller {
 		
 		$this->load->view('layout', $data);
 	}
+
+	public function test(){
+		$from = date("Y-m-01");
+		$to = date("Y-m-t");
+			
+		$gerps = $this->my_func->get_gerp_iod($from, $to);
+		
+		$statistics = $this->get_statistics($gerps, $from, $to);
+		
+		print_r($statistics);
+	}
 }
