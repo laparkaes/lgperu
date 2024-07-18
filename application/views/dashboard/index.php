@@ -20,8 +20,8 @@
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_most_likely">OBS - Most Likely (ML)</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_report">OBS - Report</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/product">Product</a>
-						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/promotion">Promotion</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/scm_purchase_order">SCM - Purchase Order</a>
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/sa_promotion">SA - Promotion</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/sa_sell_inout">SA - Sell In/Out Report</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/sell_out">Sell Out</a>
 					</ul>

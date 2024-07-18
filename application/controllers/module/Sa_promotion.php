@@ -4,7 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-class Promotion extends CI_Controller {
+class Sa_promotion extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
@@ -16,12 +16,12 @@ class Promotion extends CI_Controller {
 	
 	public function index(){
 		$data = [
-			"f_sellin" => $this->gen_m->filter("sell_in", true, null, null, null, [["closed_date", "asc"]], 1, 0)[0]->closed_date,
-			"l_sellin" => $this->gen_m->filter("sell_in", true, null, null, null, [["closed_date", "desc"]], 1, 0)[0]->closed_date,
-			"f_sellout" => $this->gen_m->filter("sell_out", true, null, null, null, [["date", "asc"]], 1, 0)[0]->date,
-			"l_sellout" => $this->gen_m->filter("sell_out", true, null, null, null, [["date", "desc"]], 1, 0)[0]->date,
-			"customers" => $this->gen_m->all("customer", [["customer", "asc"], ["bill_to_code", "asc"]]),
-			"main" => "module/promotion/index",
+			"f_sellin" => $this->gen_m->filter("sa_sell_in", false, null, null, null, [["closed_date", "asc"]], 1, 0)[0]->closed_date,
+			"l_sellin" => $this->gen_m->filter("sa_sell_in", false, null, null, null, [["closed_date", "desc"]], 1, 0)[0]->closed_date,
+			"f_sellout" => $this->gen_m->filter("sa_sell_out", false, null, null, null, [["sunday", "asc"]], 1, 0)[0]->sunday,
+			"l_sellout" => $this->gen_m->filter("sa_sell_out", false, null, null, null, [["sunday", "desc"]], 1, 0)[0]->sunday,
+			"customers" => $this->gen_m->filter_select("sa_sell_in", false, ["bill_to_code", "bill_to_name"], null, null, null, [["bill_to_name", "asc"]], "", "", "bill_to_code"),
+			"main" => "module/sa_promotion/index",
 		];
 		
 		$this->load->view('layout', $data);
