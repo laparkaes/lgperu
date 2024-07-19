@@ -15,6 +15,10 @@ class My_niubiz{
 		
 	}
 	
+	public function get_merchant_id(){
+		return $this->$merchant_id;
+	}
+	
 	public function access_token(){
 		//Manual: https://desarrolladores.niubiz.com.pe/reference/get_v1-security
 		
@@ -54,8 +58,6 @@ class My_niubiz{
 			}
 		}
 		
-		
-
 		return $result;
     }
 	
@@ -118,26 +120,25 @@ class My_niubiz{
 	}
 	
 	public function get_session_key($session_token_data = null){
+		//define defualt result array
 		$result = ["success" => false, "msg" => null];
-		if (!$session_token_data) $result["msg"] = "Session token data is null.";
 		
-		if ($result["msg"]) return $result;
-		
-		//generaete access token
-		$access_token = $this->access_token();
-		echo "Access token result:<br/>"; print_r($access_token); echo "<br/><br/>";
-		
-		if ($access_token["success"]){
-			//generate session token
-			$session_token = $this->session_token($access_token["token"], $session_token_data);
-			echo "Access token result:<br/>"; print_r($session_token); echo "<br/><br/>";
-		
-			if ($session_token["success"]){
+		if ($session_token_data){
+			
+			//generaete access token
+			$access_token = $this->access_token(); //echo "Access token result:<br/>"; print_r($access_token); echo "<br/><br/>";
+			if ($access_token["success"]){
 				
-				$result["success"] = true;
-				$result["msg"] = $session_token["errorMessage"];
-			}else $result["msg"] = $session_token["msg"];
-		}else $result["msg"] = $access_token["msg"];
+				//generate session token
+				$session_token = $this->session_token($access_token["token"], $session_token_data); //echo "Session token result:<br/>"; print_r($session_token); echo "<br/><br/>";
+				if ($session_token["success"]){
+					$result["success"] = true;
+					$result["msg"] = "Session key generated.";
+					$result["sessionKey"] = $session_token["sessionKey"];
+					$result["expirationTime"] = $session_token["expirationTime"];
+				}else $result["msg"] = $session_token["errorMessage"];
+			}else $result["msg"] = $access_token["msg"];
+		}else $result["msg"] = "Session token data is null.";
 		
 		return $result;
 	}

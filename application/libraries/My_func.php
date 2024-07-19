@@ -380,7 +380,7 @@ class My_func{
 				$close_time = strtotime($g->close_date);
 				
 				$g->line_no = "'".$g->line_no;
-				$g->sales_amount_usd = ($g->currency == "PEN") ? round($g->sales_amount / $er_ttm, 2) : $g->sales_amount;
+				$g->sales_amount_usd = ($g->currency == "USD") ? $g->sales_amount : round($g->sales_amount / $er_ttm, 2);
 				$g->dash_division = $g->model_category ? $category_map_inv[$g->model_category] : null;
 				$g->dash_company = $g->dash_division ? $division_map_inv[$g->dash_division] : null;
 				$g->dash_status = $g->line_status === "Closed" ? "Closed" : "Reserved";
