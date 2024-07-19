@@ -16,7 +16,7 @@ class My_niubiz{
 	}
 	
 	public function get_merchant_id(){
-		return $this->$merchant_id;
+		return $this->merchant_id;
 	}
 	
 	public function access_token(){
