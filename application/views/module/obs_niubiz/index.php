@@ -15,7 +15,7 @@ label{
 	display: block;
 }
 
-input, select{
+table, input, select{
 	width: 100%;
 }
 </style>
@@ -23,11 +23,11 @@ input, select{
 </head>
 <body>
 
-<table style="width: 100%;">
+<table>
 	<tr>
 		<td style="width: 33.33%; vertical-align: top;">
 			<div style="padding: 30px; width: 80%; margin: 0 auto; border: solid 1px black;">
-				<form id="form_session_token" style="margin: 0;">
+				<form id="form_confirm_shipping_infomation" style="margin: 0;">
 					<h4 style="margin-top: 0;">1. Envío / Shipping</h4>
 					<div style="margin-bottom: 15px;">
 						<label>Total Amount (need to be hidden)</label>
@@ -38,7 +38,7 @@ input, select{
 						<input type="text" id="firstName" name="firstName" placeholder="Nombre" value="Hoon Woo">
 					</div>
 					<div style="margin-bottom: 15px;">
-						<label>Apellido / Last Name</label>
+						<label>Apellido / Last Name <span style="color: red;">(* New!!)</span></label>
 						<input type="text" id="lastName" name="lastName" placeholder="Apellido" value="Kim">
 					</div>
 					<div style="margin-bottom: 15px;">
@@ -111,34 +111,32 @@ input, select{
 					</div>
 					<div style="padding-top: 40px;">
 						<button type="submit" style="width: 100%;">Guardar dirección / Save Address</button>
-						<div>
-						This will create Niubiz session token
-						</div>
+						<div>Steps: 1a ~ 1c & 2a ~ 2c</div>
 					</div>
 				</form>
 			</div>
 		</td>
 		<td style="width: 33.33%; vertical-align: top;">
 			<div style="padding: 30px; width: 80%; margin: 0 auto; border: solid 1px black;">
-				<form id="form_save_card_information" style="margin: 0;">
+				<form id="form_confirm_card_information" style="margin: 0;">
 					<h4 style="margin-top: 0;">2. Pago / Payment</h4>
 					<div style="margin-bottom: 15px;">
 						<label>Información de la tarjeta / Card Information</label>
-						<input type="text" id="cardNumber" name="cardNumber" placeholder="Card number">
+						<input type="text" id="cardNumber" name="cardNumber" placeholder="Card number" value="4551708161768059">
 					</div>
 					<div style="margin-bottom: 15px;">
 						<label>Mes De Expiración / Expiration Month</label>
 						<select name="expiredMonth" id="expiredMonth">
-							<option id="0" value="0">Mes</option>
-							<option id="1" value="1">01 - Enero</option>
-							<option id="2" value="2">02 - Febrero</option>
-							<option id="3" value="3">03 - Marzo</option>
-							<option id="4" value="4" selected>04 - Abril</option>
-							<option id="5" value="5">05 - Mayo</option>
-							<option id="6" value="6">06 - Junio</option>
-							<option id="7" value="7">07 - Julio</option>
-							<option id="8" value="8">08 - Agosto</option>
-							<option id="9" value="9">09 - Aeptiembre</option>
+							<option id="0" value="">Mes</option>
+							<option id="1" value="01">01 - Enero</option>
+							<option id="2" value="02">02 - Febrero</option>
+							<option id="3" value="03" selected>03 - Marzo</option>
+							<option id="4" value="04">04 - Abril</option>
+							<option id="5" value="05">05 - Mayo</option>
+							<option id="6" value="06">06 - Junio</option>
+							<option id="7" value="07">07 - Julio</option>
+							<option id="8" value="08">08 - Agosto</option>
+							<option id="9" value="09">09 - Aeptiembre</option>
 							<option id="10" value="10">10 - Octubre</option>
 							<option id="11" value="11">11 - Noviembre</option>
 							<option id="12" value="12">12 - Diciembre</option>
@@ -152,7 +150,7 @@ input, select{
 							<option id="2025" value="2025">2025</option>
 							<option id="2026" value="2026">2026</option>
 							<option id="2027" value="2027">2027</option>
-							<option id="2028" value="2028">2028</option>
+							<option id="2028" value="2028" selected>2028</option>
 							<option id="2029" value="2029">2029</option>
 							<option id="2030" value="2030">2030</option>
 							<option id="2031" value="2031">2031</option>
@@ -162,11 +160,11 @@ input, select{
 					</div>
 					<div style="margin-bottom: 15px;">
 						<label>CVV</label>
-						<input type="text" id="cardCVV" name="cardCVV" placeholder="CVV" value="123">
+						<input type="text" id="cardCVV" name="cardCVV" placeholder="CVV" value="111">
 					</div>
 					<div style="margin-bottom: 15px;">
 						<label>Nombre Del Titular / Owner Name</label>
-						<input type="text" id="cardName" name="cardName" placeholder="Nombre Del Titular" value="Jeong Woo Park">
+						<input type="text" id="cardName" name="cardName" placeholder="Nombre Del Titular" value="Jeong Woo">
 					</div>
 					<div style="margin-bottom: 15px;">
 						<label>Apellido Del Titular / Owner Last Name</label>
@@ -183,7 +181,7 @@ input, select{
 					</div>
 					<div style="margin-bottom: 15px;">
 						<label>Documento / Document</label>
-						<input type="text" id="identification" name="identification" placeholder="Documento" value="000765808">
+						<input type="text" id="identification" name="identification" placeholder="Documento" value="000765838">
 					</div>
 					<div style="margin-bottom: 15px;">
 						<label>E-mail</label>
@@ -205,6 +203,32 @@ input, select{
 							<option value="12">12 cuotas</option>
 						</select>
 					</div>
+					<hr>
+					<div style="margin-bottom: 15px; color: blue;">
+					Result of Step 1: Confirm shipping information
+					</div>
+					<div style="margin-bottom: 15px;">
+						<label>Access Token</label>
+						<input type="text" id="accessToken" name="accessToken" placeholder="Access Token" value="">
+					</div>
+					<div style="margin-bottom: 15px;">
+						<label>Session Token</label>
+						<input type="text" id="sessionToken" name="sessionToken" placeholder="Session Token" value="">
+					</div>
+					<div style="margin-bottom: 15px;">
+						<label>Expiration Time</label>
+						<input type="text" id="expirationTime" name="expirationTime" placeholder="Expiration Time" value="">
+					</div>
+					<div style="margin-bottom: 15px;">
+						<label>Merchant ID</label>
+						<input type="text" id="merchantId" name="merchantId" placeholder="merchant ID" value="">
+					</div>
+					<div style="margin-bottom: 15px;">
+						<label>Order Number</label>
+						<input type="text" id="orderNo" name="orderNo" placeholder="Order Number" value="">
+					</div>
+					
+					
 					<div style="padding-top: 40px;">
 						<button type="submit" style="width: 100%;">Siguiente / Next</button>
 					</div>
@@ -234,41 +258,28 @@ input, select{
 </table>
 
 
+<div style="width: 100%;">
+	<h4>Niubiz Process Map</h4>
+	<div>https://desarrolladores.niubiz.com.pe/docs/formulario-desacoplado</div>
+	<div><img src="https://files.readme.io/530b7ca-Formulario-Desacoplado-V3.jpg" style="width: 50%;"></div>
+</div>		
+
 
 
 
 <script>
 //https://desarrolladores.niubiz.com.pe/docs/formulario-desacoplado
 
-function sendPayment() {
-	//general configuration
-	
-	//load from backend
-	
-	var configuration = {
-		callbackurl: 'paginaRespuesta',//URL to redirect later
-		sessionkey: '67cf73735f83590eabf1382ff49e5e08b261976326c6897cb764fd160a15a8ca', //Generated sessionKey
-		channel: 'web',//Default
-		merchantid: '341198210',//Niubiz client code
-		purchasenumber: 2020100901,//Put here orderNumber or magentoId
-		amount: 10.5,//Transaction amount
-		language: 'es',
-		font: 'https://fonts.googleapis.com/css?family=Montserrat:400&display=swap',
-		//recurrencemaxamount: '8.5'//use in case of recurrent payment
-	};
+function get_transaction_token() {//in manual this function name is sendPayment()
 
-	payform.setConfiguration(configuration);
-	
-	//validation code required here before transactionToken generation
-	var data = {
-		name: $("#card-name").val(),
-		lastName: $("#card-last-name").val(),
-		email: $("#email").val()
-	};
-	
-	var cardNumber = $("#form-checkout__cardNumber").val();
-	var cardExpiry = $("#expired-month").val() + "/" + $("#expired-year").val();
-	var cardCvc = $("#card-cvv").val();
+	if ($("#sessionToken").val() == ""){
+		alert("Session token required.")
+		return;
+	}
+
+	var cardNumber = $("#cardNumber").val();
+	var cardExpiry = $("#expiredMonth").val() + '/' + $("#expiredYear").val();
+	var cardCvc = $("#cardCVV").val();
 	
 	if (cardNumber == ""){
 		alert("Enter card number.")
@@ -284,6 +295,33 @@ function sendPayment() {
 		alert("Enter CVC.")
 		return;
 	}
+
+	//setting basic configuration
+	var configuration = {
+		callbackurl: 'obs_niubiz/payment_result/' + $("#orderNo").val(),//URL to redirect after payment. 
+		sessionToken: $("#sessionToken").val(), //Generated sessionToken in step 1
+		channel: 'web',//Default value
+		merchantid: $("#merchantId").val(),//Niubiz client code.
+		purchasenumber: $("#orderNo").val(),//Order number obtained from step 1
+		amount: $("#totalAmount").val(),//Transaction amount is in stel 3
+		language: 'es',
+		font: 'https://fonts.googleapis.com/css?family=Montserrat:400&display=swap',
+		//recurrencemaxamount: '8.5'//use in case of recurrent payment
+	};
+	console.log(configuration);
+
+	payform.setConfiguration(configuration);
+	
+	//Transaction token creation
+	var data = {
+		name: $("#cardName").val(),
+		lastName: $("#cardLastName").val(),
+		email: $("#email").val(),
+		installment: $("#installments").val(),
+		cardExpiry: cardExpiry
+	};
+	console.log(data);
+	
 	
 	payform.createToken([cardNumber,cardExpiry,cardCvc], data).then(function(response){
 		console.log(response);
@@ -294,7 +332,7 @@ function sendPayment() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-	$("#form_session_token").submit(function(e) {
+	$("#form_confirm_shipping_infomation").submit(function(e) {
 		e.preventDefault();
 		$.ajax({
 			url: "/llamasys/module/obs_niubiz/get_session_key",
@@ -304,8 +342,34 @@ document.addEventListener("DOMContentLoaded", () => {
 			processData:false,
 			success:function(res){
 				console.log(res);
+				alert(res.msg);
+				$("#accessToken").val(res.accessToken);
+				$("#sessionToken").val(res.sessionToken);
+				$("#expirationTime").val(res.expirationTime);
+				$("#merchantId").val(res.merchantId);
+				$("#orderNo").val(res.orderNo);
 			}
 		});
+	});
+	
+	$("#form_confirm_card_information").submit(function(e) {
+		e.preventDefault();
+		get_transaction_token();
+		
+		/*
+		$.ajax({
+			url: "/llamasys/module/obs_niubiz/get_session_key",
+			type: "POST",
+			data: new FormData(this),
+			contentType: false,
+			processData:false,
+			success:function(res){
+				console.log(res);
+				alert(res.msg);
+				$("#sessionToken").val(res.sessionToken);
+				$("#expirationTime").val(res.expirationTime);
+			}
+		});*/
 	});
 	
 	$("#form-checkout-niubiz").submit(function(e) {
