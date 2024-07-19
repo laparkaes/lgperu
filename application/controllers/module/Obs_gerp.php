@@ -116,6 +116,10 @@ class Obs_gerp extends CI_Controller {
 				
 				//print_r($row); echo "<br/><br/>";
 				
+				//apply trim
+				$row["order_no"] = trim($row["order_no"]);
+				$row["line_no"] = trim($row["line_no"]);
+				
 				//float_convert
 				$row["unit_selling_price"] = str_replace(",", "", $row["unit_selling_price"]);
 				$row["sales_amount"] = str_replace(",", "", $row["sales_amount"]);
@@ -156,7 +160,7 @@ class Obs_gerp extends CI_Controller {
 				
 				$sales_order = $this->gen_m->filter("obs_gerp_sales_order", false, ["order_no" => $row["order_no"], "line_no" => $row["line_no"]]);
 				if ($sales_order){
-					if ($this->gen_m->update("obs_gerp_sales_order", ["sales_order_id" => $sales_order[0]->sales_order_id], $row)) $qty_update++;
+					if ($this->gen_m->update("obs_gerp_sales_order", ["sales_order_id" => $sales_order[0]->sales_order_id, "line_no" => $sales_order[0]->line_no], $row)) $qty_update++;
 					else $qty_fail++;
 				}
 				else{
