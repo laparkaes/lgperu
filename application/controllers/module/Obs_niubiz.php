@@ -87,7 +87,7 @@ class Obs_niubiz extends CI_Controller {
 		$antifraud = $this->my_niubiz->antifraud($data);
 		if ($antifraud["success"]){
 			echo "Antifraud result:<br/>"; 
-			print_R($antifraud); 
+			print_R($antifraud);
 			echo "<br/><br/>=====================<br/><br/>";
 		}else{
 			echo $antifraud["errorCode"]." - ".$antifraud["errorMessage"];

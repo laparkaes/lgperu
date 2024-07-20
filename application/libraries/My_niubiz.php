@@ -50,7 +50,7 @@ class My_niubiz{
 		if ($err) $result["msg"] = "cURL Error #:" . $err;
 		else{
 			//setting return array
-			$result = ["success" => false, "msg" => null, "token" => null];
+			$result = ["success" => false, "msg" => null, "accessToken" => null];
 			
 			if ($response === "Unauthorized access") $result["msg"] = $response." (Wrong username or password.)";
 			else{
@@ -94,33 +94,31 @@ class My_niubiz{
 
 		curl_close($curl);
 
-		$result = ["success" => false, "sessionToken" => null, "expirationTime" => null, "errorCode" => null, "errorMessage" => null, "data" => null];
+		$result = [];
 		
 		if ($err) echo "cURL Error #:" . $err;
 		else{
-			//response is plain text
-			if (($response === "Unauthorized access") or ($response === "Bad Request")){
-				$result["errorCode"] = "No data";
-				$result["errorMessage"] = $response." (Wrong access token.)";
+			/* success case
+			{
+				"sessionKey":"aa3e2b595ec2442b253c18e98c095d507591b0b140fc19f77045b093223411a4",
+				"expirationTime":1721160740592
 			}
-			elseif ($response === "Not Acceptable"){
-				//return in plain text. May be this is fraude case
-				$result["errorCode"] = 406;
-				$result["errorMessage"] = $response;
-			}else{
-				//sure that response is a json
-				$response = json_decode($response);
-				if (property_exists($response, "errorCode")){//error ocurred
-					//one of cases => {"errorCode":400,"errorMessage":"Token has been used before","data":{}}
-					$result["errorCode"] = $response->errorCode;
-					$result["errorMessage"] = $response->errorMessage;
-					$result["data"] = $response->data;
-				}else{
-					//data structure => {"sessionKey":"aa3e2b595ec2442b253c18e98c095d507591b0b140fc19f77045b093223411a4","expirationTime":1721160740592}
-					$result["success"] = true;
-					$result["sessionToken"] = $response->sessionKey;
-					$result["expirationTime"] = $response->expirationTime;
-				}
+			*/
+			
+			//save original will be in last position of result. Plain text response is here.
+			$original = $response;
+			
+			//convert response to object
+			$response = json_decode($response);
+			
+			//save all objecto key in result array
+			foreach($response as $key => $val) $result[$key] = $val;
+			
+			//validate is this success case
+			if (property_exists($response, "sessionKey")) $result["success"] = true;
+			else{
+				$result["success"] = false;
+				$result["original"] = $original;
 			}
 		}
 		
@@ -159,42 +157,33 @@ class My_niubiz{
 
 		curl_close($curl);
 
-		$result = ["success" => false, "header" => null, "order" => null, "token" => null, "dataMap" => null, "errorCode" => null, "errorMessage" => null];
+		$result = [];
 		
 		if ($err) echo "cURL Error #:" . $err;
 		else{
-			//response is plain text
-			if (($response === "Unauthorized access") or ($response === "Bad Request")){
-				$result["errorCode"] = "No data";
-				$result["errorMessage"] = $response." (Wrong access token.)";
+			/* success case
+			{
+				"header":{"ecoreTransactionUUID":"e9e02c39-4e89-494b-a899-7c0ad7ab2406","ecoreTransactionDate":1721451805433,"millis":533},
+				"order":{"purchaseNumber":"1234567890","amount":1.0,"currency":"PEN"},
+				"token":{"tokenId":"B6788265FB1F4717B88265FB1F871762","expiration":1721452705362,"redirectToVbV":false,"mpi":false,"dataMap":{}},
+				"dataMap":{}
 			}
-			elseif ($response === "Not Acceptable"){
-				//return in plain text. May be this is fraude case
-				$result["errorCode"] = 406;
-				$result["errorMessage"] = $response;
-			}else{
-				//sure that response is a json
-				$response = json_decode($response);
-				if (property_exists($response, "errorCode")){//error ocurred
-					//one of cases => {"errorCode":400,"errorMessage":"Token has been used before","data":{}}
-					$result["errorCode"] = $response->errorCode;
-					$result["errorMessage"] = $response->errorMessage;
-					$result["data"] = $response->data;
-				}else{
-					/* example data
-					{
-						"header":{"ecoreTransactionUUID":"e9e02c39-4e89-494b-a899-7c0ad7ab2406","ecoreTransactionDate":1721451805433,"millis":533},
-						"order":{"purchaseNumber":"1234567890","amount":1.0,"currency":"PEN"},
-						"token":{"tokenId":"B6788265FB1F4717B88265FB1F871762","expiration":1721452705362,"redirectToVbV":false,"mpi":false,"dataMap":{}},
-						"dataMap":{}
-					}
-					*/
-					$result["success"] = true;
-					$result["header"] = $response->header;
-					$result["order"] = $response->order;
-					$result["token"] = $response->token;
-					$result["dataMap"] = $response->dataMap;
-				}
+			*/
+			
+			//save original will be in last position of result. Plain text response is here.
+			$original = $response;
+			
+			//convert response to object
+			$response = json_decode($response);
+			
+			//save all objecto key in result array
+			foreach($response as $key => $val) $result[$key] = $val;
+			
+			//validate is this success case
+			if (property_exists($response, "token")) $result["success"] = true;
+			else{
+				$result["success"] = false;
+				$result["original"] = $original;
 			}
 		}
 		
@@ -233,11 +222,37 @@ class My_niubiz{
 
 		curl_close($curl);
 
-		if ($err) {
-		  echo "cURL Error #:" . $err;
-		} else {
-		  echo $response;
+		$result = [];
+		
+		if ($err) echo "cURL Error #:" . $err;
+		else{
+			/* success case
+			{
+				"header":{"ecoreTransactionUUID":"1a7a020d-b0a3-4da9-a799-ebf8fde3d20d","ecoreTransactionDate":1721494409221,"millis":1143},
+				"fulfillment":{"channel":"web","merchantId":"456879852","terminalId":"00000001","captureType":"manual","countable":true,"fastPayment":false,"signature":"1a7a020d-b0a3-4da9-a799-ebf8fde3d20d"},
+				"order":{"tokenId":"313FB3866E384017BFB3866E38F017BA","purchaseNumber":"01234567890","amount":1234.23,"installment":0,"currency":"PEN","authorizedAmount":1234.23,"authorizationCode":"091800","actionCode":"000","traceNumber":"496354","transactionDate":"240720115328","transactionId":"993211570048581"},
+				"dataMap":{"TERMINAL":"00000001","BRAND_ACTION_CODE":"00","BRAND_HOST_DATE_TIME":"201222141839","TRACE_NUMBER":"496354","CARD_TYPE":"D","ECI_DESCRIPTION":"Transaccion no autenticada pero enviada en canal seguro","SIGNATURE":"1a7a020d-b0a3-4da9-a799-ebf8fde3d20d","CARD":"447411******2240","MERCHANT":"109705108","STATUS":"Authorized","ACTION_DESCRIPTION":"Aprobado y completado con exito","ID_UNICO":"993211570048581","AMOUNT":"1234.23","AUTHORIZATION_CODE":"091800","CURRENCY":"0604","TRANSACTION_DATE":"240720115328","ACTION_CODE":"000","CVV2_VALIDATION_RESULT":"M","ECI":"07","ID_RESOLUTOR":"420201222142237","BRAND":"visa","ADQUIRENTE":"570002","BRAND_NAME":"VI","PROCESS_CODE":"000000","TRANSACTION_ID":"993211570048581"}
+			}				
+			*/
+			
+			//save original will be in last position of result. Plain text response is here.
+			$original = $response;
+			
+			//convert response to object
+			$response = json_decode($response);
+			
+			//save all objecto key in result array
+			foreach($response as $key => $val) $result[$key] = $val;
+			
+			//validate is this success case
+			if (property_exists($response, "fulfillment")) $result["success"] = true;
+			else{
+				$result["success"] = false;
+				$result["original"] = $original;
+			}
 		}
+		
+		return $result;
 	}
 }
 ?>
