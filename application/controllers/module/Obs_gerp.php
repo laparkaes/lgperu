@@ -161,16 +161,16 @@ class Obs_gerp extends CI_Controller {
 				$f = ["order_no" => $row["order_no"], "line_no" => $row["line_no"]];
 				$sales_order = $this->gen_m->filter("obs_gerp_sales_order", false, $f);
 				if ($sales_order){
-					echo "Update<br/>".$row["create_date"]."<br/>";
+					//echo "Update<br/>".$row["create_date"]."<br/>";
 					if ($this->gen_m->update("obs_gerp_sales_order", ["sales_order_id" => $sales_order[0]->sales_order_id], $row)) $qty_update++;
 					else $qty_fail++;
 				}else{
-					echo "Insert<br/>".$row["create_date"]."<br/>";
+					//echo "Insert<br/>".$row["create_date"]."<br/>";
 					if ($this->gen_m->insert("obs_gerp_sales_order", $row)) $qty_insert++;
 					else $qty_fail++;
 				}
 				
-				print_r($f); echo "<br/><br/>";
+				//print_r($f); echo "<br/><br/>";
 				//if ($i > 100) break;
 			}
 			
