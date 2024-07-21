@@ -166,6 +166,8 @@ class Obs_gerp extends CI_Controller {
 					if ($this->gen_m->insert("obs_gerp_sales_order", $row)) $qty_insert++;
 					else $qty_fail++;
 				}
+				
+				if ($i > 100) break;
 			}
 			
 			if ($qty_insert > 0) $result[] = number_format($qty_insert)." inserted";
@@ -181,8 +183,9 @@ class Obs_gerp extends CI_Controller {
 	}
 	
 	public function test(){
-		//echo $this->process();
+		echo $this->process();
 		
+		return;
 		$filename = "obs_gerp.xls";
 		
 		set_time_limit(0);
