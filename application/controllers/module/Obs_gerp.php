@@ -280,7 +280,9 @@ class Obs_gerp extends CI_Controller {
 				
 				//foreach($row as $key => $val){echo $key."===> ".$val."<br/>";} echo "<br/><br/>";
 				
-				$sales_order = $this->gen_m->filter("obs_gerp_sales_order", false, ["order_no" => $row["order_no"], "line_no" => $row["line_no"]]);
+				$f = ["order_no" => $row["order_no"], "line_no" => $row["line_no"]];
+				print_r($f); echo "<br/>";
+				$sales_order = $this->gen_m->filter("obs_gerp_sales_order", false, $f);
 				if ($sales_order){
 					echo "Exist<br/>"; $qty_update++;
 					//if ($this->gen_m->update("obs_gerp_sales_order", ["sales_order_id" => $sales_order[0]->sales_order_id, "line_no" => $sales_order[0]->line_no], $row)) $qty_update++;
@@ -291,6 +293,8 @@ class Obs_gerp extends CI_Controller {
 					//else $qty_fail++;
 				}
 				print_r($row); echo "<br/><br/>";
+				
+				if ($i > 100) break;
 			}
 			
 			if ($qty_insert > 0) $result[] = number_format($qty_insert)." inserted";
