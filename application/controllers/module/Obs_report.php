@@ -178,15 +178,15 @@ class Obs_report extends CI_Controller {
 		foreach($gerps as $item){
 			//device
 			if ($item->devices){
-				$devices[$item->devices]["qty"]++;
+				$devices[$item->devices]["qty"] += $item->ordered_qty;
 				$devices[$item->devices]["amount"] += $item->sales_amount_usd;
-				$devices["total"]["qty"]++;
+				$devices["total"]["qty"] += $item->ordered_qty;
 				$devices["total"]["amount"] += $item->sales_amount_usd;	
 			}//else echo "No devices<br/><br/>";
 			
 			//cus_group
 			if ($item->customer_group){
-				$cus_group[$item->customer_group]["qty"]++;
+				$cus_group[$item->customer_group]["qty"] += $item->ordered_qty;
 				$cus_group[$item->customer_group]["amount"] += $item->sales_amount_usd;
 				$cus_group["total"]["qty"]++;
 				$cus_group["total"]["amount"] += $item->sales_amount_usd;	
@@ -195,39 +195,39 @@ class Obs_report extends CI_Controller {
 			//d2b2c
 			if ($item->company_name_through_vipkey){
 				$item->company_name_through_vipkey = trim($item->company_name_through_vipkey);
-				$d2b2c[$item->company_name_through_vipkey]["qty"]++;
+				$d2b2c[$item->company_name_through_vipkey]["qty"] += $item->ordered_qty;
 				$d2b2c[$item->company_name_through_vipkey]["amount"] += $item->sales_amount_usd;
-				$d2b2c["total"]["qty"]++;
+				$d2b2c["total"]["qty"] += $item->ordered_qty;
 				$d2b2c["total"]["amount"] += $item->sales_amount_usd;	
 			}
 			
 			//cupons
 			if ($item->coupon_code){
-				$cupons[$item->coupon_code]["qty"]++;
+				$cupons[$item->coupon_code]["qty"] += $item->ordered_qty;
 				$cupons[$item->coupon_code]["amount"] += $item->sales_amount_usd;
-				$cupons["total"]["qty"]++;
+				$cupons["total"]["qty"] += $item->ordered_qty;
 				$cupons["total"]["amount"] += $item->sales_amount_usd;	
 			}
 			
 			//departments
 			if ($item->department and $item->province){
-				$departments[$item->department]["qty"]++;
+				$departments[$item->department]["qty"] += $item->ordered_qty;
 				$departments[$item->department]["amount"] += $item->sales_amount_usd;
-				$departments["total"]["qty"]++;
+				$departments["total"]["qty"] += $item->ordered_qty;
 				$departments["total"]["amount"] += $item->sales_amount_usd;
 			}
 			
 			//provinces
 			if ($item->province){
-				$provinces[$item->department."_".$item->province]["qty"]++;
+				$provinces[$item->department."_".$item->province]["qty"] += $item->ordered_qty;
 				$provinces[$item->department."_".$item->province]["amount"] += $item->sales_amount_usd;
-				$provinces["total"]["qty"]++;
+				$provinces["total"]["qty"] += $item->ordered_qty;
 				$provinces["total"]["amount"] += $item->sales_amount_usd;	
 			}
 			
 			//model
 			if ($item->model_category){
-				$models[$item->model]["qty"]++;
+				$models[$item->model]["qty"] += $item->ordered_qty;
 				$models[$item->model]["amount"] += $item->sales_amount_usd;
 			}
 			
@@ -242,7 +242,7 @@ class Obs_report extends CI_Controller {
 				$day_i = date("d", strtotime($item->local_time));
 				$hour_i = (((int)(date("H", strtotime($item->local_time)) / 4) + 1) * 4);
 				
-				$purchase[$day_i][$hour_i]["qty"]++;
+				$purchase[$day_i][$hour_i]["qty"] += $item->ordered_qty;
 				$purchase[$day_i][$hour_i]["amount"] += $item->sales_amount_usd / 1000;
 			}
 			
@@ -250,7 +250,7 @@ class Obs_report extends CI_Controller {
 			if (($item->sales_amount_usd > 0) and ($limit_min <= $closed_time) and ($closed_time <= $limit_max)){
 				$day_i = date("d", strtotime($item->close_date));
 				
-				$closed[$day_i]["qty"]++;
+				$closed[$day_i]["qty"] += $item->ordered_qty;
 				$closed[$day_i]["amount"] += $item->sales_amount_usd / 1000;
 			}
 			
