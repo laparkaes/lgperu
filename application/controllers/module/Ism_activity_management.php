@@ -14,10 +14,8 @@ class Ism_activity_management extends CI_Controller {
 	}
 	
 	public function index(){
-		$lines = $this->gen_m->all("product_line", [["line", "asc"]]);
-		
 		$data = [
-			"lines" => $lines,
+			"activities" => $this->gen_m->all("ism_activity", [["registered", "desc"]]),
 			"main" => "module/ism_activity_management/index",
 		];
 		
