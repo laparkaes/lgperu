@@ -335,8 +335,8 @@ class Obs_gerp extends CI_Controller {
 			$this->load->library('upload', $config);
 
 			if ($this->upload->do_upload('attach')){
-				//$msg = $this->process();
-				$msg = $this->process_new();
+				//$msg = $this->process();//update & insert
+				$msg = $this->process_new();//delete & insert
 				if ($msg) $type = "success";
 				else $msg = "Wrong file.";
 			}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
