@@ -221,6 +221,8 @@ class Obs_gerp extends CI_Controller {
 		
 		//echo number_Format(microtime(true) - $start_time, 2)." sec *** Ready to start<br/><br/>";
 		
+		$inserted = 0;
+		
 		if ($is_gerp){
 			$max_row = $sheet->getHighestRow();
 			
@@ -285,31 +287,18 @@ class Obs_gerp extends CI_Controller {
 				
 				//foreach($row as $key => $val){echo $key."===> ".$val."<br/>";} echo "<br/><br/>";
 			}
-			
-			$inserted = 0;
-			
+				
 			if ($rows){
 				//echo number_Format(microtime(true) - $start_time, 2)." sec *** ".number_format(count($rows))." datas to insert<br/><br/>";
 				
 				$from = $rows[0]["create_date"];
 				$to = $rows[count($rows)-1]["create_date"];
 				
-				if ($this->gen_m->delete("obs_gerp_sales_order", ["create_date >=" => $from, "create_date <=" => $to])){
-					//echo number_Format(microtime(true) - $start_time, 2)." sec ***  Data removing finished: ".$from." ~ ".$to."<br/><br/>";
-					
-					$inserted = $this->gen_m->insert_m("obs_gerp_sales_order", $rows);
-					
-					/*
-					if ($inserted){
-						echo number_Format(microtime(true) - $start_time, 2)." sec *** ".number_format($inserted)." data inserted<br/><br/>";
-						
-						//validation process
-						foreach($rows as $r){
-							echo $r["create_date"]." / ".$r["order_no"]." / ".$r["line_no"]." / ".(($this->gen_m->filter("obs_gerp_sales_order", false, ["order_no" => $row["order_no"], "line_no" => $row["line_no"]])) ? "yes" : "no")."<br/>";
-						}
-					}
-					*/
-				}
+				//remove
+				$this->gen_m->delete("obs_gerp_sales_order", ["create_date >=" => $from, "create_date <=" => $to])
+				
+				//insert
+				$inserted = $this->gen_m->insert_m("obs_gerp_sales_order", $rows);
 			}
 		}
 		

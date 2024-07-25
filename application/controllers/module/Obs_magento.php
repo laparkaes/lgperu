@@ -228,12 +228,13 @@ class Obs_magento extends CI_Controller {
 		return $result ? "OBS magento report process result:<br/><br/>".implode(",", $result) : null;
 	}
 	
-	public function test(){
+	private function process_new($filename = "obs_magento.csv"){
 		set_time_limit(0);
 		
+		$start_time = microtime(true);
+		
 		//load excel file
-		//$spreadsheet = IOFactory::load("./upload/".$filename);
-		$spreadsheet = IOFactory::load("./upload/obs_magento.csv");
+		$spreadsheet = IOFactory::load("./upload/".$filename);
 		$sheet = $spreadsheet->getActiveSheet();
 		
 		//excel file header validation
@@ -274,6 +275,8 @@ class Obs_magento extends CI_Controller {
 		//header validation
 		$is_magento = true;
 		foreach($h as $i => $h_i) if ($h_i !== $h_magento[$i]) $is_magento = false;
+		
+		$inserted = 0;
 		
 		if ($is_magento){
 			$max_row = $sheet->getHighestRow();
@@ -369,13 +372,26 @@ class Obs_magento extends CI_Controller {
 					*/
 				}
 				
-				if ($i > 50) break;
+				//if ($i > 50) break;
 			}
 			
-			if ($rows) print_r($rows);
+			if ($rows){
+				//print_r($rows);
+				//echo number_Format(microtime(true) - $start_time, 2)." sec *** ".number_format(count($rows))." datas to insert<br/><br/>";
+				
+				$from = $rows[0]["local_time"];
+				$to = $rows[count($rows)-1]["local_time"];
+				
+				//remove
+				$this->gen_m->delete("obs_magento", ["local_time >=" => $from, "local_time <=" => $to]);
+				
+				//insert
+				$inserted = $this->gen_m->insert_m("obs_magento", $rows);
+			}
 		}
 		
-		//return $result ? "OBS magento report process result:<br/><br/>".implode(",", $result) : null;
+		return number_format($inserted)." rows affected in ".number_Format(microtime(true) - $start_time, 2)." secs";
+		//echo number_format($inserted)." rows affected in ".number_Format(microtime(true) - $start_time, 2)." secs";
 		
 	}
 	
@@ -396,11 +412,10 @@ class Obs_magento extends CI_Controller {
 			$this->load->library('upload', $config);
 
 			if ($this->upload->do_upload('attach')){
-				$msg = $this->process();
-				if ($msg){
-					$type = "success";
-					$msg = "OBS Mangento data has been uploaded.";
-				}else $msg = "Wrong file.";
+				//$msg = $this->process();
+				$msg = $this->process_new();
+				if ($msg) $type = "success";
+				else $msg = "Wrong file.";
 			}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
 		}else $msg = "Your session is finished.";
 		
