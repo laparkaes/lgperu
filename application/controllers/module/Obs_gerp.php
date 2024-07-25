@@ -186,15 +186,13 @@ class Obs_gerp extends CI_Controller {
 		
 	}
 	
-	public function test(){
-		//echo $this->process();
-		
+	public function process_new($filename = "obs_gerp.xls"){
 		set_time_limit(0);
 		
 		$start_time = microtime(true);
 		
 		//load excel file
-		$spreadsheet = IOFactory::load("./upload/20240526_20240724.xls");
+		$spreadsheet = IOFactory::load("./upload/".$filename);
 		$sheet = $spreadsheet->getActiveSheet();
 		
 		//excel file header validation
@@ -221,15 +219,10 @@ class Obs_gerp extends CI_Controller {
 		$is_gerp = true;
 		foreach($h as $i => $h_i) if ($h_i !== $h_gerp[$i]) $is_gerp = false;
 		
-		$result = [];
-		
-		echo "Ready to start *** ".number_Format(microtime(true) - $start_time, 2)." sec<br/><br/>";
+		//echo number_Format(microtime(true) - $start_time, 2)." sec *** Ready to start<br/><br/>";
 		
 		if ($is_gerp){
 			$max_row = $sheet->getHighestRow();
-			
-			//result types
-			$qty_insert = $qty_update = $qty_fail = 0;
 			
 			//define now
 			$now = date('Y-m-d H:i:s', time());
@@ -291,72 +284,39 @@ class Obs_gerp extends CI_Controller {
 				$rows[] = $row;
 				
 				//foreach($row as $key => $val){echo $key."===> ".$val."<br/>";} echo "<br/><br/>";
-				
-				/*
-				$f = ["order_no" => $row["order_no"], "line_no" => $row["line_no"]];
-				$sales_order = $this->gen_m->filter("obs_gerp_sales_order", false, $f);
-				if ($sales_order){
-					//echo "Update<br/>".$row["create_date"]."<br/>";
-					if ($this->gen_m->update("obs_gerp_sales_order", ["sales_order_id" => $sales_order[0]->sales_order_id], $row)) $qty_update++;
-					else $qty_fail++;
-				}else{
-					//echo "Insert<br/>".$row["create_date"]."<br/>";
-					if ($this->gen_m->insert("obs_gerp_sales_order", $row)) $qty_insert++;
-					else $qty_fail++;
-				}
-				*/
-				
-				//print_r($f); echo "<br/><br/>";
-				//if ($i > 1000){
-					
-					//break;
-				//}
-				
-				/*
-				if (count($rows) >= 1000){
-					echo number_format($i)." datas *** ".number_Format(microtime(true) - $start_time, 2)." sec<br/><br/>";
-					
-					$from = $rows[0]["create_date"];
-					$to = $rows[count($rows)-1]["create_date"];
-					
-					echo "Data remove and insert: ".$from." ~ ".$to."<br/><br/>";
-					
-					$rows = [];
-				}
-				*/
 			}
 			
-			if (count($rows)){
-				echo number_format($i)." datas *** ".number_Format(microtime(true) - $start_time, 2)." sec<br/><br/>";
+			$inserted = 0;
+			
+			if ($rows){
+				//echo number_Format(microtime(true) - $start_time, 2)." sec *** ".number_format(count($rows))." datas to insert<br/><br/>";
 				
 				$from = $rows[0]["create_date"];
 				$to = $rows[count($rows)-1]["create_date"];
 				
-				echo "Data remove and insert: ".$from." ~ ".$to."<br/><br/>";
-				
-				//remove data from & to by create_date
-				
-				//insert data
+				if ($this->gen_m->delete("obs_gerp_sales_order", ["create_date >=" => $from, "create_date <=" => $to])){
+					//echo number_Format(microtime(true) - $start_time, 2)." sec ***  Data removing finished: ".$from." ~ ".$to."<br/><br/>";
+					
+					$inserted = $this->gen_m->insert_m("obs_gerp_sales_order", $rows);
+					
+					/*
+					if ($inserted){
+						echo number_Format(microtime(true) - $start_time, 2)." sec *** ".number_format($inserted)." data inserted<br/><br/>";
+						
+						//validation process
+						foreach($rows as $r){
+							echo $r["create_date"]." / ".$r["order_no"]." / ".$r["line_no"]." / ".(($this->gen_m->filter("obs_gerp_sales_order", false, ["order_no" => $row["order_no"], "line_no" => $row["line_no"]])) ? "yes" : "no")."<br/>";
+						}
+					}
+					*/
+				}
 			}
-			
-			/*
-			$from = $rows[0]->create_date;
-			$to = $rows[count($rows)-1]->create_date;
-			
-			print_r($rows[0]);
-			echo "<br/><br/>";
-			print_r($rows[count($rows)-1]);
-			
-			if ($qty_insert > 0) $result[] = number_format($qty_insert)." inserted";
-			if ($qty_update > 0) $result[] = number_format($qty_update)." updated";
-			if ($qty_fail > 0) $result[] = number_format($qty_fail)." failed";
-			*/
 		}
 		
-		//$this->update_model_category();
+		$this->update_model_category();
 		
-		//return $result ? "OBS GERP Sales orders process result:<br/><br/>".implode(", ", $result) : null;
-		echo $result ? "OBS GERP Sales orders process result:<br/><br/>".implode(", ", $result) : null;
+		return number_format($inserted)." rows affected in ".number_Format(microtime(true) - $start_time, 2)." secs";
+		//echo number_format($inserted)." rows affected in ".number_Format(microtime(true) - $start_time, 2)." secs";
 	}
 	
 	public function upload(){
@@ -375,7 +335,8 @@ class Obs_gerp extends CI_Controller {
 			$this->load->library('upload', $config);
 
 			if ($this->upload->do_upload('attach')){
-				$msg = $this->process();
+				//$msg = $this->process();
+				$msg = $this->process_new();
 				if ($msg) $type = "success";
 				else $msg = "Wrong file.";
 			}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
