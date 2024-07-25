@@ -295,7 +295,7 @@ class Obs_gerp extends CI_Controller {
 				$to = $rows[count($rows)-1]["create_date"];
 				
 				//remove
-				$this->gen_m->delete("obs_gerp_sales_order", ["create_date >=" => $from, "create_date <=" => $to])
+				$this->gen_m->delete("obs_gerp_sales_order", ["create_date >=" => $from, "create_date <=" => $to]);
 				
 				//insert
 				$inserted = $this->gen_m->insert_m("obs_gerp_sales_order", $rows);
