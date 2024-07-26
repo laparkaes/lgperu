@@ -86,8 +86,8 @@ class General_model extends CI_Model{
 		return $this->db->update_batch($tablename, $data, $field);
 	}
 	
-	function delete($tablename, $filter){
-		$this->db->where($filter);
+	function delete($tablename, $filter = null){
+		if ($filter) $this->db->where($filter);
 		return $this->db->delete($tablename);
 	}
 	
