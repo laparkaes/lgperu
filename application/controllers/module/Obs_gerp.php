@@ -226,7 +226,7 @@ class Obs_gerp extends CI_Controller {
 		
 		//echo number_Format(microtime(true) - $start_time, 2)." sec *** Ready to start<br/><br/>";
 		
-		$inserted = 0; $msg = "";
+		$inserted = 0; $msg = ""; $date_arr = [];
 		
 		if ($is_gerp){
 			$max_row = $sheet->getHighestRow();
@@ -290,15 +290,20 @@ class Obs_gerp extends CI_Controller {
 				
 				$rows[] = $row;
 				
+				$date_arr[] = $row["create_date"];
+				
 				//foreach($row as $key => $val){echo $key."===> ".$val."<br/>";} echo "<br/><br/>";
 			}
-				
+			
+			$date_arr = array_unique($date_arr);
+			sort($date_arr);
+			
 			if ($rows){
 				//echo number_Format(microtime(true) - $start_time, 2)." sec *** ".number_format(count($rows))." datas to insert<br/><br/>";
 				
-				$from = $rows[0]["create_date"];
-				$to = $rows[count($rows)-1]["create_date"];
-				$msg = " ".$from." ~ ".$to;
+				$from = reset($date_arr);
+				$to = end($date_arr);
+				
 				//remove
 				$this->gen_m->delete("obs_gerp_sales_order", ["create_date >=" => $from, "create_date <=" => $to]);
 				
