@@ -516,6 +516,9 @@ class Sa_promotion extends CI_Controller {
 				print_r($r); echo "<br/><br/>";
 			}
 			
+			
+			$this->gen_m->delete("sa_promotion", ["promotion_id >" => 0]);
+			
 			return;
 			
 			//sort by promotion order
