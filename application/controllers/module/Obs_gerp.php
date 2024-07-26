@@ -186,7 +186,11 @@ class Obs_gerp extends CI_Controller {
 		
 	}
 	
-	public function process_new($filename = "obs_gerp.xls"){
+	public function test(){
+		$this->process_new($filename = "obs_gerp.xls");
+	}
+	
+	private function process_new($filename = "obs_gerp.xls"){
 		set_time_limit(0);
 		
 		$start_time = microtime(true);
