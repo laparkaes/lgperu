@@ -187,7 +187,8 @@ class Obs_gerp extends CI_Controller {
 	}
 	
 	public function test(){
-		$this->process_new($filename = "obs_gerp.xls");
+		$this->gen_m->delete("obs_gerp_sales_order", ["create_date >=" => "2024-07-01", "create_date <=" => "2024-07-30"]);
+		//$this->process_new($filename = "obs_gerp.xls");
 	}
 	
 	private function process_new($filename = "obs_gerp.xls"){
