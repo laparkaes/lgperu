@@ -187,8 +187,8 @@ class Obs_gerp extends CI_Controller {
 	}
 	
 	public function test(){
-		$this->gen_m->delete("obs_gerp_sales_order", ["create_date >=" => "2024-07-01", "create_date <=" => "2024-07-30"]);
-		//$this->process_new($filename = "obs_gerp.xls");
+		//$this->gen_m->delete("obs_gerp_sales_order", ["create_date >=" => "2024-07-01", "create_date <=" => "2024-07-30"]);
+		echo $this->process_new($filename = "obs_gerp.xls");
 	}
 	
 	private function process_new($filename = "obs_gerp.xls"){
@@ -226,7 +226,7 @@ class Obs_gerp extends CI_Controller {
 		
 		//echo number_Format(microtime(true) - $start_time, 2)." sec *** Ready to start<br/><br/>";
 		
-		$inserted = 0;
+		$inserted = 0; $msg = "";
 		
 		if ($is_gerp){
 			$max_row = $sheet->getHighestRow();
@@ -298,7 +298,7 @@ class Obs_gerp extends CI_Controller {
 				
 				$from = $rows[0]["create_date"];
 				$to = $rows[count($rows)-1]["create_date"];
-				
+				$msg = " ".$from." ~ ".$to;
 				//remove
 				$this->gen_m->delete("obs_gerp_sales_order", ["create_date >=" => $from, "create_date <=" => $to]);
 				
@@ -309,7 +309,7 @@ class Obs_gerp extends CI_Controller {
 		
 		$this->update_model_category();
 		
-		return number_format($inserted)." rows affected in ".number_Format(microtime(true) - $start_time, 2)." secs";
+		return number_format($inserted)." rows affected in ".number_Format(microtime(true) - $start_time, 2)." secs".$msg;
 		//echo number_format($inserted)." rows affected in ".number_Format(microtime(true) - $start_time, 2)." secs";
 	}
 	
