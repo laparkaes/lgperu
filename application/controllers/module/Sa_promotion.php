@@ -486,6 +486,7 @@ class Sa_promotion extends CI_Controller {
 			//save promotion rows in array
 			$rows = [];
 			
+			//save file records in array
 			for($i = 2; $i < $max_row; $i++){
 				$rows[] = [
 					"prom" 			=> $sheet->getCell('D'.$i)->getValue(),
@@ -504,13 +505,144 @@ class Sa_promotion extends CI_Controller {
 				];
 			}
 			
+			//clean db and insert
 			$this->gen_m->delete("sa_promotion", ["promotion_id >" => 0]);
 			$this->gen_m->insert_m("sa_promotion", $rows);
-			$rows = $this->gen_m->all("sa_promotion", [["prod_model", "asc"], ["prom", "asc"]], "", "", false);
+			
+			//ger promotions in order
+			$promotions = $this->gen_m->all("sa_promotion", [["prod_model", "asc"], ["price_prom", "desc"], ["prom", "asc"]], "", "", false);
+			
+			//set promotion parameters
+			$bill_to = $promotions[0]->cus_code;
+			$from = date("Y-m-01", strtotime($promotions[0]->date_start));
+			$to = date("Y-m-t", strtotime($promotions[0]->date_start));
+			
+			//init variables
+			$models = [];
+			$w = ["customer_code" => $bill_to, "sunday >=" => $from, "sunday <=" => $to];
+			
+			//set model array
+			$prod_models = $this->gen_m->only("sa_promotion", "prod_model");
+			foreach($prod_models as $item) $models[] = $item->prod_model;
+			
+			$suffixs = $this->gen_m->only("sa_sell_out", "suffix", $w);
+			foreach($suffixs as $item) $models[] = $item->suffix;
+			
+			$models = array_unique($models);
+			sort($models);
+			
+			//define data array
+			$data = [];
+			foreach($models as $m) $data[$m] = ["model" => $m, "sell_outs" => [], "promotions" => []];
+			
+			$sell_outs = $this->gen_m->filter("sa_sell_out", false, $w);
+			foreach($sell_outs as $item) $data[$item->suffix]["sell_outs"][] = $item;
+			
+			foreach($promotions as $item) $data[$item->prod_model]["promotions"][] = $item;
+			
+			//start calculation
+			foreach($data as $i => $item){
+				if ($item["promotions"]){
+					echo "===============================================================================<br/>";
+					echo $item["model"]; echo "<br/><br/>";
+					
+					echo "Sell outs:<br/>";
+					foreach($item["sell_outs"] as $sell_out){
+						print_r($sell_out);
+						echo "<br/>";
+					}
+					
+					echo "<br/><br/>";
+					
+					foreach($item["promotions"] as $item_p){
+						print_r($item_p);
+						echo "<br/><br/>";
+					}
+					
+					
+					echo "===============================================================================<br/>";
+					
+					/*
+					
+					
+					
+					
+					$last_sell_in = $this->gen_m->filter("sa_sell_in", false, ["bill_to_code" => $bill_to, "model" => $item["model"], "closed_date <" => $item["promotions"][0]->date_start, "order_qty >" => 0], null, null, [["closed_date", "desc"]], 1);
+					$data[$i]["promotions"][0]->cost_sellin = $last_sell_in ? $last_sell_in[0]->unit_selling_price : 0;
+					
+					print_r($last_sell_in); echo "<br/><br/>";
+					
+					
+					
+					
+					
+					echo "Promotions: ----------------------------------<br/><br/>";
+					foreach($data[$i]["promotions"] as $i_p => $item_p){
+						
+						print_r($item_p);
+						echo "<br/><br/>";
+						
+						if (!$item_p->cost_sellin){
+							$cost_sellin = 0;
+							for($j = 0; $j < $i_p; $j++){
+								$aux = $item["promotions"][$j];
+								if ((strtotime($aux->date_start) <= strtotime($item_p->date_start)) and (strtotime($item_p->date_start) <= strtotime($aux->date_start))){
+										
+									echo "---- Compare with: ";
+									print_r($aux);
+									echo "<br/><br/>";
+								
+									
+									
+									$cost_sellin = $aux->cost_prom;
+								}	
+							}
+							
+							$item_p->cost_sellin = $cost_sellin;	
+							
+							echo "<br/><br/>";
+						}
+						
+						
+						//$cost_sellin = $item->cost_prom;
+					}
+					echo "===============================================================================<br/>";
+					
+					*/
+				}
+			}
+			
+			return;
+			
+			
+			
+			
+			$sell_outs = [];
+			foreach($models_r as $m) $sell_outs[$m->suffix] = [];
+			
+			foreach($sell_outs_r as $so) $sell_outs[$so->suffix][] = ["date" => $so->sunday, "qty" => $so->units, "price" => round($so->amount/$so->units, 2)];
+			
+			
+			echo $bill_to." ".$from." ".$to."<br/><br/><br/><br/>";
+			
+			//print_r($models); echo "<br/><br/><br/><br/>";
+			
+			foreach($sell_outs as $model => $sos){
+				echo $model."<br/>";
+				foreach($sos as $s){
+					print_r($s);
+					echo "<br/>";
+				}
+				echo "<br/><br/>";
+			}
+			echo "<br/><br/><br/><br/>";
+			
 			
 			foreach($rows as $i => $r){
 				if ($i > 0){
-					if ($r->prod_model !== $rows[$i-1]->prod_model) echo "=============================<br/><br/>";
+					if ($r->prod_model !== $rows[$i-1]->prod_model){
+						echo "=============================<br/><br/>";
+					}
 				}
 				
 				print_r($r); echo "<br/><br/>";
