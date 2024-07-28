@@ -872,13 +872,13 @@ class Sa_promotion extends CI_Controller {
 		
 		$start_time = microtime(true);
 		
+		copy("./upload/sa_promotion.xls", "./upload/sa_promotion_result.xls");
+		
 		//load excel file
 		$spreadsheet = IOFactory::load("./upload/sa_promotion.xls");
 		$sheet = $spreadsheet->getSheetByName("CALCULATE");
 		
 		$promotions = $this->set_promotions($sheet, $show_msg);
-		
-		copy("./upload/sa_promotion.xls", "./upload/sa_promotion_result.xls");
 		
 		//result writing - promotion
 		$spreadsheet = IOFactory::load("./upload/sa_promotion_result.xls");
