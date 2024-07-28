@@ -447,6 +447,28 @@ class Sa_promotion extends CI_Controller {
 		$writer->save('./upload/'.$name_g);
 	}
 	
+	private function get_last_cost_prom($promotions, $i, $item_p){
+		//echo "<br/><br/><br/><br/><br/>";
+		
+		/*
+		echo $i." =============> ";
+		print_r($item_p); echo "<br/>";
+		print_r($promotions);
+		*/
+		
+		$cost_prom = 0;
+		foreach($promotions as $index => $item){
+			if ($i == $index) break;
+			elseif ((strtotime($item->date_start) <= strtotime($item_p->date_start)) and (strtotime($item_p->date_end) <= strtotime($item->date_end))) $cost_prom = $item->cost_prom;
+		}
+		
+		
+		return $cost_prom;
+		
+		
+		//echo "<br/><br/><br/><br/><br/>";
+	}
+	
 	public function test(){
 		set_time_limit(0);
 		
@@ -541,20 +563,47 @@ class Sa_promotion extends CI_Controller {
 			foreach($promotions as $item) $data[$item->prod_model]["promotions"][] = $item;
 			
 			//start calculation
-			foreach($data as $i => $item){
+			foreach($data as $item){
 				if ($item["promotions"]){
-					echo "===============================================================================<br/>";
-					echo $item["model"]; echo "<br/><br/>";
+					echo $item["model"]; echo " ==============================================================<br/><br/>";
 					
-					echo "Sell outs:<br/>";
-					foreach($item["sell_outs"] as $sell_out){
-						print_r($sell_out);
-						echo "<br/>";
+					echo "----------------------------------------------------------<br/>";
+					echo "Sell Outs ------------------------------------------------<br/>";
+					foreach($item["sell_outs"] as $item_s){
+						//print_r($item_s);
+						echo $item_s->sunday." /// ".$item_s->units." /// ".round($item_s->amount/$item_s->units, 2)." /// ".$item_s->amount."<br/>";
 					}
+					echo "<br/>";
 					
-					echo "<br/><br/>";
 					
-					foreach($item["promotions"] as $item_p){
+					echo "----------------------------------------------------------<br/>";
+					echo "Last Sell In ---------------------------------------------<br/>";
+					$last_sell_in = $this->gen_m->filter("sa_sell_in", false, ["bill_to_code" => $bill_to, "model" => $item["model"], "closed_date <" => $item["promotions"][0]->date_start, "order_qty >" => 0], null, null, [["closed_date", "desc"]], 1);
+					$cost_sellin = $last_sell_in ? $last_sell_in[0]->unit_selling_price : 0;
+					
+					if ($last_sell_in) echo $last_sell_in[0]->closed_date." /// ".$last_sell_in[0]->unit_selling_price."<br/>";
+					echo "<br/>";
+					
+					echo "----------------------------------------------------------<br/>";
+					echo "Promotions -----------------------------------------------<br/>";
+					
+					foreach($item["promotions"] as $i => $item_p){
+						$item_p->cost_sellin = $i > 0 ? $this->get_last_cost_prom($item["promotions"], $i, $item_p) : $cost_sellin;
+						
+						//calculate qty
+						$qty = 0;
+						foreach($item["sell_outs"] as $sell_out)
+							if ((strtotime($item_p->date_start) <= strtotime($sell_out->sunday)) and (strtotime($sell_out->sunday) <= strtotime($item_p->date_end)))
+								$qty += $sell_out->units;
+						
+						$item_p->qty = $qty;
+						
+						//calculate diff
+						$item_p->diff = $item_p->cost_sellin - $item_p->cost_prom;
+						
+						//calculate total
+						$item_p->total = $item_p->diff * $item_p->qty;
+						
 						print_r($item_p);
 						echo "<br/><br/>";
 					}
@@ -567,8 +616,7 @@ class Sa_promotion extends CI_Controller {
 					
 					
 					
-					$last_sell_in = $this->gen_m->filter("sa_sell_in", false, ["bill_to_code" => $bill_to, "model" => $item["model"], "closed_date <" => $item["promotions"][0]->date_start, "order_qty >" => 0], null, null, [["closed_date", "desc"]], 1);
-					$data[$i]["promotions"][0]->cost_sellin = $last_sell_in ? $last_sell_in[0]->unit_selling_price : 0;
+					
 					
 					print_r($last_sell_in); echo "<br/><br/>";
 					
