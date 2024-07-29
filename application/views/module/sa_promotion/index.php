@@ -16,13 +16,9 @@
 				<div class="card-body">
 					<h5 class="card-title">Promotion</h5>
 					<form class="row g-3" id="form_promotion_calculation">
-						<div class="col-md-6">
-							<label class="form-label">Promotion</label>
-							<input type="file" class="form-control" name="file_p">
-						</div>
-						<div class="col-md-6">
-							<label class="form-label">GEPR</label>
-							<input type="file" class="form-control" name="file_g">
+						<div class="col-md-12">
+							<label class="form-label">Attachment</label>
+							<input type="file" class="form-control" name="attach">
 						</div>
 						<div class="col-md-12 pt-3 text-center">
 							<button type="submit" class="btn btn-primary">Submit</button>
@@ -81,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_promotion_calculation").submit(function(e) {
 		e.preventDefault();
 		$("#form_promotion_calculation .sys_msg").html("");
-		ajax_form_warning(this, "module/promotion/calculation", "Do you want to generate promotion calculation report?").done(function(res) {
+		ajax_form_warning(this, "module/sa_promotion/calculation", "Do you want to generate promotion calculation report?").done(function(res) {
 			swal_open_tab(res.type, res.msg, res.url);
 		});
 	});

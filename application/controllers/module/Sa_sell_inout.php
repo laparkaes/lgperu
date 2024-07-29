@@ -329,7 +329,7 @@ class Sa_sell_inout extends CI_Controller {
 			$this->gen_m->update("sa_sell_in", ["product_level1_name" => $m->product_level1_name, "product_level2_name" => $m->product_level2_name, "product_level3_name" => $m->product_level3_name, "product_level4_name" => $m->product_level4_name], ["model_category" => $m->model_category]);
 		}
 		
-		//based on lvl 4
+		//based on lvl 2
 		$s = ["model_category", "product_level1_name", "product_level2_name"];
 		$models = $this->gen_m->filter_select("sa_sell_in", false, $s, ["model_category !=" => null], null, null, null, null, null, "product_level2_name");
 		foreach($models as $m){
