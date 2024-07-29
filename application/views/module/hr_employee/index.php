@@ -10,9 +10,6 @@
 	</div>
 	<div>
 		<a href="#" type="button" class="btn btn-success">
-			<i class="bi bi-search"></i>
-		</a>
-		<a href="#" type="button" class="btn btn-success">
 			<i class="bi bi-plus-lg"></i>
 		</a>
 	</div>
@@ -34,6 +31,7 @@
 									<th scope="col">Location</th>
 									<th scope="col">Emp.Num.</th>
 									<th scope="col">Name</th>
+									<th scope="col">Access</th>
 									<th scope="col"></th>
 								</tr>
 							</thead>
@@ -47,10 +45,13 @@
 									<td><?= $emp->location  ?></td>
 									<td><?= $emp->employee_number  ?></td>
 									<td><?= $emp->name  ?></td>
-									<td class="text-end">
-										<button type="button" class="btn btn-link">
-											<i class="bi bi-file-earmark-fill"></i>
-										</button>
+									<td><i class="bi bi-circle-fill text-<?= $emp->password ? "success" : "danger" ?> ic_control_access"></i></td>
+									<td>
+										<div class="text-end">
+											<a href="<?= base_url() ?>hr_employee/edit/<?= $emp->employee_id ?>" class="btn btn-link">
+												<i class="bi bi-file-earmark-fill"></i>
+											</a>
+										</div>
 									</td>
 								</tr>
 								<?php } ?>
@@ -64,6 +65,9 @@
 </section>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+	//ic_control_access
+	
+	
 	/*
 	$("#form_uff_w_hour").submit(function(e) {
 		e.preventDefault();
