@@ -117,6 +117,7 @@ class Local_api extends CI_Controller {
 		echo json_encode($res);
 	}
 	
+	
 	public function get_divisions(){
 		//llamasys/local_api/get_division?key=lgepr
 		
@@ -155,8 +156,6 @@ class Local_api extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode($res);
 	}
-	
-				
 
 	public function get_obs_ml_month(){
 		//llamasys/local_api/get_obs_ml_month?key=lgepr
@@ -171,9 +170,5 @@ class Local_api extends CI_Controller {
 		
 		header('Content-Type: application/json');
 		echo json_encode($res);
-		
-		
-		
-		
 	}
 }
