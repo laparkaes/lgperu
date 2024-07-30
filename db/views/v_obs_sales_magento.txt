@@ -1,0 +1,18 @@
+============================================
+Create =======================================
+
+CREATE VIEW v_obs_magento
+AS
+	SELECT `magento_id` as `purchase_no`, `gerp_order_no`, `local_time`, `company_name_through_vipkey`, `vipkey`, `coupon_code`, `coupon_rule`, `devices`, `customer_group`, `payment_method`, `ip_address`, `sale_channel`, `department`, `province`, `customer_name` FROM `obs_magento` ORDER BY `local_time` DESC
+
+============================================
+Update =======================================
+
+ALTER VIEW v_obs_magento
+AS
+	SELECT `magento_id` as `purchase_no`, `gerp_order_no`, `local_time`, `company_name_through_vipkey`, `vipkey`, `coupon_code`, `coupon_rule`, `devices`, `customer_group`, `payment_method`, `ip_address`, `sale_channel`, `department`, `province`, `customer_name` FROM `obs_magento` ORDER BY `local_time` DESC
+
+============================================
+Delete =======================================
+
+DROP VIEW v_obs_magento
