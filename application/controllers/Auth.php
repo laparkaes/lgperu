@@ -23,25 +23,27 @@ class Auth extends CI_Controller {
 		
 		$employee = $this->gen_m->unique("hr_employee", "ep_mail", $this->input->post("ep_mail"));
 		if ($employee){
-			if (password_verify($this->input->post("password"), $employee->password)){
-				unset($employee->password);
-				unset($employee->is_supervised);
-				unset($employee->valid);
-				
-				$session_data = array(
-					"employee_id" => $employee->employee_id,
-					"employee_number" => $employee->employee_number,
-					"name" => $employee->name,
-					"department" => $employee->department,
-					"logged_in" => true
-				);
-				$this->session->set_userdata($session_data);
-				
-				
-				$type = "success";
-				$msg = "Welcome!";
-				$url = base_url()."dashboard";
-			}else $msg = "Wrong password.";
+			if ($employee->password){
+				if (password_verify($this->input->post("password"), $employee->password)){
+					unset($employee->password);
+					unset($employee->is_supervised);
+					unset($employee->valid);
+					
+					$session_data = array(
+						"employee_id" => $employee->employee_id,
+						"employee_number" => $employee->employee_number,
+						"name" => $employee->name,
+						"department" => $employee->department,
+						"logged_in" => true
+					);
+					$this->session->set_userdata($session_data);
+					
+					
+					$type = "success";
+					$msg = "Welcome!";
+					$url = base_url()."dashboard";
+				}else $msg = "Wrong password.";
+			}else $msg = "Employee doesn't have access. Contact with PI please.";
 		}else $msg = "Employee doesn't exists.";
 		
 		//$msg = password_hash("1234567890a", PASSWORD_BCRYPT);
