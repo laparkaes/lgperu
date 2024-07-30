@@ -169,13 +169,12 @@ class Obs extends CI_Controller {
 		$from_sales = date("Y-01-01");
 		$from_magento = date("Y-m-01", strtotime("-1 month", strtotime($from_sales)));
 		
+		//set magento list by key = [gerp order no]
 		$magentos_list = [];
 		$magentos_list["structure"] = $this->gen_m->structure("v_obs_magento");
 		$magentos = $this->gen_m->filter("v_obs_magento", false, ["local_time >= " => $from_magento." 00:00:00", "gerp_order_no >" => 0]);//echo count($magentos)."<br/><br/>";
-		foreach($magentos as $item){
-			$magentos_list[$item->gerp_order_no] = $item;
-			//print_r($item); echo "<br/><br/>";
-		}
+		foreach($magentos as $item) $magentos_list[$item->gerp_order_no] = $item;
+		
 		
 		$sales = $this->gen_m->filter("v_obs_sales_order", false, ["create_date >= " => $from_sales]);//echo count($sales)."<br/><br/>";
 		foreach($sales as $item){
