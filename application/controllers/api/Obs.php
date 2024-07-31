@@ -165,8 +165,10 @@ class Obs extends CI_Controller {
 	}
 	
 	public function test(){
+		$today = date("Y-m-d");
 		
-		$from_sales = date("Y-01-01");
+		//$from_sales = date("Y-01-01");
+		$from_sales = date("Y-m-01", strtotime("-1 year", strtotime($today)));
 		$from_magento = date("Y-m-01", strtotime("-1 month", strtotime($from_sales)));
 		
 		//set magento list by key = [gerp order no]
@@ -175,22 +177,25 @@ class Obs extends CI_Controller {
 		$magentos = $this->gen_m->filter("v_obs_magento", false, ["local_time >= " => $from_magento." 00:00:00", "gerp_order_no >" => 0]);//echo count($magentos)."<br/><br/>";
 		foreach($magentos as $item) $magentos_list[$item->gerp_order_no] = $item;
 		
+		$f_dates = [];
 		
 		$sales = $this->gen_m->filter("v_obs_sales_order", false, ["create_date >= " => $from_sales]);//echo count($sales)."<br/><br/>";
 		foreach($sales as $item){
-			if (array_key_exists($item->order_no, $magentos_list)){
-				$magento_aux = $magentos_list[$item->order_no];
-			}else{
+			if (array_key_exists($item->order_no, $magentos_list)) $magento_aux = $magentos_list[$item->order_no];
+			else{
 				$magento_aux = $magentos_list["structure"];
 				$magento_aux->local_time = $item->create_date." 00:00:00";
-				//echo "No tieneeeeeeeeeee<br/>";
 			}
 			
 			foreach($magento_aux as $key => $val) $item->$key = $val;
 			
+			$f_dates[] = $item->create_date;
+			
 			print_r($item); echo "<br/><br/>";
 		}
 		
+		$f_dates = array_unique($f_dates); sort($f_dates);
+		print_r($f_dates); echo "<br/><br/>";
 		
 	}
 	
