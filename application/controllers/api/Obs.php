@@ -165,11 +165,45 @@ class Obs extends CI_Controller {
 	}
 	
 	public function test(){
+		//define mapping datas
+		$m_bill_to_name = [
+			"B2B2C" => "D2B2C",
+			"B2C" => "D2C",
+			"B2E" => "D2E",
+			"B2P" => "D2P",
+			"One time_Boleta" => "D2C",
+		];
+		
+		//define dates
 		$today = date("Y-m-d");
 		
-		//$from_sales = date("Y-01-01");
 		$from_sales = date("Y-m-01", strtotime("-1 year", strtotime($today)));
 		$from_magento = date("Y-m-01", strtotime("-1 month", strtotime($from_sales)));
+		
+		/*
+		set filters
+		1. create_date
+		2. bill_to_name
+		*/
+		$f_date = $f_bill_to_name = [];
+		
+		//1. dates
+		$dates = $this->gen_m->only("v_obs_sales_order", "create_date", ["create_date >= " => $from_sales]);
+		foreach($dates as $item) $f_date[] = $item->create_date;
+		$f_date = array_unique($f_date); 
+		sort($f_date);
+		
+		//2. bill_to_name
+		$dates = $this->gen_m->only("v_obs_sales_order", "bill_to_name");
+		foreach($dates as $item) $f_bill_to_name[] = $item->bill_to_name;
+		sort($f_bill_to_name);
+		
+		//print filters
+		echo "==========================================================<br/>date filters: ==================================================<br/><br/>"; print_r($f_date); echo "<br/><br/>";
+		echo "==========================================================<br/>bill_to_name filters: ==================================================<br/><br/>"; print_r($f_bill_to_name); echo "<br/><br/>";
+		
+		//return;
+		
 		
 		//set magento list by key = [gerp order no]
 		$magentos_list = [];
@@ -177,7 +211,7 @@ class Obs extends CI_Controller {
 		$magentos = $this->gen_m->filter("v_obs_magento", false, ["local_time >= " => $from_magento." 00:00:00", "gerp_order_no >" => 0]);//echo count($magentos)."<br/><br/>";
 		foreach($magentos as $item) $magentos_list[$item->gerp_order_no] = $item;
 		
-		$f_dates = [];
+		echo "==========================================================<br/>rawdatas: ==================================================<br/><br/>";
 		
 		$sales = $this->gen_m->filter("v_obs_sales_order", false, ["create_date >= " => $from_sales]);//echo count($sales)."<br/><br/>";
 		foreach($sales as $item){
@@ -188,14 +222,13 @@ class Obs extends CI_Controller {
 			}
 			
 			foreach($magento_aux as $key => $val) $item->$key = $val;
-			
-			$f_dates[] = $item->create_date;
+		
+			//set up values by mapping array
+			$item->bill_to_name = $m_bill_to_name[$item->bill_to_name];
 			
 			print_r($item); echo "<br/><br/>";
 		}
 		
-		$f_dates = array_unique($f_dates); sort($f_dates);
-		print_r($f_dates); echo "<br/><br/>";
 		
 	}
 	

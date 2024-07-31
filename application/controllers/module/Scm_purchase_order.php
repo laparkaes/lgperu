@@ -566,12 +566,14 @@ class Scm_purchase_order extends CI_Controller {
 	public function add_sku(){
 		$type = "error"; $msg = "";
 		$data = $this->input->post();
+		$data["bill_to_code"] = trim($data["bill_to_code"]);
+		$data["sku"] = trim($data["sku"]);
+		$data["sku_customer"] = trim($data["sku_customer"]);
 	
 		if (!$data["bill_to_code"]) $msg = "Select a customer.";
 		elseif (!$data["sku"]) $msg = "Enter SKU (LG product model).";
 		elseif (!$data["sku_customer"]) $msg = "Enter customer SKU.";
 		elseif ($this->gen_m->filter("scm_sku", false, $data)) $msg = "SKU already exists.";
-		
 		
 		if (!$msg){
 			if ($this->gen_m->insert("scm_sku", $data)){
