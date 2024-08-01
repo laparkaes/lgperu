@@ -366,9 +366,6 @@ class Sa_promotion extends CI_Controller {
 			
 			foreach($promotions as $item) $data[$item->prod_model]["promotions"][] = $item;
 			
-			//get sell in/out
-			$sell_inouts = $this->get_sell_inout_new($bill_to, $models);
-			
 			//start calculation
 			foreach($data as $item){
 				if ($item["promotions"]){
@@ -376,23 +373,10 @@ class Sa_promotion extends CI_Controller {
 					
 					//calculate init cost
 					$init_cost = $last_sell_in ? $last_sell_in[0]->unit_selling_price : 0;//based in last sell in
-					//$init_cost = $this->get_last_unit_cost($sell_inouts, $item["model"], $to);//based in client recent unit cost
-					
 					
 					if ($show_msg){
 						echo $item["model"]; echo " ==============================================================<br/><br/>";
 						echo "init_cost: ".$init_cost."<br/><br/>";
-						
-						if (array_key_exists($item["model"], $sell_inouts)){
-							echo "----------------------------------------------------------<br/>";
-							echo "Sell in/outs ------------------------------------------------<br/>";
-							foreach($sell_inouts[$item["model"]] as $item_io){
-								unset($item_io->invoice_no);
-								unset($item_io->invoices);
-								print_r($item_io); echo "<br/>";
-							}
-							echo "<br/>";
-						}
 						
 						echo "----------------------------------------------------------<br/>";
 						echo "Sell Outs ------------------------------------------------<br/>";
