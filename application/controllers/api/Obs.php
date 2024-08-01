@@ -172,6 +172,8 @@ class Obs extends CI_Controller {
 		$records = $this->gen_m->only($v_name, $field);
 		foreach($records as $item) $list[] = $item->$field;
 		
+		$list = array_filter($list);
+		
 		//change values if mapping exists
 		if ($mapping) foreach($list as $i => $item) $list[$i] = $mapping[$item];
 		
