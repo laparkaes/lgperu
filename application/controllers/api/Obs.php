@@ -164,7 +164,51 @@ class Obs extends CI_Controller {
 		}
 	}
 	
+	private function filter_maker($v_name, $field, $mapping = null){
+		//array to save items
+		$list = [];
+		
+		//load unique values from DB and save in list
+		$records = $this->gen_m->only($v_name, $field);
+		foreach($records as $item) $list[] = $item->$field;
+		
+		//change values if mapping exists
+		if ($mapping) foreach($list as $i => $item) $list[$i] = $mapping[$item];
+		
+		//unique items
+		$list = array_filter(array_unique($list));
+		
+		//sort list asc
+		sort($list);
+		
+		return $list;
+	}
+	
 	public function test(){
+		//define show orders
+		$companies = [
+			["order" => 1, "company" => "H&A"],
+			["order" => 2, "company" => "HE"],
+			["order" => 3, "company" => "BS"],
+		];
+		
+		//Array ( [1] => Chilller [2] => Audio [4] => Commercial TV [5] => Cooking [6] => LTV [8] => MNT [11] => PC [12] => RAC [13] => REF [14] => SAC [15] => MNT Signage [16] => W/M ) 
+		$divisions = [
+			["order" => 1, "company" => "H&A", "division" => "REF"],
+			["order" => 2, "company" => "H&A", "division" => "Cooking"],
+			["order" => 3, "company" => "H&A", "division" => "W/M"],
+			["order" => 4, "company" => "H&A", "division" => "RAC"],
+			["order" => 5, "company" => "H&A", "division" => "SAC"],
+			["order" => 6, "company" => "H&A", "division" => "Chilller"],
+			["order" => 7, "company" => "HE", "division" => "LTV"],
+			["order" => 8, "company" => "HE", "division" => "Audio"],
+			["order" => 9, "company" => "BS", "division" => "MNT"],
+			["order" => 10, "company" => "BS", "division" => "PC"],
+			["order" => 11, "company" => "BS", "division" => "DS"],
+			["order" => 12, "company" => "BS", "division" => "MNT Signage"],
+			["order" => 13, "company" => "BS", "division" => "Commercial TV"],
+		];
+		
 		//define mapping datas
 		$m_bill_to_name = [
 			"B2B2C" => "D2B2C",
@@ -174,36 +218,125 @@ class Obs extends CI_Controller {
 			"One time_Boleta" => "D2C",
 		];
 		
+		//( [0] => Awaiting Shipping [1] => Booked [2] => Closed [3] => Pending pre-billing acceptance ) 
+		$m_line_status = [
+			"Awaiting Shipping" => "Shipping",
+			"Booked" => "Booked",
+			"Closed" => "Closed",
+			"Pending pre-billing acceptance" => "Billing",
+		];
+		
+		//( [1] => A/C [2] => AUD [3] => CAV [4] => CTV [5] => CVT [6] => LCD [7] => LTV [8] => MNT [9] => MWO [10] => O [11] => PC [12] => RAC [13] => REF [14] => SAC [15] => SGN [16] => W/M ) + DS
+		$m_model_category = [
+			"A/C" => "Chilller",
+			"AUD" => "Audio",
+			"CAV" => "Audio",
+			"CTV" => "Commercial TV",
+			"CVT" => "Cooking",
+			"DS" => "DS",
+			"LCD" => "LTV",
+			"LTV" => "LTV",
+			"MNT" => "MNT",
+			"MWO" => "Cooking",
+			"O" => "Cooking",
+			"PC" => "PC",
+			"RAC" => "RAC",
+			"REF" => "REF",
+			"SAC" => "SAC",
+			"SGN" => "MNT Signage",
+			"W/M" => "W/M",
+		];
+		
 		//define dates
 		$today = date("Y-m-d");
 		
 		$from_sales = date("Y-m-01", strtotime("-1 year", strtotime($today)));
 		$from_magento = date("Y-m-01", strtotime("-1 month", strtotime($from_sales)));
 		
-		/*
-		set filters
-		1. create_date
-		2. bill_to_name
-		*/
-		$f_date = $f_bill_to_name = [];
+		//dates filter prepareing
+		$f_year = $f_month = $f_date = [];
 		
-		//1. dates
 		$dates = $this->gen_m->only("v_obs_sales_order", "create_date", ["create_date >= " => $from_sales]);
-		foreach($dates as $item) $f_date[] = $item->create_date;
-		$f_date = array_unique($f_date); 
+		foreach($dates as $item){
+			$f_year[] = date("Y", strtotime($item->create_date));
+			$f_month[] = date("Y-m", strtotime($item->create_date));
+			$f_date[] = $item->create_date;
+		}
+		$f_year = array_unique($f_year);
+		$f_month = array_unique($f_month);
+		$f_date = array_unique($f_date);
+		sort($f_year);
+		sort($f_month);
 		sort($f_date);
 		
-		//2. bill_to_name
-		$dates = $this->gen_m->only("v_obs_sales_order", "bill_to_name");
-		foreach($dates as $item) $f_bill_to_name[] = $item->bill_to_name;
-		sort($f_bill_to_name);
+		$response = [
+			"f_year"			=> $f_year,
+			"f_month"			=> $f_month,
+			"f_date"			=> $f_date,
+			"f_bill_to_name"	=> $this->filter_maker("v_obs_sales_order", "bill_to_name", $m_bill_to_name),
+			"f_line_status"		=> $this->filter_maker("v_obs_sales_order", "line_status", $m_line_status),
+			"f_order_category"	=> $this->filter_maker("v_obs_sales_order", "order_category"),
+			"f_division"		=> $this->filter_maker("v_obs_sales_order", "model_category", $m_model_category),
+			"f_subsidiary"		=> $this->filter_maker("v_obs_sales_order", "customer_department"),
+		];
 		
-		//print filters
-		echo "==========================================================<br/>date filters: ==================================================<br/><br/>"; print_r($f_date); echo "<br/><br/>";
-		echo "==========================================================<br/>bill_to_name filters: ==================================================<br/><br/>"; print_r($f_bill_to_name); echo "<br/><br/>";
 		
-		//return;
+		foreach($response as $name => $item){
+			echo "==============================<br/>".$name.": ==============================<br/><br/>"; print_r($item); echo "<br/><br/>";
+		}
 		
+		/*
+			[bill_to] => PE008292002B 
+		[bill_to_name] => D2B2C 
+			[order_no] => 1000447875 
+			[line_no] => 1.1 
+		[line_status] => Booked 
+			[order_status] => Booked 
+		[order_category] => ORDER 
+		[model_category] => W/M 
+			[model] => WT21VV6.ASSGLGP 
+			[ordered_qty] => 1 
+			[currency] => PEN 
+			[unit_selling_price] => 1770.38 
+			[sales_amount] => 1770.38 
+			[tax_amount] => 318.67 
+			[charge_amount] => 0 
+			[line_total] => 2089.05 
+			[create_date] => 2024-07-08 
+			[booked_date] => 2024-07-08 
+			[req_arrival_date_to] => 2024-07-09 
+			[shipment_date] => 
+			[close_date] => 
+			[receiver_city] => Lima/Lima/Villa El Salvador 
+			[item_type_desctiption] => Merchandise 
+			[item_division] => DFZ 
+			[product_level1_name] => Washing Machine 
+			[product_level2_name] => Clothes Washer 
+			[product_level3_name] => Clothes Washer_Top Loader 
+			[product_level4_name] => Clothes Washer_Turbo Drum 
+		[customer_department] => LGEPR 
+			[inventory_org] => N4E 
+			[purchase_no] => 
+			[gerp_order_no] => 
+			[local_time] => 2024-07-08 00:00:00 
+			[company_name_through_vipkey] => 
+			[vipkey] => 
+			[coupon_code] => 
+			[coupon_rule] => 
+			[devices] => 
+			[customer_group] => 
+			[payment_method] => 
+			[ip_address] => 
+			[sale_channel] => 
+			[department] => 
+			[province] => 
+			[customer_name] =>
+		*/
+		
+		
+		return;
+		
+		//make exchange rate array using month filter => $f_month
 		
 		//set magento list by key = [gerp order no]
 		$magentos_list = [];
