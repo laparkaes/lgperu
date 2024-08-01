@@ -382,6 +382,13 @@ class Obs extends CI_Controller {
 		
 	}
 	
+	public function magento(){
+		$magentos = $this->gen_m->filter("v_obs_magento", false, ["local_time >= " => "2022-01-01 00:00:00"]);
+		
+		header('Content-Type: application/json');
+		echo json_encode($magentos);
+	}
+	
 	/*
 	public function get_exchange_rate(){
 		//llamasys/local_api/get_exchange_rate?key=lgepr
