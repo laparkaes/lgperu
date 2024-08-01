@@ -174,6 +174,8 @@ class Obs extends CI_Controller {
 		
 		$list = array_filter($list);
 		
+		print_r($list); echo "<br/>";
+		
 		//change values if mapping exists
 		if ($mapping) foreach($list as $i => $item) $list[$i] = $mapping[$item];
 		
@@ -187,15 +189,22 @@ class Obs extends CI_Controller {
 	}
 	
 	public function test(){
-		//define show orders
-		$companies = [
+		//define dates
+		$today = date("Y-m-d");
+		
+		$from_sales = date("Y-m-01", strtotime("-1 year", strtotime($today)));
+		$from_magento = date("Y-m-01", strtotime("-1 month", strtotime($from_sales)));
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//view datas
+		$v_companies = [
 			["order" => 1, "company" => "H&A"],
 			["order" => 2, "company" => "HE"],
 			["order" => 3, "company" => "BS"],
 		];
 		
 		//Array ( [1] => Chilller [2] => Audio [4] => Commercial TV [5] => Cooking [6] => LTV [8] => MNT [11] => PC [12] => RAC [13] => REF [14] => SAC [15] => MNT Signage [16] => W/M ) 
-		$divisions = [
+		$v_divisions = [
 			["order" => 1, "company" => "H&A", "division" => "REF"],
 			["order" => 2, "company" => "H&A", "division" => "Cooking"],
 			["order" => 3, "company" => "H&A", "division" => "W/M"],
@@ -211,7 +220,13 @@ class Obs extends CI_Controller {
 			["order" => 13, "company" => "BS", "division" => "Commercial TV"],
 		];
 		
-		//define mapping datas
+		//Array ( [0] => Billing [1] => Booked [2] => Closed [3] => Returning [4] => Shipping )
+		$v_status = [
+			
+		];
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//mapping datas
 		$m_bill_to_name = [
 			"B2B2C" => "D2B2C",
 			"B2C" => "D2C",
@@ -220,8 +235,10 @@ class Obs extends CI_Controller {
 			"One time_Boleta" => "D2C",
 		];
 		
-		//( [0] => Awaiting Shipping [1] => Booked [2] => Closed [3] => Pending pre-billing acceptance ) 
+		//( [0] => Awaiting Fulfillment [1] => Awaiting Return [2] => Awaiting Shipping [3] => Booked [4] => Closed [5] => Pending pre-billing acceptance )
 		$m_line_status = [
+			"Awaiting Fulfillment" => "Booked",
+			"Awaiting Return" => "Returning",
 			"Awaiting Shipping" => "Shipping",
 			"Booked" => "Booked",
 			"Closed" => "Closed",
@@ -249,13 +266,8 @@ class Obs extends CI_Controller {
 			"W/M" => "W/M",
 		];
 		
-		//define dates
-		$today = date("Y-m-d");
-		
-		$from_sales = date("Y-m-01", strtotime("-1 year", strtotime($today)));
-		$from_magento = date("Y-m-01", strtotime("-1 month", strtotime($from_sales)));
-		
-		//dates filter prepareing
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//filter datas
 		$f_year = $f_month = $f_date = [];
 		
 		$dates = $this->gen_m->only("v_obs_sales_order", "create_date", ["create_date >= " => $from_sales]);
@@ -338,9 +350,12 @@ class Obs extends CI_Controller {
 		
 		return;
 		
-		//make exchange rate array using month filter => $f_month
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//exchage rates
 		
-		//set magento list by key = [gerp order no]
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//rawdatas
 		$magentos_list = [];
 		$magentos_list["structure"] = $this->gen_m->structure("v_obs_magento");
 		$magentos = $this->gen_m->filter("v_obs_magento", false, ["local_time >= " => $from_magento." 00:00:00", "gerp_order_no >" => 0]);//echo count($magentos)."<br/><br/>";
