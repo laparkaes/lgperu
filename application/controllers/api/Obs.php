@@ -361,7 +361,7 @@ class Obs extends CI_Controller {
 		foreach($magentos as $item) $magentos_list[$item->gerp_order_no] = $item;
 		
 		$sales = $this->gen_m->filter("v_obs_sales_order", false, ["create_date >= " => $from_sales]);//echo count($sales)."<br/><br/>";
-		foreach($sales as $item){
+		foreach($sales as $i => $item){
 			if (array_key_exists($item->order_no, $magentos_list)) $magento_aux = $magentos_list[$item->order_no];
 			else{
 				$magento_aux = $magentos_list["structure"];
@@ -371,13 +371,15 @@ class Obs extends CI_Controller {
 			foreach($magento_aux as $key => $val) $item->$key = $val;
 		
 			//usd sales amount
-			$item->sales_amount_usd = round($item->sales_amount / $exchange_rates[date("Y-m", strtotime($item->create_date))], 2);
+			$item->exchange_rate = $exchange_rates[date("Y-m", strtotime($item->create_date))];
+			$item->sales_amount_usd = round($item->sales_amount / $item->exchange_rate, 2);
 		
 			//set up values by mapping array
 			$item->bill_to_name = $m_bill_to_name[$item->bill_to_name];
 			$item->line_status = $m_line_status[$item->line_status];
 			$item->model_category = $m_model_category[$item->model_category];
 			
+			if ($i > 100) break;
 			//print_r($item); echo "<br/><br/>";
 		}
 		
