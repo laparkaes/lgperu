@@ -174,7 +174,7 @@ class Obs extends CI_Controller {
 		
 		$list = array_filter($list);
 		
-		print_r($list); echo "<br/>";
+		//print_r($list); echo "<br/>";
 		
 		//change values if mapping exists
 		if ($mapping) foreach($list as $i => $item) $list[$i] = $mapping[$item];
@@ -222,7 +222,11 @@ class Obs extends CI_Controller {
 		
 		//Array ( [0] => Billing [1] => Booked [2] => Closed [3] => Returning [4] => Shipping )
 		$v_status = [
-			
+			["order" => 1, "status" => "Booked"],
+			["order" => 2, "status" => "Shipping"],
+			["order" => 3, "status" => "Billing"],
+			["order" => 4, "status" => "Closed"],
+			["order" => 5, "status" => "Returning"],
 		];
 		
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -247,6 +251,7 @@ class Obs extends CI_Controller {
 		
 		//( [1] => A/C [2] => AUD [3] => CAV [4] => CTV [5] => CVT [6] => LCD [7] => LTV [8] => MNT [9] => MWO [10] => O [11] => PC [12] => RAC [13] => REF [14] => SAC [15] => SGN [16] => W/M ) + DS
 		$m_model_category = [
+			"" => "",
 			"A/C" => "Chilller",
 			"AUD" => "Audio",
 			"CAV" => "Audio",
@@ -276,28 +281,31 @@ class Obs extends CI_Controller {
 			$f_month[] = date("Y-m", strtotime($item->create_date));
 			$f_date[] = $item->create_date;
 		}
+		
 		$f_year = array_unique($f_year);
 		$f_month = array_unique($f_month);
 		$f_date = array_unique($f_date);
+		
 		sort($f_year);
 		sort($f_month);
 		sort($f_date);
 		
-		$response = [
-			"f_year"			=> $f_year,
-			"f_month"			=> $f_month,
-			"f_date"			=> $f_date,
-			"f_bill_to_name"	=> $this->filter_maker("v_obs_sales_order", "bill_to_name", $m_bill_to_name),
-			"f_line_status"		=> $this->filter_maker("v_obs_sales_order", "line_status", $m_line_status),
-			"f_order_category"	=> $this->filter_maker("v_obs_sales_order", "order_category"),
-			"f_division"		=> $this->filter_maker("v_obs_sales_order", "model_category", $m_model_category),
-			"f_subsidiary"		=> $this->filter_maker("v_obs_sales_order", "customer_department"),
-		];
-		
-		
-		foreach($response as $name => $item){
-			echo "==============================<br/>".$name.": ==============================<br/><br/>"; print_r($item); echo "<br/><br/>";
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//exchage rates
+		$exchange_rates = [];
+		foreach($f_month as $item){
+			$now = strtotime($item);
+			$f = date("Y-m-01", $now);
+			$t = date("Y-m-t", $now);
+			$er = $this->gen_m->avg("exchange_rate", "avg", ["date >=" => $f, "date <=" => $t]);
+			
+			if ($er->avg) $last_er = round($er->avg, 2);
+			$exchange_rates[$item] = $er->avg ? round($er->avg, 2) : $last_er;
 		}
+		//print_r($exchange_rates);
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//rawdatas
 		
 		/*
 			[bill_to] => PE008292002B 
@@ -329,7 +337,7 @@ class Obs extends CI_Controller {
 			[product_level3_name] => Clothes Washer_Top Loader 
 			[product_level4_name] => Clothes Washer_Turbo Drum 
 		[customer_department] => LGEPR 
-			[inventory_org] => N4E 
+		[inventory_org] => N4E 
 			[purchase_no] => 
 			[gerp_order_no] => 
 			[local_time] => 2024-07-08 00:00:00 
@@ -347,21 +355,10 @@ class Obs extends CI_Controller {
 			[customer_name] =>
 		*/
 		
-		
-		return;
-		
-		//////////////////////////////////////////////////////////////////////////////////////////////////////////
-		//exchage rates
-		
-		
-		//////////////////////////////////////////////////////////////////////////////////////////////////////////
-		//rawdatas
 		$magentos_list = [];
 		$magentos_list["structure"] = $this->gen_m->structure("v_obs_magento");
 		$magentos = $this->gen_m->filter("v_obs_magento", false, ["local_time >= " => $from_magento." 00:00:00", "gerp_order_no >" => 0]);//echo count($magentos)."<br/><br/>";
 		foreach($magentos as $item) $magentos_list[$item->gerp_order_no] = $item;
-		
-		echo "==========================================================<br/>rawdatas: ==================================================<br/><br/>";
 		
 		$sales = $this->gen_m->filter("v_obs_sales_order", false, ["create_date >= " => $from_sales]);//echo count($sales)."<br/><br/>";
 		foreach($sales as $item){
@@ -373,13 +370,37 @@ class Obs extends CI_Controller {
 			
 			foreach($magento_aux as $key => $val) $item->$key = $val;
 		
+			//usd sales amount
+			$item->sales_amount_usd = round($item->sales_amount / $exchange_rates[date("Y-m", strtotime($item->create_date))], 2);
+		
 			//set up values by mapping array
 			$item->bill_to_name = $m_bill_to_name[$item->bill_to_name];
+			$item->line_status = $m_line_status[$item->line_status];
+			$item->model_category = $m_model_category[$item->model_category];
 			
-			print_r($item); echo "<br/><br/>";
+			//print_r($item); echo "<br/><br/>";
 		}
 		
+		$response = [
+			"v_companies"		=> $v_companies,
+			"v_divisions"		=> $v_divisions,
+			"v_status"			=> $v_status,
+			"f_bill_to_name"	=> $this->filter_maker("v_obs_sales_order", "bill_to_name", $m_bill_to_name),
+			"f_line_status"		=> $this->filter_maker("v_obs_sales_order", "line_status", $m_line_status),
+			"f_order_category"	=> $this->filter_maker("v_obs_sales_order", "order_category"),
+			"f_division"		=> $this->filter_maker("v_obs_sales_order", "model_category", $m_model_category),
+			"f_subsidiary"		=> $this->filter_maker("v_obs_sales_order", "customer_department"),
+			"f_inventory"		=> $this->filter_maker("v_obs_sales_order", "inventory_org"),
+			"f_year"			=> $f_year,
+			"f_month"			=> $f_month,
+			"f_date"			=> $f_date,
+			"sales"				=> $sales,
+		];
 		
+		header('Content-Type: application/json');
+		echo json_encode($response);
+		
+		//foreach($response as $name => $item){echo "==============================<br/>".$name.": ==============================<br/><br/>"; print_r($item); echo "<br/><br/>";}
 	}
 	
 	public function magento(){
