@@ -157,15 +157,17 @@ class My_func{
 		return ["week" => $week, "dates" => $res];
 	}
 	
-	/* public function get_record($tablename, $data){
-		$record = $this->CI->gen_m->filter($tablename, true, $data);
-		if (!$record){
-			$this->CI->gen_m->insert($tablename, $data);
-			$record = $this->CI->gen_m->filter($tablename, true, $data);
-		}
-		
-		return $record[0];
-	}*/
+	public function diff_month($from, $to){
+		// 시작 날짜와 종료 날짜 설정
+		$startDate = new DateTime(date("Y-m-01", strtotime($from)));
+		$endDate = new DateTime(date("Y-m-01", strtotime($to)));
+
+		// 두 날짜 간의 차이 계산
+		$interval = $startDate->diff($endDate);
+
+		// 전체 월 수 계산
+		return ($interval->y * 12 + $interval->m);
+	}
 	
 	//exchange rate handler
 	public function get_exchange_rate_month_ttm($date){

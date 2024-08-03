@@ -360,6 +360,8 @@ class Obs extends CI_Controller {
 		$magentos = $this->gen_m->filter("v_obs_magento", false, ["local_time >= " => $from_magento." 00:00:00", "gerp_order_no >" => 0]);//echo count($magentos)."<br/><br/>";
 		foreach($magentos as $item) $magentos_list[$item->gerp_order_no] = $item;
 		
+		echo $today."<br/><br/>";
+		
 		$sales = $this->gen_m->filter("v_obs_sales_order", false, ["create_date >= " => $from_sales]);//echo count($sales)."<br/><br/>";
 		foreach($sales as $i => $item){
 			if (array_key_exists($item->order_no, $magentos_list)) $magento_aux = $magentos_list[$item->order_no];
@@ -379,8 +381,22 @@ class Obs extends CI_Controller {
 			$item->line_status = $m_line_status[$item->line_status];
 			$item->model_category = $m_model_category[$item->model_category];
 			
-			if ($i > 100) break;
+			//iod reference
+			$ref_iod_date = $item->close_date ? $item->close_date : $item->req_arrival_date_to;
+			$ref_iod_diff = $this->my_func->diff_month($ref_iod_date, $today);
+			
+			if ((strtotime($ref_iod_date) < strtotime($today))) $ref_iod_diff = -$ref_iod_diff;
+			
+			switch(true){
+				case (strtotime($ref_iod_date) > strtotime($today)): $item->ref_iod = "M+".$ref_iod_diff; break;
+				case (strtotime($ref_iod_date) < strtotime($today)): $item->ref_iod = "M".$ref_iod_diff; break;
+				default: $item->ref_iod = "M"; break;
+			}
+			
+			//if ($i > 100) break;
 			//print_r($item); echo "<br/><br/>";
+			
+			echo $item->ref_iod." /// ".$item->create_date." /// ".$item->close_date." /// ".$item->req_arrival_date_to." /// ".$item->line_status."<br/>";
 		}
 		
 		$response = [
@@ -399,8 +415,8 @@ class Obs extends CI_Controller {
 			"sales"				=> $sales,
 		];
 		
-		header('Content-Type: application/json');
-		echo json_encode($response);
+		//header('Content-Type: application/json');
+		//echo json_encode($response);
 		
 		//foreach($response as $name => $item){echo "==============================<br/>".$name.": ==============================<br/><br/>"; print_r($item); echo "<br/><br/>";}
 	}
