@@ -277,6 +277,37 @@ class Sa_promotion extends CI_Controller {
 		return $unit_cost;
 	}
 	
+	public function test_cost(){
+		$model = "50UR8750PSA.AWF";
+		$bill_to = "PE008204001B";
+		$from = "2024-06-01";
+		$to = "2024-06-30";
+		
+		/////////////////////////////////////////////////////////////////////////
+		//sell out
+		$w = ["suffix" => $model, "customer_code" => $bill_to, "sunday >=" => $from, "sunday <=" => $to];
+		$outs = $this->gen_m->filter("sa_sell_out", false, $w);
+		foreach($outs as $item){
+			print_r($item); echo "<br/><br/>";
+			
+		}
+		
+		$stock_init = $outs[0]->stock + $outs[0]->units;
+		
+		echo "stock_init: ".$stock_init."<br/><br/>";
+		
+		/////////////////////////////////////////////////////////////////////////
+		//sell in
+		$w = ["bill_to_code" => $bill_to, "model" => $model, "closed_date <" => $from];
+		$ins = $this->gen_m->filter("sa_sell_in", false, $w, null, null, [["closed_date", "desc"]]);
+		
+		foreach($ins as $item){
+			//print_r($item); 
+			echo $item->order_qty." /// ".$item->unit_selling_price;
+			echo "<br/><br/>";
+		}
+	}
+	
 	private function set_promotions($sheet, $show_msg){
 		$result = [];
 		
@@ -381,8 +412,8 @@ class Sa_promotion extends CI_Controller {
 						echo "----------------------------------------------------------<br/>";
 						echo "Sell Outs ------------------------------------------------<br/>";
 						foreach($item["sell_outs"] as $item_s){
-							//print_r($item_s);
-							echo $item_s->sunday." /// ".$item_s->units." /// ".round($item_s->amount/$item_s->units, 2)." /// ".$item_s->amount."<br/>";
+							print_r($item_s);
+							//echo $item_s->sunday." /// ".$item_s->units." /// ".round($item_s->amount/$item_s->units, 2)." /// ".$item_s->amount."<br/>";
 						}
 						echo "<br/>";
 						echo "----------------------------------------------------------<br/>";

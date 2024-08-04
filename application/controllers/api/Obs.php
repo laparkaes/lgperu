@@ -8,53 +8,6 @@ class Obs extends CI_Controller {
 		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
-		
-		$this->divisions = ["HA", "HE", "BS"];
-		$this->division_map = [
-			"HA" => ["REF", "COOK", "W/M", "CDT", "RAC", "SAC", "A/C"],
-			"HE" => ["TV", "AV"],
-			"BS" => ["MNT", "PC", "DS", "SGN", "CTV"],
-		];
-		$this->division_map_inv = [];
-		foreach($this->division_map as $div => $divisions) foreach($divisions as $cat) $this->division_map_inv[$cat] = $div;
-		
-		$this->categories = ["REF", "COOK", "W/M", "CDT", "A/C", "RAC", "SAC", "TV", "AV", "MNT", "PC", "DS", "SGN", "CTV"];
-		$this->category_map = [
-			"REF" => ["REF"],
-			"COOK" => ["MWO", "O", "CVT"],
-			"W/M" => ["W/M"],
-			"CDT" => ["CDT"],
-			"A/C" => ["A/C"],
-			"RAC" => ["RAC"],
-			"SAC" => ["SAC"],
-			"TV" => ["LCD", "LTV"],
-			"AV" => ["AUD", "CAV"],
-			"MNT" => ["MNT"],
-			"PC" => ["PC"],
-			"DS" => ["DS"],
-			"SGN" => ["SGN"],
-			"CTV" => ["CTV"],
-		];
-		$this->category_map_inv = [];
-		foreach($this->category_map as $cat => $categories) foreach($categories as $c) $this->category_map_inv[$c] = $cat;
-		
-		$this->dash_company = ["HA" => "H&A", "HE" => "HE", "BS" => "BS"];
-		$this->dash_division = [
-			"REF" => "REF", 
-			"COOK" => "Cooking", 
-			"W/M" => "W/M", 
-			"CDT" => "CDT", 
-			"A/C" => "Chiller", 
-			"RAC" => "RAC", 
-			"SAC" => "SAC", 
-			"TV" => "LTV", 
-			"AV" => "AV", 
-			"MNT" => "MNT", 
-			"PC" => "PC", 
-			"DS" => "DS", 
-			"SGN" => "Signage", 
-			"CTV" => "Commercial TV",
-		];
 	}
 	
 	public function view_maker_obs_sales(){
@@ -188,8 +141,18 @@ class Obs extends CI_Controller {
 		return $list;
 	}
 	
-	public function test(){
-		//define dates
+	public function dashboard(){
+		//llamasys/api/obs/dashboard?key=lgepr
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//access validation
+		if ($this->input->get("key") !== "lgepr"){
+			echo "No access.";
+			return;
+		}
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//dates definition
 		$today = date("Y-m-d");
 		
 		$from_sales = date("Y-m-01", strtotime("-1 year", strtotime($today)));
@@ -250,8 +213,8 @@ class Obs extends CI_Controller {
 		];
 		
 		//( [1] => A/C [2] => AUD [3] => CAV [4] => CTV [5] => CVT [6] => LCD [7] => LTV [8] => MNT [9] => MWO [10] => O [11] => PC [12] => RAC [13] => REF [14] => SAC [15] => SGN [16] => W/M ) + DS
-		$m_model_category = [
-			"" => "",
+		$m_division = [
+			"" => "",//PTO case
 			"A/C" => "Chilller",
 			"AUD" => "Audio",
 			"CAV" => "Audio",
@@ -269,6 +232,23 @@ class Obs extends CI_Controller {
 			"SAC" => "SAC",
 			"SGN" => "MNT Signage",
 			"W/M" => "W/M",
+		];
+		
+		$m_company = [
+			"" => "",//PTO case
+			"REF" => "H&A",
+			"Cooking" => "H&A",
+			"W/M" => "H&A",
+			"RAC" => "H&A",
+			"SAC" => "H&A",
+			"Chilller" => "H&A",
+			"LTV" => "HE",
+			"Audio" => "HE",
+			"MNT" => "BS",
+			"PC" => "BS",
+			"DS" => "BS",
+			"MNT Signage" => "BS",
+			"Commercial TV" => "BS",
 		];
 		
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -302,65 +282,14 @@ class Obs extends CI_Controller {
 			if ($er->avg) $last_er = round($er->avg, 2);
 			$exchange_rates[$item] = $er->avg ? round($er->avg, 2) : $last_er;
 		}
-		//print_r($exchange_rates);
 		
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//rawdatas
-		
-		/*
-			[bill_to] => PE008292002B 
-		[bill_to_name] => D2B2C 
-			[order_no] => 1000447875 
-			[line_no] => 1.1 
-		[line_status] => Booked 
-			[order_status] => Booked 
-		[order_category] => ORDER 
-		[model_category] => W/M 
-			[model] => WT21VV6.ASSGLGP 
-			[ordered_qty] => 1 
-			[currency] => PEN 
-			[unit_selling_price] => 1770.38 
-			[sales_amount] => 1770.38 
-			[tax_amount] => 318.67 
-			[charge_amount] => 0 
-			[line_total] => 2089.05 
-			[create_date] => 2024-07-08 
-			[booked_date] => 2024-07-08 
-			[req_arrival_date_to] => 2024-07-09 
-			[shipment_date] => 
-			[close_date] => 
-			[receiver_city] => Lima/Lima/Villa El Salvador 
-			[item_type_desctiption] => Merchandise 
-			[item_division] => DFZ 
-			[product_level1_name] => Washing Machine 
-			[product_level2_name] => Clothes Washer 
-			[product_level3_name] => Clothes Washer_Top Loader 
-			[product_level4_name] => Clothes Washer_Turbo Drum 
-		[customer_department] => LGEPR 
-		[inventory_org] => N4E 
-			[purchase_no] => 
-			[gerp_order_no] => 
-			[local_time] => 2024-07-08 00:00:00 
-			[company_name_through_vipkey] => 
-			[vipkey] => 
-			[coupon_code] => 
-			[coupon_rule] => 
-			[devices] => 
-			[customer_group] => 
-			[payment_method] => 
-			[ip_address] => 
-			[sale_channel] => 
-			[department] => 
-			[province] => 
-			[customer_name] =>
-		*/
 		
 		$magentos_list = [];
 		$magentos_list["structure"] = $this->gen_m->structure("v_obs_magento");
 		$magentos = $this->gen_m->filter("v_obs_magento", false, ["local_time >= " => $from_magento." 00:00:00", "gerp_order_no >" => 0]);//echo count($magentos)."<br/><br/>";
 		foreach($magentos as $item) $magentos_list[$item->gerp_order_no] = $item;
-		
-		echo $today."<br/><br/>";
 		
 		$sales = $this->gen_m->filter("v_obs_sales_order", false, ["create_date >= " => $from_sales]);//echo count($sales)."<br/><br/>";
 		foreach($sales as $i => $item){
@@ -379,24 +308,32 @@ class Obs extends CI_Controller {
 			//set up values by mapping array
 			$item->bill_to_name = $m_bill_to_name[$item->bill_to_name];
 			$item->line_status = $m_line_status[$item->line_status];
-			$item->model_category = $m_model_category[$item->model_category];
+			$item->division = $m_division[$item->model_category];
+			$item->company = $m_company[$item->division];
 			
 			//iod reference
-			$ref_iod_date = $item->close_date ? $item->close_date : $item->req_arrival_date_to;
-			$ref_iod_diff = $this->my_func->diff_month($ref_iod_date, $today);
+			$iod_date = $item->close_date ? $item->close_date : $item->req_arrival_date_to;
+			$iod_diff = $this->my_func->diff_month($iod_date, $today);
 			
-			if ((strtotime($ref_iod_date) < strtotime($today))) $ref_iod_diff = -$ref_iod_diff;
+			if ((strtotime($iod_date) < strtotime($today))) $iod_diff = -$iod_diff;
 			
 			switch(true){
-				case (strtotime($ref_iod_date) > strtotime($today)): $item->ref_iod = "M+".$ref_iod_diff; break;
-				case (strtotime($ref_iod_date) < strtotime($today)): $item->ref_iod = "M".$ref_iod_diff; break;
-				default: $item->ref_iod = "M"; break;
+				case (strtotime($iod_date) > strtotime($today)): $item->iod_ref = "M+".$iod_diff; break;
+				case (strtotime($iod_date) < strtotime($today)): $item->iod_ref = "M".$iod_diff; break;
+				default: $item->iod_ref = "M"; break;
 			}
 			
-			//if ($i > 100) break;
-			//print_r($item); echo "<br/><br/>";
+			//chart reference
+			if ($item->close_date){
+				$item->chart_ref = "Closed";
+				$item->chart_date = $item->close_date;
+			}else{
+				$item->chart_ref = "Reserved";
+				$item->chart_date = $item->req_arrival_date_to;
+			}
 			
-			echo $item->ref_iod." /// ".$item->create_date." /// ".$item->close_date." /// ".$item->req_arrival_date_to." /// ".$item->line_status."<br/>";
+			//etc setting
+			if ($item->department === "Prov. Const. Del Callao") $item->department = "Callao";
 		}
 		
 		$response = [
@@ -406,105 +343,111 @@ class Obs extends CI_Controller {
 			"f_bill_to_name"	=> $this->filter_maker("v_obs_sales_order", "bill_to_name", $m_bill_to_name),
 			"f_line_status"		=> $this->filter_maker("v_obs_sales_order", "line_status", $m_line_status),
 			"f_order_category"	=> $this->filter_maker("v_obs_sales_order", "order_category"),
-			"f_division"		=> $this->filter_maker("v_obs_sales_order", "model_category", $m_model_category),
+			"f_division"		=> $this->filter_maker("v_obs_sales_order", "model_category", $m_division),
 			"f_subsidiary"		=> $this->filter_maker("v_obs_sales_order", "customer_department"),
 			"f_inventory"		=> $this->filter_maker("v_obs_sales_order", "inventory_org"),
 			"f_year"			=> $f_year,
 			"f_month"			=> $f_month,
 			"f_date"			=> $f_date,
+			"exchange_rates"	=> $exchange_rates,
 			"sales"				=> $sales,
 		];
 		
-		//header('Content-Type: application/json');
-		//echo json_encode($response);
+		header('Content-Type: application/json');
+		echo json_encode($response);
 		
-		//foreach($response as $name => $item){echo "==============================<br/>".$name.": ==============================<br/><br/>"; print_r($item); echo "<br/><br/>";}
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//API data structure
+		/*
+		[bill_to] => PE008292001B 
+		[bill_to_name] => D2C 
+		[order_no] => 1000447719 
+		[line_no] => 3.1 
+		[line_status] => Billing 
+		[order_status] => Booked 
+		[order_category] => ORDER 
+		[model_category] => LTV 
+		[model] => 65QNED85TSA.AWF 
+		[ordered_qty] => 1 
+		[currency] => PEN 
+		[unit_selling_price] => 3219.49 
+		[sales_amount] => 3219.49 
+		[tax_amount] => 579.51 
+		[charge_amount] => 0 
+		[line_total] => 3799 
+		[create_date] => 2024-07-04 
+		[booked_date] => 2024-07-04 
+		[req_arrival_date_to] => 2024-07-08 
+		[shipment_date] => 2024-07-05 
+		[close_date] => 
+		[receiver_city] => La Libertad/Trujillo/Victor Larco Herrera 
+		[item_type_desctiption] => Merchandise 
+		[item_division] => GLZ 
+		[product_level1_name] => TV 
+		[product_level2_name] => LED LCD TV 
+		[product_level3_name] => LED LCD TV 65 
+		[product_level4_name] => LED LCD TV 65 (UD) 
+		[customer_department] => LGEPR 
+		[inventory_org] => N4E 
+		[purchase_no] => 129001041853 
+		[gerp_order_no] => 1000447719 
+		[local_time] => 2024-07-04 11:48:37 
+		[company_name_through_vipkey] => 
+		[vipkey] => 
+		[coupon_code] => 
+		[coupon_rule] => 
+		[devices] => Mobile 
+		[customer_group] => B2C 
+		[payment_method] => mercadopago_global_credit_card 
+		[ip_address] => 200.60.190.206 
+		[sale_channel] => Magento 
+		[department] => La Libertad 
+		[province] => Trujillo 
+		[customer_name] => Francisco Alberto Escudero Casquino 
+		
+		[exchange_rate] => 3.78 
+		[sales_amount_usd] => 851.72 
+		[division] => LTV 
+		[company] => HE 
+		[ref_iod] => M-1 
+		[ref_chart] => Reserved 
+		[ref_date] => 2024-07-08
+		*/
 	}
 	
 	public function magento(){
-		$magentos = $this->gen_m->filter("obs_magento", false, ["local_time >= " => "2022-01-01 00:00:00"]);
+		//llamasys/api/obs/magento?key=lgepr&from=2022-01-01
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//access validation
+		if ($this->input->get("key") !== "lgepr"){
+			echo "No access.";
+			return;
+		}
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//magento records load
+		$magentos = $this->gen_m->filter("obs_magento", false, ["local_time >= " => $this->input->get("from")." 00:00:00"]);
 		
 		header('Content-Type: application/json');
 		echo json_encode($magentos);
 	}
 	
-	/*
-	public function get_exchange_rate(){
-		//llamasys/local_api/get_exchange_rate?key=lgepr
+	public function gerp_sales_order(){
+		//llamasys/api/obs/gerp_sales_order?key=lgepr&from=2022-01-01
 		
-		$key = $this->input->get("key");
-		$res = [];
-		
-		if ($key === "lgepr") $res = ["exchange_rate_ttm" => round($this->my_func->get_exchange_rate_month_ttm(date("Y-m-d")), 2)];
-		else $res = ["msg" => "Key error."];
-		
-		header('Content-Type: application/json');
-		echo json_encode($res);
-	}
-	
-	public function sales(){
-		//llamasys/local_api/get_obs_sales?key=lgepr
-		
-		if ($this->input->get("key") === "lgepr") $res = ["gerp_iods" => $this->my_func->get_gerp_iod(date("Y-m-01"), date("Y-m-t"))];
-		else $res = ["msg" => "Error"];
-		
-		header('Content-Type: application/json');
-		echo json_encode($res);
-	}
-	
-	public function divisions(){
-		//llamasys/local_api/get_division?key=lgepr
-		
-		if ($this->input->get("key") === "lgepr"){
-			$res = [
-				["division" => "H&A", "order" => "a"], 
-				["division" => "HE", "order" => "b"], 
-				["division" => "BS", "order" => "c"],
-			];
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//access validation
+		if ($this->input->get("key") !== "lgepr"){
+			echo "No access.";
+			return;
 		}
-		else $res = ["msg" => "Error"];
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//gerp sales order records load
+		$sales = $this->gen_m->filter("obs_gerp_sales_order", false, ["create_date >= " => $this->input->get("from")]);
 		
 		header('Content-Type: application/json');
-		echo json_encode($res);
+		echo json_encode($sales);
 	}
-	
-	public function categories(){
-		//llamasys/local_api/get_category?key=lgepr
-		
-		if ($this->input->get("key") === "lgepr"){
-			$res = [
-				["division" => "H&A", "categry" => "REF", "order" => "a"], 
-				["division" => "H&A", "categry" => "Cooking", "order" => "b"], 
-				["division" => "H&A", "categry" => "W/M", "order" => "c"], 
-				["division" => "H&A", "categry" => "RAC", "order" => "d"], 
-				["division" => "H&A", "categry" => "SAC", "order" => "e"], 
-				["division" => "H&A", "categry" => "Chiller", "order" => "f"], 
-				["division" => "HE", "categry" => "TV", "order" => "g"], 
-				["division" => "HE", "categry" => "AV", "order" => "h"],
-				["division" => "BS", "categry" => "MNT", "order" => "i"], 
-				["division" => "BS", "categry" => "Signage", "order" => "j"], 
-				["division" => "BS", "categry" => "Commercial TV", "order" => "k"],
-			];
-		}else $res = ["msg" => "Error"];
-		
-		header('Content-Type: application/json');
-		echo json_encode($res);
-	}
-
-	public function get_obs_ml_month(){
-		//llamasys/local_api/get_obs_ml_month?key=lgepr
-		
-		if ($this->input->get("key") === "lgepr"){
-			$d = date("Y-m-d");
-			
-			$mls = $this->gen_m->filter("obs_most_likely", false, ["year" => date("Y", strtotime($d)), "month" => date("m", strtotime($d)), "category !=" => null]);
-			
-			$res = ["mls" => $mls];
-		}else $res = ["msg" => "Error"];
-		
-		header('Content-Type: application/json');
-		echo json_encode($res);
-	}
-
-	*/
 }
