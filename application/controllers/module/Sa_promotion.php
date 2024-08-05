@@ -277,25 +277,11 @@ class Sa_promotion extends CI_Controller {
 		return $unit_cost;
 	}
 	
-	public function get_init_cost($bill_to, $model, $from, $to){
-		/////////////////////////////////////////////////////////////////////////
-		//sell out
-		$w = ["suffix" => $model, "customer_code" => $bill_to, "sunday >=" => $from, "sunday <=" => $to];
-		$outs = $this->gen_m->filter("sa_sell_out", false, $w);
+	public function get_init_cost($bill_to, $model, $ins, $outs){
 		if (!$outs) return 0;
 		
 		$stock_init = $outs[0]->stock + $outs[0]->units;
 		if (!$stock_init) return 0;
-		
-		/*
-		print_r($outs[0]); echo "<br/>";
-		echo "stock_init: ".$stock_init."<br/><br/>";
-		*/
-		
-		/////////////////////////////////////////////////////////////////////////
-		//sell in
-		$w = ["bill_to_code" => $bill_to, "model" => $model, "closed_date <" => $from];
-		$ins = $this->gen_m->filter("sa_sell_in", false, $w, null, null, [["closed_date", "desc"]]);
 		
 		$counter = $stock_init;
 		$amount = 0;
@@ -310,11 +296,6 @@ class Sa_promotion extends CI_Controller {
 				$amount += $item->unit_selling_price * $item->order_qty;
 				$counter = $counter - $item->order_qty;
 			}
-			
-			/*
-			echo $item->closed_date." /// ".$item->unit_selling_price." /// ".$item->order_qty." /// ".$counter. " /// ".$amount;
-			echo "<br/><br/>";
-			*/
 		}
 		
 		return round($amount/$stock_init, 2);
@@ -412,18 +393,32 @@ class Sa_promotion extends CI_Controller {
 			//start calculation
 			foreach($data as $item){
 				if ($item["promotions"]){
+					$outs = $item["sell_outs"];
+					$ins = $this->gen_m->filter("sa_sell_in", false, ["bill_to_code" => $bill_to, "model" => $item["model"], "closed_date <" => $from], null, null, [["closed_date", "desc"]]);
+					
 					//calculate init cost
-					$init_cost = $this->get_init_cost($bill_to, $item["model"], $from, $to);
+					$init_cost = $this->get_init_cost($bill_to, $item["model"], $ins, $item["sell_outs"]);
 					
 					if ($show_msg){
 						echo $item["model"]; echo " ==============================================================<br/><br/>";
 						echo "init_cost: ".$init_cost."<br/><br/>";
 						
 						echo "----------------------------------------------------------<br/>";
+						echo "Sell Ins ------------------------------------------------<br/>";
+						foreach($ins as $item_i){
+							print_r($item_i);
+							//echo $item_s->sunday." /// ".$item_s->units." /// ".round($item_s->amount/$item_s->units, 2)." /// ".$item_s->amount."<br/>";
+							echo "<br/>";
+							
+						}
+						
+						echo "<br/>";
+						echo "----------------------------------------------------------<br/>";
 						echo "Sell Outs ------------------------------------------------<br/>";
 						foreach($item["sell_outs"] as $item_s){
 							print_r($item_s);
 							//echo $item_s->sunday." /// ".$item_s->units." /// ".round($item_s->amount/$item_s->units, 2)." /// ".$item_s->amount."<br/>";
+							echo "<br/>";
 						}
 						
 						echo "<br/>";
