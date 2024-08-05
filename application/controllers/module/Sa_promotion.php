@@ -277,35 +277,47 @@ class Sa_promotion extends CI_Controller {
 		return $unit_cost;
 	}
 	
-	public function test_cost(){
-		$model = "50UR8750PSA.AWF";
-		$bill_to = "PE008204001B";
-		$from = "2024-06-01";
-		$to = "2024-06-30";
-		
+	public function get_init_cost($bill_to, $model, $from, $to){
 		/////////////////////////////////////////////////////////////////////////
 		//sell out
 		$w = ["suffix" => $model, "customer_code" => $bill_to, "sunday >=" => $from, "sunday <=" => $to];
 		$outs = $this->gen_m->filter("sa_sell_out", false, $w);
-		foreach($outs as $item){
-			print_r($item); echo "<br/><br/>";
-			
-		}
+		if (!$outs) return 0;
 		
 		$stock_init = $outs[0]->stock + $outs[0]->units;
+		if (!$stock_init) return 0;
 		
+		/*
+		print_r($outs[0]); echo "<br/>";
 		echo "stock_init: ".$stock_init."<br/><br/>";
+		*/
 		
 		/////////////////////////////////////////////////////////////////////////
 		//sell in
 		$w = ["bill_to_code" => $bill_to, "model" => $model, "closed_date <" => $from];
 		$ins = $this->gen_m->filter("sa_sell_in", false, $w, null, null, [["closed_date", "desc"]]);
 		
+		$counter = $stock_init;
+		$amount = 0;
 		foreach($ins as $item){
-			//print_r($item); 
-			echo $item->order_qty." /// ".$item->unit_selling_price;
+			if ($item->order_qty < 0){
+				$amount += $item->unit_selling_price * $item->order_qty;
+				$counter += abs($item->order_qty);
+			}elseif ($counter <= $item->order_qty) {
+				$amount += $item->unit_selling_price * $counter;
+				$counter = 0;
+			}else{
+				$amount += $item->unit_selling_price * $item->order_qty;
+				$counter = $counter - $item->order_qty;
+			}
+			
+			/*
+			echo $item->closed_date." /// ".$item->unit_selling_price." /// ".$item->order_qty." /// ".$counter. " /// ".$amount;
 			echo "<br/><br/>";
+			*/
 		}
+		
+		return round($amount/$stock_init, 2);
 	}
 	
 	private function set_promotions($sheet, $show_msg){
@@ -400,10 +412,8 @@ class Sa_promotion extends CI_Controller {
 			//start calculation
 			foreach($data as $item){
 				if ($item["promotions"]){
-					$last_sell_in = $this->gen_m->filter("sa_sell_in", false, ["bill_to_code" => $bill_to, "model" => $item["model"], "closed_date <" => $item["promotions"][0]->date_start, "order_qty >" => 0], null, null, [["closed_date", "desc"]], 1);
-					
 					//calculate init cost
-					$init_cost = $last_sell_in ? $last_sell_in[0]->unit_selling_price : 0;//based in last sell in
+					$init_cost = $this->get_init_cost($bill_to, $item["model"], $from, $to);
 					
 					if ($show_msg){
 						echo $item["model"]; echo " ==============================================================<br/><br/>";
@@ -415,10 +425,7 @@ class Sa_promotion extends CI_Controller {
 							print_r($item_s);
 							//echo $item_s->sunday." /// ".$item_s->units." /// ".round($item_s->amount/$item_s->units, 2)." /// ".$item_s->amount."<br/>";
 						}
-						echo "<br/>";
-						echo "----------------------------------------------------------<br/>";
-						echo "Last Sell In ---------------------------------------------<br/>";
-						if ($last_sell_in) echo $last_sell_in[0]->closed_date." /// ".$last_sell_in[0]->unit_selling_price."<br/>";
+						
 						echo "<br/>";
 						echo "----------------------------------------------------------<br/>";
 						echo "Promotions -----------------------------------------------<br/>";
