@@ -278,27 +278,39 @@ class Sa_promotion extends CI_Controller {
 	}
 	
 	public function get_init_cost($bill_to, $model, $ins, $outs){
-		if (!$outs) return 0;
+		//sell in taken value init
+		foreach($ins as $item) $item->taken = 0;
 		
-		$stock_init = $outs[0]->stock + $outs[0]->units;
-		if (!$stock_init) return 0;
+		if ($outs) $stock_init = $outs[0]->stock + $outs[0]->units;
+		else $stock_init = 1;
 		
 		$counter = $stock_init;
-		$amount = 0;
+		$considered_qty = $amount = 0;
 		foreach($ins as $item){
-			if ($item->order_qty < 0){
-				$amount += $item->unit_selling_price * $item->order_qty;
-				$counter += abs($item->order_qty);
-			}elseif ($counter <= $item->order_qty) {
-				$amount += $item->unit_selling_price * $counter;
-				$counter = 0;
-			}else{
-				$amount += $item->unit_selling_price * $item->order_qty;
-				$counter = $counter - $item->order_qty;
+			if ($counter > 0){
+				if ($item->order_qty < 0){
+					$item->taken = $item->order_qty;
+					$amount += $item->unit_selling_price * $item->order_qty;
+					$counter += abs($item->order_qty);
+				}elseif ($counter <= $item->order_qty) {
+					$item->taken = $counter;
+					$amount += $item->unit_selling_price * $counter;
+					$counter = 0;
+				}else{
+					$item->taken = $item->order_qty;
+					$amount += $item->unit_selling_price * $item->order_qty;
+					$counter = $counter - $item->order_qty;
+				}
+				
+				$considered_qty += $item->taken;
+				
+				if (!$outs) $item->taken = 0;
 			}
 		}
 		
-		return round($amount/$stock_init, 2);
+		if (!$considered_qty) $considered_qty = 1;
+		
+		return round($amount/$considered_qty, 2);
 	}
 	
 	private function set_promotions($sheet, $show_msg){
@@ -382,10 +394,14 @@ class Sa_promotion extends CI_Controller {
 			
 			//define data array
 			$data = [];
-			foreach($models as $m) $data[$m] = ["model" => $m, "sell_outs" => [], "promotions" => []];
+			foreach($models as $m) $data[$m] = ["model" => $m, "sell_ins" => [], "sell_outs" => [], "promotions" => []];
+			
+			$sell_in_result = [];
+			$sell_ins = $this->gen_m->filter("sa_sell_in", false, ["bill_to_code" => $bill_to, "closed_date <" => $from], null, [["field" => "model", "values" => $models]], [["closed_date", "desc"]]);
+			foreach($sell_ins as $item) $data[$item->model]["sell_ins"][] = $sell_in_result[] = $item;
 			
 			$sell_out_result = [];
-			$sell_outs = $this->gen_m->filter("sa_sell_out", false, $w);
+			$sell_outs = $this->gen_m->filter("sa_sell_out", false, $w, null, [["field" => "suffix", "values" => $models]]);
 			foreach($sell_outs as $item) $data[$item->suffix]["sell_outs"][] = $sell_out_result[] = $item;
 			
 			foreach($promotions as $item) $data[$item->prod_model]["promotions"][] = $item;
@@ -394,7 +410,8 @@ class Sa_promotion extends CI_Controller {
 			foreach($data as $item){
 				if ($item["promotions"]){
 					$outs = $item["sell_outs"];
-					$ins = $this->gen_m->filter("sa_sell_in", false, ["bill_to_code" => $bill_to, "model" => $item["model"], "closed_date <" => $from], null, null, [["closed_date", "desc"]]);
+					$ins = $item["sell_ins"];
+					//$this->gen_m->filter("sa_sell_in", false, ["bill_to_code" => $bill_to, "model" => $item["model"], "closed_date <" => $from], null, null, [["closed_date", "desc"]]);
 					
 					//calculate init cost
 					$init_cost = $this->get_init_cost($bill_to, $item["model"], $ins, $item["sell_outs"]);
@@ -406,18 +423,40 @@ class Sa_promotion extends CI_Controller {
 						echo "----------------------------------------------------------<br/>";
 						echo "Sell Ins ------------------------------------------------<br/>";
 						foreach($ins as $item_i){
-							print_r($item_i);
-							//echo $item_s->sunday." /// ".$item_s->units." /// ".round($item_s->amount/$item_s->units, 2)." /// ".$item_s->amount."<br/>";
-							echo "<br/>";
+							$aux = clone $item_i;
+							unset($aux->sell_in_id);
+							unset($aux->bill_to_code);
+							unset($aux->bill_to_name);
+							unset($aux->product_level1_name);
+							unset($aux->product_level2_name);
+							unset($aux->product_level3_name);
+							unset($aux->product_level4_name);
+							unset($aux->model_category);
+							unset($aux->invoice_no);
+							unset($aux->model);
+							unset($aux->customer_department);
+							
+							print_r($aux);
+							echo " /// ".$item_i->invoice_no."<br/>";
+							
+							if (!$item_i->taken) break;
 							
 						}
 						
 						echo "<br/>";
 						echo "----------------------------------------------------------<br/>";
 						echo "Sell Outs ------------------------------------------------<br/>";
-						foreach($item["sell_outs"] as $item_s){
-							print_r($item_s);
-							//echo $item_s->sunday." /// ".$item_s->units." /// ".round($item_s->amount/$item_s->units, 2)." /// ".$item_s->amount."<br/>";
+						foreach($item["sell_outs"] as $item_o){
+							$aux = clone $item_o;
+							unset($aux->sell_out_id);
+							unset($aux->account);
+							unset($aux->customer_code);
+							unset($aux->division);
+							unset($aux->line);
+							unset($aux->model);
+							unset($aux->suffix);
+							
+							print_r($aux);
 							echo "<br/>";
 						}
 						
@@ -448,11 +487,16 @@ class Sa_promotion extends CI_Controller {
 						$result[$item_p->prom."_".$item_p->prom_line] = clone $item_p;
 						
 						if ($show_msg){
-							echo $item_p->prom." /// ".$item_p->prom_line." /// ".$item_p->date_start." /// ".$item_p->date_end." /// ".$item_p->cost_sellin." /// ".$item_p->cost_prom." /// ".$item_p->diff." /// ".$item_p->qty." /// ".$item_p->total;
+							unset($item_p->promotion_id);
+							unset($item_p->cus_code);
+							unset($item_p->prod_model);
+							unset($item_p->price_prom);
+							unset($item_p->new_margin);
+							
+							print_r($item_p);
 							echo "<br/>";
 						}
 					}
-					
 					
 					if ($show_msg) echo "<br/>===============================================================================<br/>";
 				}
