@@ -23,7 +23,7 @@
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/scm_purchase_order">SCM - Purchase Order</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/sa_promotion">SA - Promotion</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/sa_sell_inout">SA - Sell In/Out Report</a>
-						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/sell_out">Sell Out</a>
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/sa_sell_out">SA - Sell Out</a>
 					</ul>
 				</div>
 			</div>
