@@ -79,6 +79,7 @@ class Sa_sell_out extends CI_Controller {
 				"ticket",
 			];
 			
+			$cust_last = $cust_now = "";
 			$rows = $dates = [];
 			for($i = 2; $i <= $max_row; $i++){
 				$row = [];
@@ -89,9 +90,18 @@ class Sa_sell_out extends CI_Controller {
 				
 				$row["txn_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('E'.$i)->getFormattedValue())));
 				
-				$dates[] = $row["txn_date"];
+				$cust_now = $row["customer"];
+				if ($cust_last === $cust_now){
+					$rows[] = $row;
+					$dates[] = $row["txn_date"];
+				}elseif ($rows){
+					print_r($rows); echo "<br/><br/><br/>Cut here................................<br/><br/><br/>";
+					
+					$rows = [];
+					$dates = [];
+				}
 				
-				print_r($row); echo "<br/>";
+				$cust_last = $cust_now;
 				
 				if ($i > 10000) break;
 			}
