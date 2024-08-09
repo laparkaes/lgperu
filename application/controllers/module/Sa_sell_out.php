@@ -95,7 +95,16 @@ class Sa_sell_out extends CI_Controller {
 					$rows[] = $row;
 					$dates[] = $row["txn_date"];
 				}elseif ($rows){
-					print_r($rows); echo "<br/><br/><br/>Cut here................................<br/><br/><br/>";
+					foreach($rows as $r){
+						unset($r["customer_model"]);
+						unset($r["cust_store_name"]);
+						unset($r["ticket"]);
+						print_r($r); echo "<br/>";
+					} 
+					
+					
+					
+					echo "<br/><br/><br/>Cut here................................<br/><br/><br/>";
 					
 					$rows = [];
 					$dates = [];
