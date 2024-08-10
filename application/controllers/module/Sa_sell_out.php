@@ -85,22 +85,43 @@ class Sa_sell_out extends CI_Controller {
 				$row = [];
 				foreach($vars as $var_i => $var){
 					$row[$var] = trim($sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue());
-					if (!$row[$var]) $row[$var] = null;
+					//if (!$row[$var]) $row[$var] = null;
 				}
 				
 				$row["txn_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('E'.$i)->getFormattedValue())));
 				
 				$cust_now = $row["customer"];
+				
 				if ($cust_last === $cust_now){
 					$rows[] = $row;
 					$dates[] = $row["txn_date"];
 				}elseif ($rows){
+					
+					$dates = array_unique($dates);
+					sort($dates);
+					
+					echo $cust_now."<br/>";
+					echo min($dates)." ~ ".max($dates)."<br/>";
+					
+					
+					$w = ["customer" => $cust_now, "txn_date >=" => min($dates), "txn_date <=" => max($dates)];
+					$this->gen_m->delete("sa_sell_out_", $w);
+					echo $this->db->last_query()."<br/><br/>";
+					//$this->gen_m->insert_m("sa_sell_out_", $rows);
+					
+					/*
 					foreach($rows as $r){
 						unset($r["customer_model"]);
 						unset($r["cust_store_name"]);
 						unset($r["ticket"]);
 						print_r($r); echo "<br/>";
-					} 
+					}
+					*/
+					
+					echo "<br/><br/>";
+					echo count($rows); echo " records<br/><br/>";
+					//print_r($dates); echo "<br/><br/>";
+					
 					
 					
 					
@@ -111,9 +132,10 @@ class Sa_sell_out extends CI_Controller {
 				}
 				
 				$cust_last = $cust_now;
-				
-				if ($i > 10000) break;
+					
+				//if ($i > 10000) break;
 			}
+			
 		}else echo "wrong file.<br/>";
 		
 		echo number_Format(microtime(true) - $start_time, 2)." secs";
