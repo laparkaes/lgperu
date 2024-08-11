@@ -4,7 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
-class Invoice extends CI_Controller {
+class Tax_invoice_comparison extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
@@ -17,7 +17,7 @@ class Invoice extends CI_Controller {
 	
 	public function index(){
 		$data = [
-			"main" => "module/invoice/index",
+			"main" => "module/tax_invoice_comparison/index",
 		];
 		
 		$this->load->view('layout', $data);

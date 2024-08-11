@@ -31,7 +31,22 @@
 		<div class="col">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Lastest 1,000 Records</h5>
+					<div class="d-flex justify-content-between align-items-center">
+						<h5 class="card-title">Lastest 1,000 Records</h5>
+						<form>
+							<div class="input-group">
+								<select class="form-select" name="cust">
+									<option value="">Customer filter</option>
+									<?php foreach($customers as $item){ ?>
+									<option value="<?= $item->customer ?>" <?= ($item->customer === $this->input->get("cust")) ? "selected" : "" ?>><?= $item->acct_gtm ?> (<?= $item->customer ?>)</option>
+									<?php } ?>
+								</select>
+								<input type="text" class="form-control" name="store" placeholder="Store Name" value="<?= $this->input->get("store") ?>">
+								<button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+							</div>
+						</form>
+					
+					</div>
 					<table class="table datatable align-middle">
 						<thead>
 							<tr>

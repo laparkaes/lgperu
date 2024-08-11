@@ -14,8 +14,15 @@ class Sa_sell_out extends CI_Controller {
 	}
 	
 	public function index(){
+		$bill_to = $this->input->get("cust");
+		$store = $this->input->get("store");
+		
+		$w = $bill_to ? ["customer" => $bill_to] : null;
+		$l = $store ? [["field" => "cust_store_name", "values" => [$store]]] : null;
+		
 		$data = [
-			"records" 	=> $this->gen_m->filter("sa_sell_out_", false, null, null, null, [["txn_date", "desc"], ["customer", "asc"]], 1000, 0),
+			"customers"	=> $this->gen_m->only_multi("sa_sell_out_", ["acct_gtm", "customer"]),
+			"records" 	=> $this->gen_m->filter("sa_sell_out_", false, $w, $l, null, [["txn_date", "desc"], ["customer", "asc"]], $bill_to ? 10000 : 1000),
 			"main" 		=> "module/sa_sell_out/index",
 		];
 		
