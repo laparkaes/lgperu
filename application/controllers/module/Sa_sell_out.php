@@ -15,19 +15,19 @@ class Sa_sell_out extends CI_Controller {
 	
 	public function index(){
 		$data = [
-			//"purchase_order_temps" => $this->gen_m->all("product", [["category_id", "asc"], ["model", "asc"]]),
-			"main" => "module/sa_sell_out/index",
+			"records" 	=> $this->gen_m->filter("sa_sell_out_", false, null, null, null, [["txn_date", "desc"], ["customer", "asc"]], 1000, 0),
+			"main" 		=> "module/sa_sell_out/index",
 		];
 		
 		$this->load->view('layout', $data);
 	}
 	
-	private function process($filename = "sa_sell_out.xlsx"){
+	private function process($msg_print = false){
 		ini_set("memory_limit","1024M");
 		set_time_limit(0);
 		$start_time = microtime(true);
 		
-		$spreadsheet = IOFactory::load("./upload/".$filename);
+		$spreadsheet = IOFactory::load("./upload/sa_sell_out.xlsx");
 		$sheet = $spreadsheet->getActiveSheet();
 		
 		$headers = [
@@ -79,7 +79,10 @@ class Sa_sell_out extends CI_Controller {
 				"ticket",
 			];
 			
+			
+			$max_row += 1;//last customer need to be inserted
 			$cust_last = $cust_now = "";
+			$row_counter = 0;
 			$rows = $dates = [];
 			for($i = 2; $i <= $max_row; $i++){
 				$row = [];
@@ -92,63 +95,58 @@ class Sa_sell_out extends CI_Controller {
 				
 				$cust_now = $row["customer"];
 				
-				if ($cust_last === $cust_now){
-					$rows[] = $row;
-					$dates[] = $row["txn_date"];
-				}elseif ($rows){
-					
+				if (($cust_last !== $cust_now) and $rows){
 					$dates = array_unique($dates);
 					sort($dates);
 					
-					echo $cust_now."<br/>";
-					echo min($dates)." ~ ".max($dates)."<br/>";
+					$from = min($dates);
+					$to = max($dates);
+					$rows_qty = count($rows);
 					
-					
-					$w = ["customer" => $cust_now, "txn_date >=" => min($dates), "txn_date <=" => max($dates)];
-					$this->gen_m->delete("sa_sell_out_", $w);
-					echo $this->db->last_query()."<br/><br/>";
-					//$this->gen_m->insert_m("sa_sell_out_", $rows);
-					
-					/*
-					foreach($rows as $r){
-						unset($r["customer_model"]);
-						unset($r["cust_store_name"]);
-						unset($r["ticket"]);
-						print_r($r); echo "<br/>";
+					if ($msg_print){
+						echo "========================================================================================================<br/>";
+						echo $cust_last."<br/>";
+						echo $from." ~ ".$to."<br/>";
+						echo number_format($rows_qty); echo " sell out(s)<br/><br/>";	
 					}
-					*/
 					
-					echo "<br/><br/>";
-					echo count($rows); echo " records<br/><br/>";
-					//print_r($dates); echo "<br/><br/>";
+					//remove datas and insert new sell out records
+					$w = ["customer" => $cust_last, "txn_date >=" => $from, "txn_date <=" => $to];
+					$this->gen_m->delete("sa_sell_out_", $w);
+					$this->gen_m->insert_m("sa_sell_out_", $rows);
 					
-					
-					
-					
-					echo "<br/><br/><br/>Cut here................................<br/><br/><br/>";
+					$row_counter += $rows_qty;
 					
 					$rows = [];
 					$dates = [];
 				}
 				
-				$cust_last = $cust_now;
+				$rows[] = $row;
+				$dates[] = $row["txn_date"];
 					
-				//if ($i > 10000) break;
+				$cust_last = $cust_now;
 			}
-			
-		}else echo "wrong file.<br/>";
+		}else $msg = "Wrong file.";
 		
-		echo number_Format(microtime(true) - $start_time, 2)." secs";
+		$msg = "Finished.<br/><br/>Records: ".number_format($row_counter)."<br/>Time: ".number_Format(microtime(true) - $start_time, 2)." secs";
+		
+		if ($msg_print){
+			echo "<br/>";
+			echo "========================================================================================================<br/>";
+			echo "========================================================================================================<br/>";
+			echo "========================================================================================================<br/><br/>";
+			echo $msg;
+		}
+		
+		return $msg;
 	}
 	
-	public function test(){
-		$this->process();
+	public function upload_debug(){
+		$this->process(true);
 	}
 	
 	public function upload(){
-		
-			
-		$type = "error"; $url = ""; $msg = ""; $data = [];
+		$type = "error"; $msg = "";
 		
 		$config = [
 			'upload_path'	=> './upload/',
@@ -160,20 +158,11 @@ class Sa_sell_out extends CI_Controller {
 		$this->load->library('upload', $config);
 
 		if ($this->upload->do_upload('attach')){
-			$filename = $this->upload->data('file_name');
-			
-			
-			
-			if ($is_ok){
-				//$data = $this->process($sheet);
-				if ($data["url"]){
-					$type = "success";
-					$msg = "All data has been processed. (".$data["runtime"]. "sec)";	
-				}else $msg = "No data to process.";
-			}else $msg = "Wrong data file.";
+			$type = "success";
+			$msg = $this->process();
 		}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
 		
 		header('Content-Type: application/json');
-		echo json_encode(["type" => $type, "msg" => $msg, "data" => $data]);
+		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
 }

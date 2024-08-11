@@ -18,8 +18,8 @@ class Sa_promotion extends CI_Controller {
 		$data = [
 			"f_sellin" => $this->gen_m->filter("sa_sell_in", false, null, null, null, [["closed_date", "asc"]], 1, 0)[0]->closed_date,
 			"l_sellin" => $this->gen_m->filter("sa_sell_in", false, null, null, null, [["closed_date", "desc"]], 1, 0)[0]->closed_date,
-			"f_sellout" => $this->gen_m->filter("sa_sell_out", false, null, null, null, [["sunday", "asc"]], 1, 0)[0]->sunday,
-			"l_sellout" => $this->gen_m->filter("sa_sell_out", false, null, null, null, [["sunday", "desc"]], 1, 0)[0]->sunday,
+			"f_sellout" => $this->gen_m->filter("sa_sell_out_", false, null, null, null, [["txn_date", "asc"]], 1, 0)[0]->txn_date,
+			"l_sellout" => $this->gen_m->filter("sa_sell_out_", false, null, null, null, [["txn_date", "desc"]], 1, 0)[0]->txn_date,
 			"customers" => $this->gen_m->filter_select("sa_sell_in", false, ["bill_to_code", "bill_to_name"], null, null, null, [["bill_to_name", "asc"]], "", "", "bill_to_code"),
 			"main" => "module/sa_promotion/index",
 		];
@@ -379,15 +379,11 @@ class Sa_promotion extends CI_Controller {
 			$to = date("Y-m-t", strtotime($promotions[0]->date_start));
 			
 			//init variables
-			$models = [];
-			$w = ["customer_code" => $bill_to, "sunday >=" => $from, "sunday <=" => $to];
+			$models = [];;
 			
 			//set model array
 			$prod_models = $this->gen_m->only("sa_promotion", "prod_model");
 			foreach($prod_models as $item) $models[] = $item->prod_model;
-			
-			$suffixs = $this->gen_m->only("sa_sell_out", "suffix", $w);
-			foreach($suffixs as $item) $models[] = $item->suffix;
 			
 			$models = array_unique($models);
 			sort($models);
@@ -401,7 +397,7 @@ class Sa_promotion extends CI_Controller {
 			foreach($sell_ins as $item) $data[$item->model]["sell_ins"][] = $sell_in_result[] = $item;
 			
 			$sell_out_result = [];
-			$sell_outs = $this->gen_m->filter("sa_sell_out", false, $w, null, [["field" => "suffix", "values" => $models]]);
+			$sell_outs = $this->gen_m->filter("sa_sell_out_", false, ["customer" => $bill_to, "txn_date >=" => $from, "txn_date <=" => $to], null, [["field" => "model_suffix_code", "values" => $models]]);
 			foreach($sell_outs as $item) $data[$item->suffix]["sell_outs"][] = $sell_out_result[] = $item;
 			
 			foreach($promotions as $item) $data[$item->prod_model]["promotions"][] = $item;
