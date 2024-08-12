@@ -148,7 +148,7 @@ class Sa_sell_out extends CI_Controller {
 		return $msg;
 	}
 	
-	public function upload_debug(){
+	public function debug(){
 		$this->process(true);
 	}
 	

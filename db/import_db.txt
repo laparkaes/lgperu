@@ -1,2 +1,5 @@
 cd C:\xampp\mysql\bin
 mysql -uroot -p llamasys < C:\xampp\htdocs\llamasys\db\llamasys.sql
+
+
+mysql -uroot -p llamasys < C:\xampp\htdocs\llamasys\db\gerp_sales_order.sql

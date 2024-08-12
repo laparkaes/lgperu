@@ -9,6 +9,7 @@
 						<label for="searchModule">Search Module</label>
 					</div>
 					<ul class="list-group list-group-flush">
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/gerp_sales_order">GERP - Sales Order</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/attendance">Attendance</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/hr_employee">HR - Employee</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/ism_activity_management">ISM - Activity Management</a>
@@ -16,10 +17,10 @@
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_magento">OBS - Magento</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_most_likely">OBS - Most Likely (ML)</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_report">OBS - Report</a>
-						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/scm_purchase_order">SCM - Purchase Order</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/sa_promotion">SA - Promotion</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/sa_sell_inout">SA - Sell In/Out Report</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/sa_sell_out">SA - Sell Out</a>
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/scm_purchase_order">SCM - Purchase Order</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/tax_invoice_comparison">Tax - Invoice Comparison</a>
 					</ul>
 				</div>
