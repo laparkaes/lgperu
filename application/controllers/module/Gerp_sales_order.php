@@ -178,6 +178,10 @@ class Gerp_sales_order extends CI_Controller {
 		return $msg;
 	}
 	
+	public function debug(){
+		echo $this->process();
+	}
+	
 	public function upload(){
 		$type = "error"; $msg = "";
 		
