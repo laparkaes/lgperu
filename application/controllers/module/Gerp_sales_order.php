@@ -104,6 +104,7 @@ class Gerp_sales_order extends CI_Controller {
 			$vars = ["bill_to_name",  "ship_to_name",  "model",  "order_no",  "line_no",  "order_type",  "line_status",  "hold_flag",  "ready_to_pick",  "pick_released",  "instock_flag",  "ordered_qty",  "unit_selling_price",  "sales_amount",  "tax_amount",  "charge_amount",  "line_total",  "list_price",  "original_list_price",  "dc_rate",  "currency",  "dfi_applicable",  "aai_applicable",  "cancel_qty",  "booked_date",  "scheduled_cancel_date",  "expire_date",  "req_arrival_date_from",  "req_arrival_date_to",  "req_ship_date",  "shipment_date",  "close_date",  "line_type",  "customer_name",  "bill_to",  "customer_department",  "ship_to",  "store_no",  "price_condition",  "payment_term",  "customer_po_no",  "customer_po_date",  "invoice_no",  "invoice_line_no",  "invoice_date",  "sales_person",  "pricing_group",  "buying_group",  "inventory_org",  "sub_inventory",  "shipping_method",  "shipment_priority",  "order_source",  "order_status",  "order_category",  "quote_date",  "quote_expire_date",  "project_code",  "comm_submission_no",  "plp_submission_no",  "bpm_request_no",  "consumer_name",  "receiver_name",  "consumer_phone_no",  "consumermobile_no",  "receiver_phone_no",  "receiver_mobile_no",  "receiver_address1",  "receiver_address2",  "receiver_address3",  "receiver_city",  "receiver_city_desc",  "receiver_county",  "receiver_postal_code",  "receiver_state",  "receiver_province",  "receiver_country",  "item_division",  "product_level1_name",  "product_level2_name",  "product_level3_name",  "product_level4_name",  "product_level4_code",  "model_category",  "item_type_desctiption",  "item_weight",  "item_cbm",  "sales_channel_high",  "sales_channel_low",  "ship_group",  "back_order_hold",  "credit_hold",  "overdue_hold",  "customer_hold",  "payterm_term_hold",  "fp_hold",  "minimum_hold",  "future_hold",  "reserve_hold",  "manual_hold",  "auto_pending_hold",  "sa_hold",  "form_hold",  "bank_collateral_hold",  "insurance_hold",  "partial_flag",  "load_hold_flag",  "inventory_reserved",  "pick_release_qty",  "long_multi_flag",  "so_sa_mapping",  "picking_remark",  "shipping_remark",  "create_employee_name",  "create_date",  "dls_interface",  "edi_customer_remark",  "sales_recognition_method",  "billing_type",  "lt_day",  "carrier_code",  "delivery_number",  "manifest_grn_no",  "warehouse_job_no",  "customer_rad",  "others_out_reason",  "ship_set_name",  "promising_txn_status",  "promised_mad",  "promised_arrival_date",  "promised_ship_date",  "initial_promised_arrival_date",  "accounting_unit",  "acd_original_warehouse",  "acd_original_wh_type",  "cnjp",  "nota_no",  "nota_date",  "so_status2",  "sbp_tax_include",  "sbp_tax_exclude",  "rrp_tax_include",  "rrp_tax_exclude",  "so_fap_flag",  "so_fap_slot_date"];
 			
 			$rows = $date_arr = [];
+			$inserted = 0;
 			
 			$month_now = "";
 			for($i = 2; $i <= $max_row; $i++){
@@ -112,8 +113,8 @@ class Gerp_sales_order extends CI_Controller {
 					$row[$var] = trim($sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue());
 					if (!$row[$var]) $row[$var] = null;
 				}
-				
-				if ($row["line_status"] !== "Cancelled"){
+
+				if ($row["booked_date"]){
 					//apply trim
 					$row["order_no"] = trim($row["order_no"]);
 					$row["line_no"] = trim($row["line_no"]);
@@ -155,7 +156,8 @@ class Gerp_sales_order extends CI_Controller {
 					$row["dc_rate"] = str_replace("%", "", $row["dc_rate"])/100;
 					
 					if (!$month_now) $month_now = date("Y-m", strtotime($row["booked_date"]));
-					echo $month_now." vs ".date("Y-m", strtotime($row["booked_date"]))."<br/>";
+					
+					//echo $month_now." vs ".date("Y-m", strtotime($row["create_date"]))."<br/>";
 					if ($month_now !== date("Y-m", strtotime($row["booked_date"]))){
 						$date_arr = array_unique($date_arr);
 						sort($date_arr);
@@ -163,63 +165,58 @@ class Gerp_sales_order extends CI_Controller {
 						$from = min($date_arr);
 						$to = max($date_arr);
 						
-						print_r($date_arr);
-						echo "<br/><br/><br/><br/>";
-						
-						
 						echo "Inserting ======================= <br/>";
 						echo $from." ~ ".$to." ======================= <br/>";
 						foreach($rows as $item){
-							echo $item["order_no"]." ___ ".$item["line_no"]."<br/>";
-							echo $item["booked_date"]."<br/>";
-							echo "<br/>";
+							echo $item["order_no"]." ___ ".$item["line_no"]." ___ ".$item["booked_date"]."<br/>";
 						} 
-						
-						echo "<br/><br/><br/><br/>";
 						
 						//remove
 						$this->gen_m->delete("gerp_sales_order", ["booked_date >=" => $from, "booked_date <=" => $to]);
 						
 						//insert
-						$inserted = $this->gen_m->insert_m("gerp_sales_order", $rows);
+						$inserted += $this->gen_m->insert_m("gerp_sales_order", $rows);
 						
+						$month_now = date("Y-m", strtotime($row["booked_date"]));
 						$rows = $date_arr = [];
-						
-						break;
 					}
 					
 					$rows[] = $row;
 					$date_arr[] = $row["booked_date"];
-					
-					/*
-					if (count($rows) > 5000){
-						print_r($rows); echo "<br/><br/>==========================================<br/><br/>";
-						$rows = $date_arr = [];
-					}
-					*/	
 				}
 			}
 			
-			/*
-			$date_arr = array_unique($date_arr);
-			sort($date_arr);
-			
 			if ($rows){
+				$date_arr = array_unique($date_arr);
+				sort($date_arr);
+				
 				$from = min($date_arr);
 				$to = max($date_arr);
 				
+				print_r($date_arr);
+				echo "<br/><br/><br/><br/>";
+				
+				
+				echo "Inserting ======================= <br/>";
+				echo $from." ~ ".$to." ======================= <br/>";
+				foreach($rows as $item){
+					echo $item["order_no"]." ___ ".$item["line_no"]."<br/>";
+					echo $item["booked_date"]."<br/>";
+					echo "<br/>";
+				} 
+				
+				echo "<br/><br/><br/><br/>";
+				
 				//remove
-				$this->gen_m->delete("gerp_sales_order", ["create_date >=" => $from, "create_date <=" => $to]);
+				$this->gen_m->delete("gerp_sales_order", ["booked_date >=" => $from, "booked_date <=" => $to]);
 				
 				//insert
-				$inserted = $this->gen_m->insert_m("gerp_sales_order", $rows);
+				$inserted += $this->gen_m->insert_m("gerp_sales_order", $rows);
+				
+				$rows = $date_arr = [];
 			}
 			
-			$this->update_model_category();
-			*/
-			
-			
-			$msg = "Finisehd.<br/><br/>".number_Format(microtime(true) - $start_time, 2)." secs";
+			$msg = "Inserted: ".number_format($inserted).".<br/><br/>".number_Format(microtime(true) - $start_time, 2)." secs";
 		}else $msg = null;
 		
 		return $msg;
