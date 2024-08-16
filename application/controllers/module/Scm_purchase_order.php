@@ -527,7 +527,7 @@ class Scm_purchase_order extends CI_Controller {
 			$ship_to = $this->gen_m->unique("scm_ship_to", "ship_to_id", $this->input->post("ship_to"), false);
 			
 			if ($po_template and $ship_to){
-				$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
+				//$ship_to->customer = $this->gen_m->unique("customer", "customer_id", $ship_to->customer_id);
 				
 				try {
 					switch($result["file_ext"]){

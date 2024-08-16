@@ -94,7 +94,9 @@ class My_func{
 	public function date_convert_5($original_date){//28-OCT-2021 > 2021-10-28
 		if ($original_date){
 			$date = DateTime::createFromFormat('d-M-Y', trim($original_date));
-			return $date->format('Y-m-d');
+			
+			if ($date) return $date->format('Y-m-d');
+			else return null;
 		}else return null;
 	}
 	

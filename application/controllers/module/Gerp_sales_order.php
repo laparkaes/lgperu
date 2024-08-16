@@ -61,8 +61,8 @@ class Gerp_sales_order extends CI_Controller {
 	}
 	
 	private function process(){
-		set_time_limit(0);
 		ini_set('memory_limit', '2G');
+		set_time_limit(0);
 		
 		$start_time = microtime(true);
 		
