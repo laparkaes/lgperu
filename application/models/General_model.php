@@ -91,6 +91,13 @@ class General_model extends CI_Model{
 		return $this->db->delete($tablename);
 	}
 	
+	function delete_in($tablename, $field = null, $values = null){
+		if ($field and $values){
+			$this->db->where_in($field, $values);
+			return $this->db->delete($tablename);
+		}
+	}
+	
 	function truncate($tablename){
 		return $this->db->truncate($tablename);
 	}

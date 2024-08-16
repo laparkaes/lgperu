@@ -32,6 +32,7 @@ CREATE TABLE `gerp_sales_order` (
   `bill_to_name` varchar(30) DEFAULT NULL,
   `ship_to_name` varchar(30) DEFAULT NULL,
   `model` varchar(30) DEFAULT NULL,
+  `order_line` varchar(30) DEFAULT NULL,
   `order_no` varchar(30) DEFAULT NULL,
   `line_no` varchar(30) DEFAULT NULL,
   `order_type` varchar(30) DEFAULT NULL,
