@@ -111,7 +111,7 @@ class Scm_purchase_order extends CI_Controller {
 				
 				$total = substr($aux_text, 0, $matches[0][1]);
 				$qty = trim($aux[2]);
-				$unit_price = trim($aux[3]);
+				$unit_price = str_replace(",", "", trim($aux[3]));
 				
 				$sku_cus = substr(trim($aux[0]), strlen((string)$prod_num));//need to work with sku = [num][sku] => need to extract num value
 				$sku_customer = $this->gen_m->filter("scm_sku", false, ["bill_to_code" => $ship_to->bill_to_code, "sku_customer" => $sku_cus]);
