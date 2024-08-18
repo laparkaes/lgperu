@@ -105,6 +105,18 @@ class My_func{
 		return $date->format('Y-m-d');
 	}
 	
+	public function date_convert_7($date_str){//d-m-Y H:i > Y-m-d H:i
+		$date = DateTime::createFromFormat('d-m-Y H:i', $date_str);
+		if ($date) return $date->format('Y-m-d H:i');
+		else return "";
+	}
+	
+	public function date_convert_8($date_str){//d-m-Y > Y-m-d
+		$date = DateTime::createFromFormat('d-m-Y', $date_str);
+		if ($date) return $date->format('Y-m-d');
+		else return "";
+	}
+	
 	public function dates_between($startDate, $endDate){
 		$start = new DateTime($startDate);
 		$end = new DateTime($endDate);
