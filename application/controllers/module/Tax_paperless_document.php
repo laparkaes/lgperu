@@ -37,9 +37,6 @@ class Tax_paperless_document extends CI_Controller {
 		[currency] => PEN 
 		[status] => 1 - Aceptado 
 		[paperless_id] => TXYfNpnacT5a4oa(MaS)JKkt9A(IgU)(IgU) 
-		
-		https://ereceipt-pe-s02.sovos.com/Facturacion/PDFServlet?o=E&d=true&id=TXYfNpnacT5a4oa(MaS)JKkt9A(IgU)(IgU)
-		https://ereceipt-pe-s02.sovos.com/Facturacion/XMLServlet?o=E&cl=true&d=true&id=TXYfNpnacT5a4oa(MaS)JKkt9A(IgU)(IgU)
 		*/
 		
 		$invoices = [];
@@ -63,5 +60,63 @@ class Tax_paperless_document extends CI_Controller {
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => "success", "msg" => number_format(count($rows))." invoices inserted."]);
+	}
+	
+	public function download(){
+		/*
+		https://ereceipt-pe-s02.sovos.com/Facturacion/PDFServlet?o=E&d=true&id=TXYfNpnacT5a4oa(MaS)JKkt9A(IgU)(IgU)
+		https://ereceipt-pe-s02.sovos.com/Facturacion/XMLServlet?o=E&cl=true&d=true&id=TXYfNpnacT5a4oa(MaS)JKkt9A(IgU)(IgU)
+		*/
+		
+		$base_pdf = "https://ereceipt-pe-s02.sovos.com/Facturacion/PDFServlet?o=E&d=true&id=";
+		$base_xml = "https://ereceipt-pe-s02.sovos.com/Facturacion/XMLServlet?o=E&cl=true&d=true&id=";
+		
+		$dir = "./invoices";
+		if (!file_exists($dir)) mkdir($dir, 0777, true);
+		
+		$invoices = $this->gen_m->filter("tax_invoice", false, ["downloaded" => false], null, null, [["date_enter", "asc"]], 1000, 0);
+		while(count($invoices) > 0){
+			foreach($invoices as $item){
+				$is_error = false;
+				
+				$date_aux = explode("-", $item->date_issue);
+				
+				$dir = "./invoices/".$date_aux[0];
+				if (!file_exists($dir)) mkdir($dir, 0777, true);
+				
+				$dir = "./invoices/".$date_aux[0]."/".$date_aux[1];
+				if (!file_exists($dir)) mkdir($dir, 0777, true);
+				
+				$dir = "./invoices/".$date_aux[0]."/".$date_aux[1]."/".str_replace(" ", "_", $item->doc_type);
+				if (!file_exists($dir)) mkdir($dir, 0777, true);
+				
+				//pdf document
+				$fileContent = file_get_contents($base_pdf.$item->paperless_id);
+				if ($fileContent !== false) file_put_contents($dir."/".$item->doc_number.".pdf", $fileContent);
+				else{
+					echo "--- Error PDF --- ".$item->doc_number;
+					$is_error = true;
+				}
+				
+				//xml document
+				$fileContent = file_get_contents($base_xml.$item->paperless_id);
+				if ($fileContent !== false) file_put_contents($dir."/".$item->doc_number.".xml", $fileContent);
+				else{
+					echo "--- Error XML --- ".$item->doc_number;
+					$is_error = true;
+				}
+				
+				if (!$is_error){
+					//update downloaded field of invoice
+				}
+				
+				echo "OK. ".$item->doc_number."<br/>";
+				
+				break;
+			}
+			
+			break;
+			$invoices = $this->gen_m->filter("tax_invoice", false, ["downloaded" => false], null, null, [["date_enter", "asc"]], 1000, 0);
+		}
 	}
 }
