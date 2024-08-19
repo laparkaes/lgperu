@@ -68,11 +68,15 @@ class Tax_paperless_document extends CI_Controller {
 		https://ereceipt-pe-s02.sovos.com/Facturacion/XMLServlet?o=E&cl=true&d=true&id=TXYfNpnacT5a4oa(MaS)JKkt9A(IgU)(IgU)
 		*/
 		
+		set_time_limit(0);
+		
 		$base_pdf = "https://ereceipt-pe-s02.sovos.com/Facturacion/PDFServlet?o=E&d=true&id=";
 		$base_xml = "https://ereceipt-pe-s02.sovos.com/Facturacion/XMLServlet?o=E&cl=true&d=true&id=";
 		
-		$dir = "./invoices";
+		$dir = "./eDocuments";
 		if (!file_exists($dir)) mkdir($dir, 0777, true);
+		
+		$count = 0;
 		
 		$invoices = $this->gen_m->filter("tax_invoice", false, ["downloaded" => false], null, null, [["date_enter", "asc"]], 1000, 0);
 		while(count($invoices) > 0){
@@ -81,13 +85,13 @@ class Tax_paperless_document extends CI_Controller {
 				
 				$date_aux = explode("-", $item->date_issue);
 				
-				$dir = "./invoices/".$date_aux[0];
+				$dir = "./eDocuments/".$date_aux[0];
 				if (!file_exists($dir)) mkdir($dir, 0777, true);
 				
-				$dir = "./invoices/".$date_aux[0]."/".$date_aux[1];
+				$dir = "./eDocuments/".$date_aux[0]."/".$date_aux[1];
 				if (!file_exists($dir)) mkdir($dir, 0777, true);
 				
-				$dir = "./invoices/".$date_aux[0]."/".$date_aux[1]."/".str_replace(" ", "_", $item->doc_type);
+				$dir = "./eDocuments/".$date_aux[0]."/".$date_aux[1]."/".str_replace(" ", "_", $item->doc_type);
 				if (!file_exists($dir)) mkdir($dir, 0777, true);
 				
 				//pdf document
@@ -107,16 +111,21 @@ class Tax_paperless_document extends CI_Controller {
 				}
 				
 				if (!$is_error){
+					$count++;
+					
 					//update downloaded field of invoice
+					$this->gen_m->update("tax_invoice", ["invoice_id" => $item->invoice_id], ["downloaded" => true]);
 				}
 				
 				echo "OK. ".$item->doc_number."<br/>";
 				
-				break;
+				//break;
 			}
 			
 			break;
 			$invoices = $this->gen_m->filter("tax_invoice", false, ["downloaded" => false], null, null, [["date_enter", "asc"]], 1000, 0);
 		}
+		
+		echo "Finished. ".number_format($count)." eDocuments downloaded.<br/>";
 	}
 }
