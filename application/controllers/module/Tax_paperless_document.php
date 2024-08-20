@@ -98,7 +98,7 @@ class Tax_paperless_document extends CI_Controller {
 				$fileContent = file_get_contents($base_pdf.$item->paperless_id);
 				if ($fileContent !== false) file_put_contents($dir."/".$item->doc_number.".pdf", $fileContent);
 				else{
-					echo "--- Error PDF --- ".$item->doc_number;
+					echo "--- Error PDF --- ".$item->doc_number."<br/>";
 					$is_error = true;
 				}
 				
@@ -106,7 +106,7 @@ class Tax_paperless_document extends CI_Controller {
 				$fileContent = file_get_contents($base_xml.$item->paperless_id);
 				if ($fileContent !== false) file_put_contents($dir."/".$item->doc_number.".xml", $fileContent);
 				else{
-					echo "--- Error XML --- ".$item->doc_number;
+					echo "--- Error XML --- ".$item->doc_number."<br/>";
 					$is_error = true;
 				}
 				
@@ -117,12 +117,12 @@ class Tax_paperless_document extends CI_Controller {
 					$this->gen_m->update("tax_invoice", ["invoice_id" => $item->invoice_id], ["downloaded" => true]);
 				}
 				
-				echo "OK. ".$item->doc_number."<br/>";
+				//echo "OK. ".$item->doc_number."<br/>";
 				
 				//break;
 			}
 			
-			break;
+			//break;
 			$invoices = $this->gen_m->filter("tax_invoice", false, ["downloaded" => false], null, null, [["date_enter", "asc"]], 1000, 0);
 		}
 		
