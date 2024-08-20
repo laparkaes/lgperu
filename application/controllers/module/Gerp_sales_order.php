@@ -143,7 +143,7 @@ class Gerp_sales_order extends CI_Controller {
 				$row["shipment_date"] = $this->my_func->date_convert($row["shipment_date"]);
 				$row["close_date"] = $this->my_func->date_convert($row["close_date"]);
 				$row["invoice_date"] = $this->my_func->date_convert($row["invoice_date"]);
-				$row["create_date"] = $this->my_func->date_convert_4($row["create_date"]);
+				$row["create_date"] = $this->my_func->date_convert($row["create_date"]);
 				$row["customer_po_date"] = $this->my_func->date_convert($row["customer_po_date"]);
 				
 				//date convert: 2021/11/02 00:00:00 > 2021-11-02
@@ -151,7 +151,6 @@ class Gerp_sales_order extends CI_Controller {
 				
 				//% > float
 				$row["dc_rate"] = str_replace("%", "", $row["dc_rate"])/100;
-				
 				
 				if (count($order_lines) > 1000){
 					//echo "Inserting ======================= <br/>"; print_r($order_lines);
