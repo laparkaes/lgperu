@@ -113,6 +113,8 @@ class Tax_paperless_document extends CI_Controller {
 				if (!$is_error){
 					$count++;
 					
+					echo ". ";
+					
 					//update downloaded field of invoice
 					$this->gen_m->update("tax_invoice", ["invoice_id" => $item->invoice_id], ["downloaded" => true]);
 				}
