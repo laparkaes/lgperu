@@ -112,11 +112,12 @@ class General_model extends CI_Model{
 		return $result;
 	}
 	
-	function only_multi($tablename, $field, $where = null){
-		$this->db->select($field);
+	function only_multi($tablename, $fields, $where = null, $groups = null){
+		$this->db->select($fields);
 		if ($where) $this->db->where($where);
-		foreach($field as $f) $this->db->group_by($f);
-		$this->db->order_by($field[0], "asc");
+		$groups = $groups ? $groups : $fields;
+		foreach($groups as $g) $this->db->group_by($g);
+		$this->db->order_by($fields[0], "asc");
 		$query = $this->db->get($tablename);
 		$result = $query->result();
 		return $result;

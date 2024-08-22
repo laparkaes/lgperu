@@ -450,4 +450,42 @@ class Obs extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode($sales);
 	}
+	
+	public function nsp(){
+		//llamasys/api/obs/gerp_sales_order?key=lgepr&from=2022-01-01
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//access validation
+		if ($this->input->get("key") !== "lgepr"){
+			echo "No access.";
+			return;
+		}
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//set dates and filters
+		$today = date("Y-m-d");
+		$today = "2024-06-13";
+		
+		$from = date("Y-m-01", strtotime($today));
+		$to = date("Y-m-t", strtotime($today));
+		
+		$w = ["close_date >= " => $from, "close_date <= " => $to, "sales_amount >" => 0];
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//models
+		$models_rec = $this->gen_m->only_multi("v_obs_sales_order", ["model_category", "model", "close_date", "sum(sales_amount) as sales_amount", "sum(ordered_qty) as ordered_qty"], $w, ["model_category", "model", "close_date"]);
+		
+		foreach($models_rec as $item){
+			$item->sales_amount = round($item->sales_amount, 2);
+			print_r($item);
+			echo "<br/><br/>";
+		}
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//gerp sales order records load
+		$sales = $this->gen_m->filter("v_obs_sales_order", false, $w, null, null, [["close_date", "asc"]]);
+		
+		//header('Content-Type: application/json');
+		//echo json_encode($sales);
+	}
 }
