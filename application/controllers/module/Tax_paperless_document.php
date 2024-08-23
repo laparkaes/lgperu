@@ -95,18 +95,18 @@ class Tax_paperless_document extends CI_Controller {
 				if (!file_exists($dir)) mkdir($dir, 0777, true);
 				
 				//pdf document
-				$fileContent = file_get_contents($base_pdf.$item->paperless_id);
+				$fileContent = @file_get_contents($base_pdf.$item->paperless_id);
 				if ($fileContent !== false) file_put_contents($dir."/".$item->doc_number.".pdf", $fileContent);
 				else{
-					echo "--- Error PDF --- ".$item->doc_number."<br/>";
+					echo "<br/>--- Error PDF --- ".$item->doc_number;
 					$is_error = true;
 				}
 				
 				//xml document
-				$fileContent = file_get_contents($base_xml.$item->paperless_id);
+				$fileContent = @file_get_contents($base_xml.$item->paperless_id);
 				if ($fileContent !== false) file_put_contents($dir."/".$item->doc_number.".xml", $fileContent);
 				else{
-					echo "--- Error XML --- ".$item->doc_number."<br/>";
+					echo "<br/>--- Error XML --- ".$item->doc_number;
 					$is_error = true;
 				}
 				
