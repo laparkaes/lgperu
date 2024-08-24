@@ -454,15 +454,80 @@ class Obs extends CI_Controller {
 	public function nsp(){
 		//llamasys/api/obs/gerp_sales_order?key=lgepr&from=2022-01-01
 		
-		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//access validation
 		if ($this->input->get("key") !== "lgepr"){
 			echo "No access.";
 			return;
 		}
 		
-		//////////////////////////////////////////////////////////////////////////////////////////////////////////
-		//set dates and filters
+		$v_companies = [
+			["order" => 1, "company" => "H&A"],
+			["order" => 2, "company" => "HE"],
+			["order" => 3, "company" => "BS"],
+		];
+		
+		//Array ( [1] => Chilller [2] => Audio [4] => Commercial TV [5] => Cooking [6] => LTV [8] => MNT [11] => PC [12] => RAC [13] => REF [14] => SAC [15] => MNT Signage [16] => W/M ) 
+		$v_divisions = [
+			["order" => 1, "company" => "H&A", "division" => "REF"],
+			["order" => 2, "company" => "H&A", "division" => "Cooking"],
+			["order" => 3, "company" => "H&A", "division" => "W/M"],
+			["order" => 4, "company" => "H&A", "division" => "RAC"],
+			["order" => 5, "company" => "H&A", "division" => "SAC"],
+			["order" => 6, "company" => "H&A", "division" => "Chilller"],
+			["order" => 7, "company" => "HE", "division" => "LTV"],
+			["order" => 8, "company" => "HE", "division" => "Audio"],
+			["order" => 9, "company" => "BS", "division" => "MNT"],
+			["order" => 10, "company" => "BS", "division" => "PC"],
+			["order" => 11, "company" => "BS", "division" => "DS"],
+			["order" => 12, "company" => "BS", "division" => "MNT Signage"],
+			["order" => 13, "company" => "BS", "division" => "Commercial TV"],
+		];
+		
+		$m_division = [
+			"" => "",//PTO case
+			"A/C" => "Chilller",
+			"AUD" => "Audio",
+			"CAV" => "Audio",
+			"CTV" => "Commercial TV",
+			"CVT" => "Cooking",
+			"DS" => "DS",
+			"LCD" => "LTV",
+			"LTV" => "LTV",
+			"MNT" => "MNT",
+			"MWO" => "Cooking",
+			"O" => "Cooking",
+			"PC" => "PC",
+			"RAC" => "RAC",
+			"REF" => "REF",
+			"SAC" => "SAC",
+			"SGN" => "MNT Signage",
+			"W/M" => "W/M",
+		];
+		
+		$m_company = [
+			"" => "",//PTO case
+			"REF" => "H&A",
+			"Cooking" => "H&A",
+			"W/M" => "H&A",
+			"RAC" => "H&A",
+			"SAC" => "H&A",
+			"Chilller" => "H&A",
+			"LTV" => "HE",
+			"Audio" => "HE",
+			"MNT" => "BS",
+			"PC" => "BS",
+			"DS" => "BS",
+			"MNT Signage" => "BS",
+			"Commercial TV" => "BS",
+		];
+		
+		//define data array
+		$data = [];
+		
+		foreach($v_companies as $item) $data[$item["company"]] = [];
+		foreach($v_divisions as $item) $data[$item["company"]][$item["division"]] = [];
+		
+		//filters
 		$today = date("Y-m-d");
 		$today = "2024-06-13";
 		
@@ -471,17 +536,55 @@ class Obs extends CI_Controller {
 		
 		$w = ["close_date >= " => $from, "close_date <= " => $to, "sales_amount >" => 0];
 		
-		//////////////////////////////////////////////////////////////////////////////////////////////////////////
-		//models
-		$models_rec = $this->gen_m->only_multi("v_obs_sales_order", ["model_category", "model", "close_date", "sum(sales_amount) as sales_amount", "sum(ordered_qty) as ordered_qty"], $w, ["model_category", "model", "close_date"]);
+		//sales
+		$sales = $this->gen_m->only_multi("v_obs_sales_order", ["model_category", "model", "close_date", "sum(sales_amount) as sales_amount", "sum(ordered_qty) as ordered_qty"], $w, ["model_category", "model", "close_date"]);
 		
-		foreach($models_rec as $item){
+		foreach($sales as $item){
+			$item->model_category = $m_division[$item->model_category];
+			$item->company = $m_company[$item->model_category];
 			$item->sales_amount = round($item->sales_amount, 2);
-			print_r($item);
-			echo "<br/><br/>";
+			
+			if (!array_key_exists($item->model, $data[$item->company][$item->model_category])) $data[$item->company][$item->model_category][$item->model] = [];
+			
+			$data[$item->company][$item->model_category][$item->model][] = $item;
+			//print_r($item); echo "<br/><br/>";
 		}
 		
-		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		
+		foreach($data as $com => $divs){
+			echo $com."<br/><br/>";
+			foreach($divs as $div => $models){
+				echo "---".$div."<br/><br/>";
+				
+				foreach($models as $model => $sales){
+					echo "------".$model."<br/><br/>";
+					
+					$total = $qty = 0;
+					foreach($sales as $sale){
+						$total += $sale->sales_amount;
+						$qty += $sale->ordered_qty;
+						
+						$sale->sale_unit = round($sale->sales_amount / $sale->ordered_qty, 2);
+						$sale->nsp = round($total / $qty, 2);
+						$sale->nsp_per = round($sale->sale_unit / $sale->nsp * 100, 2);
+						
+						print_r($sale);
+						echo "<br/><br/>";
+					}
+					
+					echo $total."<br/><br/>";
+					echo $qty."<br/><br/>";
+					
+					echo "<br/><br/>";
+				}
+				
+				echo "============================================================================<br/><br/>";
+				//print_r($models); echo "<br/><br/>";
+				
+			}	
+			
+		}
+		
 		//gerp sales order records load
 		$sales = $this->gen_m->filter("v_obs_sales_order", false, $w, null, null, [["close_date", "asc"]]);
 		
