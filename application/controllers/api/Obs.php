@@ -559,7 +559,7 @@ class Obs extends CI_Controller {
 				foreach($models as $model => $sales){
 					echo "------".$model."<br/><br/>";
 					
-					$total = $qty = 0;
+					$total = $qty = $alert_qty = 0;
 					foreach($sales as $sale){
 						$total += $sale->sales_amount;
 						$qty += $sale->ordered_qty;
@@ -567,6 +567,9 @@ class Obs extends CI_Controller {
 						$sale->sale_unit = round($sale->sales_amount / $sale->ordered_qty, 2);
 						$sale->nsp = round($total / $qty, 2);
 						$sale->nsp_per = round($sale->sale_unit / $sale->nsp * 100, 2);
+						$sale->nsp_alert = $sale->nsp_per <= 95 ? true : false;
+						
+						if ($sale->nsp_alert) $alert_qty++;
 						
 						print_r($sale);
 						echo "<br/><br/>";
@@ -574,6 +577,7 @@ class Obs extends CI_Controller {
 					
 					echo $total."<br/><br/>";
 					echo $qty."<br/><br/>";
+					echo $alert_qty."<br/><br/>";
 					
 					echo "<br/><br/>";
 				}
