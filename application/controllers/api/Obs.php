@@ -452,7 +452,7 @@ class Obs extends CI_Controller {
 	}
 	
 	public function nsp(){
-		//llamasys/api/obs/gerp_sales_order?key=lgepr&from=2022-01-01
+		//llamasys/api/obs/nsp?key=lgepr
 		
 		//access validation
 		if ($this->input->get("key") !== "lgepr"){
