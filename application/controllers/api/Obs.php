@@ -550,49 +550,57 @@ class Obs extends CI_Controller {
 			//print_r($item); echo "<br/><br/>";
 		}
 		
+		$summary = [];
 		
 		foreach($data as $com => $divs){
-			echo $com."<br/><br/>";
+			//echo $com."<br/><br/>";
 			foreach($divs as $div => $models){
-				echo "---".$div."<br/><br/>";
+				//echo "---".$div."<br/><br/>";
 				
-				foreach($models as $model => $sales){
-					echo "------".$model."<br/><br/>";
+				foreach($models as $model => $sales_m){
+					//echo "------".$model."<br/><br/>";
 					
-					$total = $qty = $alert_qty = 0;
-					foreach($sales as $sale){
-						$total += $sale->sales_amount;
-						$qty += $sale->ordered_qty;
+					$total_amount = $sale_qty = $alert_qty = 0;
+					foreach($sales_m as $sale){
+						$total_amount += $sale->sales_amount;
+						$sale_qty += $sale->ordered_qty;
 						
 						$sale->sale_unit = round($sale->sales_amount / $sale->ordered_qty, 2);
-						$sale->nsp = round($total / $qty, 2);
+						$sale->nsp = round($total_amount / $sale_qty, 2);
 						$sale->nsp_per = round($sale->sale_unit / $sale->nsp * 100, 2);
 						$sale->nsp_alert = $sale->nsp_per <= 95 ? true : false;
 						
 						if ($sale->nsp_alert) $alert_qty++;
 						
-						print_r($sale);
-						echo "<br/><br/>";
+						//print_r($sale); echo "<br/><br/>";
 					}
 					
-					echo $total."<br/><br/>";
-					echo $qty."<br/><br/>";
-					echo $alert_qty."<br/><br/>";
+					$result = new stdClass;
+					$result->company = $com;
+					$result->division = $div;
+					$result->model = $model;
+					$result->total_amount = round($total_amount, 2);
+					$result->sale_qty = $sale_qty;
+					$result->alert_qty = $alert_qty;
 					
-					echo "<br/><br/>";
+					$summary[] = clone $result;
 				}
 				
-				echo "============================================================================<br/><br/>";
-				//print_r($models); echo "<br/><br/>";
-				
+				//echo "============================================================================<br/><br/>";
 			}	
 			
 		}
 		
-		//gerp sales order records load
-		$sales = $this->gen_m->filter("v_obs_sales_order", false, $w, null, null, [["close_date", "asc"]]);
+		usort($summary, function($a, $b) {
+			return ($a->total_amount < $b->total_amount);
+		});
 		
-		//header('Content-Type: application/json');
-		//echo json_encode($sales);
+		//foreach($sales as $item){ print_r($item); echo "<br/><br/>"; }
+		//foreach($summary as $item){ print_r($item); echo "<br/><br/>"; }
+		
+		$nsp_dates = $this->my_func->dates_between($from, $to);
+		
+		header('Content-Type: application/json');
+		echo json_encode(["nsp_summary" => $summary, "nsp_sales" => $sales, "nsp_dates" => $nsp_dates]);
 	}
 }
