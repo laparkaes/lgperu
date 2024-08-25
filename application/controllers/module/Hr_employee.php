@@ -20,7 +20,7 @@ class Hr_employee extends CI_Controller {
 	}
 
 	public function index(){
-		$employees = $this->gen_m->filter("hr_employee", true, null, null, null, [["subsidiary", "asc"], ["organization", "asc"], ["department", "asc"], ["name", "asc"]]);
+		$employees = $this->gen_m->filter("hr_employee", false, null, null, null, [["subsidiary", "asc"], ["organization", "asc"], ["department", "asc"], ["name", "asc"]]);
 		
 		$data = [
 			"employees" => $employees,
@@ -29,4 +29,14 @@ class Hr_employee extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 
+	public function edit($employee_id){
+		$employee = $this->gen_m->unique("hr_employee", "employee_id", $employee_id, false);
+		
+		$data = [
+			"employee" => $employee,
+			"main" => "module/hr_employee/edit",
+		];
+		$this->load->view('layout', $data);
+		//print_r($employee);
+	}
 }

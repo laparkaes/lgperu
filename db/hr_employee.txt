@@ -1,0 +1,1 @@
+ALTER TABLE `hr_employee` CHANGE `valid` `access` TINYINT(1) NOT NULL DEFAULT '1'; 

@@ -29,9 +29,9 @@
 									<th scope="col">Organization</th>
 									<th scope="col">Department</th>
 									<th scope="col">Location</th>
-									<th scope="col">Emp.Num.</th>
+									<th scope="col">PR</th>
 									<th scope="col">Name</th>
-									<th scope="col">Access</th>
+									<th scope="col">Status</th>
 									<th scope="col"></th>
 								</tr>
 							</thead>
@@ -45,10 +45,10 @@
 									<td><?= $emp->location  ?></td>
 									<td><?= $emp->employee_number  ?></td>
 									<td><?= $emp->name  ?></td>
-									<td><i class="bi bi-circle-fill text-<?= $emp->password ? "success" : "danger" ?> ic_control_access"></i></td>
+									<td><?= $emp->access ? "Activate" : "Disabled" ?></td>
 									<td>
 										<div class="text-end">
-											<a href="<?= base_url() ?>hr_employee/edit/<?= $emp->employee_id ?>" class="btn btn-link">
+											<a href="<?= base_url() ?>module/hr_employee/edit/<?= $emp->employee_id ?>" class="btn btn-link">
 												<i class="bi bi-file-earmark-fill"></i>
 											</a>
 										</div>
