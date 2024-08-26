@@ -27,7 +27,7 @@ class Auth extends CI_Controller {
 				if (password_verify($this->input->post("password"), $employee->password)){
 					unset($employee->password);
 					unset($employee->is_supervised);
-					unset($employee->valid);
+					unset($employee->access);
 					
 					$session_data = array(
 						"employee_id" => $employee->employee_id,
