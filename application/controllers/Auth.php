@@ -21,7 +21,7 @@ class Auth extends CI_Controller {
 	public function login_process(){
 		$type = "error"; $msg = $url = "";
 		
-		$employee = $this->gen_m->unique("hr_employee", "ep_mail", $this->input->post("ep_mail"));
+		$employee = $this->gen_m->unique("hr_employee", "ep_mail", $this->input->post("ep_mail"), false);
 		if ($employee){
 			if ($employee->password){
 				if (password_verify($this->input->post("password"), $employee->password)){
