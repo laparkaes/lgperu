@@ -266,17 +266,17 @@ class Obs_gerp extends CI_Controller {
 				$row["rrp_tax_exclude"] = str_replace(",", "", $row["rrp_tax_exclude"]);
 				
 				//date convert: 28-OCT-21 > 2021-10-28
-				$row["booked_date"] = $this->my_func->date_convert($row["booked_date"]);
-				$row["scheduled_cancel_date"] = $this->my_func->date_convert($row["scheduled_cancel_date"]);
-				$row["expire_date"] = $this->my_func->date_convert($row["expire_date"]);
-				$row["req_arrival_date_from"] = $this->my_func->date_convert($row["req_arrival_date_from"]);
-				$row["req_arrival_date_to"] = $this->my_func->date_convert($row["req_arrival_date_to"]);
-				$row["req_ship_date"] = $this->my_func->date_convert($row["req_ship_date"]);
-				$row["shipment_date"] = $this->my_func->date_convert($row["shipment_date"]);
-				$row["close_date"] = $this->my_func->date_convert($row["close_date"]);
-				$row["invoice_date"] = $this->my_func->date_convert($row["invoice_date"]);
-				$row["create_date"] = $this->my_func->date_convert($row["create_date"]);
-				$row["customer_po_date"] = $this->my_func->date_convert($row["customer_po_date"]);
+				$row["booked_date"] = $this->my_func->date_convert_4($row["booked_date"]);
+				$row["scheduled_cancel_date"] = $this->my_func->date_convert_4($row["scheduled_cancel_date"]);
+				$row["expire_date"] = $this->my_func->date_convert_4($row["expire_date"]);
+				$row["req_arrival_date_from"] = $this->my_func->date_convert_4($row["req_arrival_date_from"]);
+				$row["req_arrival_date_to"] = $this->my_func->date_convert_4($row["req_arrival_date_to"]);
+				$row["req_ship_date"] = $this->my_func->date_convert_4($row["req_ship_date"]);
+				$row["shipment_date"] = $this->my_func->date_convert_4($row["shipment_date"]);
+				$row["close_date"] = $this->my_func->date_convert_4($row["close_date"]);
+				$row["invoice_date"] = $this->my_func->date_convert_4($row["invoice_date"]);
+				$row["create_date"] = $this->my_func->date_convert_4($row["create_date"]);
+				$row["customer_po_date"] = $this->my_func->date_convert_4($row["customer_po_date"]);
 				
 				//date convert: 2021/11/02 00:00:00 > 2021-11-02
 				//$row["customer_rad"] = $this->my_func->date_convert_2($row["customer_rad"]);
