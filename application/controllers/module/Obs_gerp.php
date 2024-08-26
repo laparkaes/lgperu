@@ -291,9 +291,9 @@ class Obs_gerp extends CI_Controller {
 				//foreach($row as $key => $val){echo $key."===> ".$val."<br/>";} echo "<br/><br/>";
 			}
 			
-			$date_arr = array_unique($date_arr);
 			sort($date_arr);
-			
+			$date_arr = array_unique($date_arr);
+			print_r($date_arr);
 			if ($rows){
 				//echo number_Format(microtime(true) - $start_time, 2)." sec *** ".number_format(count($rows))." datas to insert<br/><br/>";
 				
