@@ -595,6 +595,16 @@ class Obs extends CI_Controller {
 			return ($a->total_amount < $b->total_amount);
 		});
 		
+		$arr_amt = [];
+		$arr_qty = [];
+		$arr_nsp = [];
+
+		foreach($sale as $item){
+			$arr_amt[] = ["model" => $item->model, "close_date" => $item->close_date, "total_amount" => $item->total_amount];
+			$arr_qty[] = ["model" => $item->model, "close_date" => $item->close_date, "sale_qty" => $item->sale_qty];
+			$arr_nsp[] = ["model" => $item->model, "close_date" => $item->close_date, "nsp" => $item->nsp];
+		}
+		
 		//foreach($sales as $item){ print_r($item); echo "<br/><br/>"; }
 		//foreach($summary as $item){ print_r($item); echo "<br/><br/>"; }
 		
@@ -604,6 +614,9 @@ class Obs extends CI_Controller {
 			case "summary": $data = $summary; break;
 			case "sale": $data = $sales; break;
 			case "date": $data = $nsp_dates; break;
+			case "amount": $data = $arr_amt; break;
+			case "qty": $data = $arr_qty; break;
+			case "nsp": $data = $arr_nsp; break;
 			default: $data = [];
 		}
 		
