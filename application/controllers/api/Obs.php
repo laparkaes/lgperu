@@ -600,8 +600,8 @@ class Obs extends CI_Controller {
 		$arr_nsp = [];
 
 		foreach($sales as $item){
-			$arr_amt[] = ["model" => $item->model, "close_date" => $item->close_date, "total_amount" => $item->sales_amount];
-			$arr_qty[] = ["model" => $item->model, "close_date" => $item->close_date, "sale_qty" => $item->ordered_qty];
+			$arr_amt[] = ["model" => $item->model, "close_date" => $item->close_date, "sales_amount" => $item->sales_amount];
+			$arr_qty[] = ["model" => $item->model, "close_date" => $item->close_date, "ordered_qty" => $item->ordered_qty];
 			$arr_nsp[] = ["model" => $item->model, "close_date" => $item->close_date, "nsp" => $item->nsp];
 		}
 		
