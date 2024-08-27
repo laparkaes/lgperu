@@ -452,7 +452,7 @@ class Obs extends CI_Controller {
 	}
 	
 	public function nsp(){
-		//llamasys/api/obs/nsp?key=lgepr
+		//llamasys/api/obs/nsp?key=lgepr&request=summary/sale/date
 		
 		//access validation
 		if ($this->input->get("key") !== "lgepr"){
@@ -600,7 +600,14 @@ class Obs extends CI_Controller {
 		
 		$nsp_dates = $this->my_func->dates_between($from, $to);
 		
+		switch($this->input->get("request")){
+			case "summary": $data = $summary; break;
+			case "sale": $data = $sales; break;
+			case "date": $data = $nsp_dates; break;
+			default: $data = [];
+		}
+		
 		header('Content-Type: application/json');
-		echo json_encode(["nsp_summary" => $summary, "nsp_sales" => $sales, "nsp_dates" => $nsp_dates]);
+		echo json_encode($data);
 	}
 }
