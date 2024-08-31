@@ -536,14 +536,6 @@ class Obs extends CI_Controller {
 			"One time_Boleta" => "ETC",
 		];
 		
-		//define data array
-		$data = [];
-		
-		foreach($v_companies as $item) $data[$item["company"]] = [];
-		foreach($v_divisions as $item) $data[$item["company"]][$item["division"]] = [];
-		
-		print_r($data);
-		
 		//filters
 		$today = date("Y-m-d");
 		$today = "2024-06-13";
@@ -551,11 +543,73 @@ class Obs extends CI_Controller {
 		$from = date("Y-m-01", strtotime($today));
 		$to = date("Y-m-t", strtotime($today));
 		
+		
+		//aux array setting
 		$w = ["close_date >= " => $from, "close_date <= " => $to, "sales_amount >" => 0];
 		
-		//sales
-		$sales = $this->gen_m->only_multi("v_obs_sales_order", ["model_category", "model", "bill_to_name", "close_date", "sum(sales_amount) as sales_amount", "sum(ordered_qty) as ordered_qty"], $w, ["model_category", "model", "close_date"]);
+		$models_unique = $this->gen_m->only_multi("v_obs_sales_order", ["model_category", "model"], $w);
 		
+		$dates = $this->my_func->dates_between($from, $to);
+		
+		$data = [];
+		
+		foreach($v_companies as $item) $data[$item["company"]] = [];
+		foreach($v_divisions as $item) $data[$item["company"]][$item["division"]] = [];
+		foreach($models_unique as $item){
+			$item->model_category = $m_division[$item->model_category];
+			$item->company = $m_company[$item->model_category];
+			$data[$item->company][$item->model_category][$item->model] = [];
+			foreach($dates as $item_date){
+				$data[$item->company][$item->model_category][$item->model][$item_date] = [];
+				foreach($v_bill_tos as $item_bt){
+					$data[$item->company][$item->model_category][$item->model][$item_date][$item_bt["bill_to"]] = null;
+				}
+			}
+		}
+		
+		//sales
+		
+		$sales = $this->gen_m->only_multi("v_obs_sales_order", ["model_category", "model", "bill_to_name", "close_date", "sum(sales_amount) as sales_amount", "sum(ordered_qty) as ordered_qty"], $w, ["model_category", "model", "close_date"]);
+		foreach($sales as $item){
+			$item->bill_to_name = $m_bill_to[$item->bill_to_name];
+			$item->model_category = $m_division[$item->model_category];
+			$item->company = $m_company[$item->model_category];
+			$item->sales_amount = round($item->sales_amount, 2);
+			$item->sale_unit = round($item->sales_amount / $item->ordered_qty, 2);
+			
+			$data[$item->company][$item->model_category][$item->model][$item->close_date][$item->bill_to_name] = $item;
+		}
+		
+		foreach($data as $com => $divs){
+			
+			foreach($divs as $div => $models){
+				
+				foreach($models as $model => $bill_tos){
+					
+					foreach($bill_tos as $bill_to => $sale_dates){
+						
+						foreach($sale_dates as $s_date => $s_items){
+							
+							if ($s_items){
+								echo $com." ".$div." ".$model." ".$bill_to." ".$s_date." /// ".$s_items->sale_unit." /// ".$s_items->sales_amount." * ".$s_items->ordered_qty."<br/>";
+								//print_r($s_items); echo "<br/><br/>";
+							}
+							
+						}
+					}
+					
+					echo "===================================================<br/><br/>";
+				}
+			}
+			
+			
+		}
+		
+		return;
+		
+		//sales
+		
+		$sales = $this->gen_m->only_multi("v_obs_sales_order", ["model_category", "model", "bill_to_name", "close_date", "sum(sales_amount) as sales_amount", "sum(ordered_qty) as ordered_qty"], $w, ["model_category", "model", "close_date"]);
 		foreach($sales as $item){
 			$item->bill_to_name = $m_bill_to[$item->bill_to_name];
 			$item->model_category = $m_division[$item->model_category];
@@ -566,20 +620,41 @@ class Obs extends CI_Controller {
 				$data[$item->company][$item->model_category][$item->model] = [];
 			}
 			
-			if (!array_key_exists($item->close_date, $data[$item->company][$item->model_category][$item->model])){
-				$data[$item->company][$item->model_category][$item->model][$item->close_date] = [];
-				foreach($v_bill_tos as $item_bt) $data[$item->company][$item->model_category][$item->model][$item->close_date][$item_bt["bill_to"]] = [];
+			foreach($v_bill_tos as $item_bt){
+				if (!array_key_exists($item_bt["bill_to"], $data[$item->company][$item->model_category][$item->model]))
+					$data[$item->company][$item->model_category][$item->model][$item_bt["bill_to"]] = [];
 			}
 			
-			$data[$item->company][$item->model_category][$item->model][$item->close_date][$item->bill_to_name][] = $item;
+			if (!array_key_exists($item->close_date, $data[$item->company][$item->model_category][$item->model][$item->bill_to_name])){
+				$data[$item->company][$item->model_category][$item->model][$item->bill_to_name][$item->close_date] = [];
+			}
+			
+			$data[$item->company][$item->model_category][$item->model][$item->bill_to_name][$item->close_date][] = $item;
 			//print_r($item); echo "<br/><br/>";
 		}
 		
-		//print_r($data); echo "<br/><br/>";
+		foreach($data as $com => $divs){
+			echo $com."<br/><br/>";
+			
+			foreach($divs as $div => $models){
+				echo "---".$div."<br/><br/>";
+				
+				foreach($models as $model => $bill_tos){
+					echo "------".$model."<br/><br/>";
+					
+					foreach($bill_tos as $bill_to => $sale_dates){
+						echo "------".$bill_to."<br/><br/>";
+						
+						foreach($sale_dates as $s_date => $s_items){
+							echo "------".$s_date."<br/><br/>";
+							
+							print_r($s_items); echo "<br/><br/>";
+						}
+					}
+				}
+			}
+		}
 		
-		
-		
-		return;
 		$summary = [];
 		
 		foreach($data as $com => $divs){
