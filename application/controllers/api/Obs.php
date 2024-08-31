@@ -483,6 +483,13 @@ class Obs extends CI_Controller {
 			["order" => 13, "company" => "BS", "division" => "Commercial TV"],
 		];
 		
+		//D2C, D2B2C, ETC
+		$v_bill_tos = [
+			["order" => 1, "bill_to" => "D2C"],
+			["order" => 2, "bill_to" => "D2B2C"],
+			["order" => 3, "bill_to" => "ETC"],
+		];
+		
 		$m_division = [
 			"" => "",//PTO case
 			"A/C" => "Chilller",
@@ -521,15 +528,25 @@ class Obs extends CI_Controller {
 			"Commercial TV" => "BS",
 		];
 		
+		$m_bill_to = [
+			"B2C" => "D2C",
+			"B2B2C" => "D2B2C",
+			"B2P" => "ETC",
+			"B2E" => "ETC",
+			"One time_Boleta" => "ETC",
+		];
+		
 		//define data array
 		$data = [];
 		
 		foreach($v_companies as $item) $data[$item["company"]] = [];
 		foreach($v_divisions as $item) $data[$item["company"]][$item["division"]] = [];
 		
+		print_r($data);
+		
 		//filters
 		$today = date("Y-m-d");
-		//$today = "2024-06-13";
+		$today = "2024-06-13";
 		
 		$from = date("Y-m-01", strtotime($today));
 		$to = date("Y-m-t", strtotime($today));
@@ -537,28 +554,41 @@ class Obs extends CI_Controller {
 		$w = ["close_date >= " => $from, "close_date <= " => $to, "sales_amount >" => 0];
 		
 		//sales
-		$sales = $this->gen_m->only_multi("v_obs_sales_order", ["model_category", "model", "close_date", "sum(sales_amount) as sales_amount", "sum(ordered_qty) as ordered_qty"], $w, ["model_category", "model", "close_date"]);
+		$sales = $this->gen_m->only_multi("v_obs_sales_order", ["model_category", "model", "bill_to_name", "close_date", "sum(sales_amount) as sales_amount", "sum(ordered_qty) as ordered_qty"], $w, ["model_category", "model", "close_date"]);
 		
 		foreach($sales as $item){
+			$item->bill_to_name = $m_bill_to[$item->bill_to_name];
 			$item->model_category = $m_division[$item->model_category];
 			$item->company = $m_company[$item->model_category];
 			$item->sales_amount = round($item->sales_amount, 2);
 			
-			if (!array_key_exists($item->model, $data[$item->company][$item->model_category])) $data[$item->company][$item->model_category][$item->model] = [];
+			if (!array_key_exists($item->model, $data[$item->company][$item->model_category])){
+				$data[$item->company][$item->model_category][$item->model] = [];
+			}
 			
-			$data[$item->company][$item->model_category][$item->model][] = $item;
+			if (!array_key_exists($item->close_date, $data[$item->company][$item->model_category][$item->model])){
+				$data[$item->company][$item->model_category][$item->model][$item->close_date] = [];
+				foreach($v_bill_tos as $item_bt) $data[$item->company][$item->model_category][$item->model][$item->close_date][$item_bt["bill_to"]] = [];
+			}
+			
+			$data[$item->company][$item->model_category][$item->model][$item->close_date][$item->bill_to_name][] = $item;
 			//print_r($item); echo "<br/><br/>";
 		}
 		
+		//print_r($data); echo "<br/><br/>";
+		
+		
+		
+		return;
 		$summary = [];
 		
 		foreach($data as $com => $divs){
-			//echo $com."<br/><br/>";
+			echo $com."<br/><br/>";
 			foreach($divs as $div => $models){
-				//echo "---".$div."<br/><br/>";
+				echo "---".$div."<br/><br/>";
 				
 				foreach($models as $model => $sales_m){
-					//echo "------".$model."<br/><br/>";
+					echo "------".$model."<br/><br/>";
 					
 					$total_amount = $sale_qty = $alert_qty = 0;
 					foreach($sales_m as $sale){
@@ -572,7 +602,7 @@ class Obs extends CI_Controller {
 						
 						if ($sale->nsp_alert) $alert_qty++;
 						
-						//print_r($sale); echo "<br/><br/>";
+						print_r($sale); echo "<br/><br/>";
 					}
 					
 					$result = new stdClass;
@@ -586,7 +616,7 @@ class Obs extends CI_Controller {
 					$summary[] = clone $result;
 				}
 				
-				//echo "============================================================================<br/><br/>";
+				echo "============================================================================<br/><br/>";
 			}	
 			
 		}
@@ -620,7 +650,7 @@ class Obs extends CI_Controller {
 			default: $data = [];
 		}
 		
-		header('Content-Type: application/json');
-		echo json_encode($data);
+		//header('Content-Type: application/json');
+		//echo json_encode($data);
 	}
 }
