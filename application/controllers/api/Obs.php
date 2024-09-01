@@ -567,8 +567,7 @@ class Obs extends CI_Controller {
 			}
 		}
 		
-		//sales
-		
+		//obs sales
 		$sales = $this->gen_m->only_multi("v_obs_sales_order", ["model_category", "model", "bill_to_name", "close_date", "sum(sales_amount) as sales_amount", "sum(ordered_qty) as ordered_qty"], $w, ["model_category", "model", "close_date"]);
 		foreach($sales as $item){
 			$item->bill_to_name = $m_bill_to[$item->bill_to_name];
@@ -580,29 +579,28 @@ class Obs extends CI_Controller {
 			$data[$item->company][$item->model_category][$item->model][$item->close_date][$item->bill_to_name] = $item;
 		}
 		
+		/////////////////////////////////////////need to set B2C avg sale for each date here
+		
+		
+		
+		
 		foreach($data as $com => $divs){
-			
 			foreach($divs as $div => $models){
-				
 				foreach($models as $model => $bill_tos){
-					
 					foreach($bill_tos as $bill_to => $sale_dates){
-						
 						foreach($sale_dates as $s_date => $s_items){
-							
 							if ($s_items){
 								echo $com." ".$div." ".$model." ".$bill_to." ".$s_date." /// ".$s_items->sale_unit." /// ".$s_items->sales_amount." * ".$s_items->ordered_qty."<br/>";
-								//print_r($s_items); echo "<br/><br/>";
+								
+								/*
+								sp will be calculated with B2C unit sales on $s_date
+								*/
 							}
-							
 						}
 					}
-					
 					echo "===================================================<br/><br/>";
 				}
 			}
-			
-			
 		}
 		
 		return;
@@ -633,6 +631,7 @@ class Obs extends CI_Controller {
 			//print_r($item); echo "<br/><br/>";
 		}
 		
+		/* $data debugging */
 		foreach($data as $com => $divs){
 			echo $com."<br/><br/>";
 			
