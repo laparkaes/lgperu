@@ -583,18 +583,6 @@ class Obs extends CI_Controller {
 		
 		$r_model = $r_amt = $r_qty = $r_nsp = [];
 		
-		/*
-		$result = new stdClass;
-		$result->company = $com;
-		$result->division = $div;
-		$result->model = $model;
-		$result->total_amount = round($total_amount, 2);
-		$result->sale_qty = $sale_qty;
-		$result->alert_qty = $alert_qty;
-		
-		$summary[] = clone $result;
-		*/
-		
 		foreach($data as $com => $divs){
 			foreach($divs as $div => $models){
 				foreach($models as $model => $bill_tos){
