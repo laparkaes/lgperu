@@ -581,150 +581,89 @@ class Obs extends CI_Controller {
 		
 		/////////////////////////////////////////need to set B2C avg sale for each date here
 		
+		$r_model = $r_amt = $r_qty = $r_nsp = [];
 		
+		/*
+		$result = new stdClass;
+		$result->company = $com;
+		$result->division = $div;
+		$result->model = $model;
+		$result->total_amount = round($total_amount, 2);
+		$result->sale_qty = $sale_qty;
+		$result->alert_qty = $alert_qty;
 		
+		$summary[] = clone $result;
+		*/
 		
 		foreach($data as $com => $divs){
 			foreach($divs as $div => $models){
 				foreach($models as $model => $bill_tos){
-					foreach($bill_tos as $bill_to => $sale_dates){
-						foreach($sale_dates as $s_date => $s_items){
+					
+					$total_amount = $total_qty = 0;
+					foreach($bill_tos as $s_date => $sale_dates){
+						foreach($sale_dates as $bill_to => $s_items){
 							if ($s_items){
-								echo $com." ".$div." ".$model." ".$bill_to." ".$s_date." /// ".$s_items->sale_unit." /// ".$s_items->sales_amount." * ".$s_items->ordered_qty."<br/>";
-								
 								/*
-								sp will be calculated with B2C unit sales on $s_date
+								nsp will be calculated with B2C unit sales on $s_date
 								*/
+								
+								$nsp = 100;//put 100 for every cases
+								
+								$r_amt[] = ["model" => $model, "bill_to" => $bill_to, "date" => $s_date, "amount" => $s_items->sales_amount];
+								$r_qty[] = ["model" => $model, "bill_to" => $bill_to, "date" => $s_date, "qty" => $s_items->ordered_qty];
+								$r_nsp[] = ["model" => $model, "bill_to" => $bill_to, "date" => $s_date, "nsp" => $nsp];
+								
+								$total_amount += $s_items->sales_amount;
+								$total_qty += $s_items->ordered_qty;
+								
+								//echo $com." ".$div." ".$model." ".$bill_to." ".$s_date." /// ".$s_items->sale_unit." /// ".$s_items->sales_amount." * ".$s_items->ordered_qty."<br/>";
 							}
 						}
 					}
-					echo "===================================================<br/><br/>";
-				}
-			}
-		}
-		
-		return;
-		
-		//sales
-		
-		$sales = $this->gen_m->only_multi("v_obs_sales_order", ["model_category", "model", "bill_to_name", "close_date", "sum(sales_amount) as sales_amount", "sum(ordered_qty) as ordered_qty"], $w, ["model_category", "model", "close_date"]);
-		foreach($sales as $item){
-			$item->bill_to_name = $m_bill_to[$item->bill_to_name];
-			$item->model_category = $m_division[$item->model_category];
-			$item->company = $m_company[$item->model_category];
-			$item->sales_amount = round($item->sales_amount, 2);
-			
-			if (!array_key_exists($item->model, $data[$item->company][$item->model_category])){
-				$data[$item->company][$item->model_category][$item->model] = [];
-			}
-			
-			foreach($v_bill_tos as $item_bt){
-				if (!array_key_exists($item_bt["bill_to"], $data[$item->company][$item->model_category][$item->model]))
-					$data[$item->company][$item->model_category][$item->model][$item_bt["bill_to"]] = [];
-			}
-			
-			if (!array_key_exists($item->close_date, $data[$item->company][$item->model_category][$item->model][$item->bill_to_name])){
-				$data[$item->company][$item->model_category][$item->model][$item->bill_to_name][$item->close_date] = [];
-			}
-			
-			$data[$item->company][$item->model_category][$item->model][$item->bill_to_name][$item->close_date][] = $item;
-			//print_r($item); echo "<br/><br/>";
-		}
-		
-		/* $data debugging */
-		foreach($data as $com => $divs){
-			echo $com."<br/><br/>";
-			
-			foreach($divs as $div => $models){
-				echo "---".$div."<br/><br/>";
-				
-				foreach($models as $model => $bill_tos){
-					echo "------".$model."<br/><br/>";
 					
-					foreach($bill_tos as $bill_to => $sale_dates){
-						echo "------".$bill_to."<br/><br/>";
+					if ($total_amount){
+						//need to be object. order will be assigned later
+						$result_model = new stdClass;
+						$result_model->company = $com;
+						$result_model->division = $div;
+						$result_model->model = $model;
+						$result_model->total_amount = round($total_amount, 2);
+						$result_model->total_qty = $total_qty;
 						
-						foreach($sale_dates as $s_date => $s_items){
-							echo "------".$s_date."<br/><br/>";
-							
-							print_r($s_items); echo "<br/><br/>";
-						}
-					}
-				}
-			}
-		}
-		
-		$summary = [];
-		
-		foreach($data as $com => $divs){
-			echo $com."<br/><br/>";
-			foreach($divs as $div => $models){
-				echo "---".$div."<br/><br/>";
-				
-				foreach($models as $model => $sales_m){
-					echo "------".$model."<br/><br/>";
-					
-					$total_amount = $sale_qty = $alert_qty = 0;
-					foreach($sales_m as $sale){
-						$total_amount += $sale->sales_amount;
-						$sale_qty += $sale->ordered_qty;
-						
-						$sale->sale_unit = round($sale->sales_amount / $sale->ordered_qty, 2);
-						$sale->nsp = round($total_amount / $sale_qty, 2);
-						$sale->nsp_per = round($sale->sale_unit / $sale->nsp * 100, 2);
-						$sale->nsp_alert = $sale->nsp_per <= 95 ? true : false;
-						
-						if ($sale->nsp_alert) $alert_qty++;
-						
-						print_r($sale); echo "<br/><br/>";
+						$r_model[] = clone $result_model;	
 					}
 					
-					$result = new stdClass;
-					$result->company = $com;
-					$result->division = $div;
-					$result->model = $model;
-					$result->total_amount = round($total_amount, 2);
-					$result->sale_qty = $sale_qty;
-					$result->alert_qty = $alert_qty;
-					
-					$summary[] = clone $result;
+					//echo "===================================================<br/><br/>";
 				}
-				
-				echo "============================================================================<br/><br/>";
-			}	
-			
+			}
 		}
 		
-		usort($summary, function($a, $b) {
+		//sort and assign print order en power BI
+		usort($r_model, function($a, $b) {
 			return ($a->total_amount < $b->total_amount);
 		});
 		
-		$arr_amt = [];
-		$arr_qty = [];
-		$arr_nsp = [];
-
-		foreach($sales as $item){
-			$arr_amt[] = ["model" => $item->model, "close_date" => $item->close_date, "sales_amount" => $item->sales_amount];
-			$arr_qty[] = ["model" => $item->model, "close_date" => $item->close_date, "ordered_qty" => $item->ordered_qty];
-			$arr_nsp[] = ["model" => $item->model, "close_date" => $item->close_date, "nsp" => $item->nsp];
-		}
+		foreach($r_model as $i => $item) $item->order = $i + 1;
 		
-		//foreach($sales as $item){ print_r($item); echo "<br/><br/>"; }
-		//foreach($summary as $item){ print_r($item); echo "<br/><br/>"; }
+		/*
+		foreach($r_model as $i => $item){ print_r($item); echo "<br/>"; }
+		echo "===================================================<br/><br/>";
+		foreach($r_amt as $i => $item){ print_r($item); echo "<br/>"; }
+		echo "===================================================<br/><br/>";
+		foreach($r_qty as $i => $item){ print_r($item); echo "<br/>"; }
+		echo "===================================================<br/><br/>";
+		foreach($r_nsp as $i => $item){ print_r($item); echo "<br/>"; }
+		*/
 		
-		$nsp_dates = $this->my_func->dates_between($from, $to);
+		$res = [
+			"model" => $r_model,
+			"amount" => $r_amt,
+			"qty" => $r_qty,
+			"nsp" => $r_nsp,
+			"nsp_dates" => $this->my_func->dates_between($from, $to),
+		];
 		
-		switch($this->input->get("request")){
-			case "summary": $data = $summary; break;
-			case "sale": $data = $sales; break;
-			case "date": $data = $nsp_dates; break;
-			case "amount": $data = $arr_amt; break;
-			case "qty": $data = $arr_qty; break;
-			case "nsp": $data = $arr_nsp; break;
-			default: $data = [];
-		}
-		
-		//header('Content-Type: application/json');
-		//echo json_encode($data);
+		header('Content-Type: application/json');
+		echo json_encode($res);
 	}
 }
