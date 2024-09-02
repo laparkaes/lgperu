@@ -591,15 +591,9 @@ class Obs extends CI_Controller {
 					foreach($bill_tos as $s_date => $sale_dates){
 						foreach($sale_dates as $bill_to => $s_items){
 							if ($s_items){
-								/*
-								nsp will be calculated with B2C unit sales on $s_date
-								*/
-								
-								$nsp = 100;//put 100 for every cases
-								
 								$r_amt[] = ["model" => $model, "bill_to" => $bill_to, "date" => $s_date, "amount" => $s_items->sales_amount];
 								$r_qty[] = ["model" => $model, "bill_to" => $bill_to, "date" => $s_date, "qty" => $s_items->ordered_qty];
-								$r_nsp[] = ["model" => $model, "bill_to" => $bill_to, "date" => $s_date, "nsp" => $nsp];
+								$r_nsp[] = ["model" => $model, "bill_to" => $bill_to, "date" => $s_date, "nsp" => $s_items->sale_unit];
 								
 								$total_amount += $s_items->sales_amount;
 								$total_qty += $s_items->ordered_qty;
