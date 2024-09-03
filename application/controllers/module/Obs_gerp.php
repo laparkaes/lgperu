@@ -294,7 +294,7 @@ class Obs_gerp extends CI_Controller {
 			
 			sort($date_arr);
 			$date_arr = array_unique($date_arr);
-			print_r($date_arr);
+			//print_r($date_arr);
 			if ($rows){
 				//echo number_Format(microtime(true) - $start_time, 2)." sec *** ".number_format(count($rows))." datas to insert<br/><br/>";
 				
