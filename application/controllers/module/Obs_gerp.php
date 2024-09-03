@@ -191,6 +191,7 @@ class Obs_gerp extends CI_Controller {
 	
 	private function process_new($filename = "obs_gerp.xls"){
 		set_time_limit(0);
+		ini_set("memory_limit", -1);
 		
 		$start_time = microtime(true);
 		
