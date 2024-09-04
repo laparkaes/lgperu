@@ -451,7 +451,7 @@ class Obs extends CI_Controller {
 		echo json_encode($sales);
 	}
 	
-	public function nsp_v2(){//20240904
+	public function nsp_v3(){//20240904
 		//llamasys/api/obs/nsp?key=lgepr&request=summary/sale/date
 		
 		//access validation
@@ -581,7 +581,7 @@ class Obs extends CI_Controller {
 		
 		/////////////////////////////////////////need to set B2C avg sale for each date here
 		
-		$r_model = $r_model_key = $r_amt = $r_qty = $r_nsp = [];
+		$r_model = $r_model_key = $r_key_desc = $r_amt = $r_qty = $r_nsp = [];
 		
 		foreach($data as $com => $divs){
 			foreach($divs as $div => $models){
@@ -592,9 +592,9 @@ class Obs extends CI_Controller {
 						foreach($sale_dates as $bill_to => $s_items){
 							if ($s_items){
 								
-								$r_amt[] = ["key" => $model."_".$bill_to, "model" => $model, "bill_to" => $bill_to, "date" => $s_date, "amount" => $s_items->sales_amount];
-								$r_qty[] = ["key" => $model."_".$bill_to, "model" => $model, "bill_to" => $bill_to, "date" => $s_date, "qty" => $s_items->ordered_qty];
-								$r_nsp[] = ["key" => $model."_".$bill_to, "model" => $model, "bill_to" => $bill_to, "date" => $s_date, "nsp" => $s_items->sale_unit];
+								$r_amt[] = ["key_desc" => $model."_".$bill_to."_Amt", "desc" => "Amt", "model" => $model, "bill_to" => $bill_to, "date" => $s_date, "amount" => $s_items->sales_amount];
+								$r_qty[] = ["key_desc" => $model."_".$bill_to."_Qty", "desc" => "Qty", "model" => $model, "bill_to" => $bill_to, "date" => $s_date, "qty" => $s_items->ordered_qty];
+								$r_nsp[] = ["key_desc" => $model."_".$bill_to."_NSP", "desc" => "NSP", "model" => $model, "bill_to" => $bill_to, "date" => $s_date, "nsp" => $s_items->sale_unit];
 								
 								$total_amount += $s_items->sales_amount;
 								$total_qty += $s_items->ordered_qty;
@@ -626,10 +626,17 @@ class Obs extends CI_Controller {
 			return ($a->total_amount < $b->total_amount);
 		});
 		
+		
+		$arr_desc = ["Amt", "Qty", "NSP"];
 		foreach($r_model as $i => $item){
 			$item->order = $i + 1;
 			
-			foreach($v_bill_tos as $item_bt) $r_model_key[] = ["model" => $item->model, "bill_to" => $item_bt["bill_to"], "key" => $item->model."_".$item_bt["bill_to"]];
+			foreach($v_bill_tos as $item_bt){
+				$key_aux = $item->model."_".$item_bt["bill_to"];
+				$r_model_key[] = ["model" => $item->model, "bill_to" => $item_bt["bill_to"], "key" => $key_aux];
+				
+				foreach($arr_desc as $desc) $r_model_key[] = ["key" => $key_aux, "key_desc" => $key_aux."_".$desc, "desc" => $desc];
+			}
 		}
 		
 		/*
