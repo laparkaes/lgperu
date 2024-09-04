@@ -451,7 +451,7 @@ class Obs extends CI_Controller {
 		echo json_encode($sales);
 	}
 	
-	public function nsp_v1(){//20240904
+	public function nsp_v2(){//20240904
 		//llamasys/api/obs/nsp?key=lgepr&request=summary/sale/date
 		
 		//access validation
@@ -629,7 +629,7 @@ class Obs extends CI_Controller {
 		foreach($r_model as $i => $item){
 			$item->order = $i + 1;
 			
-			foreach($v_bill_tos as $item_bt) $r_model_key[] = ["model" => $item->model, "bill_to" => $item_bt["bill_to"], "key" => $model."_".$item_bt["bill_to"]];
+			foreach($v_bill_tos as $item_bt) $r_model_key[] = ["model" => $item->model, "bill_to" => $item_bt["bill_to"], "key" => $item->model."_".$item_bt["bill_to"]];
 		}
 		
 		/*
