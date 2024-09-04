@@ -66,4 +66,8 @@ class Dashboard extends CI_Controller {
 		echo "<br/>Exchange rate update finished.";
 	}
 	
+	public function test_er(){
+		$ex = $this->my_func->load_exchange_rate_sbs("21082024", "02");
+		print_r($ex);
+	}
 }
