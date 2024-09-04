@@ -69,7 +69,14 @@ class Dashboard extends CI_Controller {
 	public function test_er(){
 		//$date = date("Y-m-d"); $date = "2024-08-19";
 		
+		$dates = $this->my_func->dates_between("2024-08-01", "2024-08-31");
+		foreach($dates as $d){
+			$ex = $this->my_func->load_exchange_rate_sbs($d, "50");
+			if ($ex){ print_r($ex); echo "<br/>"; }	
+		}
 		
+		
+		/*
 		$token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibGdlIiwic3ViIjoibGdlIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIk1hbmFnZXIiLCJTdXBlcnZpc29yIl0sIm5iZiI6MTcxODgxOTgzOSwiZXhwIjoxNzUwMzU1ODM5LCJpc3MiOiJodHRwOi8vand0YXV0aHpzcnYuYXp1cmV3ZWJzaXRlcy5uZXQiLCJhdWQiOiIwOTkxNTNjMjYyNTE0OWJjOGVjYjNlODVlMDNmMDAyMiJ9.1ejIUlAPbq8FhggDzJIhXkYrRCMli1ghC8OI2PETwZc';
 		
 		$ch = curl_init();
@@ -91,6 +98,7 @@ class Dashboard extends CI_Controller {
 		$ex = json_decode($response, true);
 		
 		print_r($ex);
+		*/
 		
 		/*
 		
