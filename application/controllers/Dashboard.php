@@ -71,9 +71,9 @@ class Dashboard extends CI_Controller {
 		
 		echo $date."<br/><br/>";
 		
-		for($i = 0; $i < 30; $i++){
+		for($i = 0; $i < 90; $i++){
 			$ex = $this->my_func->load_exchange_rate_sbs($date, str_pad($i,2,0,STR_PAD_LEFT));
-			print_r($ex); echo "<br/>";	
+			if ($ex){ print_r($ex); echo "<br/>"; }
 		}
 		
 		
