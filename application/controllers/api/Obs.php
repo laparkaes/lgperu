@@ -581,7 +581,7 @@ class Obs extends CI_Controller {
 		
 		/////////////////////////////////////////need to set B2C avg sale for each date here
 		
-		$r_model = $r_amt = $r_qty = $r_nsp = [];
+		$r_model = $r_model_key = $r_amt = $r_qty = $r_nsp = [];
 		
 		foreach($data as $com => $divs){
 			foreach($divs as $div => $models){
@@ -591,9 +591,10 @@ class Obs extends CI_Controller {
 					foreach($bill_tos as $s_date => $sale_dates){
 						foreach($sale_dates as $bill_to => $s_items){
 							if ($s_items){
-								$r_amt[] = ["model" => $model, "bill_to" => $bill_to, "date" => $s_date, "amount" => $s_items->sales_amount];
-								$r_qty[] = ["model" => $model, "bill_to" => $bill_to, "date" => $s_date, "qty" => $s_items->ordered_qty];
-								$r_nsp[] = ["model" => $model, "bill_to" => $bill_to, "date" => $s_date, "nsp" => $s_items->sale_unit];
+								
+								$r_amt[] = ["key" => $model."_".$bill_to, "model" => $model, "bill_to" => $bill_to, "date" => $s_date, "amount" => $s_items->sales_amount];
+								$r_qty[] = ["key" => $model."_".$bill_to, "model" => $model, "bill_to" => $bill_to, "date" => $s_date, "qty" => $s_items->ordered_qty];
+								$r_nsp[] = ["key" => $model."_".$bill_to, "model" => $model, "bill_to" => $bill_to, "date" => $s_date, "nsp" => $s_items->sale_unit];
 								
 								$total_amount += $s_items->sales_amount;
 								$total_qty += $s_items->ordered_qty;
@@ -625,7 +626,11 @@ class Obs extends CI_Controller {
 			return ($a->total_amount < $b->total_amount);
 		});
 		
-		foreach($r_model as $i => $item) $item->order = $i + 1;
+		foreach($r_model as $i => $item){
+			$item->order = $i + 1;
+			
+			foreach($v_bill_tos as $item_bt) $r_model_key[] = ["model" => $item->model, "bill_to" => $item_bt["bill_to"], "key" => $model."_".$item_bt["bill_to"]];
+		}
 		
 		/*
 		foreach($r_model as $i => $item){ print_r($item); echo "<br/>"; }
@@ -639,6 +644,7 @@ class Obs extends CI_Controller {
 		
 		$res = [
 			"model" => $r_model,
+			"key" => $r_model_key,
 			"amount" => $r_amt,
 			"qty" => $r_qty,
 			"nsp" => $r_nsp,
