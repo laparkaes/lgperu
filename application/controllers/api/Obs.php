@@ -451,7 +451,7 @@ class Obs extends CI_Controller {
 		echo json_encode($sales);
 	}
 	
-	public function nsp(){
+	public function nsp_v1(){//20240904
 		//llamasys/api/obs/nsp?key=lgepr&request=summary/sale/date
 		
 		//access validation
