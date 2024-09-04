@@ -67,7 +67,7 @@ class Dashboard extends CI_Controller {
 	}
 	
 	public function test_er(){
-		$date = date("Y-m-d"); $date = "2024-08-21";
+		$date = date("Y-m-d"); $date = "2024-08-19";
 		
 		echo $date."<br/><br/>";
 		
