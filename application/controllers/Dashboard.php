@@ -69,5 +69,7 @@ class Dashboard extends CI_Controller {
 	public function test_er(){
 		$ex = $this->my_func->load_exchange_rate_sbs("2024-08-24", "02");
 		print_r($ex);
+		$ex = $this->my_func->get_exchange_rate_usd("2024-08-24");
+		print_r($ex);
 	}
 }
