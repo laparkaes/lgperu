@@ -69,12 +69,20 @@ class Dashboard extends CI_Controller {
 	public function test_er(){
 		$date = date("Y-m-d"); $date = "2024-08-19";
 		
-		echo $date."<br/><br/>";
 		
-		for($i = 0; $i < 90; $i++){
-			$ex = $this->my_func->load_exchange_rate_sbs($date, str_pad($i,2,0,STR_PAD_LEFT));
-			if ($ex){ print_r($ex); echo "<br/>"; }
+		
+		$dates = $this->my_func->dates_between("2024-08-01", "2024-08-31");
+		foreach($dates as $d){
+			echo $d."============================================<br/><br/>";
+			
+			for($i = 0; $i < 90; $i++){
+				$ex = $this->my_func->load_exchange_rate_sbs($d, str_pad($i,2,0,STR_PAD_LEFT));
+				if ($ex){ print_r($ex); echo "<br/>"; }
+			}	
+			
+			echo "<br/><br/>";
 		}
+		
 		
 		
 		
