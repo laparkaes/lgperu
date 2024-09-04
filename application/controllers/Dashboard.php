@@ -83,7 +83,7 @@ class Dashboard extends CI_Controller {
 		$token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibGdlIiwic3ViIjoibGdlIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIk1hbmFnZXIiLCJTdXBlcnZpc29yIl0sIm5iZiI6MTcxODgxOTgzOSwiZXhwIjoxNzUwMzU1ODM5LCJpc3MiOiJodHRwOi8vand0YXV0aHpzcnYuYXp1cmV3ZWJzaXRlcy5uZXQiLCJhdWQiOiIwOTkxNTNjMjYyNTE0OWJjOGVjYjNlODVlMDNmMDAyMiJ9.1ejIUlAPbq8FhggDzJIhXkYrRCMli1ghC8OI2PETwZc';
 		
 		$ch = curl_init();
-		$url = 'http://serviciosweb.sbs.gob.pe/api/tipocambio/contable/28082024';
+		$url = 'http://serviciosweb.sbs.gob.pe/api/tipocambio/contable/'.date("dmY", strtotime($date));
 		$headers = [
 			'Accept: application/json',
 			'Authorization: Bearer '.$token,
@@ -99,10 +99,11 @@ class Dashboard extends CI_Controller {
 		curl_close($ch);
 
 		$contables = json_decode($response, true);
-		
+		$pyg_er = null;
 		foreach($contables as $item){
-			print_R($item); echo "<br/>";
+			if ($item["codigo_moneda"] == 50) $pyg_er = $item;
 		}
+		print_R($pyg_er); echo "<br/>";
 		
 		
 		/*
