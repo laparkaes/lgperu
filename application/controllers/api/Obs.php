@@ -451,7 +451,7 @@ class Obs extends CI_Controller {
 		echo json_encode($sales);
 	}
 	
-	public function nsp_v5(){//20240904
+	public function nsp_v6(){//20240904
 		//llamasys/api/obs/nsp?key=lgepr&request=summary/sale/date
 		
 		//access validation
@@ -538,7 +538,7 @@ class Obs extends CI_Controller {
 		
 		//filters
 		$today = date("Y-m-d");
-		$today = "2024-08-13";
+		$today = "2024-06-13";
 		
 		$from = date("Y-m-01", strtotime($today));
 		$to = date("Y-m-t", strtotime($today));
