@@ -66,6 +66,12 @@ class Dashboard extends CI_Controller {
 		echo "<br/>Exchange rate update finished.";
 	}
 	
+	public function er_apply(){
+		$ers = $this->gen_m->filter("exchange_rate", false, ["date_apply" => ""]);
+		
+		print_r($ers);
+	}
+	
 	public function test_er(){
 		//$date = date("Y-m-d"); 
 		$date = "2024-08-19";
