@@ -439,7 +439,7 @@ class My_func{
 		
 		$config['protocol'] = 'smtp';
 		$config['smtp_host'] = 'lgekrhqmh01.lge.com';
-		$config['smtp_port'] = 587;
+		$config['smtp_port'] = 25;
 		$config['smtp_user'] = '';
 		$config['smtp_pass'] = '';
 		$config['mailtype'] = 'html';
