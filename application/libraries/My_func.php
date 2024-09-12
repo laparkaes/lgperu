@@ -446,10 +446,8 @@ class My_func{
 		$config['charset'] = 'iso-8859-1';
 		$config['wordwrap'] = TRUE;
 		$this->CI->email->initialize($config);
-		
 		$this->CI->email->set_newline("\r\n");
 
-	
 		$this->CI->email->from($from);
 		$this->CI->email->to($to);
 		$this->CI->email->subject($subject);
@@ -459,7 +457,7 @@ class My_func{
 		//if ($attach_path) $this->email->attach('/upload/atach/xls/yourfile.xls');
 
 		if ($this->CI->email->send()) {
-			echo 'Email sent successfully with attachment!';
+			echo 'Email sent successfully with attachment! ('.$subject.')';
 		} else {
 			//echo 'Failed to send email.';
 			echo $this->CI->email->print_debugger(array('headers'));
