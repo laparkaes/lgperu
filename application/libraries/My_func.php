@@ -454,7 +454,7 @@ class My_func{
 		$this->CI->email->message($message);
 
 		// Attach the file
-		//if ($attach_path) $this->email->attach('/upload/atach/xls/yourfile.xls');
+		if ($attach_path) $this->email->attach($attach_path);
 
 		if ($this->CI->email->send()) {
 			echo 'Email sent successfully with attachment! ('.$subject.')';
