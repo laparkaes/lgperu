@@ -435,7 +435,7 @@ class My_func{
 
 	public function send_email($from, $to, $subject, $message, $attach_path = null){
 		
-		$this->load->library('email');
+		$this->CI->load->library('email');
 		
 		$config['protocol'] = 'smtp';
 		$config['smtp_host'] = 'lgekrhqmh01.lge.com';
@@ -445,17 +445,17 @@ class My_func{
 		$config['mailtype'] = 'html';
 		$config['charset'] = 'iso-8859-1';
 		$config['wordwrap'] = TRUE;
-		$this->email->initialize($config);
+		$this->CI->email->initialize($config);
 	
-		$this->email->from($from);
-		$this->email->to($to);
-		$this->email->subject($subject);
-		$this->email->message($message);
+		$this->CI->email->from($from);
+		$this->CI->email->to($to);
+		$this->CI->email->subject($subject);
+		$this->CI->email->message($message);
 
 		// Attach the file
 		//if ($attach_path) $this->email->attach('/upload/atach/xls/yourfile.xls');
 
-		if ($this->email->send()) {
+		if ($this->CI->email->send()) {
 			echo 'Email sent successfully with attachment!';
 		} else {
 			echo 'Failed to send email.';
