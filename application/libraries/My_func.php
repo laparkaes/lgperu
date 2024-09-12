@@ -458,7 +458,8 @@ class My_func{
 		if ($this->CI->email->send()) {
 			echo 'Email sent successfully with attachment!';
 		} else {
-			echo 'Failed to send email.';
+			//echo 'Failed to send email.';
+			$this->CI->email->print_debugger(array('headers'));
 		}
 
 		
