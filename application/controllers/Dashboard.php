@@ -72,7 +72,7 @@ class Dashboard extends CI_Controller {
 		foreach($ers as $item){
 			$item->date_apply = date('Y-m-d', strtotime($item->date . ' +1 day'));
 			$this->gen_m->update("exchange_rate", ["exchange_rate_id", $item->exchange_rate_id], $item);
-			print_r($item);
+			print_r($item); echo "<br/>";
 		}
 	}
 	
