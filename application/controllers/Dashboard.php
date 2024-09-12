@@ -69,7 +69,11 @@ class Dashboard extends CI_Controller {
 	public function er_apply(){
 		$ers = $this->gen_m->filter("exchange_rate", false, ["date_apply" => ""]);
 		
-		print_r($ers);
+		foreach($ers as $item){
+			$item->date_apply = date('Y-m-d', strtotime($item->date . ' +1 day'));
+			$this->gen_m->update("exchange_rate", ["exchange_rate_id", $item->exchange_rate_id], $item);
+			print_r($item);
+		}
 	}
 	
 	public function test_er(){
