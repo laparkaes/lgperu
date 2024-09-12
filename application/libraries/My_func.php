@@ -446,6 +446,9 @@ class My_func{
 		$config['charset'] = 'iso-8859-1';
 		$config['wordwrap'] = TRUE;
 		$this->CI->email->initialize($config);
+		
+		$this->CI->email->set_newline("\r\n");
+
 	
 		$this->CI->email->from($from);
 		$this->CI->email->to($to);
