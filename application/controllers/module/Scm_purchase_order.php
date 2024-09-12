@@ -610,7 +610,7 @@ class Scm_purchase_order extends CI_Controller {
 	
 	public function send_email(){
 		
-		$this->my_func->send_email("rpa@lge.com", "georgio.park@lge.com", "test asunto ".rand(1, 10), "te mando tal", "/test_files/paperless.txt");
+		$this->my_func->send_email("rpa@lge.com", "georgio.park@lge.com", "test asunto ".rand(1, 10), "te mando tal", "./test_files/paperless.txt");
 		
 	}
 }
