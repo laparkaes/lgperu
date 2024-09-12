@@ -216,8 +216,10 @@ class My_func{
 			$sell = (float)str_replace(",", ".", $sbs["valor_venta"]);
 			$avg = ($buy + $sell) / 2;
 			
-			return ["date" => $date, "currency" => $currency, "buy" => $buy, "sell" => $sell, "avg" => $avg];	
-		}return null;
+			return ["date" => $date, "date_apply" => date('Y-m-d', strtotime($date . ' +1 day')), "currency" => $currency, "buy" => $buy, "sell" => $sell, "avg" => $avg];	
+		}
+		
+		return null;
 	}
 	
 	public function load_exchange_rate_sbs($date = null, $code = "02"){
