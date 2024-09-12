@@ -21,6 +21,7 @@
 						</div>
 						<div class="col-md-12 pt-3 text-center">
 							<button type="button" class="btn btn-primary" id="btn_show">Register</button>
+							<a href="<?= base_url() ?>module/tax_paperless_document/download" class="btn btn-secondary" target="_blank">Download</a>
 						</div>
 					</div>
 				</div>
@@ -55,8 +56,9 @@ function upload_invoice(){
 	
 	//console.log(rows);
 	ajax_simple({rows:rows}, "module/tax_paperless_document/upload").done(function(res) {
-		//swal(res.type, res.msg);
-		console.log(res.msg);
+		swal(res.type, res.msg);
+		$('#txt_html').val("");
+		//console.log(res.msg);
 	});
 }
 

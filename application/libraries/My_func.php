@@ -432,4 +432,36 @@ class My_func{
 		
 		return json_decode(json_encode($rows), false);
 	}
+
+	public function send_email($from, $to, $subject, $message, $attach_path = null){
+		
+		$this->load->library('email');
+		
+		$config['protocol'] = 'smtp';
+		$config['smtp_host'] = 'lgekrhqmh01.lge.com';
+		$config['smtp_port'] = 25;
+		$config['smtp_user'] = '';
+		$config['smtp_pass'] = '';
+		$config['mailtype'] = 'html';
+		$config['charset'] = 'iso-8859-1';
+		$config['wordwrap'] = TRUE;
+		$this->email->initialize($config);
+	
+		$this->email->from($from);
+		$this->email->to($to);
+		$this->email->subject($subject);
+		$this->email->message($message);
+
+		// Attach the file
+		//if ($attach_path) $this->email->attach('/upload/atach/xls/yourfile.xls');
+
+		if ($this->email->send()) {
+			echo 'Email sent successfully with attachment!';
+		} else {
+			echo 'Failed to send email.';
+		}
+
+		
+		
+	}
 }

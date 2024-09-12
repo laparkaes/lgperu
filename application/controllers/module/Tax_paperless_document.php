@@ -42,8 +42,9 @@ class Tax_paperless_document extends CI_Controller {
 		$invoices = [];
 		$rows = $this->input->post("rows");
 		if (!$rows) $rows = [];
-		
+		//print_r($rows); echo "<br/><br/>";
 		foreach($rows as $i => $item){
+			//echo $i.". "; print_r($item); echo "<br/><br/>";
 			$rows[$i]["date_enter"] = $this->my_func->date_convert_7($item["date_enter"]);
 			$rows[$i]["date_issue"] = $this->my_func->date_convert_8($item["date_issue"]);
 			

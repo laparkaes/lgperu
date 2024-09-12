@@ -608,4 +608,9 @@ class Scm_purchase_order extends CI_Controller {
 		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
 	
+	public function send_email(){
+		
+		$this->my_func->send_email("rpa@lge.com", "georgio.park@lge.com", "test asunto", "te mando tal", null);
+		
+	}
 }
