@@ -509,7 +509,7 @@ class Obs extends CI_Controller {
 		
 		//filters
 		$today = date("Y-m-d");
-		$today = "2024-06-13";
+		//$today = "2024-06-13";
 		
 		$from = date("Y-m-01", strtotime($today));
 		$to = date("Y-m-t", strtotime($today));
@@ -668,6 +668,12 @@ class Obs extends CI_Controller {
 		}
 		echo "<br/>";
 		
+		
+		foreach($v_descriptions as $item){
+			print_r($item);
+			echo "<br/>";
+		}
+		echo "<br/>";
 		*/
 		
 		$arr_descriptions = ["Amt", "Qty", "NSP"];
@@ -675,33 +681,28 @@ class Obs extends CI_Controller {
 		
 		foreach($v_companies as $item){
 			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["company" => $item["company"], "desc" => $desc];
+				$v_descriptions[] = ["company" => $item["company"], "division" => null, "model" => null, "bill_to" => null, "desc" => $desc];
 			}
 		}
 		
 		foreach($v_divisions as $item){
 			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["division" => $item["division"], "desc" => $desc];
+				$v_descriptions[] = ["company" => null, "division" => $item["division"], "model" => null, "bill_to" => null, "desc" => $desc];
 			}
 		}
 		
 		foreach($v_models as $key => $item){
 			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["model" => $item["model"], "desc" => $desc];
+				$v_descriptions[] = ["company" => null, "division" => null, "model" => $item["model"], "bill_to" => null, "desc" => $desc];
 			}
 		}
 		
 		foreach($bill_tos as $bill_to){
 			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["bill_to" => $bill_to, "desc" => $desc];
+				$v_descriptions[] = ["company" => null, "division" => null, "model" => null, "bill_to" => $bill_to, "desc" => $desc];
 			}
 		}
 		
-		foreach($v_descriptions as $item){
-			print_r($item);
-			echo "<br/>";
-		}
-		echo "<br/>";
 		$res = [
 			"datas" => $datas,
 			"rawdatas" => $rawdatas,
