@@ -591,7 +591,7 @@ class Obs extends CI_Controller {
 							$i++;
 							
 							foreach($descriptions as $description){
-								$v_descriptions[] = ["order" => $j, "company" => $com["company"], "division" => $div["division"], "model" => $model, "bill_to" => $bill_to, "desc" => $description, "key" => $com["company"]."_".$div["division"]."_".$model."_".$bill_to."_".$description];
+								$v_descriptions[] = ["order" => $j, "company" => $com["company"], "division" => $div["division"], "model" => $model, "bill_to" => $bill_to, "desc" => $description, "key_bill_to" => $com["company"]."_".$div["division"]."_".$model."_".$bill_to, "key" => $com["company"]."_".$div["division"]."_".$model."_".$bill_to."_".$description];
 								$j++;
 							}
 						}
@@ -633,12 +633,6 @@ class Obs extends CI_Controller {
 			$datas[] = ["desc" => "NSP", "val" => $item->nsp, "date" => $item->close_date, "key" => $item->key_div];
 			$datas[] = ["desc" => "NSP", "val" => $item->nsp, "date" => $item->close_date, "key" => $item->key_model];
 			$datas[] = ["desc" => "NSP", "val" => $item->nsp, "date" => $item->close_date, "key" => $item->key_bill_to];
-			
-			foreach($descriptions as $description){
-				$datas[] = ["desc" => "Amt", "val" => $item->sales_amount, "date" => $item->close_date, "key_bill_to" => $item->key_bill_to, "key" => $item->key_bill_to."_".$description];
-				$datas[] = ["desc" => "Qty", "val" => $item->ordered_qty, "date" => $item->close_date, "key_bill_to" => $item->key_bill_to, "key" => $item->key_bill_to."_".$description];
-				$datas[] = ["desc" => "NSP", "val" => $item->nsp, "date" => $item->close_date, "key_bill_to" => $item->key_bill_to, "key" => $item->key_bill_to."_".$description];
-			}
 			
 			//adding sales amount to model view array
 			$v_models[$item->key_model]["amount"] += $item->sales_amount;
