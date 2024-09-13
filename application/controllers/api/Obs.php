@@ -574,23 +574,74 @@ class Obs extends CI_Controller {
 			$v_companies[$com_i]["key"] = $com["company"];
 			
 			foreach($v_divisions as $div_i => $div){
-				$key_aux = $div["company"]."_".$div["division"];
-				$v_divisions[$div_i]["key"] = $div["company"]."_".$div["division"];
-				
-				$models = array_key_exists($key_aux, $m_model) ? $models = $m_model[$key_aux] : $models = [];
-				foreach($models as $model){
-					$v_models[] = ["company" => $com["company"], "division" => $div["division"], "model" => $model, "key" => $com["company"]."_".$div["division"]."_".$model];
+				if ($com["company"] === $div["company"]){
+					$key_div = $div["company"]."_".$div["division"];
+					$v_divisions[$div_i]["key"] = $div["company"]."_".$div["division"];
 					
-					foreach($bill_tos as $bill_to){
-						$v_bill_tos[] = ["order" => $i, "company" => $com["company"], "division" => $div["division"], "bill_to" => $bill_to, "key" => $com["company"]."_".$div["division"]."_".$model."_".$bill_to];
-						$i++;
+					$models = array_key_exists($key_div, $m_model) ? $models = $m_model[$key_div] : $models = [];
+					foreach($models as $model){
+						$key_model = $com["company"]."_".$div["division"]."_".$model;
+						$v_models[$key_model] = ["company" => $com["company"], "division" => $div["division"], "model" => $model, "key" => $key_model, "amount" => 0];
+						
+						foreach($bill_tos as $bill_to){
+							$v_bill_tos[] = ["order" => $i, "company" => $com["company"], "division" => $div["division"], "bill_to" => $bill_to, "key" => $com["company"]."_".$div["division"]."_".$model."_".$bill_to];
+							$i++;
+						}
 					}
-				}					
+				}
 				
 			}
 		}
 		
+		$datas = [];
+		$rawdatas = $this->gen_m->only_multi("v_obs_sales_order", ["model_category", "model", "bill_to_name", "close_date", "sum(sales_amount) as sales_amount", "sum(ordered_qty) as ordered_qty"], $w, ["model_category", "model", "close_date"]);
+		foreach($rawdatas as $item){
+			$item->bill_to_name = $m_bill_to[$item->bill_to_name];
+			$item->division = $m_division[$item->model_category];
+			$item->company = $m_company[$item->division];
+			$item->sales_amount = round($item->sales_amount, 2);
+			$item->nsp = round($item->sales_amount / $item->ordered_qty, 2);
+			
+			$item->key_com = $item->company;
+			$item->key_div = $item->company.'_'.$item->division;
+			$item->key_model = $item->company.'_'.$item->division.'_'.$item->model;
+			$item->key_bill_to = $item->company.'_'.$item->division.'_'.$item->model.'_'.$item->bill_to_name;
+			
+			//$datas[] = ["desc" => "Amt", "val" => $item->sales_amount, "date" => $item->close_date, "key_div" => $item->key_div, "key_com" => $item->key_com, "key_model" => $item->key_model, "key_bill_to" => $item->key_bill_to];
+			//$datas[] = ["desc" => "Qty", "val" => $item->ordered_qty, "date" => $item->close_date, "key_div" => $item->key_div, "key_com" => $item->key_com, "key_model" => $item->key_model, "key_bill_to" => $item->key_bill_to];
+			//$datas[] = ["desc" => "NSP", "val" => $item->nsp, "date" => $item->close_date, "key_div" => $item->key_div, "key_com" => $item->key_com, "key_model" => $item->key_model, "key_bill_to" => $item->key_bill_to];
+			
+			$datas[] = ["desc" => "Amt", "val" => $item->sales_amount, "date" => $item->close_date, "key" => $item->key_com];
+			$datas[] = ["desc" => "Amt", "val" => $item->sales_amount, "date" => $item->close_date, "key" => $item->key_div];
+			$datas[] = ["desc" => "Amt", "val" => $item->sales_amount, "date" => $item->close_date, "key" => $item->key_model];
+			$datas[] = ["desc" => "Amt", "val" => $item->sales_amount, "date" => $item->close_date, "key" => $item->key_bill_to];
+			
+			$datas[] = ["desc" => "Qty", "val" => $item->ordered_qty, "date" => $item->close_date, "key" => $item->key_com];
+			$datas[] = ["desc" => "Qty", "val" => $item->ordered_qty, "date" => $item->close_date, "key" => $item->key_div];
+			$datas[] = ["desc" => "Qty", "val" => $item->ordered_qty, "date" => $item->close_date, "key" => $item->key_model];
+			$datas[] = ["desc" => "Qty", "val" => $item->ordered_qty, "date" => $item->close_date, "key" => $item->key_bill_to];
+			
+			$datas[] = ["desc" => "NSP", "val" => $item->nsp, "date" => $item->close_date, "key" => $item->key_com];
+			$datas[] = ["desc" => "NSP", "val" => $item->nsp, "date" => $item->close_date, "key" => $item->key_div];
+			$datas[] = ["desc" => "NSP", "val" => $item->nsp, "date" => $item->close_date, "key" => $item->key_model];
+			$datas[] = ["desc" => "NSP", "val" => $item->nsp, "date" => $item->close_date, "key" => $item->key_bill_to];
+			
+			//adding sales amount to model view array
+			$v_models[$item->key_model]["amount"] += $item->sales_amount;
+			
+			//print_r($item); echo "<br/><br/>";
+		}
 		
+		//model order by amount
+		usort($v_models, function($a, $b){ return $a["amount"] < $b["amount"]; });
+		foreach($v_models as $i => $item) $v_models[$i]["order"] = $i + 1;
+		
+		/*
+		foreach($datas as $item){
+			print_r($item);
+			echo "<br/>";
+		}
+		echo "<br/>";
 		
 		foreach($v_companies as $item){
 			print_r($item);
@@ -604,7 +655,8 @@ class Obs extends CI_Controller {
 		}
 		echo "<br/>";
 		
-		foreach($v_models as $item){
+		foreach($v_models as $key => $item){
+			echo $key." >>> ";
 			print_r($item);
 			echo "<br/>";
 		}
@@ -615,10 +667,21 @@ class Obs extends CI_Controller {
 			echo "<br/>";
 		}
 		echo "<br/>";
+		*/
 		
-		return;
+		$res = [
+			"datas" => $datas,
+			"rawdatas" => $rawdatas,
+			"v_companies" => $v_companies,
+			"v_divisions" => $v_divisions,
+			"v_models" => $v_models,
+			"v_bill_tos" => $v_bill_tos,
+			"v_descriptions" => [["order" => 1, "desc" => "Amt"], ["order" => 2, "desc" => "Qty"], ["order" => 2, "desc" => "NSP"]],
+			"nsp_dates" => $this->my_func->dates_between($from, $to),
+		];
 		
-		
+		header('Content-Type: application/json');
+		echo json_encode($res);
 	}
 	
 	public function nsp_v6(){//20240904
