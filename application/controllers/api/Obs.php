@@ -451,6 +451,176 @@ class Obs extends CI_Controller {
 		echo json_encode($sales);
 	}
 	
+	public function nsp(){
+		//llamasys/api/obs/nsp?key=lgepr
+		
+		//access validation
+		if ($this->input->get("key") !== "lgepr"){
+			echo "No access.";
+			return;
+		}
+		
+		//mapping datas
+		$m_division = [
+			"" => "",//PTO case
+			"A/C" => "Chilller",
+			"AUD" => "Audio",
+			"CAV" => "Audio",
+			"CTV" => "Commercial TV",
+			"CVT" => "Cooking",
+			"DS" => "DS",
+			"LCD" => "LTV",
+			"LTV" => "LTV",
+			"MNT" => "MNT",
+			"MWO" => "Cooking",
+			"O" => "Cooking",
+			"PC" => "PC",
+			"RAC" => "RAC",
+			"REF" => "REF",
+			"SAC" => "SAC",
+			"SGN" => "MNT Signage",
+			"W/M" => "W/M",
+		];
+		
+		$m_company = [
+			"" => "",//PTO case
+			"REF" => "H&A",
+			"Cooking" => "H&A",
+			"W/M" => "H&A",
+			"RAC" => "H&A",
+			"SAC" => "H&A",
+			"Chilller" => "H&A",
+			"LTV" => "HE",
+			"Audio" => "HE",
+			"MNT" => "BS",
+			"PC" => "BS",
+			"DS" => "BS",
+			"MNT Signage" => "BS",
+			"Commercial TV" => "BS",
+		];
+		
+		$m_bill_to = [
+			"B2C" => "D2C",
+			"B2B2C" => "D2B2C",
+			"B2P" => "ETC",
+			"B2E" => "ETC",
+			"One time_Boleta" => "ETC",
+		];
+		
+		//filters
+		$today = date("Y-m-d");
+		$today = "2024-06-13";
+		
+		$from = date("Y-m-01", strtotime($today));
+		$to = date("Y-m-t", strtotime($today));
+		
+		
+		//aux array setting
+		$w = ["close_date >= " => $from, "close_date <= " => $to, "sales_amount >" => 0];
+		$models_unique = $this->gen_m->only_multi("v_obs_sales_order", ["model_category", "model"], $w);
+		
+		$m_model = [];
+		foreach($models_unique as $item){
+			$item->division = $m_division[$item->model_category];
+			$item->company = $m_company[$item->division];
+			
+			$key = $item->company."_".$item->division;
+			if (!array_key_exists($key, $m_model)) $m_model[$key] = [];
+			$m_model[$key][] = $item->model;
+			
+			//print_r($item); echo "<br/>";
+		}
+		
+		/*
+		foreach($m_model as $key => $models){
+			echo $key."<br/>";
+			print_r($models);
+			echo "<br/><br/>";
+		}
+		echo "<br/>";
+		*/
+		
+		$v_companies = [
+			["order" => 1, "company" => "H&A"],
+			["order" => 2, "company" => "HE"],
+			["order" => 3, "company" => "BS"],
+		];
+		
+		//Array ( [1] => Chilller [2] => Audio [4] => Commercial TV [5] => Cooking [6] => LTV [8] => MNT [11] => PC [12] => RAC [13] => REF [14] => SAC [15] => MNT Signage [16] => W/M ) 
+		$v_divisions = [
+			["order" => 1, "company" => "H&A", "division" => "REF"],
+			["order" => 2, "company" => "H&A", "division" => "Cooking"],
+			["order" => 3, "company" => "H&A", "division" => "W/M"],
+			["order" => 4, "company" => "H&A", "division" => "RAC"],
+			["order" => 5, "company" => "H&A", "division" => "SAC"],
+			["order" => 6, "company" => "H&A", "division" => "Chilller"],
+			["order" => 7, "company" => "HE", "division" => "LTV"],
+			["order" => 8, "company" => "HE", "division" => "Audio"],
+			["order" => 9, "company" => "BS", "division" => "MNT"],
+			["order" => 10, "company" => "BS", "division" => "PC"],
+			["order" => 11, "company" => "BS", "division" => "DS"],
+			["order" => 12, "company" => "BS", "division" => "MNT Signage"],
+			["order" => 13, "company" => "BS", "division" => "Commercial TV"],
+		];
+		
+		$v_models = [];
+		
+		//D2C, D2B2C, ETC
+		$bill_tos = ["D2C", "D2B2C", "ETC"];
+		$v_bill_tos = [];
+		$i = 1;
+		
+		foreach($v_companies as $com_i => $com){
+			$v_companies[$com_i]["key"] = $com["company"];
+			
+			foreach($v_divisions as $div_i => $div){
+				$key_aux = $div["company"]."_".$div["division"];
+				$v_divisions[$div_i]["key"] = $div["company"]."_".$div["division"];
+				
+				$models = array_key_exists($key_aux, $m_model) ? $models = $m_model[$key_aux] : $models = [];
+				foreach($models as $model){
+					$v_models[] = ["company" => $com["company"], "division" => $div["division"], "model" => $model, "key" => $com["company"]."_".$div["division"]."_".$model];
+					
+					foreach($bill_tos as $bill_to){
+						$v_bill_tos[] = ["order" => $i, "company" => $com["company"], "division" => $div["division"], "bill_to" => $bill_to, "key" => $com["company"]."_".$div["division"]."_".$model."_".$bill_to];
+						$i++;
+					}
+				}					
+				
+			}
+		}
+		
+		
+		
+		foreach($v_companies as $item){
+			print_r($item);
+			echo "<br/>";
+		}
+		echo "<br/>";
+		
+		foreach($v_divisions as $item){
+			print_r($item);
+			echo "<br/>";
+		}
+		echo "<br/>";
+		
+		foreach($v_models as $item){
+			print_r($item);
+			echo "<br/>";
+		}
+		echo "<br/>";
+		
+		foreach($v_bill_tos as $item){
+			print_r($item);
+			echo "<br/>";
+		}
+		echo "<br/>";
+		
+		return;
+		
+		
+	}
+	
 	public function nsp_v6(){//20240904
 		//llamasys/api/obs/nsp?key=lgepr&request=summary/sale/date
 		
