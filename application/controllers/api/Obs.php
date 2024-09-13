@@ -509,7 +509,7 @@ class Obs extends CI_Controller {
 		
 		//filters
 		$today = date("Y-m-d");
-		$today = "2024-06-13";
+		//$today = "2024-06-13";
 		
 		$from = date("Y-m-01", strtotime($today));
 		$to = date("Y-m-t", strtotime($today));
