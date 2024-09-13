@@ -584,7 +584,7 @@ class Obs extends CI_Controller {
 						$v_models[$key_model] = ["company" => $com["company"], "division" => $div["division"], "model" => $model, "key" => $key_model, "amount" => 0];
 						
 						foreach($bill_tos as $bill_to){
-							$v_bill_tos[] = ["order" => $i, "company" => $com["company"], "division" => $div["division"], "bill_to" => $bill_to, "key" => $com["company"]."_".$div["division"]."_".$model."_".$bill_to];
+							$v_bill_tos[] = ["order" => $i, "company" => $com["company"], "division" => $div["division"], "model" => $model, "bill_to" => $bill_to, "key" => $com["company"]."_".$div["division"]."_".$model."_".$bill_to];
 							$i++;
 						}
 					}
