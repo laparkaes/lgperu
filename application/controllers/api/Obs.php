@@ -634,6 +634,12 @@ class Obs extends CI_Controller {
 			$datas[] = ["desc" => "NSP", "val" => $item->nsp, "date" => $item->close_date, "key" => $item->key_model];
 			$datas[] = ["desc" => "NSP", "val" => $item->nsp, "date" => $item->close_date, "key" => $item->key_bill_to];
 			
+			foreach($descriptions as $description){
+				$datas[] = ["desc" => "Amt", "val" => $item->sales_amount, "date" => $item->close_date, "key" => $item->key_bill_to."_".$description];
+				$datas[] = ["desc" => "Qty", "val" => $item->ordered_qty, "date" => $item->close_date, "key" => $item->key_bill_to."_".$description];
+				$datas[] = ["desc" => "NSP", "val" => $item->nsp, "date" => $item->close_date, "key" => $item->key_bill_to."_".$description];
+			}
+			
 			//adding sales amount to model view array
 			$v_models[$item->key_model]["amount"] += $item->sales_amount;
 			
