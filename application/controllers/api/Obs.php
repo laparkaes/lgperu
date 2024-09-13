@@ -676,7 +676,7 @@ class Obs extends CI_Controller {
 			"v_divisions" => $v_divisions,
 			"v_models" => $v_models,
 			"v_bill_tos" => $v_bill_tos,
-			"v_descriptions" => [["order" => 1, "desc" => "Amt"], ["order" => 2, "desc" => "Qty"], ["order" => 2, "desc" => "NSP"]],
+			"v_descriptions" => [["order" => 1, "desc" => "Amt"], ["order" => 2, "desc" => "Qty"], ["order" => 3, "desc" => "NSP"]],
 			"nsp_dates" => $this->my_func->dates_between($from, $to),
 		];
 		
