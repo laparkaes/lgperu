@@ -669,6 +669,38 @@ class Obs extends CI_Controller {
 		echo "<br/>";
 		*/
 		
+		$arr_descriptions = ["Amt", "Qty", "NSP"];
+		$v_descriptions = [];
+		
+		$i = 1;
+		foreach($v_companies as $item){
+			foreach($arr_descriptions as $desc){
+				$v_descriptions[] = ["order" => $i, "key" => $item["company"], "desc" => $desc];
+				$i++;
+			}
+		}
+		
+		foreach($v_divisions as $item){
+			foreach($arr_descriptions as $desc){
+				$v_descriptions[] = ["order" => $i, "key" => $item["division"], "desc" => $desc];
+				$i++;
+			}
+		}
+		
+		foreach($v_models as $key => $item){
+			foreach($arr_descriptions as $desc){
+				$v_descriptions[] = ["order" => $i, "key" => $item["model"], "desc" => $desc];
+				$i++;
+			}
+		}
+		
+		foreach($v_bill_tos as $item){
+			foreach($arr_descriptions as $desc){
+				$v_descriptions[] = ["order" => $i, "key" => $item["bill_to"], "desc" => $desc];
+				$i++;
+			}
+		}
+		
 		$res = [
 			"datas" => $datas,
 			"rawdatas" => $rawdatas,
@@ -676,7 +708,7 @@ class Obs extends CI_Controller {
 			"v_divisions" => $v_divisions,
 			"v_models" => $v_models,
 			"v_bill_tos" => $v_bill_tos,
-			"v_descriptions" => [["order" => 1, "desc" => "Amt"], ["order" => 2, "desc" => "Qty"], ["order" => 3, "desc" => "NSP"]],
+			"v_descriptions" => $v_descriptions,
 			"nsp_dates" => $this->my_func->dates_between($from, $to),
 		];
 		
