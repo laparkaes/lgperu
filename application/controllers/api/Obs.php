@@ -681,25 +681,29 @@ class Obs extends CI_Controller {
 		
 		foreach($v_companies as $item){
 			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["company" => $item["company"], "division" => null, "model" => null, "bill_to" => null, "desc" => $desc];
+				$v_descriptions[] = ["key" => $item["key"], "desc" => $desc];
+				//$v_descriptions[] = ["company" => $item["company"], "division" => null, "model" => null, "bill_to" => null, "desc" => $desc];
 			}
 		}
 		
 		foreach($v_divisions as $item){
 			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["company" => null, "division" => $item["division"], "model" => null, "bill_to" => null, "desc" => $desc];
+				$v_descriptions[] = ["key" => $item["key"], "desc" => $desc];
+				//$v_descriptions[] = ["company" => null, "division" => $item["division"], "model" => null, "bill_to" => null, "desc" => $desc];
 			}
 		}
 		
 		foreach($v_models as $key => $item){
 			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["company" => null, "division" => null, "model" => $item["model"], "bill_to" => null, "desc" => $desc];
+				$v_descriptions[] = ["key" => $item["key"], "desc" => $desc];
+				//$v_descriptions[] = ["company" => null, "division" => null, "model" => $item["model"], "bill_to" => null, "desc" => $desc];
 			}
 		}
 		
 		foreach($bill_tos as $bill_to){
 			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["company" => null, "division" => null, "model" => null, "bill_to" => $bill_to, "desc" => $desc];
+				$v_descriptions[] = ["key" => $item["key"], "desc" => $desc];
+				//$v_descriptions[] = ["company" => null, "division" => null, "model" => null, "bill_to" => $bill_to, "desc" => $desc];
 			}
 		}
 		
