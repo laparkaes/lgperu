@@ -714,8 +714,8 @@ class Obs extends CI_Controller {
 			"nsp_dates" => $this->my_func->dates_between($from, $to),
 		];
 		
-		//header('Content-Type: application/json');
-		//echo json_encode($res);
+		header('Content-Type: application/json');
+		echo json_encode($res);
 	}
 	
 	public function nsp_v6(){//20240904
