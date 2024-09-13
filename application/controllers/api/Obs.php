@@ -667,37 +667,38 @@ class Obs extends CI_Controller {
 			echo "<br/>";
 		}
 		echo "<br/>";
+		
+		foreach($v_descriptions as $item){
+			print_r($item);
+			echo "<br/>";
+		}
+		echo "<br/>";
 		*/
 		
 		$arr_descriptions = ["Amt", "Qty", "NSP"];
 		$v_descriptions = [];
 		
-		$i = 1;
 		foreach($v_companies as $item){
 			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["order" => $i, "key" => $item["company"], "desc" => $desc];
-				$i++;
+				$v_descriptions[] = ["key" => $item["company"], "desc" => $desc];
 			}
 		}
 		
 		foreach($v_divisions as $item){
 			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["order" => $i, "key" => $item["division"], "desc" => $desc];
-				$i++;
+				$v_descriptions[] = ["key" => $item["division"], "desc" => $desc];
 			}
 		}
 		
 		foreach($v_models as $key => $item){
 			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["order" => $i, "key" => $item["model"], "desc" => $desc];
-				$i++;
+				$v_descriptions[] = ["key" => $item["model"], "desc" => $desc];
 			}
 		}
 		
-		foreach($v_bill_tos as $item){
+		foreach($bill_tos as $bill_to){
 			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["order" => $i, "key" => $item["bill_to"], "desc" => $desc];
-				$i++;
+				$v_descriptions[] = ["key" => $bill_to, "desc" => $desc];
 			}
 		}
 		
