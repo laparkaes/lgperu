@@ -565,10 +565,13 @@ class Obs extends CI_Controller {
 		
 		$v_models = [];
 		
-		//D2C, D2B2C, ETC
 		$bill_tos = ["D2C", "D2B2C", "ETC"];
+		$descriptions = ["Amt", "Qty", "NSP"];
+		
 		$v_bill_tos = [];
-		$i = 1;
+		$v_descriptions = [];
+		
+		$i = $j = 1;
 		
 		foreach($v_companies as $com_i => $com){
 			$v_companies[$com_i]["key"] = $com["company"];
@@ -586,6 +589,11 @@ class Obs extends CI_Controller {
 						foreach($bill_tos as $bill_to){
 							$v_bill_tos[] = ["order" => $i, "company" => $com["company"], "division" => $div["division"], "model" => $model, "bill_to" => $bill_to, "key" => $com["company"]."_".$div["division"]."_".$model."_".$bill_to];
 							$i++;
+							
+							foreach($descriptions as $description){
+								$v_descriptions[] = ["order" => $j, "company" => $com["company"], "division" => $div["division"], "model" => $model, "bill_to" => $bill_to, "desc" => $description, "key" => $com["company"]."_".$div["division"]."_".$model."_".$bill_to."_".$description];
+								$j++;
+							}
 						}
 					}
 				}
@@ -668,44 +676,12 @@ class Obs extends CI_Controller {
 		}
 		echo "<br/>";
 		
-		
 		foreach($v_descriptions as $item){
 			print_r($item);
 			echo "<br/>";
 		}
 		echo "<br/>";
 		*/
-		
-		$arr_descriptions = ["Amt", "Qty", "NSP"];
-		$v_descriptions = [];
-		
-		foreach($v_companies as $item){
-			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["key" => $item["key"], "desc" => $desc];
-				//$v_descriptions[] = ["company" => $item["company"], "division" => null, "model" => null, "bill_to" => null, "desc" => $desc];
-			}
-		}
-		
-		foreach($v_divisions as $item){
-			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["key" => $item["key"], "desc" => $desc];
-				//$v_descriptions[] = ["company" => null, "division" => $item["division"], "model" => null, "bill_to" => null, "desc" => $desc];
-			}
-		}
-		
-		foreach($v_models as $key => $item){
-			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["key" => $item["key"], "desc" => $desc];
-				//$v_descriptions[] = ["company" => null, "division" => null, "model" => $item["model"], "bill_to" => null, "desc" => $desc];
-			}
-		}
-		
-		foreach($bill_tos as $bill_to){
-			foreach($arr_descriptions as $desc){
-				$v_descriptions[] = ["key" => $item["key"], "desc" => $desc];
-				//$v_descriptions[] = ["company" => null, "division" => null, "model" => null, "bill_to" => $bill_to, "desc" => $desc];
-			}
-		}
 		
 		$res = [
 			"datas" => $datas,
