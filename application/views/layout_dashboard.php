@@ -33,6 +33,7 @@
 	<script src="<?= base_url() ?>assets/vendor/echarts/echarts.min.js"></script>
 	<script src="<?= base_url() ?>assets/vendor/sweetalert2/dist/sweetalert2.all.min.js"></script>
 	<script src="<?= base_url() ?>assets/vendor/simple-datatables/simple-datatables.js"></script>
+	<script src="<?= base_url() ?>assets/vendor/peity/jquery.peity.min.js"></script>
 	<script src="<?= base_url() ?>assets/js/main.js"></script>
 	<script src="<?= base_url() ?>assets/js/func.js"></script>
 	<script>
