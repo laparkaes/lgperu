@@ -514,7 +514,6 @@ class Obs extends CI_Controller {
 		$from = date("Y-m-01", strtotime($today));
 		$to = date("Y-m-t", strtotime($today));
 		
-		
 		//aux array setting
 		$w = ["close_date >= " => $from, "close_date <= " => $to, "sales_amount >" => 0];
 		$models_unique = $this->gen_m->only_multi("v_obs_sales_order", ["model_category", "model"], $w);
