@@ -7,38 +7,100 @@
 </div>
 <div class="row">
 	<div class="col-md-12">
+		<div class="card">
+			<div class="card-body p-3">
+				<table class="table text-end">
+					<thead class="sticky-top text-center">
+						<tr>
+							<th scope="col">Day</th>
+							<th scope="col">Total</th>
+							<?php foreach($days as $day){ ?>
+							<th scope="col"><?= $day ?></th>
+							<?php } ?>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach($datas as $com){ ?>
+						<tr class="table-success fw-bold">
+							<td class="text-start"><div class="ps-0"><i class="bi bi-plus-square"></i> <?= $com["company"] ?></div></td>
+							<?php foreach($com["stat"] as $day => $stat){ ?>
+							<td><?= $stat["sales"] ? $stat["sales"] : "" ?></td>
+							<?php } ?>
+						</tr>
+						<?php foreach($com["divs"] as $div){ ?>
+						<tr>
+							<td class="text-start"><div class="ps-1"><i class="bi bi-plus-square"></i> <?= $div["division"] ?></div></td>
+							<?php foreach($div["stat"] as $day => $stat){ ?>
+							<td><?= $stat["sales"] ? $stat["sales"] : "" ?></td>
+							<?php } ?>
+						</tr>
+						<?php foreach($div["models"] as $model){ ?>
+						<tr>
+							<td class="text-start"><div class="ps-2"><i class="bi bi-plus-square"></i> <?= $model["model"] ?></div></td>
+							<?php foreach($model["stat"] as $day => $stat){ ?>
+							<td><?= $stat["sales"] ? $stat["sales"] : "" ?></td>
+							<?php } ?>
+						</tr>
+						<?php foreach($model["bill_tos"] as $bill_to){ ?>
+						<tr>
+							<td class="text-start"><div class="ps-3"><?= $bill_to["bill_to"] ?></div></td>
+							<?php $nsp_total = 0; foreach($bill_to["stat"] as $day => $stat){ ?>
+							<td><?= $stat["sales"] ? $stat["sales"] : "" ?></td>
+							<?php } ?>
+						</tr>
+						<tr style="font-size: .9rem;">
+							<td class="text-start"><div class="ps-4">Qty</div></td>
+							<?php foreach($bill_to["stat"] as $day => $stat){ ?>
+							<td><?= $stat["qty"] ? $stat["qty"] : "" ?></td>
+							<?php } ?>
+						</tr>
+						<tr style="font-size: .9rem;">
+							<td class="text-start"><div class="ps-4">NSP</div></td>
+							<?php foreach($bill_to["stat"] as $day => $stat){ 
+								$nsp = $stat["qty"] > 0 ? round($stat["sales"] / $stat["qty"], 2) : 0;
+								if (!$nsp_total) $nsp_total = $nsp; ?>
+							<td class="text-<?= $nsp >= $nsp_total ? "success" : "danger" ?>"><?= $nsp ? $nsp : "" ?></td>
+							<?php } ?>
+						</tr>
+						<?php } //bill_to end ?>
+						<?php } //model end ?>
+						<?php } //div end ?>
+						<?php } //com end ?>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	
+	
 		<?php 
 		
-		foreach($datas as $day => $coms){
-			echo $day." ----------------------------------------------<br/>";
-			foreach($coms as $com){
-				print_r($com["company"]); echo " /// ";
-				print_r($com["stat"]); echo "<br/>";
+		foreach($datas as $com){
+			print_r($com["company"]); echo " /// ";
+			print_r($com["stat"]); echo "<br/>";
+			
+			$divs = $com["divs"];
+			foreach($divs as $div){
+				echo "--- ";
+				print_r($div["division"]); echo " /// ";
+				print_r($div["stat"]); echo "<br/>";
 				
-				$divs = $com["divs"];
-				foreach($divs as $div){
-					echo "--- ";
-					print_r($div["division"]); echo " /// ";
-					print_r($div["stat"]); echo "<br/>";
+				$models = $div["models"];
+				foreach($models as $model){
+					echo "------ ";
+					print_r($model["model"]); echo " /// ";
+					print_r($model["stat"]); echo "<br/>";
 					
-					$models = $div["models"];
-					foreach($models as $model){
-						echo "------ ";
-						print_r($model["model"]); echo " /// ";
-						print_r($model["stat"]); echo "<br/>";
-						
-						$bill_tos = $model["bill_tos"];
-						foreach($bill_tos as $bill_to){
-							echo "--------- ";
-							print_r($bill_to["bill_to"]); echo " /// ";
-							print_r($bill_to["stat"]); echo "<br/>";
-						}
-						echo "<br/>";
+					$bill_tos = $model["bill_tos"];
+					foreach($bill_tos as $bill_to){
+						echo "--------- ";
+						print_r($bill_to["bill_to"]); echo " /// ";
+						print_r($bill_to["stat"]); echo "<br/>";
 					}
 					echo "<br/>";
 				}
 				echo "<br/>";
 			}
+			echo "<br/>";
 		}
 		?>
 	</div>

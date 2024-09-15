@@ -72,29 +72,33 @@ class Obs_nsp extends CI_Controller {
 			"BS" => ["MNT", "PC", "DS", "MNT Signage", "Commercial TV"],
 		];
 		
+		$stat = [];
+		$stat["total"] = ["sales" => 0, "qty" => 0, "nsp" => 0];
+		
 		//load dates
 		$dates = $this->my_func->dates_between($from, $to);
+		$days = [];
+		foreach($dates as $d){
+			$day = date("d", strtotime($d));
+			$days[] = $day;
+			$stat[$day] = ["sales" => 0, "qty" => 0, "nsp" => 0];
+		}
 		
 		$datas = [];
 		
-		foreach($dates as $d){
-			$day = date("d", strtotime($d));
-			$datas[$day] = [];
+		foreach($divisions as $com => $divs){
+			$datas[$com] = [
+				"company" => $com,
+				"stat" => $stat,
+				"divs" => [],
+			];
 			
-			foreach($divisions as $com => $divs){
-				$datas[$day][$com] = [
-					"company" => $com,
-					"stat" => ["sales" => 0, "qty" => 0, "nsp" => 0],
-					"divs" => [],
+			foreach($divs as $div){
+				$datas[$com]["divs"][$div] = [
+					"division" => $div,
+					"stat" => $stat,
+					"models" => [],
 				];
-				
-				foreach($divs as $div){
-					$datas[$day][$com]["divs"][$div] = [
-						"division" => $div,
-						"stat" => ["sales" => 0, "qty" => 0, "nsp" => 0],
-						"models" => [],
-					];
-				}
 			}
 		}
 		
@@ -111,27 +115,27 @@ class Obs_nsp extends CI_Controller {
 			unset($item->model_category);
 			
 			foreach($dates as $d){
-				$datas[date("d", strtotime($d))][$item->company]["divs"][$item->division]["models"][$item->model] = [
+				$datas[$item->company]["divs"][$item->division]["models"][$item->model] = [
 					"model" => $item->model,
-					"stat" => ["sales" => 0, "qty" => 0, "nsp" => 0],
+					"stat" => $stat,
 					"bill_tos" => [
 						"D2C" => [
 							"bill_to" => "D2C",
-							"stat" => ["sales" => 0, "qty" => 0, "nsp" => 0],
+							"stat" => $stat,
 						],
 						"D2B2C" => [
 							"bill_to" => "D2B2C",
-							"stat" => ["sales" => 0, "qty" => 0, "nsp" => 0],
+							"stat" => $stat,
 						],
 						"ETC" => [
 							"bill_to" => "ETC",
-							"stat" => ["sales" => 0, "qty" => 0, "nsp" => 0],
+							"stat" => $stat,
 						],
 					],
 				];
 			}
 		}
-		
+				
 		//load rawdatas
 		$s = ["model_category", "model", "bill_to_name", "close_date", "sum(sales_amount) as sales_amount", "sum(ordered_qty) as ordered_qty"];//select
 		$w = ["close_date >= " => $from, "close_date <= " => $to, "sales_amount >" => 0];//where
@@ -148,59 +152,47 @@ class Obs_nsp extends CI_Controller {
 			
 			$day = date("d", strtotime($item->close_date));
 			
-			$datas[$day][$item->company]["stat"]["sales"] += $item->sales_amount;
-			$datas[$day][$item->company]["stat"]["qty"] += $item->ordered_qty;
-			$datas[$day][$item->company]["stat"]["nsp"] += $item->nsp;
+			$datas[$item->company]["stat"]["total"]["sales"] += $item->sales_amount;
+			$datas[$item->company]["stat"]["total"]["qty"] += $item->ordered_qty;
+			$datas[$item->company]["stat"]["total"]["nsp"] += $item->nsp;
+			$datas[$item->company]["stat"][$day]["sales"] += $item->sales_amount;
+			$datas[$item->company]["stat"][$day]["qty"] += $item->ordered_qty;
+			$datas[$item->company]["stat"][$day]["nsp"] += $item->nsp;
 			
-			$datas[$day][$item->company]["divs"][$item->division]["stat"]["sales"] += $item->sales_amount;
-			$datas[$day][$item->company]["divs"][$item->division]["stat"]["qty"] += $item->ordered_qty;
-			$datas[$day][$item->company]["divs"][$item->division]["stat"]["nsp"] += $item->nsp;
+			$datas[$item->company]["divs"][$item->division]["stat"]["total"]["sales"] += $item->sales_amount;
+			$datas[$item->company]["divs"][$item->division]["stat"]["total"]["qty"] += $item->ordered_qty;
+			$datas[$item->company]["divs"][$item->division]["stat"]["total"]["nsp"] += $item->nsp;
+			$datas[$item->company]["divs"][$item->division]["stat"][$day]["sales"] += $item->sales_amount;
+			$datas[$item->company]["divs"][$item->division]["stat"][$day]["qty"] += $item->ordered_qty;
+			$datas[$item->company]["divs"][$item->division]["stat"][$day]["nsp"] += $item->nsp;
 			
-			$datas[$day][$item->company]["divs"][$item->division]["models"][$item->model]["stat"]["sales"] += $item->sales_amount;
-			$datas[$day][$item->company]["divs"][$item->division]["models"][$item->model]["stat"]["qty"] += $item->ordered_qty;
-			$datas[$day][$item->company]["divs"][$item->division]["models"][$item->model]["stat"]["nsp"] += $item->nsp;
+			$datas[$item->company]["divs"][$item->division]["models"][$item->model]["stat"]["total"]["sales"] += $item->sales_amount;
+			$datas[$item->company]["divs"][$item->division]["models"][$item->model]["stat"]["total"]["qty"] += $item->ordered_qty;
+			$datas[$item->company]["divs"][$item->division]["models"][$item->model]["stat"]["total"]["nsp"] += $item->nsp;
+			$datas[$item->company]["divs"][$item->division]["models"][$item->model]["stat"][$day]["sales"] += $item->sales_amount;
+			$datas[$item->company]["divs"][$item->division]["models"][$item->model]["stat"][$day]["qty"] += $item->ordered_qty;
+			$datas[$item->company]["divs"][$item->division]["models"][$item->model]["stat"][$day]["nsp"] += $item->nsp;
 			
-			$datas[$day][$item->company]["divs"][$item->division]["models"][$item->model]["bill_tos"][$item->bill_to_name]["stat"]["sales"] += $item->sales_amount;
-			$datas[$day][$item->company]["divs"][$item->division]["models"][$item->model]["bill_tos"][$item->bill_to_name]["stat"]["qty"] += $item->ordered_qty;
-			$datas[$day][$item->company]["divs"][$item->division]["models"][$item->model]["bill_tos"][$item->bill_to_name]["stat"]["nsp"] += $item->nsp;
+			$datas[$item->company]["divs"][$item->division]["models"][$item->model]["bill_tos"][$item->bill_to_name]["stat"]["total"]["sales"] += $item->sales_amount;
+			$datas[$item->company]["divs"][$item->division]["models"][$item->model]["bill_tos"][$item->bill_to_name]["stat"]["total"]["qty"] += $item->ordered_qty;
+			$datas[$item->company]["divs"][$item->division]["models"][$item->model]["bill_tos"][$item->bill_to_name]["stat"]["total"]["nsp"] += $item->nsp;
+			$datas[$item->company]["divs"][$item->division]["models"][$item->model]["bill_tos"][$item->bill_to_name]["stat"][$day]["sales"] += $item->sales_amount;
+			$datas[$item->company]["divs"][$item->division]["models"][$item->model]["bill_tos"][$item->bill_to_name]["stat"][$day]["qty"] += $item->ordered_qty;
+			$datas[$item->company]["divs"][$item->division]["models"][$item->model]["bill_tos"][$item->bill_to_name]["stat"][$day]["nsp"] += $item->nsp;
 		}
 		
-		
-		foreach($datas as $day => $coms){
-			echo $day." ----------------------------------------------<br/>";
-			foreach($coms as $com){
-				print_r($com["company"]); echo " /// ";
-				print_r($com["stat"]); echo "<br/>";
+		foreach($datas as $com){
+			$divs = $com["divs"];
+			foreach($divs as $div){
+				$models = $div["models"];
+				usort($models, function($a, $b) { return $b["stat"]["total"]["sales"] - $a["stat"]["total"]["sales"]; });
 				
-				$divs = $com["divs"];
-				foreach($divs as $div){
-					echo "--- ";
-					print_r($div["division"]); echo " /// ";
-					print_r($div["stat"]); echo "<br/>";
-					
-					$models = $div["models"];
-					foreach($models as $model){
-						echo "------ ";
-						print_r($model["model"]); echo " /// ";
-						print_r($model["stat"]); echo "<br/>";
-						
-						$bill_tos = $model["bill_tos"];
-						foreach($bill_tos as $bill_to){
-							echo "--------- ";
-							print_r($bill_to["bill_to"]); echo " /// ";
-							print_r($bill_to["stat"]); echo "<br/>";
-						}
-						echo "<br/>";
-					}
-					echo "<br/>";
-				}
-				echo "<br/>";
+				$datas[$com["company"]]["divs"][$div["division"]]["models"] = $models;
 			}
 		}
 		
-		return;
-		
 		$data = [
+			"days" => $days,
 			"dates" => $dates,
 			"datas" => $datas,
 			"main" => "module/obs_nsp/index",
