@@ -8,10 +8,38 @@
 <div class="row">
 	<div class="col-md-12">
 		<?php 
-		foreach($rawdatas as $item){
-			print_r($item);
-			echo "<br/>";
-		} 
+		
+		foreach($datas as $day => $coms){
+			echo $day." ----------------------------------------------<br/>";
+			foreach($coms as $com){
+				print_r($com["company"]); echo " /// ";
+				print_r($com["stat"]); echo "<br/>";
+				
+				$divs = $com["divs"];
+				foreach($divs as $div){
+					echo "--- ";
+					print_r($div["division"]); echo " /// ";
+					print_r($div["stat"]); echo "<br/>";
+					
+					$models = $div["models"];
+					foreach($models as $model){
+						echo "------ ";
+						print_r($model["model"]); echo " /// ";
+						print_r($model["stat"]); echo "<br/>";
+						
+						$bill_tos = $model["bill_tos"];
+						foreach($bill_tos as $bill_to){
+							echo "--------- ";
+							print_r($bill_to["bill_to"]); echo " /// ";
+							print_r($bill_to["stat"]); echo "<br/>";
+						}
+						echo "<br/>";
+					}
+					echo "<br/>";
+				}
+				echo "<br/>";
+			}
+		}
 		?>
 	</div>
 </div>
