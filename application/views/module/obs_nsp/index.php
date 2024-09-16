@@ -88,7 +88,7 @@
 							<td class="text-start"><div class="ps-4">NSP</div></td>
 							<?php $nsp_arr = []; foreach($bill_to["stat"] as $day => $stat){ 
 								$nsp = $stat["nsp"];
-								if ($nsp) $nsp_arr[] = $nsp;
+								$nsp_arr[] = $nsp;
 								if (!$nsp_total) $nsp_total = $nsp; ?>
 							<td class="text-<?= $nsp >= ($nsp_total * 0.95) ? "success" : "danger" ?>"><?= $nsp ? number_format($nsp, 2) : "" ?></td>
 							<?php } ?>
@@ -125,6 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				height: 90,
 			});
 			
+			$("rect").attr("width", "10");
 		}
 		 
 	});
