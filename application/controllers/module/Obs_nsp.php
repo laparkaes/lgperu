@@ -181,11 +181,21 @@ class Obs_nsp extends CI_Controller {
 			$datas[$item->company]["divs"][$item->division]["models"][$item->model]["bill_tos"][$item->bill_to_name]["stat"][$day]["nsp"] += $item->nsp;
 		}
 		
+		$order_by = $this->input->get("sort");
+		if (!$order_by) $order_by = "sales";
+		
 		foreach($datas as $com){
 			$divs = $com["divs"];
 			foreach($divs as $div){
 				$models = $div["models"];
-				usort($models, function($a, $b) { return $b["stat"]["total"]["sales"] - $a["stat"]["total"]["sales"]; });
+				
+				if ($order_by === "sales") usort($models, function($a, $b) { return $b["stat"]["total"]["sales"] - $a["stat"]["total"]["sales"]; });
+				elseif ($order_by === "qty"){
+					usort($models, function($a, $b) {
+						if ($b["stat"]["total"]["qty"] == $a["stat"]["total"]["qty"]) return $b["stat"]["total"]["sales"] - $a["stat"]["total"]["sales"];
+						else return $b["stat"]["total"]["qty"] - $a["stat"]["total"]["qty"];
+					});
+				}
 				
 				$datas[$com["company"]]["divs"][$div["division"]]["models"] = $models;
 			}

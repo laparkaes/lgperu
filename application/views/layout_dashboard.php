@@ -21,7 +21,7 @@
 	<main id="main" class="main m-0 py-0">
 		<section class="section">
 			<div class="row">
-				<div class="col-md-12" style="height: 100vh;">
+				<div class="col-md-12 overflow-hidden" style="height: 100vh;">
 					<?php $this->load->view($main); ?>
 				</div>
 			</div>
