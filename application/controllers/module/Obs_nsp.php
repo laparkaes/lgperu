@@ -104,7 +104,7 @@ class Obs_nsp extends CI_Controller {
 		
 		//load rawdatas
 		$s = ["model_category", "model", "bill_to_name"];//select
-		$w = ["close_date >= " => $from, "close_date <= " => $to, "sales_amount >" => 0];//where
+		$w = ["close_date >= " => $from, "close_date <= " => $to, "sales_amount !=" => 0];//where
 		$g = ["model_category", "model", "bill_to_name"];//group fields
 		
 		$bill_tos = $this->gen_m->only_multi("v_obs_sales_order", $s, $w, $g);
@@ -138,7 +138,7 @@ class Obs_nsp extends CI_Controller {
 				
 		//load rawdatas
 		$s = ["model_category", "model", "bill_to_name", "close_date", "sum(sales_amount) as sales_amount", "sum(ordered_qty) as ordered_qty"];//select
-		$w = ["close_date >= " => $from, "close_date <= " => $to, "sales_amount >" => 0];//where
+		$w = ["close_date >= " => $from, "close_date <= " => $to, "sales_amount !=" => 0];//where
 		$g = ["model_category", "model", "bill_to_name", "close_date"];//group fields
 		
 		$rawdatas = $this->gen_m->only_multi("v_obs_sales_order", $s, $w, $g);
