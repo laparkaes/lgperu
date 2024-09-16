@@ -4,7 +4,7 @@
 			<div class="card-body">
 				<div class="d-flex justify-content-between align-items-center">
 					<div class="d-flex justify-content-start align-items-center">
-						<h5 class="card-title me-3">OBS NSP</h5>
+						<h5 class="card-title me-3">OBS NSP, <?= date("Y-m-d") ?></h5>
 						<form>
 							<div class="input-group">
 								<select class="form-select" name="sort" style="width: 200px;">
