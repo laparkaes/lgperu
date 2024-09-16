@@ -124,6 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (selected == ""){
 			$(".rows").removeClass("d-none");
 			$(".f_division").addClass("d-none");
+			$("#f_division").val("");
 		}else{
 			$(".rows").addClass("d-none");
 			$(".f_division").addClass("d-none");
