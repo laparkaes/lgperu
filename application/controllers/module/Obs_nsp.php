@@ -13,7 +13,7 @@ class Obs_nsp extends CI_Controller {
 	public function index(){
 		//basic filters
 		$today = date("Y-m-d");
-		//$today = "2024-06-13";
+		$today = "2024-06-13";
 		
 		$from = date("Y-m-01", strtotime($today));
 		$to = date("Y-m-t", strtotime($today));
@@ -197,9 +197,29 @@ class Obs_nsp extends CI_Controller {
 					});
 				}
 				
+				foreach($models as $key_m => $model){
+					foreach($model["bill_tos"] as $key_b => $bill_to){
+						if ($bill_to["stat"]["total"]["sales"] > 0){
+							$nsp_bill_to = [];
+							
+							foreach($bill_to["stat"] as $day => $stat){
+								if (!($day === "total") and $stat["nsp"]){
+									$nsp_bill_to[] = $stat["nsp"];
+								}
+							}
+							
+							$model["bill_tos"][$key_b]["stat"]["total"]["nsp"] = array_sum($nsp_bill_to) / count($nsp_bill_to);
+						}
+					}
+					
+					$models[$key_m] = $model;
+				}
+				
 				$datas[$com["company"]]["divs"][$div["division"]]["models"] = $models;
 			}
 		}
+		
+		//return;
 		
 		$data = [
 			"days" => $days,
