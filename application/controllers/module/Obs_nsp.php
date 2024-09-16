@@ -147,7 +147,7 @@ class Obs_nsp extends CI_Controller {
 			$item->division = $m_division[$item->model_category];
 			$item->company = $m_company[$item->division];
 			$item->sales_amount = round($item->sales_amount, 2);
-			$item->nsp = round($item->sales_amount / $item->ordered_qty, 2);
+			$item->nsp = $item->ordered_qty ? round($item->sales_amount / $item->ordered_qty, 2) : 0;
 			unset($item->model_category);
 			
 			$day = date("d", strtotime($item->close_date));
