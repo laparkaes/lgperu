@@ -10,7 +10,7 @@
 					</div>
 					<ul class="list-group list-group-flush">
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/gerp_sales_order">GERP - Sales Order</a>
-						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/attendance">Attendance</a>
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/hr_attendance">HR - Attendance</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/hr_employee">HR - Employee</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/ism_activity_management">ISM - Activity Management</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_gerp">OBS - GERP Sales Order</a>

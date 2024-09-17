@@ -2,13 +2,8 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Color;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class Attendance extends CI_Controller {
+class Hr_attendance extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
@@ -16,12 +11,65 @@ class Attendance extends CI_Controller {
 		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
-		$this->load->model('attendance_model', 'att_m');
-		$this->color_rgb = [
-			"green" => "198754",
-			"red" => "dc3545",
-		];
 	}
+	
+	public function index(){
+		
+		$post = json_decode('{
+		  "Query": {
+			"limit": 201,
+			"conditions": [
+			  {
+				"column": "datetime",
+				"operator": 3,
+				"values": [
+				  "2024-07-01T05:00:00.000Z",
+				  "2024-10-01T04:59:59.000Z"
+				]
+			  }
+			]
+		  }
+		}');
+		
+		print_r($post);
+		
+		$ch = curl_init();
+		
+		$url = 'https://136.166.13.8/api/events/search';
+		$headers = [
+			'application/json, text/plain, */*',
+		];
+		
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
+		curl_setopt($ch, CURLOPT_TIMEOUT, 5);//max waiting time 5 secs
+
+
+
+		$response = curl_exec($ch);
+		
+		print_r($response);
+		
+		if (curl_errno($ch)) {
+			$error_msg = curl_error($ch);
+		}
+		
+		curl_close($ch);
+
+		echo json_decode($response, true);
+	}
+	
+	public function index_(){
+		$period = "2024-02";
+		
+		$data = $this->set_attendance($period);
+		$data["main"] = "module/attendance/index";
+		
+		$this->load->view('layout', $data);
+	}
+		
 	
 	public function set_attendance($period = null, $employee_id = null){
 		if (!$period) $period = date("Y-m");
@@ -282,15 +330,6 @@ class Attendance extends CI_Controller {
 		print_r($data);
 	}
 
-	public function index(){
-		$period = "2024-02";
-		
-		$data = $this->set_attendance($period);
-		$data["main"] = "module/attendance/index";
-		
-		$this->load->view('layout', $data);
-	}
-	
 	public function export_monthly_report(){
 		$type = "error"; $msg = null; $url = "";
 		
