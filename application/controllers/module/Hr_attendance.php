@@ -14,60 +14,131 @@ class Hr_attendance extends CI_Controller {
 	}
 	
 	public function index(){
-		
-		$post = json_decode('{
-		  "Query": {
-			"limit": 201,
-			"conditions": [
-			  {
-				"column": "datetime",
-				"operator": 3,
-				"values": [
-				  "2024-07-01T05:00:00.000Z",
-				  "2024-10-01T04:59:59.000Z"
-				]
-			  }
-			]
-		  }
-		}');
-		
-		print_r($post);
-		
-		$ch = curl_init();
-		
-		$url = 'https://136.166.13.8/api/events/search';
-		$headers = [
-			'application/json, text/plain, */*',
-		];
-		
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
-		curl_setopt($ch, CURLOPT_TIMEOUT, 5);//max waiting time 5 secs
-
-
-
-		$response = curl_exec($ch);
-		
-		print_r($response);
-		
-		if (curl_errno($ch)) {
-			$error_msg = curl_error($ch);
-		}
-		
-		curl_close($ch);
-
-		echo json_decode($response, true);
-	}
-	
-	public function index_(){
 		$period = "2024-02";
 		
-		$data = $this->set_attendance($period);
-		$data["main"] = "module/attendance/index";
+		//$data = $this->set_attendance($period);
+		$data["main"] = "module/hr_attendance/index";
 		
 		$this->load->view('layout', $data);
+	}
+	
+	public function upload(){
+		$type = "error"; $msg = null;
+		
+		$config = [
+			'upload_path'	=> './upload/',
+			'allowed_types'	=> 'xls|xlsx|csv',
+			'max_size'		=> 10000,
+			'overwrite'		=> TRUE,
+			'file_name'		=> 'hr_attendance',
+		];
+		$this->load->library('upload', $config);
+
+		if ($this->upload->do_upload('attach')){
+			$data = $this->upload->data();
+			$file_path = $data['full_path'];
+
+			$spreadsheet = IOFactory::load($file_path);
+			$sheet = $spreadsheet->getActiveSheet();
+			
+			/*
+			$sheet->setCellValue('B1', 'Upload Result');
+			$sheet->getStyle('B')->getFill()->setFillType(Fill::FILL_SOLID);
+			$sheet->getStyle('B')->getFill()->getStartColor()->setARGB('FFFF00');
+			
+			$sheet->setCellValue('C1', 'Upload Time');
+			$sheet->getStyle('C')->getFill()->setFillType(Fill::FILL_SOLID);
+			$sheet->getStyle('C')->getFill()->getStartColor()->setARGB('FFFF00');
+			*/
+			
+            $highestRow = $sheet->getHighestRow();
+            //$highestColumn = $sheet->getHighestColumn();
+
+			$new_rec = $upd_rec = [];
+			$atts = [];
+			$count = 0;
+            for ($row = 2; $row <= $highestRow; $row++){
+				//datas are joined with comma (,)
+				//$row_now = explode(",", trim($sheet->getCell('A'.$row)->getValue()));
+				
+				//datas are separated in columns
+				$row_now = [
+					trim($sheet->getCell('A'.$row)->getValue()),
+					trim($sheet->getCell('B'.$row)->getValue()),
+					trim($sheet->getCell('C'.$row)->getValue()),
+					trim($sheet->getCell('D'.$row)->getValue()),
+					trim($sheet->getCell('E'.$row)->getValue()),
+					trim($sheet->getCell('F'.$row)->getValue()),
+					trim($sheet->getCell('G'.$row)->getValue()),
+				];
+				
+				if ($row_now[5]){
+					$aux = explode("(", str_replace(")", "", $row_now[5]));
+					if (array_key_exists(1, $aux)){
+						$date_split = explode(" ", $row_now[0]);
+						
+						/*
+						$row_now[0]: check date
+						$date_split[0]: check day
+						$date_split[1]: check time
+						$aux[0]: employee_number
+						$aux[1]: name
+						*/
+						
+						if (!array_key_exists($aux[0], $atts))
+							$atts[$aux[0]] = ["name" => "", "check" => []];
+						
+						if (!array_key_exists($date_split[0], $atts[$aux[0]]["check"])) 
+							$atts[$aux[0]]["check"][$date_split[0]] = [];
+						
+						$atts[$aux[0]]["name"] = $aux[1];
+						$atts[$aux[0]]["check"][$date_split[0]][] = strtotime($date_split[1]);
+						$atts[$aux[0]]["check"][$date_split[0]][] = strtotime($date_split[1]);
+					}
+				}
+            }
+			
+			foreach($atts as $emp_num => $emp){
+				$emp_rec = $this->gen_m->unique("employee", "employee_number", $emp_num);
+				if (!$emp_rec){
+					$this->gen_m->insert("employee", ["employee_number" => $emp_num, "name" => $emp["name"]]);
+					$emp_rec = $this->gen_m->unique("employee", "employee_number", $emp_num);
+				}
+				
+				$checks = $emp["check"];
+				foreach($checks as $day => $times){
+					if ($times){
+						sort($times);
+						
+						$f = ["employee_id" => $emp_rec->employee_id, "date" => $day];
+						$att_data = [
+							"employee_id" => $emp_rec->employee_id,
+							"date" => $day,
+							"enter_time" => date("H:i", $times[0]),
+							"leave_time" => date("H:i",$times[count($times) - 1]),
+						];
+						
+						$att_rec = $this->gen_m->filter("attendance", true, $f);
+						if ($att_rec){
+							$att_data["attendance_id"] = $att_rec[0]->attendance_id;
+							$upd_rec[] = $att_data;
+						}else $new_rec[] = $att_data;
+					}
+				}
+			}
+			
+			$new_qty = ($new_rec) ? $this->att_m->insert_m($new_rec) : 0;
+			$upd_qty = ($upd_rec) ? $this->att_m->update_m($upd_rec) : 0;
+			
+			$type = "success";
+			$msg = "Check-in time upload result: ".number_format($new_qty)." new and ".number_format($upd_qty)." updated.";
+		}else{
+			$error = array('error' => $this->upload->display_errors());
+			$msg = str_replace("p>", "div>", $this->upload->display_errors());
+		}
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
 		
 	
@@ -463,122 +534,4 @@ class Hr_attendance extends CI_Controller {
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => $url]);
 	}
 	
-	public function upload_device_check(){
-		$type = "error"; $msg = null;
-		
-		$config = [
-			'upload_path'	=> './upload/',
-			'allowed_types'	=> 'xls|xlsx|csv',
-			'max_size'		=> 10000,
-			'overwrite'		=> TRUE,
-			'file_name'		=> 'attendance',
-		];
-		$this->load->library('upload', $config);
-
-		if ($this->upload->do_upload('md_uff_file')){
-			$data = $this->upload->data();
-			$file_path = $data['full_path'];
-
-			$spreadsheet = IOFactory::load($file_path);
-			$sheet = $spreadsheet->getActiveSheet();
-			
-			/*
-			$sheet->setCellValue('B1', 'Upload Result');
-			$sheet->getStyle('B')->getFill()->setFillType(Fill::FILL_SOLID);
-			$sheet->getStyle('B')->getFill()->getStartColor()->setARGB('FFFF00');
-			
-			$sheet->setCellValue('C1', 'Upload Time');
-			$sheet->getStyle('C')->getFill()->setFillType(Fill::FILL_SOLID);
-			$sheet->getStyle('C')->getFill()->getStartColor()->setARGB('FFFF00');
-			*/
-			
-            $highestRow = $sheet->getHighestRow();
-            //$highestColumn = $sheet->getHighestColumn();
-
-			$new_rec = $upd_rec = [];
-			$atts = [];
-			$count = 0;
-            for ($row = 2; $row <= $highestRow; $row++){
-				//datas are joined with comma (,)
-				//$row_now = explode(",", trim($sheet->getCell('A'.$row)->getValue()));
-				
-				//datas are separated in columns
-				$row_now = [
-					trim($sheet->getCell('A'.$row)->getValue()),
-					trim($sheet->getCell('B'.$row)->getValue()),
-					trim($sheet->getCell('C'.$row)->getValue()),
-					trim($sheet->getCell('D'.$row)->getValue()),
-					trim($sheet->getCell('E'.$row)->getValue()),
-					trim($sheet->getCell('F'.$row)->getValue()),
-					trim($sheet->getCell('G'.$row)->getValue()),
-				];
-				
-				if ($row_now[5]){
-					$aux = explode("(", str_replace(")", "", $row_now[5]));
-					if (array_key_exists(1, $aux)){
-						$date_split = explode(" ", $row_now[0]);
-						
-						/*
-						$row_now[0]: check date
-						$date_split[0]: check day
-						$date_split[1]: check time
-						$aux[0]: employee_number
-						$aux[1]: name
-						*/
-						
-						if (!array_key_exists($aux[0], $atts))
-							$atts[$aux[0]] = ["name" => "", "check" => []];
-						
-						if (!array_key_exists($date_split[0], $atts[$aux[0]]["check"])) 
-							$atts[$aux[0]]["check"][$date_split[0]] = [];
-						
-						$atts[$aux[0]]["name"] = $aux[1];
-						$atts[$aux[0]]["check"][$date_split[0]][] = strtotime($date_split[1]);
-						$atts[$aux[0]]["check"][$date_split[0]][] = strtotime($date_split[1]);
-					}
-				}
-            }
-			
-			foreach($atts as $emp_num => $emp){
-				$emp_rec = $this->gen_m->unique("employee", "employee_number", $emp_num);
-				if (!$emp_rec){
-					$this->gen_m->insert("employee", ["employee_number" => $emp_num, "name" => $emp["name"]]);
-					$emp_rec = $this->gen_m->unique("employee", "employee_number", $emp_num);
-				}
-				
-				$checks = $emp["check"];
-				foreach($checks as $day => $times){
-					if ($times){
-						sort($times);
-						
-						$f = ["employee_id" => $emp_rec->employee_id, "date" => $day];
-						$att_data = [
-							"employee_id" => $emp_rec->employee_id,
-							"date" => $day,
-							"enter_time" => date("H:i", $times[0]),
-							"leave_time" => date("H:i",$times[count($times) - 1]),
-						];
-						
-						$att_rec = $this->gen_m->filter("attendance", true, $f);
-						if ($att_rec){
-							$att_data["attendance_id"] = $att_rec[0]->attendance_id;
-							$upd_rec[] = $att_data;
-						}else $new_rec[] = $att_data;
-					}
-				}
-			}
-			
-			$new_qty = ($new_rec) ? $this->att_m->insert_m($new_rec) : 0;
-			$upd_qty = ($upd_rec) ? $this->att_m->update_m($upd_rec) : 0;
-			
-			$type = "success";
-			$msg = "Check-in time upload result: ".number_format($new_qty)." new and ".number_format($upd_qty)." updated.";
-		}else{
-			$error = array('error' => $this->upload->display_errors());
-			$msg = str_replace("p>", "div>", $this->upload->display_errors());
-		}
-		
-		header('Content-Type: application/json');
-		echo json_encode(["type" => $type, "msg" => $msg]);
-	}
 }

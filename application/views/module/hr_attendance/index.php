@@ -8,19 +8,16 @@
 			</ol>
 		</nav>
 	</div>
-	<div>
+	<div class="d-flex justify-content-end">
+		<form class="input-group me-1" id="form_upload">
+			<input type="file" class="form-control" name="attach" accept=".xls,.xlsx,.csv">
+			<button type="submit" class="btn btn-success">
+				<i class="bi bi-upload"></i>
+			</button>
+		</form>
 		<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#md_exr">
 			<i class="bi bi-file-earmark-spreadsheet"></i>
 		</button>
-		<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#md_uff">
-			<i class="bi bi-upload"></i>
-		</button>
-		<a href="#" type="button" class="btn btn-success">
-			<i class="bi bi-search"></i>
-		</a>
-		<a href="#" type="button" class="btn btn-success">
-			<i class="bi bi-plus-lg"></i>
-		</a>
 	</div>
 </div>
 <section class="section">
@@ -135,32 +132,6 @@
 		</div>
 	</div>
 </div>
-
-<div class="modal fade" id="md_uff" tabindex="-1" style="display: none;" aria-hidden="true">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title">Upload Device Check-in</h5>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			</div>
-			<div class="modal-body">
-				<div class="my-3">
-					<span>You need to upload excel file exported from access device.</span>
-				</div>
-				<form class="row g-3" id="form_uff_attendance">
-					<div class="col-12">
-						<label class="form-label">Device File</label>
-						<input type="file" class="form-control" name="md_uff_file" accept=".xls,.xlsx,.csv">
-					</div>
-					<div class="text-end pt-3">
-						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-						<button type="submit" class="btn btn-primary">Upload</button>
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
-</div>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 	$("#form_exp_report").submit(function(e) {
@@ -173,11 +144,10 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	});
 	
-	$("#form_uff_attendance").submit(function(e) {
+	$("#form_upload").submit(function(e) {
 		e.preventDefault();
-		$("#form_uff_attendance .sys_msg").html("");
-		ajax_form_warning(this, "module/attendance/upload_device_check", "Do you want to upload device check-in data from selected file?").done(function(res) {
-			swal_redirection(res.type, res.msg, "module/attendance");
+		ajax_form(this, "module/hr_attendance/upload").done(function(res) {
+			swal_redirection(res.type, res.msg, "module/hr_attendance");
 		});
 	});
 });
