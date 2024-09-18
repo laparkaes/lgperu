@@ -336,7 +336,8 @@ class Obs_magento extends CI_Controller {
 				
 				//unique gerp_order_no
 				$row["gerp_order_no"] = explode("\n", $row["gerp_order_no"])[0];
-				if ($row["gerp_order_no"]){
+				
+				//if ($row["gerp_order_no"]){
 					//line change char working
 					$row["sku"] = str_replace(", \n", "**", $row["sku"]);
 					$row["warehouse_code"] = str_replace("\n", "**", $row["warehouse_code"]);
@@ -370,7 +371,7 @@ class Obs_magento extends CI_Controller {
 						else $qty_fail++;
 					}
 					*/
-				}
+				//}
 				
 				//if ($i > 50) break;
 			}
@@ -393,6 +394,174 @@ class Obs_magento extends CI_Controller {
 		return number_format($inserted)." rows affected in ".number_Format(microtime(true) - $start_time, 2)." secs";
 		//echo number_format($inserted)." rows affected in ".number_Format(microtime(true) - $start_time, 2)." secs";
 		
+	}
+	
+	public function debug(){
+		set_time_limit(0);
+		
+		$start_time = microtime(true);
+		
+		//load excel file
+		$spreadsheet = IOFactory::load("./upload/obs_magento.csv");
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		//excel file header validation
+		$h = [
+			trim($sheet->getCell('A1')->getValue()),
+			trim($sheet->getCell('B1')->getValue()),
+			trim($sheet->getCell('C1')->getValue()),
+			trim($sheet->getCell('D1')->getValue()),
+			trim($sheet->getCell('E1')->getValue()),
+			trim($sheet->getCell('F1')->getValue()),
+			trim($sheet->getCell('G1')->getValue()),
+			trim($sheet->getCell('H1')->getValue()),
+			trim($sheet->getCell('I1')->getValue()),
+			trim($sheet->getCell('J1')->getValue()),
+			trim($sheet->getCell('K1')->getValue()),
+			trim($sheet->getCell('L1')->getValue()),
+			trim($sheet->getCell('M1')->getValue()),
+		];
+		
+		//magento report header
+		//$h_magento = ["ID", "Grand Total (Base)", "Grand Total (Purchased)", "Shipping Address", "Shipping and Handling", "Customer name", "SKU", "Level 1 Code", "Level 2 Code", "Level 3 Code", "Level 4 Code", "GERP Type", "GERP Order #"];
+		$h_magento = [
+			"ID", 
+			"Grand Total (Base)", 
+			"Grand Total (Purchased)", 
+			"Shipping Address", 
+			"Shipping and Handling", 
+			"Customer name", 
+			"SKU", 
+			"Level 1 Code", 
+			"Level 2 Code", 
+			"Level 3 Code", 
+			"Level 4 Code", 
+			"GERP Type", 
+			"GERP Order #", 
+		];
+
+		//header validation
+		$is_magento = true;
+		foreach($h as $i => $h_i) if ($h_i !== $h_magento[$i]) $is_magento = false;
+		
+		$inserted = 0;
+		
+		if ($is_magento){
+			$max_row = $sheet->getHighestRow();
+			
+			//define now
+			$now = date('Y-m-d H:i:s', time());
+			
+			//db fields
+			$vars = [
+				"magento_id", 
+				"grand_total_base", 
+				"grand_total_purchased", 
+				"shipping_address", 
+				"shipping_and_handling", 
+				"customer_name", 
+				"sku", 
+				"level_1_code", 
+				"level_2_code", 
+				"level_3_code", 
+				"level_4_code", 
+				"gerp_type", 
+				"gerp_order_no", 
+				"warehouse_code", 
+				"sku_price", 
+				"gerp_selling_price", 
+				"local_time", 
+				"company_name_through_vipkey", 
+				"vipkey", 
+				"pre_order", 
+				"error_code", 
+				"ip_address", 
+				"price_source", 
+				"coupon_code", 
+				"coupon_rule", 
+				"discount_amount", 
+				"sale_channel", 
+				"devices", 
+				"knout_status", 
+				"status", 
+				"customer_group", 
+				"payment_method", 
+				"error_status", 
+				"opt_in_status", 
+				"is_export_order_to_gerp", 
+				"purchase_date", 
+				"sku_without_prefix", 
+				"sku_without_prefix_and_suffix", 
+				"qty_ordered", 
+			];
+			
+			
+			$rows = [];
+			
+			for($i = 2; $i <= $max_row; $i++){
+				$row = [];
+				foreach($vars as $var_i => $var) $row[$var] = trim(str_replace("N/A", null, $sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue()));
+				
+				//unique gerp_order_no
+				$row["gerp_order_no"] = explode("\n", $row["gerp_order_no"])[0];
+				
+				//if ($row["gerp_order_no"]){
+					//line change char working
+					$row["sku"] = str_replace(", \n", "**", $row["sku"]);
+					$row["warehouse_code"] = str_replace("\n", "**", $row["warehouse_code"]);
+					$row["sku_price"] = str_replace("\n", "**", $row["sku_price"]);
+					$row["sku_without_prefix"] = str_replace("\n", "**", $row["sku_without_prefix"]);
+					$row["sku_without_prefix_and_suffix"] = str_replace("\n", "**", $row["sku_without_prefix_and_suffix"]);
+					
+					//comma working
+					$row["gerp_selling_price"] = str_replace(",", "**", $row["gerp_selling_price"]);
+					
+					//address working
+					$address_aux = explode(",", $row["shipping_address"]);
+					$row["zipcode"] = $address_aux[count($address_aux)-1];
+					$row["department"] = $address_aux[count($address_aux)-2];
+					$row["province"] = $address_aux[count($address_aux)-3];
+					
+					//print_r($row); echo "<br/><br/>";
+					$rows[] = $row;
+					
+					/*
+					$magento = $this->gen_m->unique("obs_magento", "gerp_order_no", $row["gerp_order_no"], false);
+					if ($magento){
+						$row["updated"] = $now;
+						
+						if ($this->gen_m->update("obs_magento", ["obs_magento_id" => $magento->obs_magento_id], $row)) $qty_update++;
+						else $qty_fail++;
+					}else{
+						$row["registered"] = $row["updated"] = $now;
+						
+						if ($this->gen_m->insert("obs_magento", $row)) $qty_insert++;
+						else $qty_fail++;
+					}
+					*/
+				//}
+				
+				//if ($i > 50) break;
+			}
+			
+			if ($rows){
+				//print_r($rows);
+				//echo number_Format(microtime(true) - $start_time, 2)." sec *** ".number_format(count($rows))." datas to insert<br/><br/>";
+				
+				$from = $rows[0]["local_time"];
+				$to = $rows[count($rows)-1]["local_time"];
+				
+				foreach($rows as $item){
+					print_r($item); echo "<br/><br/>";
+				}
+				
+				//remove
+				//$this->gen_m->delete("obs_magento", ["local_time >=" => $from, "local_time <=" => $to]);
+				
+				//insert
+				//$inserted = $this->gen_m->insert_m("obs_magento", $rows);
+			}
+		}
 	}
 	
 	public function upload(){

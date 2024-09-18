@@ -141,6 +141,159 @@ class Obs extends CI_Controller {
 		return $list;
 	}
 	
+	public function dashboard_debug(){
+		//dates definition
+		$today = date("Y-m-d");
+		
+		$from_sales = date("Y-m-01", strtotime("-1 year", strtotime($today)));
+		$from_magento = date("Y-m-01", strtotime("-1 month", strtotime($from_sales)));
+		
+		//filter datas
+		$f_year = $f_month = $f_date = [];
+		
+		$dates = $this->gen_m->only("v_obs_sales_order", "create_date", ["create_date >= " => $from_sales]);
+		foreach($dates as $item){
+			$f_year[] = date("Y", strtotime($item->create_date));
+			$f_month[] = date("Y-m", strtotime($item->create_date));
+			$f_date[] = $item->create_date;
+		}
+		
+		$f_year = array_unique($f_year);
+		$f_month = array_unique($f_month);
+		$f_date = array_unique($f_date);
+		
+		sort($f_year);
+		sort($f_month);
+		sort($f_date);
+		
+		//mapping datas
+		$m_bill_to_name = [
+			"B2B2C" => "D2B2C",
+			"B2C" => "D2C",
+			"B2E" => "D2E",
+			"B2P" => "D2P",
+			"One time_Boleta" => "D2C",
+		];
+		
+		//( [0] => Awaiting Fulfillment [1] => Awaiting Return [2] => Awaiting Shipping [3] => Booked [4] => Closed [5] => Pending pre-billing acceptance )
+		$m_line_status = [
+			"Awaiting Fulfillment" => "Booked",
+			"Awaiting Return" => "Returning",
+			"Awaiting Shipping" => "Shipping",
+			"Booked" => "Booked",
+			"Closed" => "Closed",
+			"Pending pre-billing acceptance" => "Billing",
+		];
+		
+		//( [1] => A/C [2] => AUD [3] => CAV [4] => CTV [5] => CVT [6] => LCD [7] => LTV [8] => MNT [9] => MWO [10] => O [11] => PC [12] => RAC [13] => REF [14] => SAC [15] => SGN [16] => W/M ) + DS
+		$m_division = [
+			"" => "",//PTO case
+			"A/C" => "Chilller",
+			"AUD" => "Audio",
+			"CAV" => "Audio",
+			"CTV" => "Commercial TV",
+			"CVT" => "Cooking",
+			"DS" => "DS",
+			"LCD" => "LTV",
+			"LTV" => "LTV",
+			"MNT" => "MNT",
+			"MWO" => "Cooking",
+			"O" => "Cooking",
+			"PC" => "PC",
+			"RAC" => "RAC",
+			"REF" => "REF",
+			"SAC" => "SAC",
+			"SGN" => "MNT Signage",
+			"W/M" => "W/M",
+		];
+		
+		$m_company = [
+			"" => "",//PTO case
+			"REF" => "H&A",
+			"Cooking" => "H&A",
+			"W/M" => "H&A",
+			"RAC" => "H&A",
+			"SAC" => "H&A",
+			"Chilller" => "H&A",
+			"LTV" => "HE",
+			"Audio" => "HE",
+			"MNT" => "BS",
+			"PC" => "BS",
+			"DS" => "BS",
+			"MNT Signage" => "BS",
+			"Commercial TV" => "BS",
+		];
+		
+		//exchage rates
+		$exchange_rates = [];
+		foreach($f_month as $item){
+			$now = strtotime($item);
+			$f = date("Y-m-01", $now);
+			$t = date("Y-m-t", $now);
+			$er = $this->gen_m->avg("exchange_rate", "avg", ["date >=" => $f, "date <=" => $t]);
+			
+			if ($er->avg) $last_er = round($er->avg, 2);
+			$exchange_rates[$item] = $er->avg ? round($er->avg, 2) : $last_er;
+		}
+		
+		//rawdatas
+		
+		$magentos_list = [];
+		$magentos_list["structure"] = $this->gen_m->structure("v_obs_magento");
+		$magentos = $this->gen_m->filter("v_obs_magento", false, ["local_time >= " => $from_magento." 00:00:00", "gerp_order_no >" => 0]);//echo count($magentos)."<br/><br/>";
+		foreach($magentos as $item) $magentos_list[$item->gerp_order_no] = $item;
+		
+		$sales = $this->gen_m->filter("v_obs_sales_order", false, ["create_date >= " => $from_sales]);//echo count($sales)."<br/><br/>";
+		foreach($sales as $i => $item){
+			if (array_key_exists($item->order_no, $magentos_list)) $magento_aux = $magentos_list[$item->order_no];
+			else{
+				$magento_aux = $magentos_list["structure"];
+				$magento_aux->local_time = $item->create_date." 00:00:00";
+			}
+			
+			foreach($magento_aux as $key => $val) $item->$key = $val;
+		
+			//usd sales amount
+			$item->exchange_rate = $exchange_rates[date("Y-m", strtotime($item->create_date))];
+			$item->sales_amount_usd = round($item->sales_amount / $item->exchange_rate, 2);
+		
+			//set up values by mapping array
+			$item->bill_to_name = $m_bill_to_name[$item->bill_to_name];
+			$item->line_status = $m_line_status[$item->line_status];
+			$item->division = $m_division[$item->model_category];
+			$item->company = $m_company[$item->division];
+			
+			//iod reference
+			$iod_date = $item->close_date ? $item->close_date : $item->req_arrival_date_to;
+			$iod_diff = $this->my_func->diff_month($iod_date, $today);
+			
+			if ((strtotime($iod_date) < strtotime($today))) $iod_diff = -$iod_diff;
+			
+			switch(true){
+				case (strtotime($iod_date) > strtotime($today)): $item->iod_ref = "M+".$iod_diff; break;
+				case (strtotime($iod_date) < strtotime($today)): $item->iod_ref = "M".$iod_diff; break;
+				default: $item->iod_ref = "M"; break;
+			}
+			
+			//chart reference
+			if ($item->close_date){
+				$item->chart_ref = "Closed";
+				$item->chart_date = $item->close_date;
+			}else{
+				$item->chart_ref = "Reserved";
+				$item->chart_date = $item->req_arrival_date_to;
+			}
+			
+			//etc setting
+			if ($item->department === "Prov. Const. Del Callao") $item->department = "Callao";
+		}
+		
+		foreach($sales as $item){
+			print_r($item);
+			echo "<br/><br/>";
+		}
+	}
+	
 	public function dashboard(){
 		//llamasys/api/obs/dashboard?key=lgepr
 		
