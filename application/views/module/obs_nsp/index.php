@@ -17,17 +17,23 @@
 					</div>
 					<div>
 						<div class="input-group">
+							<select class="form-select" id="f_subsidiary" style="width: 200px;">
+								<option value="" selected="">Subsidiary</option>
+								<?php foreach($datas as $sub){ ?>
+								<option value="row_<?= $sub["subsidiary"] ?>"><?= $sub["subsidiary"] ?></option>
+								<?php } ?>
+							</select>
 							<select class="form-select" id="f_company" style="width: 200px;">
 								<option value="" selected="">Company</option>
-								<?php foreach($datas as $com){ ?>
+								<?php foreach($datas as $sub){ foreach($sub["coms"] as $com){ ?>
 								<option value="row_<?= str_replace("&", "", $com["company"]) ?>"><?= $com["company"] ?></option>
-								<?php } ?>
+								<?php } break; } ?>
 							</select>
 							<select class="form-select" id="f_division" style="width: 200px;">
 								<option value="" selected="">Division</option>
-								<?php foreach($datas as $com){ foreach($com["divs"] as $div){ ?>
-								<option value="row_<?= str_replace(" ", "_", $div["division"]) ?>" class="f_division row_<?= str_replace("&", "", $com["company"]) ?> d-none"><?= $div["division"] ?></option>
-								<?php }} ?>
+								<?php foreach($datas as $sub){ foreach($sub["coms"] as $com){ foreach($com["divs"] as $div){ ?>
+								<option value="row_<?= str_replace("/", "", str_replace(" ", "_", $div["division"])) ?>" class="f_division row_<?= str_replace("/", "", str_replace(" ", "_", $div["division"])) ?> d-none"><?= $div["division"] ?></option>
+								<?php } break; } break; } ?>
 							</select>
 							<input type="text" class="form-control" id="f_model" placeholder="Model" style="width: 200px;">
 							<button type="button" class="btn btn-primary" id="f_submit"><i class="bi bi-funnel-fill"></i></button>
@@ -37,7 +43,7 @@
 				<table class="table text-end">
 					<thead class="sticky-top text-center">
 						<tr>
-							<th scope="col">Day</th>
+							<th scope="col"></th>
 							<th scope="col">NSP</th>
 							<th scope="col"><div style="width: 120px;">Total</div></th>
 							<?php foreach($days as $day){ ?>
@@ -46,35 +52,107 @@
 						</tr>
 					</thead>
 					<tbody>
-						<?php foreach($datas as $com){ ?>
-						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?> table-success fw-bold">
-							<td class="text-start"><div class="ps-0"><?= $com["company"] ?></div></td>
-							<td></td>
+						<?php foreach($datas as $sub){ ?>
+						<tr class="rows row_<?= $sub["subsidiary"] ?> table-danger fw-bold">
+							<td class="text-start"><div class="ps-0"><?= $sub["subsidiary"] ?></div></td>
+							<td class="align-bottom" id="nsp_<?= $sub["subsidiary"] ?>_values" rowspan="3"></td>
+							<?php foreach($sub["stat"] as $day => $stat){ ?>
+							<td><?= $stat["sales"] ? number_format($stat["sales"]) : "" ?></td>
+							<?php } ?>
+						</tr>
+						<tr class="rows row_<?= $sub["subsidiary"] ?>">
+							<td class="text-start"><div class="ps-0">Qty</div></td>
+							<?php foreach($sub["stat"] as $day => $stat){ ?>
+							<td><?= $stat["qty"] ? number_format($stat["qty"]) : "" ?></td>
+							<?php } ?>
+						</tr>
+						<tr class="rows row_<?= $sub["subsidiary"] ?>">
+							<td class="text-start"><div class="ps-0">NSP</div></td>
+							<?php $nsp_total = 0; $nsp_arr = []; foreach($sub["stat"] as $day => $stat){ 
+								$nsp = $stat["nsp"];
+								$nsp_arr[] = $nsp;
+								if (!$nsp_total) $nsp_total = $nsp; ?>
+							<td class="text-<?= $nsp >= ($nsp_total * 0.95) ? "success" : "danger" ?>"><?= $nsp ? number_format($nsp) : "" ?></td>
+							<?php } ?>
+							<td class="d-none nsp_summary" id="nsp_<?= $sub["subsidiary"] ?>"><?= implode(",",$nsp_arr); ?></td>
+						</tr>
+						<?php foreach($sub["coms"] as $com){ $aux_com = str_replace("&", "", $com["company"]); ?>
+						<tr class="rows row_<?= $aux_com ?> table-success fw-bold">
+							<td class="text-start"><div class="ps-1"><?= $com["company"] ?></div></td>
+							<td class="align-bottom" id="nsp_<?= $sub["subsidiary"]."_".$aux_com ?>_values" rowspan="3"></td>
 							<?php foreach($com["stat"] as $day => $stat){ ?>
 							<td><?= $stat["sales"] ? number_format($stat["sales"]) : "" ?></td>
 							<?php } ?>
 						</tr>
-						<?php foreach($com["divs"] as $div){ ?>
-						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?> row_<?= str_replace(" ", "_", $div["division"]) ?> table-warning">
-							<td class="text-start"><div class="ps-1"><?= $div["division"] ?></div></td>
-							<td></td>
+						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?>">
+							<td class="text-start"><div class="ps-1">Qty</div></td>
+							<?php foreach($com["stat"] as $day => $stat){ ?>
+							<td><?= $stat["qty"] ? number_format($stat["qty"]) : "" ?></td>
+							<?php } ?>
+						</tr>
+						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?>">
+							<td class="text-start"><div class="ps-1">NSP</div></td>
+							<?php $nsp_total = 0; $nsp_arr = []; foreach($com["stat"] as $day => $stat){ 
+								$nsp = $stat["nsp"];
+								$nsp_arr[] = $nsp;
+								if (!$nsp_total) $nsp_total = $nsp; ?>
+							<td class="text-<?= $nsp >= ($nsp_total * 0.95) ? "success" : "danger" ?>"><?= $nsp ? number_format($nsp) : "" ?></td>
+							<?php } ?>
+							<td class="d-none nsp_summary" id="nsp_<?= $sub["subsidiary"]."_".$aux_com ?>"><?= implode(",",$nsp_arr); ?></td>
+						</tr>
+						<?php foreach($com["divs"] as $div){ $aux_div = str_replace("/", "", str_replace(" ", "_", $div["division"])); ?>
+						<tr class="rows row_<?= $aux_com ?> row_<?= $aux_div ?> table-warning fw-bold">
+							<td class="text-start"><div class="ps-2"><?= $div["division"] ?></div></td>
+							<td class="align-bottom" id="nsp_<?= $sub["subsidiary"]."_".$aux_com."_".$aux_div ?>_values" rowspan="3"></td>
 							<?php foreach($div["stat"] as $day => $stat){ ?>
 							<td><?= $stat["sales"] ? number_format($stat["sales"]) : "" ?></td>
 							<?php } ?>
 						</tr>
+						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?> row_<?= str_replace(" ", "_", $div["division"]) ?>">
+							<td class="text-start"><div class="ps-2">Qty</div></td>
+							<?php foreach($div["stat"] as $day => $stat){ ?>
+							<td><?= $stat["qty"] ? number_format($stat["qty"]) : "" ?></td>
+							<?php } ?>
+						</tr>
+						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?> row_<?= str_replace(" ", "_", $div["division"]) ?>">
+							<td class="text-start"><div class="ps-2">NSP</div></td>
+							<?php $nsp_total = 0; $nsp_arr = []; foreach($div["stat"] as $day => $stat){ 
+								$nsp = $stat["nsp"];
+								$nsp_arr[] = $nsp;
+								if (!$nsp_total) $nsp_total = $nsp; ?>
+							<td class="text-<?= $nsp >= ($nsp_total * 0.95) ? "success" : "danger" ?>"><?= $nsp ? number_format($nsp) : "" ?></td>
+							<?php } ?>
+							<td class="d-none nsp_summary" id="nsp_<?= $sub["subsidiary"]."_".$aux_com."_".$aux_div ?>"><?= implode(",",$nsp_arr); ?></td>
+						</tr>
 						<?php foreach($div["models"] as $model){ $model_aux = str_replace(".", "", $model["model"]); ?>
-						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?> row_<?= str_replace(" ", "_", $div["division"]) ?> table-secondary" f_model="<?= $model_aux ?>">
-							<td class="text-start"><div class="ps-2"><?= $model["model"] ?></div></td>
-							<td></td>
+						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?> row_<?= str_replace(" ", "_", $div["division"]) ?> table-secondary fw-bold" f_model="<?= $model_aux ?>">
+							<td class="text-start"><div class="ps-3"><?= $model["model"] ?></div></td>
+							<td class="align-bottom" id="nsp_<?= $model_aux ?>_values" rowspan="3"></td>
 							<?php foreach($model["stat"] as $day => $stat){ ?>
 							<td><?= $stat["sales"] ? number_format($stat["sales"]) : "" ?></td>
 							<?php } ?>
 						</tr>
-						<?php foreach($model["bill_tos"] as $bill_to){ if ($bill_to["stat"]["total"]["sales"]){ ?>
 						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?> row_<?= str_replace(" ", "_", $div["division"]) ?>" f_model="<?= $model_aux ?>">
-							<td class="text-start"><div class="ps-3"><strong><?= $bill_to["bill_to"] ?></strong></div></td>
+							<td class="text-start"><div class="ps-3">Qty</div></td>
+							<?php foreach($model["stat"] as $day => $stat){ ?>
+							<td><?= $stat["qty"] ? number_format($stat["qty"]) : "" ?></td>
+							<?php } ?>
+						</tr>
+						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?> row_<?= str_replace(" ", "_", $div["division"]) ?>" f_model="<?= $model_aux ?>">
+							<td class="text-start"><div class="ps-3">NSP</div></td>
+							<?php $nsp_total = 0; $nsp_arr = []; foreach($model["stat"] as $day => $stat){ 
+								$nsp = $stat["nsp"];
+								$nsp_arr[] = $nsp;
+								if (!$nsp_total) $nsp_total = $nsp; ?>
+							<td class="text-<?= $nsp >= ($nsp_total * 0.95) ? "success" : "danger" ?>"><?= $nsp ? number_format($nsp) : "" ?></td>
+							<?php } ?>
+							<td class="d-none nsp_summary" id="nsp_<?= $model_aux ?>"><?= implode(",",$nsp_arr); ?></td>
+						</tr>
+						<?php foreach($model["bill_tos"] as $bill_to){ if ($bill_to["stat"]["total"]["sales"]){ ?>
+						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?> row_<?= str_replace(" ", "_", $div["division"]) ?> table-primary fw-bold" f_model="<?= $model_aux ?>">
+							<td class="text-start"><div class="ps-4"><?= $bill_to["bill_to"] ?></div></td>
 							<td class="align-bottom" id="nsp_<?= $model_aux ?>_<?= $bill_to["bill_to"] ?>_values" rowspan="3"></td>
-							<?php $nsp_total = 0; foreach($bill_to["stat"] as $day => $stat){ ?>
+							<?php foreach($bill_to["stat"] as $day => $stat){ ?>
 							<td><?= $stat["sales"] ? number_format($stat["sales"]) : "" ?></td>
 							<?php } ?>
 						</tr>
@@ -86,7 +164,7 @@
 						</tr>
 						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?> row_<?= str_replace(" ", "_", $div["division"]) ?>" f_model="<?= $model_aux ?>">
 							<td class="text-start"><div class="ps-4">NSP</div></td>
-							<?php $nsp_arr = []; foreach($bill_to["stat"] as $day => $stat){ 
+							<?php $nsp_total = 0; $nsp_arr = []; foreach($bill_to["stat"] as $day => $stat){ 
 								$nsp = $stat["nsp"];
 								$nsp_arr[] = $nsp;
 								if (!$nsp_total) $nsp_total = $nsp; ?>
@@ -98,6 +176,7 @@
 						<?php } //model end ?>
 						<?php } //div end ?>
 						<?php } //com end ?>
+						<?php } //sub end ?>
 					</tbody>
 				</table>
 			</div>

@@ -316,8 +316,6 @@ class Obs_nsp extends CI_Controller {
 			}
 		}
 		
-		return;
-		
 		$data = [
 			"days" => $days,
 			"dates" => $dates,
