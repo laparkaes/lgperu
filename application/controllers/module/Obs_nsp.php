@@ -31,7 +31,7 @@ class Obs_nsp extends CI_Controller {
 	public function index(){
 		//basic filters
 		$today = date("Y-m-d");
-		$today = "2024-06-13";
+		//$today = "2024-06-13";
 		
 		$from = date("Y-m-01", strtotime($today));
 		$to = date("Y-m-t", strtotime($today));
