@@ -34,7 +34,7 @@
 						</div>
 					</div>
 				</div>
-				<table class="table text-center">
+				<table class="table text-end">
 					<thead class="sticky-top text-center">
 						<tr>
 							<th scope="col">Day</th>
@@ -51,7 +51,7 @@
 							<td class="text-start"><div class="ps-0"><?= $com["company"] ?></div></td>
 							<td></td>
 							<?php foreach($com["stat"] as $day => $stat){ ?>
-							<td><?= $stat["sales"] ? number_format($stat["sales"], 2) : "" ?></td>
+							<td><?= $stat["sales"] ? number_format($stat["sales"]) : "" ?></td>
 							<?php } ?>
 						</tr>
 						<?php foreach($com["divs"] as $div){ ?>
@@ -59,7 +59,7 @@
 							<td class="text-start"><div class="ps-1"><?= $div["division"] ?></div></td>
 							<td></td>
 							<?php foreach($div["stat"] as $day => $stat){ ?>
-							<td><?= $stat["sales"] ? number_format($stat["sales"], 2) : "" ?></td>
+							<td><?= $stat["sales"] ? number_format($stat["sales"]) : "" ?></td>
 							<?php } ?>
 						</tr>
 						<?php foreach($div["models"] as $model){ $model_aux = str_replace(".", "", $model["model"]); ?>
@@ -67,30 +67,30 @@
 							<td class="text-start"><div class="ps-2"><?= $model["model"] ?></div></td>
 							<td></td>
 							<?php foreach($model["stat"] as $day => $stat){ ?>
-							<td><?= $stat["sales"] ? number_format($stat["sales"], 2) : "" ?></td>
+							<td><?= $stat["sales"] ? number_format($stat["sales"]) : "" ?></td>
 							<?php } ?>
 						</tr>
 						<?php foreach($model["bill_tos"] as $bill_to){ if ($bill_to["stat"]["total"]["sales"]){ ?>
 						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?> row_<?= str_replace(" ", "_", $div["division"]) ?>" f_model="<?= $model_aux ?>">
 							<td class="text-start"><div class="ps-3"><strong><?= $bill_to["bill_to"] ?></strong></div></td>
-							<td class="text-start" id="nsp_<?= $model_aux ?>_<?= $bill_to["bill_to"] ?>_values" rowspan="3"></td>
+							<td class="align-bottom" id="nsp_<?= $model_aux ?>_<?= $bill_to["bill_to"] ?>_values" rowspan="3"></td>
 							<?php $nsp_total = 0; foreach($bill_to["stat"] as $day => $stat){ ?>
-							<td><?= $stat["sales"] ? number_format($stat["sales"], 2) : "" ?></td>
+							<td><?= $stat["sales"] ? number_format($stat["sales"]) : "" ?></td>
 							<?php } ?>
 						</tr>
-						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?> row_<?= str_replace(" ", "_", $div["division"]) ?>" f_model="<?= $model_aux ?>" style="font-size: .9rem;">
+						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?> row_<?= str_replace(" ", "_", $div["division"]) ?>" f_model="<?= $model_aux ?>">
 							<td class="text-start"><div class="ps-4">Qty</div></td>
 							<?php foreach($bill_to["stat"] as $day => $stat){ ?>
 							<td><?= $stat["qty"] ? number_format($stat["qty"]) : "" ?></td>
 							<?php } ?>
 						</tr>
-						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?> row_<?= str_replace(" ", "_", $div["division"]) ?>" f_model="<?= $model_aux ?>" style="font-size: .9rem;">
+						<tr class="rows row_<?= str_replace("&", "", $com["company"]) ?> row_<?= str_replace(" ", "_", $div["division"]) ?>" f_model="<?= $model_aux ?>">
 							<td class="text-start"><div class="ps-4">NSP</div></td>
 							<?php $nsp_arr = []; foreach($bill_to["stat"] as $day => $stat){ 
 								$nsp = $stat["nsp"];
 								$nsp_arr[] = $nsp;
 								if (!$nsp_total) $nsp_total = $nsp; ?>
-							<td class="text-<?= $nsp >= ($nsp_total * 0.95) ? "success" : "danger" ?>"><?= $nsp ? number_format($nsp, 2) : "" ?></td>
+							<td class="text-<?= $nsp >= ($nsp_total * 0.95) ? "success" : "danger" ?>"><?= $nsp ? number_format($nsp) : "" ?></td>
 							<?php } ?>
 							<td class="d-none nsp_summary" id="nsp_<?= $model_aux ?>_<?= $bill_to["bill_to"] ?>"><?= implode(",",$nsp_arr); ?></td>
 						</tr>
@@ -119,13 +119,14 @@ document.addEventListener("DOMContentLoaded", () => {
 			$(td_id).append('<span id="' + chart_id + '">' + val_str + '</span>');
 			$("#" + chart_id).peity("bar", {
 				fill: function(value) {
-					return value >= (avg * 0.95) ? "green" : "red"
+					if (value > 0) return value >= (avg * 0.95) ? "green" : "red";
+					else return "#e2e3e5";
 				},
-				width: 150,
+				width: (6 * vals.length),
 				height: 90,
 			});
 			
-			$("rect").attr("width", "10");
+			$("rect").attr("width", "5");
 		}
 		 
 	});
