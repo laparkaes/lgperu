@@ -551,17 +551,20 @@ class Obs_magento extends CI_Controller {
 				$from = $rows[0]["local_time"];
 				$to = $rows[count($rows)-1]["local_time"];
 				
-				foreach($rows as $item){
-					print_r($item); echo "<br/><br/>";
+				foreach($rows as $row){
+					foreach($row as $key => $val) echo $key. " ///// ".$val."<br/>";
+					echo "<br/><br/>";
 				}
 				
 				//remove
-				//$this->gen_m->delete("obs_magento", ["local_time >=" => $from, "local_time <=" => $to]);
+				$this->gen_m->delete("obs_magento", ["local_time >=" => $from, "local_time <=" => $to]);
 				
 				//insert
-				//$inserted = $this->gen_m->insert_m("obs_magento", $rows);
+				$inserted = $this->gen_m->insert_m("obs_magento", $rows);
 			}
 		}
+		
+		echo $inserted;
 	}
 	
 	public function upload(){
