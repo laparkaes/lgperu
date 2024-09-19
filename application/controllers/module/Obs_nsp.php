@@ -10,12 +10,17 @@ class Obs_nsp extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 	}
 	
-	private function calculate_nsp($stats){
+	private function calculate_nsp($stats, $order_by = "sales"){
 		$nsp_arr = [];
 		foreach($stats as $day => $stat){
 			if ($day !== "total"){
-				$stats[$day]["nsp"] = $stats[$day]["qty"] ? $stats[$day]["sales"] / $stats[$day]["qty"] : 0;
-				if ($stats[$day]["nsp"]) $nsp_arr[] = $stats[$day]["nsp"];
+				if ($order_by === "sales"){
+					$stats[$day]["nsp"] = $stats[$day]["qty"] ? $stats[$day]["sales"] / $stats[$day]["qty"] : 0;
+					if ($stats[$day]["nsp"]) $nsp_arr[] = $stats[$day]["nsp"];
+				}else{
+					$stats[$day]["nsp"] = $stats[$day]["qty"];
+					if ($stats[$day]["nsp"]) $nsp_arr[] = $stats[$day]["nsp"];
+				}
 			}
 			
 			//echo $day." /// "; print_r($stats[$day]); echo "<br/>";
@@ -124,6 +129,20 @@ class Obs_nsp extends CI_Controller {
 						"division" => $div,
 						"stat" => $stat,
 						"models" => [],
+						"bill_tos" => [
+							"D2C" => [
+								"bill_to" => "D2C",
+								"stat" => $stat,
+							],
+							"D2B2C" => [
+								"bill_to" => "D2B2C",
+								"stat" => $stat,
+							],
+							"ETC" => [
+								"bill_to" => "ETC",
+								"stat" => $stat,
+							],
+						],
 					];
 				}
 			}
@@ -207,6 +226,13 @@ class Obs_nsp extends CI_Controller {
 			$datas[$sub]["coms"][$com]["divs"][$div]["stat"][$day]["qty"] += $item->ordered_qty;
 			//$datas[$sub]["coms"][$com]["divs"][$div]["stat"][$day]["nsp"] += $item->nsp;
 			
+			$datas[$sub]["coms"][$com]["divs"][$div]["bill_tos"][$bto]["stat"]["total"]["sales"] += $item->sales_amount;
+			$datas[$sub]["coms"][$com]["divs"][$div]["bill_tos"][$bto]["stat"]["total"]["qty"] += $item->ordered_qty;
+			//$datas[$sub]["coms"][$com]["divs"][$div]["bill_tos"][$bto]["stat"]["total"]["nsp"] += $item->nsp;
+			$datas[$sub]["coms"][$com]["divs"][$div]["bill_tos"][$bto]["stat"][$day]["sales"] += $item->sales_amount;
+			$datas[$sub]["coms"][$com]["divs"][$div]["bill_tos"][$bto]["stat"][$day]["qty"] += $item->ordered_qty;
+			//$datas[$sub]["coms"][$com]["divs"][$div]["bill_tos"][$bto]["stat"][$day]["nsp"] += $item->nsp;
+			
 			$datas[$sub]["coms"][$com]["divs"][$div]["models"][$mod]["stat"]["total"]["sales"] += $item->sales_amount;
 			$datas[$sub]["coms"][$com]["divs"][$div]["models"][$mod]["stat"]["total"]["qty"] += $item->ordered_qty;
 			//$datas[$sub]["coms"][$com]["divs"][$div]["models"][$mod]["stat"]["total"]["nsp"] += $item->nsp;
@@ -228,7 +254,7 @@ class Obs_nsp extends CI_Controller {
 		
 		//nsp calculation and sort by 
 		foreach($datas as $sub){
-			$datas[$sub["subsidiary"]]["stat"] = $this->calculate_nsp($sub["stat"]);
+			$datas[$sub["subsidiary"]]["stat"] = $this->calculate_nsp($sub["stat"], $order_by);
 			
 			/* subsidiary stat print
 			echo $sub["subsidiary"]."<br/>";
@@ -240,7 +266,7 @@ class Obs_nsp extends CI_Controller {
 			echo "<br/>"; */
 			
 			foreach($sub["coms"] as $com){
-				$datas[$sub["subsidiary"]]["coms"][$com["company"]]["stat"] = $this->calculate_nsp($com["stat"]);
+				$datas[$sub["subsidiary"]]["coms"][$com["company"]]["stat"] = $this->calculate_nsp($com["stat"], $order_by);
 				
 				/* company stat print
 				echo $com["company"]."<br/>";
@@ -252,7 +278,7 @@ class Obs_nsp extends CI_Controller {
 				echo "<br/>"; */
 				
 				foreach($com["divs"] as $div){
-					$datas[$sub["subsidiary"]]["coms"][$com["company"]]["divs"][$div["division"]]["stat"] = $this->calculate_nsp($div["stat"]);
+					$datas[$sub["subsidiary"]]["coms"][$com["company"]]["divs"][$div["division"]]["stat"] = $this->calculate_nsp($div["stat"], $order_by);
 					
 					/* division stat print
 					echo $div["division"]."<br/>";
@@ -263,8 +289,21 @@ class Obs_nsp extends CI_Controller {
 					}
 					echo "<br/>"; */
 					
+					foreach($div["bill_tos"] as $bill_to){
+						$datas[$sub["subsidiary"]]["coms"][$com["company"]]["divs"][$div["division"]]["bill_tos"][$bill_to["bill_to"]]["stat"] = $this->calculate_nsp($bill_to["stat"], $order_by);
+						
+						/* company stat print
+						echo $bill_to["bill_to"]."<br/>";
+						foreach($datas[$sub["subsidiary"]]["coms"][$com["company"]]["divs"][$div["division"]]["models"][$model["model"]]["bill_tos"][$bill_to["bill_to"]]["stat"] as $day => $stat){
+							echo $day." /// ";
+							print_r($stat);
+							echo "<br/>";
+						}
+						echo "<br/>"; */
+					}
+					
 					foreach($div["models"] as $model){
-						$datas[$sub["subsidiary"]]["coms"][$com["company"]]["divs"][$div["division"]]["models"][$model["model"]]["stat"] = $this->calculate_nsp($model["stat"]);
+						$datas[$sub["subsidiary"]]["coms"][$com["company"]]["divs"][$div["division"]]["models"][$model["model"]]["stat"] = $this->calculate_nsp($model["stat"], $order_by);
 						
 						/* model stat print
 						echo $model["model"]."<br/>";
@@ -276,7 +315,7 @@ class Obs_nsp extends CI_Controller {
 						echo "<br/>"; */
 						
 						foreach($model["bill_tos"] as $bill_to){
-							$datas[$sub["subsidiary"]]["coms"][$com["company"]]["divs"][$div["division"]]["models"][$model["model"]]["bill_tos"][$bill_to["bill_to"]]["stat"] = $this->calculate_nsp($bill_to["stat"]);
+							$datas[$sub["subsidiary"]]["coms"][$com["company"]]["divs"][$div["division"]]["models"][$model["model"]]["bill_tos"][$bill_to["bill_to"]]["stat"] = $this->calculate_nsp($bill_to["stat"], $order_by);
 							
 							/* company stat print
 							echo $bill_to["bill_to"]."<br/>";
