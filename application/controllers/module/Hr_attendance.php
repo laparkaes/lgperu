@@ -54,84 +54,36 @@ class Hr_attendance extends CI_Controller {
             $highestRow = $sheet->getHighestRow();
             //$highestColumn = $sheet->getHighestColumn();
 
-			$new_rec = $upd_rec = [];
-			$atts = [];
-			$count = 0;
-            for ($row = 2; $row <= $highestRow; $row++){
-				//datas are joined with comma (,)
-				//$row_now = explode(",", trim($sheet->getCell('A'.$row)->getValue()));
-				
+			$rows = [];
+            for ($j = 2; $j <= $highestRow; $j++){
 				//datas are separated in columns
-				$row_now = [
-					trim($sheet->getCell('A'.$row)->getValue()),
-					trim($sheet->getCell('B'.$row)->getValue()),
-					trim($sheet->getCell('C'.$row)->getValue()),
-					trim($sheet->getCell('D'.$row)->getValue()),
-					trim($sheet->getCell('E'.$row)->getValue()),
-					trim($sheet->getCell('F'.$row)->getValue()),
-					trim($sheet->getCell('G'.$row)->getValue()),
+				$row = [
+					trim($sheet->getCell('A'.$j)->getValue()),
+					trim($sheet->getCell('B'.$j)->getValue()),
+					trim($sheet->getCell('C'.$j)->getValue()),
+					trim($sheet->getCell('D'.$j)->getValue()),
+					trim($sheet->getCell('E'.$j)->getValue()),
+					trim($sheet->getCell('F'.$j)->getValue()),
+					trim($sheet->getCell('G'.$j)->getValue()),
 				];
 				
-				if ($row_now[5]){
-					$aux = explode("(", str_replace(")", "", $row_now[5]));
-					if (array_key_exists(1, $aux)){
-						$date_split = explode(" ", $row_now[0]);
-						
-						/*
-						$row_now[0]: check date
-						$date_split[0]: check day
-						$date_split[1]: check time
-						$aux[0]: employee_number
-						$aux[1]: name
-						*/
-						
-						if (!array_key_exists($aux[0], $atts))
-							$atts[$aux[0]] = ["name" => "", "check" => []];
-						
-						if (!array_key_exists($date_split[0], $atts[$aux[0]]["check"])) 
-							$atts[$aux[0]]["check"][$date_split[0]] = [];
-						
-						$atts[$aux[0]]["name"] = $aux[1];
-						$atts[$aux[0]]["check"][$date_split[0]][] = strtotime($date_split[1]);
-						$atts[$aux[0]]["check"][$date_split[0]][] = strtotime($date_split[1]);
-					}
+				if ($row[5]){
+					$aux = explode("(", str_replace(")", "", $row[5]));
+					//print_r($aux); echo "<br/>";
+					
+					$rows[] = [
+						"pr" => $aux[0],
+						"name" => (array_key_exists(1, $aux) ? $aux[1] : ""),
+						"access" => $row[0],
+					];
+					
 				}
             }
 			
-			foreach($atts as $emp_num => $emp){
-				$emp_rec = $this->gen_m->unique("employee", "employee_number", $emp_num);
-				if (!$emp_rec){
-					$this->gen_m->insert("employee", ["employee_number" => $emp_num, "name" => $emp["name"]]);
-					$emp_rec = $this->gen_m->unique("employee", "employee_number", $emp_num);
-				}
-				
-				$checks = $emp["check"];
-				foreach($checks as $day => $times){
-					if ($times){
-						sort($times);
-						
-						$f = ["employee_id" => $emp_rec->employee_id, "date" => $day];
-						$att_data = [
-							"employee_id" => $emp_rec->employee_id,
-							"date" => $day,
-							"enter_time" => date("H:i", $times[0]),
-							"leave_time" => date("H:i",$times[count($times) - 1]),
-						];
-						
-						$att_rec = $this->gen_m->filter("attendance", true, $f);
-						if ($att_rec){
-							$att_data["attendance_id"] = $att_rec[0]->attendance_id;
-							$upd_rec[] = $att_data;
-						}else $new_rec[] = $att_data;
-					}
-				}
-			}
-			
-			$new_qty = ($new_rec) ? $this->att_m->insert_m($new_rec) : 0;
-			$upd_qty = ($upd_rec) ? $this->att_m->update_m($upd_rec) : 0;
+			if ($rows) $inserted = $this->gen_m->insert_m("hr_attendance", $rows); else $inserted = 0;
 			
 			$type = "success";
-			$msg = "Check-in time upload result: ".number_format($new_qty)." new and ".number_format($upd_qty)." updated.";
+			$msg = number_format($inserted)." rows inserted.";
 		}else{
 			$error = array('error' => $this->upload->display_errors());
 			$msg = str_replace("p>", "div>", $this->upload->display_errors());
