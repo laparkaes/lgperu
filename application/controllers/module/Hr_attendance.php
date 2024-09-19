@@ -23,7 +23,7 @@ class Hr_attendance extends CI_Controller {
 	}
 	
 	public function upload(){
-		$type = "error"; $msg = null;
+		$type = "error"; $msg = null; $inserted = 0;
 		
 		$config = [
 			'upload_path'	=> './upload/',
@@ -80,7 +80,10 @@ class Hr_attendance extends CI_Controller {
 				}
             }
 			
-			if ($rows) $inserted = $this->gen_m->insert_m("hr_attendance", $rows); else $inserted = 0;
+			if ($rows){
+				$this->gen_m->delete("hr_attendance", ["access >=" => $rows[count($rows)-1]["access"], "access <=" => $rows[0]["access"]]);
+				$inserted = $this->gen_m->insert_m("hr_attendance", $rows); 
+			}
 			
 			$type = "success";
 			$msg = number_format($inserted)." rows inserted.";
