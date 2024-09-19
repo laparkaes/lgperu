@@ -5,7 +5,7 @@
 				<div class="d-flex justify-content-between align-items-center">
 					<div class="d-flex justify-content-start align-items-center">
 						<h5 class="card-title me-3">OBS NSP, <?= date("Y-m-d") ?></h5>
-						<form>
+						<!-- form>
 							<div class="input-group">
 								<select class="form-select" name="sort" style="width: 200px;">
 									<option value="sales" <?= $this->input->get("sort") === "sales" ? "selected" : "" ?>>Order by Sales</option>
@@ -13,7 +13,7 @@
 								</select>
 								<button type="submit" class="btn btn-primary"><i class="bi bi-sort-down"></i></button>
 							</div>
-						</form>
+						</form -->
 					</div>
 					<div>
 						<div class="input-group">
@@ -43,7 +43,14 @@
 				<table class="table text-end">
 					<thead class="sticky-top text-center">
 						<tr>
-							<th scope="col"></th>
+							<th scope="col">
+							<div class="form-check text-start">
+								<input class="form-check-input" type="checkbox" id="chk_bill_to">
+								<label class="form-check-label" for="chk_bill_to">
+								Bill to
+								</label>
+							</div>
+							</th>
 							<th scope="col">NSP</th>
 							<th scope="col"><div style="width: 75px;">Total</div></th>
 							<?php foreach($days as $day){ ?>
@@ -102,13 +109,20 @@
 						</tr>
 						<?php foreach($com["divs"] as $div){ $aux_div = str_replace("/", "", str_replace(" ", "_", $div["division"])); ?>
 						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= $aux_div ?> table-warning fw-bold">
-							<td class="text-start"><div class="ps-2"><?= $div["division"] ?></div></td>
+							<td class="text-start">
+								<div class="d-flex justify-content-between align-items-center ps-2">
+									<div><?= $div["division"] ?></div>
+									<button type="button" class="btn btn-primary btn-sm btn_view_models btn_load_chart_<?= $aux_div ?>" value="<?= $aux_div ?>">
+										Models
+									</button>
+								</div>
+							</td>
 							<td class="align-middle" id="nsp_<?= $aux_sub."_".$aux_com."_".$aux_div ?>_values" rowspan="3"></td>
 							<?php foreach($div["stat"] as $day => $stat){ ?>
 							<td><?= $stat["sales"] ? number_format($stat["sales"]) : "" ?></td>
 							<?php } ?>
 						</tr>
-						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= str_replace(" ", "_", $div["division"]) ?>">
+						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= $aux_div ?>">
 							<td class="text-start"><div class="ps-2">Qty</div></td>
 							<?php foreach($div["stat"] as $day => $stat){ ?>
 							<td><?= $stat["qty"] ? number_format($stat["qty"]) : "" ?></td>
@@ -125,20 +139,20 @@
 							<td class="d-none nsp_summary" id="nsp_<?= $aux_sub."_".$aux_com."_".$aux_div ?>"><?= implode(",",$nsp_arr); ?></td>
 						</tr>
 						<?php foreach($div["bill_tos"] as $bill_to){ if ($bill_to["stat"]["total"]["sales"]){ ?>
-						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= str_replace(" ", "_", $div["division"]) ?> fw-bold">
+						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= $aux_div ?> row_bill_to d-none fw-bold">
 							<td class="text-start"><div class="ps-3"><?= $bill_to["bill_to"] ?></div></td>
 							<td class="align-middle text-center" id="nsp_<?= $aux_div ?>_<?= $bill_to["bill_to"] ?>_values" rowspan="3"></td>
 							<?php foreach($bill_to["stat"] as $day => $stat){ ?>
 							<td><?= $stat["sales"] ? number_format($stat["sales"]) : "" ?></td>
 							<?php } ?>
 						</tr>
-						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= str_replace(" ", "_", $div["division"]) ?>">
+						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= $aux_div ?> row_bill_to d-none">
 							<td class="text-start"><div class="ps-3">Qty</div></td>
 							<?php foreach($bill_to["stat"] as $day => $stat){ ?>
 							<td><?= $stat["qty"] ? number_format($stat["qty"]) : "" ?></td>
 							<?php } ?>
 						</tr>
-						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= str_replace(" ", "_", $div["division"]) ?>">
+						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= $aux_div ?> row_bill_to d-none">
 							<td class="text-start"><div class="ps-3">NSP</div></td>
 							<?php $nsp_total = 0; $nsp_arr = []; foreach($bill_to["stat"] as $day => $stat){ 
 								$nsp = $stat["nsp"];
@@ -149,25 +163,20 @@
 							<td class="d-none nsp_summary" id="nsp_<?= $aux_div ?>_<?= $bill_to["bill_to"] ?>"><?= implode(",",$nsp_arr); ?></td>
 						</tr>
 						<?php }} foreach($div["models"] as $model){ $model_aux = str_replace(".", "", $model["model"]); ?>
-						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= $aux_div ?> table-secondary fw-bold" f_model="<?= $model_aux ?>">
+						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= $aux_div ?> row_<?= $aux_div ?>_model d-none table-secondary fw-bold" f_model="<?= $model_aux ?>">
 							<td class="text-start"><div class="ps-3"><?= $model["model"] ?></div></td>
-							<td class="align-middle text-center" id="nsp_<?= $model_aux ?>_values" rowspan="3">
-								<button type="button" class="btn btn-primary btn_load_chart btn_load_chart_<?= $aux_div ?>" value="<?= $aux_div ?>">
-									<i class="bi bi-bar-chart-line-fill"></i>
-									Load <?= $aux_div ?>
-								</button>
-							</td>
+							<td class="align-middle text-center" id="nsp_<?= $model_aux ?>_values" rowspan="3"></td>
 							<?php foreach($model["stat"] as $day => $stat){ ?>
 							<td><?= $stat["sales"] ? number_format($stat["sales"]) : "" ?></td>
 							<?php } ?>
 						</tr>
-						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= $aux_div ?>" f_model="<?= $model_aux ?>">
+						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= $aux_div ?> row_<?= $aux_div ?>_model d-none" f_model="<?= $model_aux ?>">
 							<td class="text-start"><div class="ps-3">Qty</div></td>
 							<?php foreach($model["stat"] as $day => $stat){ ?>
 							<td><?= $stat["qty"] ? number_format($stat["qty"]) : "" ?></td>
 							<?php } ?>
 						</tr>
-						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= $aux_div ?>" f_model="<?= $model_aux ?>">
+						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= $aux_div ?> row_<?= $aux_div ?>_model d-none" f_model="<?= $model_aux ?>">
 							<td class="text-start"><div class="ps-3">NSP</div></td>
 							<?php $nsp_total = 0; $nsp_arr = []; foreach($model["stat"] as $day => $stat){ 
 								$nsp = $stat["nsp"];
@@ -178,20 +187,20 @@
 							<td class="d-none nsp_summary_<?= $aux_div ?>" id="nsp_<?= $model_aux ?>"><?= implode(",",$nsp_arr); ?></td>
 						</tr>
 						<?php foreach($model["bill_tos"] as $bill_to){ if ($bill_to["stat"]["total"]["sales"]){ ?>
-						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= str_replace(" ", "_", $div["division"]) ?> fw-bold" f_model="<?= $model_aux ?>">
+						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= $aux_div ?> row_<?= $aux_div ?>_model row_bill_to d-none fw-bold" f_model="<?= $model_aux ?>">
 							<td class="text-start"><div class="ps-4"><?= $bill_to["bill_to"] ?></div></td>
 							<td class="align-middle text-center" id="nsp_<?= $model_aux ?>_<?= $bill_to["bill_to"] ?>_values" rowspan="3"></td>
 							<?php foreach($bill_to["stat"] as $day => $stat){ ?>
 							<td><?= $stat["sales"] ? number_format($stat["sales"]) : "" ?></td>
 							<?php } ?>
 						</tr>
-						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= str_replace(" ", "_", $div["division"]) ?>" f_model="<?= $model_aux ?>">
+						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= $aux_div ?> row_<?= $aux_div ?>_model row_bill_to d-none" f_model="<?= $model_aux ?>">
 							<td class="text-start"><div class="ps-4">Qty</div></td>
 							<?php foreach($bill_to["stat"] as $day => $stat){ ?>
 							<td><?= $stat["qty"] ? number_format($stat["qty"]) : "" ?></td>
 							<?php } ?>
 						</tr>
-						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= str_replace(" ", "_", $div["division"]) ?>" f_model="<?= $model_aux ?>">
+						<tr class="rows row_<?= $aux_sub ?> row_<?= $aux_com ?> row_<?= $aux_div ?> row_<?= $aux_div ?>_model row_bill_to d-none" f_model="<?= $model_aux ?>">
 							<td class="text-start"><div class="ps-4">NSP</div></td>
 							<?php $nsp_total = 0; $nsp_arr = []; foreach($bill_to["stat"] as $day => $stat){ 
 								$nsp = $stat["nsp"];
@@ -266,8 +275,11 @@ document.addEventListener("DOMContentLoaded", () => {
 		 
 	});
 	
-	$(".btn_load_chart").on("click", function() {
+	$(".btn_view_models").on("click", function() {
 		var selected_div = $(this).val();
+		
+		$(".row_" + selected_div + "_model").removeClass("d-none");
+		
 		$(".nsp_summary_" + selected_div).each(function (index, item) {
 			var vals = $(item).html().split(",");
 			if (vals.length > 1){
@@ -317,6 +329,11 @@ document.addEventListener("DOMContentLoaded", () => {
 		
 		$(".btn_load_chart_" + selected_div).remove();
 		
+	});
+	
+	$("#chk_bill_to").on("change", function() {
+		var is_checked = $(this).is(":checked");
+		if ($(this).is(":checked")) $(".row_bill_to").removeClass("d-none"); else $(".row_bill_to").addClass("d-none");
 	});
 	
 	$("#f_company").on("change", function() {
