@@ -608,9 +608,23 @@ class Scm_purchase_order extends CI_Controller {
 		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
 	
-	public function send_email(){
+	public function process_po(){
+		//upload file and get filename
 		
-		$this->my_func->send_email("rpa@lge.com", "georgio.park@lge.com", "test asunto ".rand(1, 10), "te mando tal", "./test_files/paperless.txt");
+		$filename = "METRO 8201330037";
 		
+		//$this->send_email($filename);
+	}
+	
+	public function send_email($filename = "Testing send mail"){
+		$keyword = "[LGEPR_SO] ";
+		$rpa_email = "rpau18.enterpriseai@lgepartner.com";
+		
+		$from = "georgio.park@lge.com";//sender
+		$to = [$rpa_email, $from];
+		$subject = $keyword.$filename;
+		$content = $filename." upload requested to RPA. (".date('Y-m-d H:i:s', time()).")";
+		
+		echo $this->my_func->send_email($from, $to, $subject, $content, "./upload/scm_po_converted.xlsx");
 	}
 }

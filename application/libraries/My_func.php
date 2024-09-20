@@ -458,14 +458,9 @@ class My_func{
 		// Attach the file
 		if ($attach_path) $this->CI->email->attach($attach_path);
 
-		if ($this->CI->email->send()) {
-			echo 'Email sent successfully with attachment! ('.$subject.')';
-		} else {
-			//echo 'Failed to send email.';
-			echo $this->CI->email->print_debugger(array('headers'));
-		}
-
+		$result = "";
+		if (!$this->CI->email->send()) $result = $this->CI->email->print_debugger(array('headers'));
 		
-		
+		return $result;
 	}
 }
