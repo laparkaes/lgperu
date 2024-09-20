@@ -7,14 +7,14 @@
 						<h5 class="card-title me-3">OBS NSP, <?= date("Y-m-d") ?></h5>
 					</div>
 				</div>
-				<table class="table text-end">
+				<table class="table text-end align-middle" style="font-size: 0.75em;">
 					<thead class="sticky-top text-center">
 						<tr>
 							<th scope="col">
-							<div class="form-check text-start">
-								<input class="form-check-input" type="checkbox" id="chk_bill_to">
-								<label class="form-check-label" for="chk_bill_to">Bill to</label>
-							</div>
+								<div class="form-check text-start" style="width: 160px;">
+									<input class="form-check-input" type="checkbox" id="chk_bill_to">
+									<label class="form-check-label" for="chk_bill_to">Bill to</label>
+								</div>
 							</th>
 							<th scope="col">NSP</th>
 							<th scope="col"><div style="width: 75px;">Total</div></th>
@@ -81,11 +81,11 @@
 							<td class="text-start">
 								<div class="d-flex justify-content-between align-items-center ps-2">
 									<div class="text-nowrap"><?= $div["division"] ?></div>
-									<button type="button" class="btn btn-primary btn-sm btn_view_models" id="btn_show_models_<?= $aux_div ?>" value="<?= $aux_div ?>">
-										<i class="bi bi-caret-down-fill"></i>
+									<button type="button" class="btn btn-sm btn_view_models p-0" id="btn_show_models_<?= $aux_div ?>" value="<?= $aux_div ?>">
+										<i class="bi bi-caret-left-fill"></i>
 									</button>
-									<button type="button" class="btn btn-secondary btn-sm btn_hide_models d-none" id="btn_hide_models_<?= $aux_div ?>" value="<?= $aux_div ?>">
-										<i class="bi bi-caret-up-fill"></i>
+									<button type="button" class="btn btn-sm btn_hide_models p-0 d-none" id="btn_hide_models_<?= $aux_div ?>" value="<?= $aux_div ?>">
+										<i class="bi bi-caret-down-fill"></i>
 									</button>
 								</div>
 							</td>
@@ -259,7 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				$("#" + chart_id).peity("bar", {
 					fill: colors,
 					width: (6 * vals.length),
-					height: 90,
+					height: 70,
 				});
 				
 				$("rect").attr("width", "5");
@@ -310,7 +310,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					return "#0000007a";
 				},
 				width: (6 * vals.length),
-				height: 90,
+				height: 70,
 			});
 			
 			$("rect").attr("width", "5");
