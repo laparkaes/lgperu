@@ -44,7 +44,7 @@ class Obs_nsp extends CI_Controller {
 		//mapping datas
 		$m_division = [
 			"" => "",//PTO case
-			"A/C" => "Chilller",
+			"A/C" => "Chiller",
 			"AUD" => "Audio",
 			"CAV" => "Audio",
 			"CTV" => "Commercial TV",
