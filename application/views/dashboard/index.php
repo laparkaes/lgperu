@@ -3,6 +3,14 @@
 		<div class="col-md-4">
 			<div class="card">
 				<div class="card-body">
+					<h5 class="card-title">Reports</h5>
+					<ul class="list-group list-group-flush">
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>report/obs_nsp" target="_blank">OBS - NSP</a>
+					</ul>
+				</div>
+			</div>
+			<div class="card">
+				<div class="card-body">
 					<h5 class="card-title">Modules</h5>
 					<div class="form-floating mb-3">
 						<input type="text" class="form-control" id="searchModule" placeholder="Search Module">
@@ -16,7 +24,6 @@
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_gerp">OBS - GERP Sales Order</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_magento">OBS - Magento</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_most_likely">OBS - Most Likely (ML)</a>
-						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_nsp">OBS - NSP</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/obs_report">OBS - Report</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/sa_promotion">SA - Promotion</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/sa_sell_inout">SA - Sell In/Out Report</a>

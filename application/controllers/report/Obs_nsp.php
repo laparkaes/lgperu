@@ -359,7 +359,7 @@ class Obs_nsp extends CI_Controller {
 			"days" => $days,
 			"dates" => $dates,
 			"datas" => $datas,
-			"main" => "module/obs_nsp/index",
+			"main" => "report/obs_nsp/index",
 		];
 		
 		$this->load->view('layout_dashboard', $data);

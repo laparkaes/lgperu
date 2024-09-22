@@ -1,0 +1,18 @@
+============================================
+Create =======================================
+
+CREATE VIEW v_hr_attendance_summary
+AS
+	SELECT `pr`, DATE(`access`) AS work_date, MIN(`access`) AS first_access, MAX(`access`) AS last_access FROM `hr_attendance` GROUP BY `pr`, DATE(`access`) ORDER BY `access` desc; 
+
+============================================
+Update =======================================
+
+ALTER VIEW v_hr_attendance_summary
+AS
+	SELECT `pr`, DATE(`access`) AS work_date, MIN(`access`) AS first_access, MAX(`access`) AS last_access FROM `hr_attendance` GROUP BY `pr`, DATE(`access`) ORDER BY `access` desc; 
+
+============================================
+Delete =======================================
+
+DROP VIEW v_hr_attendance_summary
