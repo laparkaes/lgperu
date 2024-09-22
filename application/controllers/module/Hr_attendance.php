@@ -14,10 +14,22 @@ class Hr_attendance extends CI_Controller {
 	}
 	
 	public function index(){
-		$period = "2024-02";
+		$period = "2024-08";
+		
+		$w = [
+			"work_date >=" => date("Y-m-01", strtotime($period)),
+			"work_date <=" => date("Y-m-t", strtotime($period)),
+		];
+		
+		$records = $this->gen_m->filter("v_hr_attendance_summary", false, $w);
+		echo $this->db->last_query();
+		
+		print_r($records);
 		
 		//$data = $this->set_attendance($period);
-		$data["main"] = "module/hr_attendance/index";
+		$data = [
+			"main" => "module/hr_attendance/index", 
+		];
 		
 		$this->load->view('layout', $data);
 	}

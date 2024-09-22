@@ -12,10 +12,6 @@
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Modules</h5>
-					<div class="form-floating mb-3">
-						<input type="text" class="form-control" id="searchModule" placeholder="Search Module">
-						<label for="searchModule">Search Module</label>
-					</div>
 					<ul class="list-group list-group-flush">
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/gerp_sales_order">GERP - Sales Order</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/hr_attendance">HR - Attendance</a>
