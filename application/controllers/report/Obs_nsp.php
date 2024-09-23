@@ -35,11 +35,12 @@ class Obs_nsp extends CI_Controller {
 	
 	public function index(){
 		//basic filters
-		$today = date("Y-m-d");
+		$period = $this->input->get("p");
+		if (!$period) $period = date("Y-m");
 		//$today = "2024-06-13";
 		
-		$from = date("Y-m-01", strtotime($today));
-		$to = date("Y-m-t", strtotime($today));
+		$from = date("Y-m-01", strtotime($period));
+		$to = date("Y-m-t", strtotime($period));
 		
 		//mapping datas
 		$m_division = [
@@ -356,6 +357,7 @@ class Obs_nsp extends CI_Controller {
 		}
 		
 		$data = [
+			"period" => $period,
 			"days" => $days,
 			"dates" => $dates,
 			"datas" => $datas,
