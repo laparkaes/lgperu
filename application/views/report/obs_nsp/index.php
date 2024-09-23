@@ -17,9 +17,9 @@
 								</div>
 							</th>
 							<th scope="col">NSP</th>
-							<th scope="col"><div style="width: 75px;">Total</div></th>
+							<th scope="col"><div style="width: 65px;">Total</div></th>
 							<?php foreach($days as $day){ ?>
-							<th scope="col"><div style="width: 65px;"><?= $day ?></div></th>
+							<th scope="col"><div style="width: 45px;"><?= $day ?></div></th>
 							<?php } ?>
 						</tr>
 					</thead>

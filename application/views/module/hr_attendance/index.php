@@ -27,7 +27,7 @@
 				<div class="card-body">
 					<h5 class="card-title"><?= $period ?></h5>
 					<div class="table-responsive">
-						<table class="table datatable align-middle">
+						<table class="table align-middle">
 							<thead>
 								<tr>
 									<th scope="col">Sub</th>
@@ -50,10 +50,13 @@
 									<td><?= $item["data"]->subsidiary ?></td>
 									<td><div class="text-nowrap"><?= $item["data"]->organization ?></div></td>
 									<td><div class="text-nowrap"><?= $item["data"]->department ?></div></td>
+									<td><div style="overflow: hidden; max-width: 200px; text-overflow: ellipsis;" class="text-nowrap" title="<?= $item["data"]->name ?>"><?= $item["data"]->name ?></div></td>
 									<td><?= $item["data"]->employee_number ?></td>
-									<td><div style="overflow: hidden; max-width: 150px; text-overflow: ellipsis;" class="text-nowrap" title="<?= $item["data"]->name ?>"><?= $item["data"]->name ?></div></td>
-									<?php foreach($days as $item){ ?>
-									<td></td>
+									<?php foreach($days as $item_day){ ?>
+									<td>
+										<div><?= $item["access"][$item_day["day"]]["first_access"]["time"] ?></div>
+										<div><?= $item["access"][$item_day["day"]]["last_access"]["time"] ?></div>
+									</td>
 									<?php } ?>
 								</tr>
 								<?php } ?>

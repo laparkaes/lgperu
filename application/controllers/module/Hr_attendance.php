@@ -88,10 +88,7 @@ class Hr_attendance extends CI_Controller {
 				$first_time = date("H:i", strtotime($item->first_access));
 				$last_time = date("H:i", strtotime($item->last_access));
 				
-				if (array_key_exists($item->pr, $employees)) {
-					$employees[$item->pr]["access"][$day]["first_access"]["time"] = $first_time;
-					$employees[$item->pr]["access"][$day]["last_access"]["time"] = $last_time;		
-				}else{
+				if (!array_key_exists($item->pr, $employees)){
 					$aux = new stdClass;
 					$aux->subsidiary = "";
 					$aux->organization = "";
@@ -111,6 +108,9 @@ class Hr_attendance extends CI_Controller {
 					
 					//print_r($item); echo "<br/>";
 				}
+				
+				$employees[$item->pr]["access"][$day]["first_access"]["time"] = $first_time;
+				$employees[$item->pr]["access"][$day]["last_access"]["time"] = $last_time;
 			}
 		}
 		
