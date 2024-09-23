@@ -613,7 +613,7 @@ class Scm_purchase_order extends CI_Controller {
 		
 		$filename = "METRO 8201330037";
 		
-		//$this->send_email($filename);
+		$this->send_email($filename);
 	}
 	
 	public function send_email($filename = "Testing send mail"){
