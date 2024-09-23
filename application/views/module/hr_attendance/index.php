@@ -25,78 +25,35 @@
 		<div class="col">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title"><?= $month ?></h5>
+					<h5 class="card-title"><?= $period ?></h5>
 					<div class="table-responsive">
 						<table class="table datatable align-middle">
 							<thead>
 								<tr>
-									<th scope="col" style="width: 80px;">#</th>
-									<th scope="col">Emp.Num.</th>
+									<th scope="col">Sub</th>
+									<th scope="col">Org</th>
+									<th scope="col">Dept</th>
 									<th scope="col">Employee</th>
-									<th scope="col">Subsidiary</th>
-									<th scope="col">Organization</th>
-									<th scope="col">Department</th>
-									<th scope="col">Location</th>
-									<th scope="col">Vac.</th>
-									<th scope="col">Abs.</th>
-									<th scope="col">Tard.</th>
-									<th scope="col">Tard.Acc.</th>
-									<th scope="col">E.Exit</th>
-									<?php foreach($headers as $h){ ?>
+									<th scope="col">PR</th>
+									<?php foreach($days as $item){ ?>
 									<th scope="col">
-										<div class="text-<?= ($h["type"] === "H") ? "danger" : "" ?>">
-											<?= $h["day"] ?><br/><?= $h["day_w"] ?>
+										<div class="text-center text-<?= (in_array($item["day"], $free_days)) ? "danger" : "" ?>">
+											<?= $item["day"] ?><br/><?= substr($days_week[$item["day"]], 0, 3) ?>
 										</div>
 									</th>
 									<?php } ?>
 								</tr>
 							</thead>
 							<tbody>
-								<?php foreach($employees as $i => $emp){ ?>
+								<?php foreach($employees as $i => $item){ ?>
 								<tr>
-									<td><?= number_format($i + 1) ?></td>
-									<td><?= $emp->employee_number ?></td>
-									<td><div style="overflow: hidden; max-width: 150px; text-overflow: ellipsis;" class="text-nowrap" title="<?= $emp->name ?>"><?= $emp->name ?></div></td>
-									<td><?= $emp->subsidiary ?></td>
-									<td><div class="text-nowrap"><?= $emp->organization ?></div></td>
-									<td><div class="text-nowrap"><?= $emp->department ?></div></td>
-									<td><div class="text-nowrap"><?= $emp->location ?></div></td>
-									<td><?= ($emp->vacation_qty > 0) ? $emp->vacation_qty : "" ?></td>
-									<td><?= ($emp->absence_qty > 0) ? number_format($emp->absence_qty) : "" ?></td>
-									<td><?= ($emp->tardiness_qty > 0) ? number_format($emp->tardiness_qty) : ""  ?></td>
-									<td><?= ($emp->tardiness_qty > 0) ? $emp->tardiness_acc : "" ?></td>
-									<td><?= ($emp->early_exit_qty > 0) ? number_format($emp->early_exit_qty) : "" ?></td>
-									<?php foreach($dates as $idate => $d){ ?>
-									<td>
-										<?php if ($emp->daily[$d]["type"] === "N"){
-											if ($emp->daily[$d]["entrance"]["result"] === "V"){ 
-												$en_color = "success"; 
-												$en_val = $emp->daily[$d]["entrance"]["result"];
-											}else{
-												$en_color = ($emp->daily[$d]["entrance"]["result"] === "T") ? "danger" : ""; 
-												$en_val = date("H:i", strtotime($emp->daily[$d]["entrance"]["time"]));
-											}
-											
-											if ($emp->daily[$d]["exit"]["result"] === "V"){ 
-												$ex_color = "success"; 
-												$ex_val = $emp->daily[$d]["exit"]["result"];
-											}else{
-												$ex_color = ($emp->daily[$d]["exit"]["result"] === "E") ? "danger" : ""; 
-												$ex_val = date("H:i", strtotime($emp->daily[$d]["exit"]["time"]));
-											}
-											?>
-										<div class="text-<?= $en_color ?>"><?= $en_val ?></div>
-										<div class="text-<?= $ex_color ?>"><?= $ex_val ?></div>
-										<?php }else{
-											if ($emp->daily[$d]["type"] === "X") $d_color = "danger";
-											elseif ($emp->daily[$d]["type"] === "V") $d_color = "success";
-											else $d_color = "";
-											?>
-										<div class="text-<?= $d_color ?>">
-											<?= $emp->daily[$d]["type"] ?>
-										</div>
-										<?php } ?>
-									</td>
+									<td><?= $item["data"]->subsidiary ?></td>
+									<td><div class="text-nowrap"><?= $item["data"]->organization ?></div></td>
+									<td><div class="text-nowrap"><?= $item["data"]->department ?></div></td>
+									<td><?= $item["data"]->employee_number ?></td>
+									<td><div style="overflow: hidden; max-width: 150px; text-overflow: ellipsis;" class="text-nowrap" title="<?= $item["data"]->name ?>"><?= $item["data"]->name ?></div></td>
+									<?php foreach($days as $item){ ?>
+									<td></td>
 									<?php } ?>
 								</tr>
 								<?php } ?>

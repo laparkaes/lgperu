@@ -14,20 +14,97 @@ class Hr_attendance extends CI_Controller {
 	}
 	
 	public function index(){
+		//priod define
 		$period = "2024-08";
 		
+		//first & last date
+		$from = date("Y-m-01", strtotime($period));
+		$to = date("Y-m-t", strtotime($period));
+		
+		//define days
+		$days = [];//access data of each day
+		$days_week = [];//day of week for each day
+		$free_days = [];//free days to mark in red color in day header
+		$free_days_w = ["Saturday", "Sunday"];//free days of week
+		
+		$dates = $this->my_func->dates_between($from, $to);
+		foreach($dates as $item){
+			$day = date("d", strtotime($item));
+			$day_w = date("l", strtotime($item));
+			if (in_array($day_w, $free_days_w)) $free_days[] = $day;
+			
+			$days_week[$day] = $day_w;
+			$days[$day] = [
+				"day" => $day,
+				"first_access" => ["time" => null, "remark" => null],
+				"last_access" => ["time" => null, "remark" => null],
+			];
+		}
+		
+		//load active employees in month
 		$w = [
-			"work_date >=" => date("Y-m-01", strtotime($period)),
-			"work_date <=" => date("Y-m-t", strtotime($period)),
+			"active" => true,
 		];
 		
-		$records = $this->gen_m->filter("v_hr_attendance_summary", false, $w);
-		echo $this->db->last_query();
+		$order = [
+			["subsidiary", "asc"], 
+			["organization", "asc"], 
+			["department", "asc"], 
+			["name", "asc"],
+		];
 		
-		print_r($records);
+		$employees = [];
+		$employees_records = $this->gen_m->filter("hr_employee", false, $w, null, null, $order);
+		foreach($employees_records as $item){
+			unset($item->employee_id);
+			unset($item->password);
+			//foreach($item as $key => $val) echo $val." /// ";
+			
+			$employees[$item->employee_number] = [
+				"data" => $item,
+				"access" => $days,
+			];
+		}
 		
-		//$data = $this->set_attendance($period);
+		//access records load
+		$w = [
+			"work_date >=" => $from,
+			"work_date <=" => $to,
+		];
+		
+		$l = [
+			["field" => "pr", "values" => ["PR"]],
+		];
+		
+		$records = $this->gen_m->filter("v_hr_attendance_summary", false, $w, $l);
+		foreach($records as $item){
+			$day = date("d", strtotime($item->work_date));
+			$first_time = date("H:i", strtotime($item->first_access));
+			$last_time = date("H:i", strtotime($item->last_access));
+			
+			$employees[$item->pr]["access"][$day]["first_access"]["time"] = $first_time;
+			$employees[$item->pr]["access"][$day]["last_access"]["time"] = $last_time;
+		}
+		
+		/*
+		*/
+		foreach($employees as $item){
+			print_r($item["data"]); echo "<br/>";
+			foreach($item["access"] as $access){
+				print_r($access);
+				echo "<br/>";
+			}
+			//print_r($item); echo "<br/><br/>";
+			echo "<br/>";
+		}
+		return;
+		
 		$data = [
+			"period" => $period,
+			"days" => $days,
+			"days_week" => $days_week,
+			"free_days" => $free_days,
+			"employees" => $employees,
 			"main" => "module/hr_attendance/index", 
 		];
 		
