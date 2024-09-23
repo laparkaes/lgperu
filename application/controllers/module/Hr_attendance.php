@@ -58,7 +58,12 @@ class Hr_attendance extends CI_Controller {
 		foreach($employees_records as $item){
 			unset($item->employee_id);
 			unset($item->password);
-			//foreach($item as $key => $val) echo $val." /// ";
+			
+			/*
+			foreach($item as $key => $val) echo $val." /// ";
+			echo "<br/><br/>";
+			*/
+			//print_R($item); echo "<br/><br/>";
 			
 			$employees[$item->employee_number] = [
 				"data" => $item,
@@ -78,17 +83,40 @@ class Hr_attendance extends CI_Controller {
 		
 		$records = $this->gen_m->filter("v_hr_attendance_summary", false, $w, $l);
 		foreach($records as $item){
-			$day = date("d", strtotime($item->work_date));
-			$first_time = date("H:i", strtotime($item->first_access));
-			$last_time = date("H:i", strtotime($item->last_access));
-			
-			$employees[$item->pr]["access"][$day]["first_access"]["time"] = $first_time;
-			$employees[$item->pr]["access"][$day]["last_access"]["time"] = $last_time;
+			if ($item->pr){
+				$day = date("d", strtotime($item->work_date));
+				$first_time = date("H:i", strtotime($item->first_access));
+				$last_time = date("H:i", strtotime($item->last_access));
+				
+				if (array_key_exists($item->pr, $employees)) {
+					$employees[$item->pr]["access"][$day]["first_access"]["time"] = $first_time;
+					$employees[$item->pr]["access"][$day]["last_access"]["time"] = $last_time;		
+				}else{
+					$aux = new stdClass;
+					$aux->subsidiary = "";
+					$aux->organization = "";
+					$aux->department = "";
+					$aux->location = "";
+					$aux->employee_number = $item->pr;
+					$aux->ep_mail = "";
+					$aux->name = $item->name;
+					$aux->is_supervised = "";
+					$aux->access = "";
+					$aux->active = "";
+					
+					$employees[$aux->employee_number] = [
+						"data" => clone $aux,
+						"access" => $days,
+					];
+					
+					//print_r($item); echo "<br/>";
+				}
+			}
 		}
 		
 		/*
-		*/
-		foreach($employees as $item){
+		foreach($employees as $pr => $item){
+			echo $pr."<br/>";
 			print_r($item["data"]); echo "<br/>";
 			foreach($item["access"] as $access){
 				print_r($access);
@@ -98,6 +126,7 @@ class Hr_attendance extends CI_Controller {
 			echo "<br/>";
 		}
 		return;
+		*/
 		
 		$data = [
 			"period" => $period,
