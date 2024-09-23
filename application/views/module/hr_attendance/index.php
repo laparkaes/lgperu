@@ -26,7 +26,6 @@
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title"><?= $period ?></h5>
-					<div class="table-responsive">
 						<table class="table align-middle">
 							<thead>
 								<tr>
@@ -62,7 +61,6 @@
 								<?php } ?>
 							</tbody>
 						</table>
-					</div>
 				</div>
 			</div>
 		</div> 
