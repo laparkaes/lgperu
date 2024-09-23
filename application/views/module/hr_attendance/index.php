@@ -29,9 +29,7 @@
 						<table class="table align-middle">
 							<thead>
 								<tr>
-									<th scope="col">Sub</th>
-									<th scope="col">Org</th>
-									<th scope="col">Dept</th>
+									<th scope="col">Department</th>
 									<th scope="col">Employee</th>
 									<th scope="col">PR</th>
 									<?php foreach($days as $item){ ?>
@@ -46,9 +44,7 @@
 							<tbody>
 								<?php foreach($employees as $i => $item){ ?>
 								<tr>
-									<td><?= $item["data"]->subsidiary ?></td>
-									<td><div class="text-nowrap"><?= $item["data"]->organization ?></div></td>
-									<td><div class="text-nowrap"><?= $item["data"]->department ?></div></td>
+									<td><div class="text-nowrap"><?= $item["data"]->dept ?></div></td>
 									<td><div style="overflow: hidden; max-width: 200px; text-overflow: ellipsis;" class="text-nowrap" title="<?= $item["data"]->name ?>"><?= $item["data"]->name ?></div></td>
 									<td><?= $item["data"]->employee_number ?></td>
 									<?php foreach($days as $item_day){ ?>

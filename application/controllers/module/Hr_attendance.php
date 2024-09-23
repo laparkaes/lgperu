@@ -16,6 +16,7 @@ class Hr_attendance extends CI_Controller {
 	public function index(){
 		//priod define
 		$period = "2024-08";
+		$period = date("Y-m");
 		
 		//first & last date
 		$from = date("Y-m-01", strtotime($period));
@@ -59,6 +60,13 @@ class Hr_attendance extends CI_Controller {
 			unset($item->employee_id);
 			unset($item->password);
 			
+			$aux = [];
+			if ($item->subsidiary) $aux[] = $item->subsidiary;
+			if ($item->organization) $aux[] = $item->organization;
+			if ($item->department) $aux[] = $item->department;
+			
+			$item->dept = implode(" > ", $aux);
+			
 			/*
 			foreach($item as $key => $val) echo $val." /// ";
 			echo "<br/><br/>";
@@ -93,6 +101,7 @@ class Hr_attendance extends CI_Controller {
 					$aux->subsidiary = "";
 					$aux->organization = "";
 					$aux->department = "";
+					$aux->dept = ""; //for view
 					$aux->location = "";
 					$aux->employee_number = $item->pr;
 					$aux->ep_mail = "";
