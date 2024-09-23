@@ -11,7 +11,7 @@
 					<thead class="sticky-top text-center">
 						<tr>
 							<th scope="col">
-								<div class="form-check text-start" style="width: 160px;">
+								<div class="form-check text-start" style="width: 90px;">
 									<input class="form-check-input" type="checkbox" id="chk_bill_to">
 									<label class="form-check-label" for="chk_bill_to">Bill to</label>
 								</div>
@@ -75,7 +75,7 @@
 							<td class="d-none nsp_summary" id="nsp_<?= $aux_sub."_".$aux_com ?>"><?= implode(",",$nsp_arr); ?></td>
 						</tr>
 					</tbody>
-					<?php foreach($com["divs"] as $div){ $aux_div = str_replace("/", "", str_replace(" ", "_", $div["division"])); ?>
+					<?php foreach($com["divs"] as $div){ if ($div["stat"]["total"]["sales"]){ $aux_div = str_replace("/", "", str_replace(" ", "_", $div["division"])); ?>
 					<tbody class="tb_<?= $aux_sub ?> tb_<?= $aux_com ?> tb_<?= $aux_div ?>">
 						<tr class="rows table-warning fw-bold">
 							<td class="text-start">
@@ -187,7 +187,7 @@
 						</tr>
 						<?php }} ?>
 					</tbody>
-					<?php }}}} ?>
+					<?php }}}}} ?>
 				</table>
 			</div>
 		</div>
