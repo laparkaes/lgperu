@@ -45,7 +45,7 @@
 								<?php foreach($employees as $i => $item){ ?>
 								<tr>
 									<td><div class="text-nowrap"><?= $item["data"]->dept ?></div></td>
-									<td><div style="overflow: hidden; max-width: 200px; text-overflow: ellipsis;" class="text-nowrap" title="<?= $item["data"]->name ?>"><?= $item["data"]->name ?></div></td>
+									<td><div style="width: 200px;" title="<?= $item["data"]->name ?>"><?= $item["data"]->name ?></div></td>
 									<td><?= $item["data"]->employee_number ?></td>
 									<?php foreach($days as $item_day){ ?>
 									<td>
