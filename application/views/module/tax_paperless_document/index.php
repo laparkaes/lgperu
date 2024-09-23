@@ -28,6 +28,41 @@
 			</div>
 		</div>
 	</div>
+	<div class="row">
+		<div class="col-12">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Recent 1,000 invoices</h5>
+					<table class="table">
+						<thead>
+							<tr>
+								<th scope="col">Doc. Type</th>
+								<th scope="col">Doc. Number</th>
+								<th scope="col">Status</th>
+								<th scope="col">Customer</th>
+								<th scope="col">Issued</th>
+								<th scope="col">Amount</th>
+								<th scope="col"></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach($invoices as $item){ ?>
+							<tr>
+								<td><?= $item->doc_type ?></td>
+								<td><?= $item->doc_number ?></td>
+								<td><?= $item->status ?></td>
+								<td>(<?= $item->customer_id ?>) <?= $item->customer_name ?></td>
+								<td><?= $item->date_enter ?></td>
+								<td><?= $item->currency ?> <?= $item->amount ? number_format($item->amount, 2) : "" ?></td>
+								<td><i class="bi bi-circle-fill text-<?= $item->downloaded ? "success" : "danger" ?>" title="No downloaded to local server."></i></td>
+							</tr>
+							<?php } ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
 </section>
 <script>
 function upload_invoice(){

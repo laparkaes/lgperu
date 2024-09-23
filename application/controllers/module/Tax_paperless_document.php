@@ -13,6 +13,7 @@ class Tax_paperless_document extends CI_Controller {
 	
 	public function index(){
 		$data = [
+			"invoices" => $this->gen_m->filter("tax_invoice", false, null, null, null, [["date_enter" , "desc"]], "1000"),
 			"main" => "module/tax_paperless_document/index",
 		];
 		

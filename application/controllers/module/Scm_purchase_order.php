@@ -613,7 +613,8 @@ class Scm_purchase_order extends CI_Controller {
 		
 		$filename = "METRO 8201330037";
 		
-		$this->send_email($filename);
+		$msg = $this->send_email($filename);
+		
 	}
 	
 	public function send_email($filename = "Testing send mail"){
@@ -625,6 +626,6 @@ class Scm_purchase_order extends CI_Controller {
 		$subject = $keyword.$filename;
 		$content = $filename." upload requested to RPA. (".date('Y-m-d H:i:s', time()).")";
 		
-		echo $this->my_func->send_email($from, $to, $subject, $content, "./upload/scm_po_converted.xlsx");
+		return $this->my_func->send_email($from, $to, $subject, $content, "./upload/scm_po_converted.xlsx");
 	}
 }
