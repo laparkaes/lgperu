@@ -70,6 +70,7 @@ class Tax_paperless_document extends CI_Controller {
 		if (file_exists($filepath)) echo "ok";
 	}
 	
+	
 	public function download(){
 		/*
 		https://ereceipt-pe-s02.sovos.com/Facturacion/PDFServlet?o=E&d=true&id=TXYfNpnacT5a4oa(MaS)JKkt9A(IgU)(IgU)
@@ -103,19 +104,29 @@ class Tax_paperless_document extends CI_Controller {
 				if (!file_exists($dir)) mkdir($dir, 0777, true);
 				
 				//pdf document
-				$fileContent = @file_get_contents($base_pdf.$item->paperless_id);
-				if ($fileContent !== false) file_put_contents($dir."/".$item->doc_number.".pdf", $fileContent);
+				$pdf_file = $dir."/".$item->doc_number.".pdf";
+				
+				if (file_exists($pdf_file)) echo $pdf_file." already exists.<br/>";
 				else{
-					echo "<br/>--- Error PDF --- ".$item->doc_number;
-					$is_error = true;
+					$fileContent = @file_get_contents($base_pdf.$item->paperless_id);
+					if ($fileContent !== false) file_put_contents($pdf_file, $fileContent);
+					else{
+						echo "<br/>--- Error PDF --- ".$item->doc_number;
+						$is_error = true;
+					}				
 				}
 				
 				//xml document
-				$fileContent = @file_get_contents($base_xml.$item->paperless_id);
-				if ($fileContent !== false) file_put_contents($dir."/".$item->doc_number.".xml", $fileContent);
+				$xml_file = $dir."/".$item->doc_number.".xml";
+				
+				if (file_exists($xml_file)) echo $xml_file." already exists.<br/>";
 				else{
-					echo "<br/>--- Error XML --- ".$item->doc_number;
-					$is_error = true;
+					$fileContent = @file_get_contents($base_xml.$item->paperless_id);
+					if ($fileContent !== false) file_put_contents($xml_file, $fileContent);
+					else{
+						echo "<br/>--- Error XML --- ".$item->doc_number;
+						$is_error = true;
+					}	
 				}
 				
 				if (!$is_error){
