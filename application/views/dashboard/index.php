@@ -6,6 +6,7 @@
 					<h5 class="card-title">Reports</h5>
 					<ul class="list-group list-group-flush">
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>report/obs_nsp" target="_blank">OBS - NSP</a>
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>report/pi_listening" target="_blank">PI - Listening to you</a>
 					</ul>
 				</div>
 			</div>

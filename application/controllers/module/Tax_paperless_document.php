@@ -78,6 +78,7 @@ class Tax_paperless_document extends CI_Controller {
 		*/
 		
 		set_time_limit(0);
+		$start_time = microtime(true);
 		
 		$base_pdf = "https://ereceipt-pe-s02.sovos.com/Facturacion/PDFServlet?o=E&d=true&id=";
 		$base_xml = "https://ereceipt-pe-s02.sovos.com/Facturacion/XMLServlet?o=E&cl=true&d=true&id=";
@@ -132,8 +133,6 @@ class Tax_paperless_document extends CI_Controller {
 				if (!$is_error){
 					$count++;
 					
-					echo ". ";
-					
 					//update downloaded field of invoice
 					$this->gen_m->update("tax_invoice", ["invoice_id" => $item->invoice_id], ["downloaded" => true]);
 				}
@@ -148,5 +147,6 @@ class Tax_paperless_document extends CI_Controller {
 		}
 		
 		echo "Finished. ".number_format($count)." eDocuments downloaded.<br/>";
+		echo number_Format(microtime(true) - $start_time, 2)." secs";
 	}
 }
