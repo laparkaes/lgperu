@@ -5,23 +5,23 @@
 				<h5 class="card-title">PI - LISTENING TO YOU !!!</h5>
 				<form class="row g-3">
 					<div class="col-md-6">
-						<label for="inputFrom" class="form-label">From (Department code provide by PI)</label>
-						<input type="text" class="form-control" id="inputFrom">
+						<label for="inputFrom" class="form-label">From (Department code provided by PI)</label>
+						<input type="text" class="form-control" id="inputFrom" required>
 					</div>
 					<div class="col-md-6">
 						<label for="inputTo" class="form-label">To</label>
-						<select id="inputTo" class="form-select">
+						<select id="inputTo" class="form-select" required>
 							<option value="" selected="">Choose...</option>
 							<option>...</option>
 						</select>
 					</div>
 					<div class="col-md-6">
-						<label for="inputFrom" class="form-label">Issue</label>
-						<textarea class="form-control" style="height: 300px"></textarea>
+						<label for="inputIssue" class="form-label">Issue</label>
+						<textarea class="form-control" id="inputIssue" style="height: 300px" required></textarea>
 					</div>
 					<div class="col-md-6">
-						<label for="inputFrom" class="form-label">Solution</label>
-						<textarea class="form-control" style="height: 300px"></textarea>
+						<label for="inputSolution" class="form-label">Solution</label>
+						<textarea class="form-control" id="inputSolution" style="height: 300px" required></textarea>
 					</div>				
 					<div class="text-center pt-5">
 						<button type="submit" class="btn btn-primary">Submit</button>
