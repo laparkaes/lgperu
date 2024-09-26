@@ -1,0 +1,48 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+class Utility_func extends CI_Controller {
+
+	public function __construct(){
+		parent::__construct();
+		if (!$this->session->userdata('logged_in')) redirect("/auth/login");
+		
+		date_default_timezone_set('America/Lima');
+		$this->load->model('general_model', 'gen_m');
+
+		set_time_limit(0);
+	}
+	
+	public function trade_marketing_download(){
+		//utility_func/trade_marketing_download
+		
+		$spreadsheet = IOFactory::load("./test_files/tm_db.xlsx");
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		$img_cols = range('D', 'T');
+		
+		$max_row = $sheet->getHighestRow();
+		for ($i = 2; $i <= $max_row; $i++){
+			
+			$base = trim($sheet->getCell('B'.$i)->getValue());
+			$code = trim($sheet->getCell('C'.$i)->getValue());
+			$clave = $base.$code;
+			
+			echo $clave." ".$base." ".$code."<br/>";
+			
+			$imgs = [];
+			foreach($img_cols as $col){
+				$aux = trim($sheet->getCell($col.$i)->getValue());
+				if ($aux) $imgs[] = $aux;
+			}
+			
+			foreach($imgs as $item){
+				echo "--- download: ".$item."<br/>";
+			}
+			
+		}
+		
+	}
+}
