@@ -37,6 +37,13 @@ class Hr_employee extends CI_Controller {
 			"main" => "module/hr_employee/edit",
 		];
 		$this->load->view('layout', $data);
-		//print_r($employee);
 	}
+	
+	public function save_data(){
+		
+		$data = $this->input->post();
+		
+		print_r($data);
+	}
+	
 }

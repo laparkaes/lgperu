@@ -21,44 +21,52 @@
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Employee Information</h5>
-					<form class="row g-3" id="form_save_employee">
+					<form class="row g-3" id="form_save_data">
 						<div class="col-md-12">
 							<label class="form-label">Name</label>
 							<input class="form-control" type="text" name="name" value="<?= $employee->name ?>">
 						</div>
 						<div class="col-md-4">
 							<label class="form-label">Subsidiary</label>
-							<input class="form-control" type="text" name="name" value="<?= $employee->subsidiary ?>">
+							<input class="form-control" type="text" name="subsidiary" value="<?= $employee->subsidiary ?>">
 						</div>
 						<div class="col-md-4">
 							<label class="form-label">Organization</label>
-							<input class="form-control" type="text" name="name" value="<?= $employee->organization ?>">
+							<input class="form-control" type="text" name="organization" value="<?= $employee->organization ?>">
 						</div>
 						<div class="col-md-4">
 							<label class="form-label">Department</label>
-							<input class="form-control" type="text" name="name" value="<?= $employee->department ?>">
+							<input class="form-control" type="text" name="department" value="<?= $employee->department ?>">
 						</div>
 						<div class="col-md-4">
 							<label class="form-label">Location</label>
-							<input class="form-control" type="text" name="name" value="<?= $employee->location ?>">
+							<input class="form-control" type="text" name="location" value="<?= $employee->location ?>">
 						</div>
 						<div class="col-md-4">
 							<label class="form-label">Employee No.</label>
-							<input class="form-control" type="text" name="name" value="<?= $employee->employee_number ?>">
+							<input class="form-control" type="text" name="employee_number" value="<?= $employee->employee_number ?>">
 						</div>
 						<div class="col-md-4">
 							<label class="form-label">EP Mail</label>
-							<input class="form-control" type="text" name="name" value="<?= $employee->ep_mail ?>">
+							<input class="form-control" type="text" name="ep_mail" value="<?= $employee->ep_mail ?>">
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-4">
 							<div class="form-control">
 								<div class="form-check form-switch">
-									<input class="form-check-input" type="checkbox" name="is_supervised" id="is_supervised" <?= $employee->is_supervised ? "checked" : "" ?>>
-									<label class="form-check-label" for="is_supervised">Is Supervised</label>
+									<input class="form-check-input" type="checkbox" name="active" id="active" <?= $employee->active ? "checked" : "" ?>>
+									<label class="form-check-label" for="active">Active</label>
 								</div>
 							</div>
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-4">
+							<div class="form-control">
+								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" name="is_supervised" id="is_supervised" <?= $employee->is_supervised ? "checked" : "" ?>>
+									<label class="form-check-label" for="is_supervised">Supervised</label>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-4">
 							<div class="form-control">
 								<div class="form-check form-switch">
 									<input class="form-check-input" type="checkbox" name="access" id="access" <?= $employee->access ? "checked" : "" ?>>
@@ -101,18 +109,18 @@
 </section>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-	//ic_control_access
+	
+	$("#form_save_data").submit(function(e) {
+		e.preventDefault();
+		$("#form_save_data .sys_msg").html("");
+		ajax_form_warning(this, "module/hr_employee/save_data", "Do you want to save data?").done(function(res) {
+			swal_redirection(res.type, res.msg, res.url);
+		});
+	});
+	
 	
 	
 	/*
-	$("#form_uff_w_hour").submit(function(e) {
-		e.preventDefault();
-		$("#form_uff_w_hour .sys_msg").html("");
-		ajax_form_warning(this, "module/employee/upload_w_hour_from_file", "Do you want to upload working hours data from selected file?").done(function(res) {
-			if (res.type == "success") window.location.href = base_url + "upload/working_hour.xlsx";
-			swal_redirection(res.type, res.msg, "module/employee");
-		});
-	});
 	
 	//cancel purchase
 	$("#btn_delete_payment").click(function() {

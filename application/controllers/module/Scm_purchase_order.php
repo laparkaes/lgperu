@@ -608,24 +608,61 @@ class Scm_purchase_order extends CI_Controller {
 		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
 	
-	public function process_po(){
+	public function send_po(){
 		//upload file and get filename
+		ini_set('display_errors', 0);
 		
-		$filename = "METRO 8201330037";
+		$type = "error"; $msg = $url = "";
 		
-		$msg = $this->send_email($filename);
+		$config = [
+			'upload_path'	=> './upload/',
+			'allowed_types'	=> 'pdf|xls|xlsx|csv',
+			'max_size'		=> 20000,
+			'overwrite'		=> TRUE,
+			'file_name'		=> 'scm_po_converted',
+		];
+		$this->load->library('upload', $config);
+
+		if ($this->upload->do_upload('attach')){
+			$result = $this->upload->data();
+			/*
+			[file_name] => po_file.pdf
+			[file_type] => application/pdf
+			[file_path] => C:/xampp_lg/htdocs/llamasys/upload/module/
+			[full_path] => C:/xampp_lg/htdocs/llamasys/upload/module/po_file.pdf
+			[raw_name] => po_file
+			[orig_name] => po_file.pdf
+			[client_name] => test_hiraoka5.pdf
+			[file_ext] => .pdf
+			[file_size] => 106.61
+			[is_image] => 
+			[image_width] => 
+			[image_height] => 
+			[image_type] => 
+			[image_size_str] => 
+			*/
+			
+			$msg = $this->send_email($this->input->post("po_name"), $result["file_name"]);
+			if (!$msg){
+				$type = "success";
+				$msg = "Converted PO has been sent to RPA by email.";
+			}
+		}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
 		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
 	
-	public function send_email($filename = "Testing send mail"){
-		$keyword = "[LGEPR_SO] ";
+	public function send_email($subject = "PO Sending...", $filename = "scm_po_converted.xlsx"){
 		$rpa_email = "rpau18.enterpriseai@lgepartner.com";
 		
-		$from = "georgio.park@lge.com";//sender
-		$to = [$rpa_email, $from];
-		$subject = $keyword.$filename;
-		$content = $filename." upload requested to RPA. (".date('Y-m-d H:i:s', time()).")";
+		$employee = $this->gen_m->unique("hr_employee", "employee_id", $this->session->userdata('employee_id'), false);
+		if (!$employee) return "Session finished. Login again.";
 		
-		return $this->my_func->send_email($from, $to, $subject, $content, "./upload/scm_po_converted.xlsx");
+		$from = $employee->ep_mail."@lge.com";//sender
+		$to = [$rpa_email, $from];
+		$content = $subject." upload requested to RPA. (".date('Y-m-d H:i:s', time()).")";
+		
+		return $this->my_func->send_email($from, $to, "[LGEPR_SO] ".$subject, $content, "./upload/".$filename);
 	}
 }
