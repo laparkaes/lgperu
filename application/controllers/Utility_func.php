@@ -30,7 +30,7 @@ class Utility_func extends CI_Controller {
 			$code = trim($sheet->getCell('C'.$i)->getValue());
 			$clave = $base.$code;
 			
-			echo $clave." ".$base." ".$code."<br/>";
+			//echo $clave." /// ".$base." /// ".$code."<br/>";
 			
 			$imgs = [];
 			foreach($img_cols as $col){
@@ -38,8 +38,37 @@ class Utility_func extends CI_Controller {
 				if ($aux) $imgs[] = $aux;
 			}
 			
-			foreach($imgs as $item){
-				echo "--- download: ".$item."<br/>";
+			if ($imgs){
+				$dir = "./download";
+				if (!file_exists($dir)) mkdir($dir, 0777, true);
+				
+				$dir .= "/".$base;
+				if (!file_exists($dir)) mkdir($dir, 0777, true);
+				
+				$dir .= "/".$code;
+				if (!file_exists($dir)) mkdir($dir, 0777, true);
+				
+				$dir .= "/";
+				
+				foreach($imgs as $img_i => $item){
+					$aux = explode("/", $item);
+					$filepath = $dir.$aux[count($aux) - 1];
+					
+					if (file_exists($filepath)) echo $filepath." already exists.<br/>";
+					else{
+						$fileContent = @file_get_contents($item);
+						if ($fileContent !== false){
+							file_put_contents($filepath, $fileContent);
+							echo "[Downloaded] ".$filepath."<br/>";
+						}else{
+							echo "[Error!!!] ".$item."<br/>";
+						}				
+					}
+					
+					
+				}
+				
+				echo "<br/>";	
 			}
 			
 		}
