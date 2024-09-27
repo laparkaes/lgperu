@@ -3,25 +3,26 @@
 		<div class="card overflow-hidden">
 			<div class="card-body">
 				<h5 class="card-title">PI - LISTENING TO YOU !!!</h5>
-				<form class="row g-3">
+				<form class="row g-3" method="POST" action="pi_listening/cpilistening">
 					<div class="col-md-6">
 						<label for="inputFrom" class="form-label">From (Department code provided by PI)</label>
-						<input type="text" class="form-control" id="inputFrom" required>
+						<input type="text" class="form-control" id="inputFrom" name="inputFrom" >
 					</div>
 					<div class="col-md-6">
-						<label for="inputTo" class="form-label">To</label>
-						<select id="inputTo" class="form-select" required>
+						<label for="selectTo" class="form-label">To</label>
+						<select id="selectTo" name="selectTo" class="form-select" >
 							<option value="" selected="">Choose...</option>
+							<option value="CFO_PI">Process Innovation</option>
 							<option>...</option>
 						</select>
 					</div>
 					<div class="col-md-6">
 						<label for="inputIssue" class="form-label">Issue</label>
-						<textarea class="form-control" id="inputIssue" style="height: 300px" required></textarea>
+						<textarea class="form-control" id="inputIssue" name="inputIssue" style="height: 300px" ></textarea>
 					</div>
 					<div class="col-md-6">
 						<label for="inputSolution" class="form-label">Solution</label>
-						<textarea class="form-control" id="inputSolution" style="height: 300px" required></textarea>
+						<textarea class="form-control" id="inputSolution" name="inputSolution" style="height: 300px" ></textarea>
 					</div>				
 					<div class="text-center pt-5">
 						<button type="submit" class="btn btn-primary">Submit</button>
