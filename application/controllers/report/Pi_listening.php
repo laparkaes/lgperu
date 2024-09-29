@@ -28,30 +28,42 @@ class Pi_listening extends CI_Controller {
 		4. redireccionar a la pagina principal
 		*/
 		
+		//completar todos los departamentos 
+		$dpts = [
+			"aaa" => "CFO Organization",
+			"bbb" => "Planning",
+			"ccc" => "GP",
+			"ddd" => "Legal",
+			"eee" => "Process Innovation & IT",
+			"fff" => "AR & AP",
+			"ggg" => "Tax & Custom",
+			"hhh" => "Sales Admin & Accounting",
+			"iii" => "SCM & Order Management",
+		];
+		
+		
 		//1. capturar y guardar cada dato
-			$data=$this->input->post();
-			print_r($data); 	echo"<br>";
-		//2. validar datos
-			echo $data["inputFrom"];
-			if ($data["inputFrom"]) {
-			  echo "Have a good day 1!"; echo"<br>";
-			} 
-			echo $data["selectTo"];
-			if ($data["selectTo"]) {
-			  echo "Have a good day 2!";echo"<br>";
-			} 
-			echo $data["inputIssue"];
-			if ($data["inputIssue"]) {
-			  echo "Have a good day 3!";echo"<br>";
-			} 
-			echo $data["inputSolution"];
-			if ($data["inputSolution"]) {
-			  echo "Have a good day 4!";echo"<br>";
-			} 
+		$data = $this->input->post();
 		
+		if (array_key_exists($data["dptFrom"], $dpts)){
+			$data["dptFrom"] = $dpts[$data["dptFrom"]];
+			
+			if (!$this->gen_m->filter("pi_listening", false, $data)){
+				$data["registered"] = date('Y-m-d H:i:s', time());
+				$this->gen_m->insert("pi_listening", $data);
+			}
+			
+			$this->session->set_flashdata('success_msg', 'Your voice has been registered as '.$data["dptFrom"].".");
+		}else{
+			$this->session->set_flashdata('dptFrom', $data["dptFrom"]);
+			$this->session->set_flashdata('dptTo', $data["dptTo"]);
+			$this->session->set_flashdata('issue', $data["issue"]);
+			$this->session->set_flashdata('solution', $data["solution"]);
+			
+			$this->session->set_flashdata('error_msg', 'Insert your department code correctly.');
+		}
 		
-		
-				
+		redirect("./report/pi_listening");
 	}
 
 }
