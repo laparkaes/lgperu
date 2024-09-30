@@ -70,18 +70,21 @@ class Pi_listening extends CI_Controller {
 		$dpts = ['Marketing', 'Support', 'Development', 'HR', 'IT', 'Sales', 'Operations', 'Admin', 'Finance'];
 		$status = ['Registered', 'Accepted', 'Rejected', 'On progress', 'Closed'];
 		
+		$datas = [];
 		for ($i = 1; $i <= 1000; $i++) {
-			$data = [
+			$now = rand(10000, 99999) * $i;
+			
+			$datas[] = [
 				"dptFrom" => $dpts[array_rand($dpts)],
 				"dptTo" => $dpts[array_rand($dpts)],
-				"issue" => "Issue description ".$i,
-				"solution" => "Solution description ".$i,
+				"issue" => "Issue description ".$now,
+				"solution" => "Solution description ".$now,
 				"status" => $status[array_rand($status)],
 				"registered" => date('Y-m-d H:i:s', time()),
 			];
-			
-			print_r($data); echo "<br/>";
         }
+		
+		$this->gen_m->insert_m("pi_listening", $datas);
 	}
 
 }
