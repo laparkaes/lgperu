@@ -28,7 +28,9 @@
 						<label for="dptTo" class="form-label">To</label>
 						<select id="dptTo" name="dptTo" class="form-select" required>
 							<option value="" selected="">Choose...</option>
-							<option value="CFO_PI" <?= $this->session->flashdata('dptTo') === "CFO_PI" ? "selected" : "" ?>>Process Innovation</option>
+							<?php foreach($dpts as $key => $item){ ?>
+							<option value="<?= $key ?>" <?= $this->session->flashdata('dptTo') === $key ? "selected" : "" ?>><?= $item ?></option>
+							<?php } ?>
 						</select>
 					</div>
 					<div class="col-md-6">

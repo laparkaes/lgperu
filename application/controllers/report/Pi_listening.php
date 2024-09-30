@@ -8,12 +8,44 @@ class Pi_listening extends CI_Controller {
 		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
+		
+		//completar todos los departamentos 
+		$this->dpts = [
+			"AM" => "Accounting",
+			"AU" => "Air Solution",
+			"AH" => "AR",
+			"AY" => "AV Product",
+			"AQ" => "Brand Marketing",
+			"AL" => "Customs",
+			"AD" => "GP",
+			"AZ" => "HA Product",
+			"AW" => "HA Sales",
+			"AV" => "HE Sales",
+			"AN" => "HR",
+			"AT" => "ID Sales",
+			"BD" => "ISM",
+			"AR" => "IT Product",
+			"AS" => "IT Sales",
+			"AF" => "Legal",
+			"AP" => "OBS",
+			"AE" => "PI",
+			"AC" => "Planning",
+			"BB" => "Promotor / Retail Marketing",
+			"AO" => "Sales Administration",
+			"AG" => "SCM",
+			"BC" => "SOM",
+			"AB" => "SVC",
+			"AK" => "Tax",
+			"AJ" => "Treasury",
+			"AX" => "TV Product",
+		];
 	}
 		
 	public function index(){
 	
 		
 		$data = [
+			"dpts" => $this->dpts,
 			"main" => "report/pi_listening/index",
 		];
 		
@@ -29,17 +61,7 @@ class Pi_listening extends CI_Controller {
 		*/
 		
 		//completar todos los departamentos 
-		$dpts = [
-			"aaa" => "CFO Organization",
-			"bbb" => "Planning",
-			"ccc" => "GP",
-			"ddd" => "Legal",
-			"eee" => "Process Innovation & IT",
-			"fff" => "AR & AP",
-			"ggg" => "Tax & Custom",
-			"hhh" => "Sales Admin & Accounting",
-			"iii" => "SCM & Order Management",
-		];
+		$dpts = $this->dpts;
 		
 		
 		//1. capturar y guardar cada dato
@@ -47,6 +69,7 @@ class Pi_listening extends CI_Controller {
 		
 		if (array_key_exists($data["dptFrom"], $dpts)){
 			$data["dptFrom"] = $dpts[$data["dptFrom"]];
+			$data["dptTo"] = $dpts[$data["dptTo"]];
 			
 			if (!$this->gen_m->filter("pi_listening", false, $data)){
 				$data["registered"] = date('Y-m-d H:i:s', time());
