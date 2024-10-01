@@ -76,30 +76,7 @@
 						</div>
 						<div class="pt-3 text-center">
 							<input type="hidden" name="employee_id" value="<?= $employee->employee_id ?>">
-							<button type="submit" class="btn btn-primary">Update Employee</button>
-						</div>
-					</form>
-				</div>
-			</div>
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Password Change</h5>
-					<form class="row g-3" id="form_change_password">
-						<div class="col-md-12">
-							<label class="form-label">Password</label>
-							<input class="form-control" type="password" name="password">
-						</div>
-						<div class="col-md-6">
-							<label class="form-label">New</label>
-							<input class="form-control" type="password" name="name">
-						</div>
-						<div class="col-md-6">
-							<label class="form-label">Confirm</label>
-							<input class="form-control" type="password" name="name">
-						</div>
-						<div class="pt-3 text-center">
-							<input type="hidden" name="employee_id" value="<?= $employee->employee_id ?>">
-							<button type="submit" class="btn btn-primary">Update Password</button>
+							<button type="submit" class="btn btn-primary">Update</button>
 						</div>
 					</form>
 				</div>
@@ -114,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		e.preventDefault();
 		$("#form_save_data .sys_msg").html("");
 		ajax_form_warning(this, "module/hr_employee/save_data", "Do you want to save data?").done(function(res) {
-			swal_redirection(res.type, res.msg, res.url);
+			swal(res.type, res.msg);
 		});
 	});
 	

@@ -30,6 +30,8 @@ class Hr_employee extends CI_Controller {
 	}
 
 	public function edit($employee_id){
+		if ($this->session->userdata('department') !== "Process Innovation & IT") redirect("/module/hr_employee");
+		
 		$employee = $this->gen_m->unique("hr_employee", "employee_id", $employee_id, false);
 		
 		$data = [
@@ -40,10 +42,34 @@ class Hr_employee extends CI_Controller {
 	}
 	
 	public function save_data(){
+		$type = "error"; $msg = "";
 		
 		$data = $this->input->post();
+		$data["active"] = $this->input->post("active") ? true : false;
+		$data["is_supervised"] = $this->input->post("is_supervised") ? true : false;
+		$data["access"] = $this->input->post("access") ? true : false;
 		
-		print_r($data);
+		$is_updated = true;
+		
+		if ($data["employee_number"]){
+			$f = [
+				"employee_id != " => $data["employee_id"],
+				"employee_number" => $data["employee_number"],
+				"active" => true,
+			];
+			
+			if ($this->gen_m->filter("hr_employee", false, $f)) $is_updated = false;
+		}
+		
+		if ($is_updated){
+			$this->gen_m->update("hr_employee", ["employee_id" => $data["employee_id"]], $data);
+			
+			$type = "success";
+			$msg = "Employee updated.";
+		}else $msg = "PR duplicated.";
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
 	
 }

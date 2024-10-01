@@ -16,7 +16,7 @@ class Hr_attendance extends CI_Controller {
 	public function index(){
 		//priod define
 		$period = "2024-08";
-		$period = date("Y-m");
+		//$period = date("Y-m");
 		
 		//first & last date
 		$from = date("Y-m-01", strtotime($period));
