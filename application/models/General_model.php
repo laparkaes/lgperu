@@ -164,5 +164,9 @@ class General_model extends CI_Model{
 		foreach($aux as $field) $res->$field = null;
 		return $res;
 	}
+
+	function run_query($q){
+		return $this->db->query($q);
+	}
 }
 ?>

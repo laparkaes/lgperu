@@ -71,9 +71,21 @@ class Hr_attendance extends CI_Controller {
 			
 			$employees[$item->employee_number] = [
 				"data" => $item,
+				"summary" => [
+					"check_days" => 0
+				],
 				"access" => $days,
 			];
 		}
+		
+		//mapping access update
+		$pr_mapping = [
+			["M875S9193", "PR009297"],//WOO WONSHIK
+			["M60682453", "PR009182"],//CHO, HYUN
+			["M75951391", "PR009329"],//HAN MUHYUN
+		];
+		
+		foreach($pr_mapping as $item) $this->gen_m->update("hr_attendance", ["pr" => $item[0]], ["pr" => $item[1]]);
 		
 		//access records load
 		$w = [
@@ -108,16 +120,41 @@ class Hr_attendance extends CI_Controller {
 					
 					$employees[$aux->employee_number] = [
 						"data" => clone $aux,
+						"summary" => [
+							"check_days" => 0
+						],
 						"access" => $days,
 					];
 					
 					//print_r($item); echo "<br/>";
 				}
 				
+				$employees[$item->pr]["summary"]["check_days"]++;
 				$employees[$item->pr]["access"][$day]["first_access"]["time"] = $first_time;
-				$employees[$item->pr]["access"][$day]["last_access"]["time"] = $last_time;
+				$employees[$item->pr]["access"][$day]["last_access"]["time"] = $first_time !== $last_time ? $last_time : null;
 			}
 		}
+		
+		/*
+		//work schedule validation
+		$from = "2024-02-01";
+		$to = "2024-02-29";
+		
+		echo $from." ~ ".$to."<br/><br/>";
+		
+		$w = [
+			"date_from >=" => $from,
+			"date_to <=" => $to,
+		];
+		$schedule = $this->gen_m->filter("hr_schedule", false, $w, null, null, [["pr", "asc"], ["date_from", "asc"]]);
+		
+		foreach($schedule as $item){
+			print_r($item);
+			echo "<br/>";
+		}
+		
+		return;
+		*/
 		
 		/*
 		foreach($employees as $pr => $item){
@@ -145,7 +182,7 @@ class Hr_attendance extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	public function upload(){
+	public function upload_access(){
 		$type = "error"; $msg = null; $inserted = 0;
 		
 		$config = [
@@ -218,7 +255,75 @@ class Hr_attendance extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
+	
+	public function upload_schedule(){
+		$type = "error"; $msg = null; $inserted = 0;
 		
+		$config = [
+			'upload_path'	=> './upload/',
+			'allowed_types'	=> 'xls|xlsx|csv',
+			'max_size'		=> 10000,
+			'overwrite'		=> TRUE,
+			'file_name'		=> 'hr_schedule',
+		];
+		$this->load->library('upload', $config);
+
+		if ($this->upload->do_upload('attach')){
+			$data = $this->upload->data();
+			$file_path = $data['full_path'];
+
+			$spreadsheet = IOFactory::load($file_path);
+			$sheet = $spreadsheet->getActiveSheet();
+			
+            $highestRow = $sheet->getHighestRow();
+            //$highestColumn = $sheet->getHighestColumn();
+
+			$rows = [];
+            for ($j = 2; $j <= $highestRow; $j++){
+				//load a row from excel
+				$schedule = explode(" - ", trim($sheet->getCell('C'.$j)->getValue()));
+				
+				$row = [
+					"pr" => trim($sheet->getCell('A'.$j)->getValue()),
+					"name" => trim($sheet->getCell('B'.$j)->getValue()),
+					"date_from" => date("Y-m-d", strtotime(trim($sheet->getCell('D'.$j)->getFormattedValue()))),
+				];
+				
+				$row["work_start"] = $schedule[0];
+				$row["work_end"] = $schedule[1];
+				
+				/*
+				//validate actual schedule
+				$w = [
+					"pr" 			=> $row["pr"],
+					"date_from <=" 	=> $row["date_from"],
+					//"date_to >=" 	=> $row["date_from"],
+				];
+				
+				$record = $this->gen_m->filter("hr_schedule", false, $w);
+				if ($record) $this->gen_m->update("hr_schedule", ["schedule_id" => $record[0]->schedule_id], ["date_to" => date('Y-m-d', strtotime($row["date_from"].' -1 day'))]);
+				*/
+				
+				if (!$this->gen_m->filter("hr_schedule", false, $row)) $this->gen_m->insert("hr_schedule", $row);
+            }
+			
+			$type = "success";
+			$msg = "Employees work schedule has been updated.";
+		}else{
+			$error = array('error' => $this->upload->display_errors());
+			$msg = str_replace("p>", "div>", $this->upload->display_errors());
+		}
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg]);
+	}
+	
+	
+	
+	
+	
+	
+	
 	
 	public function set_attendance($period = null, $employee_id = null){
 		if (!$period) $period = date("Y-m");

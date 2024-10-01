@@ -9,10 +9,16 @@
 		</nav>
 	</div>
 	<div class="d-flex justify-content-end">
-		<form class="input-group me-1" id="form_upload">
+		<form class="input-group me-1" id="form_upload_access">
 			<input type="file" class="form-control" name="attach" accept=".xls,.xlsx,.csv">
 			<button type="submit" class="btn btn-success">
-				<i class="bi bi-upload"></i>
+				<i class="bi bi-hand-index"></i>
+			</button>
+		</form>
+		<form class="input-group me-1" id="form_upload_schedule">
+			<input type="file" class="form-control" name="attach" accept=".xls,.xlsx,.csv">
+			<button type="submit" class="btn btn-success">
+				<i class="bi bi-alarm"></i>
 			</button>
 		</form>
 		<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#md_exr">
@@ -29,9 +35,9 @@
 						<table class="table align-middle">
 							<thead>
 								<tr>
-									<th scope="col">Department</th>
 									<th scope="col">Employee</th>
 									<th scope="col">PR</th>
+									<th scope="col">Days</th>
 									<?php foreach($days as $item){ ?>
 									<th scope="col">
 										<div class="text-center text-<?= (in_array($item["day"], $free_days)) ? "danger" : "" ?>">
@@ -42,11 +48,14 @@
 								</tr>
 							</thead>
 							<tbody>
-								<?php foreach($employees as $i => $item){ ?>
+								<?php foreach($employees as $i => $item){ if ($item["summary"]["check_days"] > 0){ ?>
 								<tr>
-									<td><div class="text-nowrap"><?= $item["data"]->dept ?></div></td>
-									<td><div style="width: 200px;" title="<?= $item["data"]->name ?>"><?= $item["data"]->name ?></div></td>
+									<td>
+										<div><?= $item["data"]->name ?></div>
+										<div class="text-nowrap"><small><?= $item["data"]->dept ?></small></div>
+									</td>
 									<td><?= $item["data"]->employee_number ?></td>
+									<td><?= $item["summary"]["check_days"] ?></td>
 									<?php foreach($days as $item_day){ ?>
 									<td>
 										<div><?= $item["access"][$item_day["day"]]["first_access"]["time"] ?></div>
@@ -54,7 +63,7 @@
 									</td>
 									<?php } ?>
 								</tr>
-								<?php } ?>
+								<?php }} ?>
 							</tbody>
 						</table>
 				</div>
@@ -98,9 +107,16 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	});
 	
-	$("#form_upload").submit(function(e) {
+	$("#form_upload_access").submit(function(e) {
 		e.preventDefault();
-		ajax_form(this, "module/hr_attendance/upload").done(function(res) {
+		ajax_form(this, "module/hr_attendance/upload_access").done(function(res) {
+			swal_redirection(res.type, res.msg, "module/hr_attendance");
+		});
+	});
+	
+	$("#form_upload_schedule").submit(function(e) {
+		e.preventDefault();
+		ajax_form(this, "module/hr_attendance/upload_schedule").done(function(res) {
 			swal_redirection(res.type, res.msg, "module/hr_attendance");
 		});
 	});
