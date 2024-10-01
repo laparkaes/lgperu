@@ -43,10 +43,6 @@ class Hr_attendance extends CI_Controller {
 		}
 		
 		//load active employees in month
-		$w = [
-			"active" => true,
-		];
-		
 		$order = [
 			["subsidiary", "asc"], 
 			["organization", "asc"], 
@@ -55,7 +51,7 @@ class Hr_attendance extends CI_Controller {
 		];
 		
 		$employees = [];
-		$employees_records = $this->gen_m->filter("hr_employee", false, $w, null, null, $order);
+		$employees_records = $this->gen_m->filter("hr_employee", false, ["active" => true], null, null, $order);
 		foreach($employees_records as $item){
 			unset($item->employee_id);
 			unset($item->password);

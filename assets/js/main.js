@@ -140,7 +140,8 @@
   let options = {
 	searchable: true,
 	sortable: false,
-    perPage: 10,
+    perPage: 50,
+	perPageSelect: [25, 50, 100],
 	classes: {
 		input: "form-control",
 		selector: "form-select",
@@ -154,7 +155,7 @@
   datatables.forEach(datatable => {
     new simpleDatatables.DataTable(datatable, options);
   })
-
+  
   /**
    * Autoresize echart charts
    */

@@ -20,7 +20,7 @@ class Hr_employee extends CI_Controller {
 	}
 
 	public function index(){
-		$employees = $this->gen_m->filter("hr_employee", false, null, null, null, [["subsidiary", "asc"], ["organization", "asc"], ["department", "asc"], ["name", "asc"]]);
+		$employees = $this->gen_m->filter("hr_employee", false, ["active" => true], null, null, [["subsidiary", "asc"], ["organization", "asc"], ["department", "asc"], ["name", "asc"]]);
 		
 		$data = [
 			"employees" => $employees,
