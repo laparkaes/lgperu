@@ -72,7 +72,9 @@ class Hr_attendance extends CI_Controller {
 			$employees[$item->employee_number] = [
 				"data" => $item,
 				"summary" => [
-					"check_days" => 0
+					"check_days" => 0,
+					"tardiness" => 0,
+					"early_out" => 0,
 				],
 				"access" => $days,
 			];
@@ -122,7 +124,9 @@ class Hr_attendance extends CI_Controller {
 					$employees[$aux->employee_number] = [
 						"data" => clone $aux,
 						"summary" => [
-							"check_days" => 0
+							"check_days" => 0,
+							"tardiness" => 0,
+							"early_out" => 0,
 						],
 						"access" => $days,
 					];
@@ -133,53 +137,121 @@ class Hr_attendance extends CI_Controller {
 				$prs[] = $item->pr;
 				$employees[$item->pr]["summary"]["check_days"]++;
 				$employees[$item->pr]["access"][$day]["first_access"]["time"] = $first_time;
-				$employees[$item->pr]["access"][$day]["last_access"]["time"] = $first_time !== $last_time ? $last_time : null;
+				$employees[$item->pr]["access"][$day]["last_access"]["time"] = $last_time;
 			}
 		}
 		
 		//work schedule validation
 		sort($prs);
 		$prs = array_unique($prs);
-		$prs = array_values($prs); print_r($prs); echo "<br/><br/>";
-		$from = "2024-02-01";
-		$to = "2024-02-29";
+		$prs = array_values($prs); //print_r($prs); echo "<br/><br/>";
 		
-		echo $from." ~ ".$to."<br/><br/>";
-		
-		$w = [
-			"date_from <=" => $to,
-		];
-		$schedule = $this->gen_m->filter("hr_schedule", false, $w, null, [["field" => "pr", "values" => $prs]], [["pr", "asc"], ["date_from", "desc"]]);
-		
-		foreach($schedule as $item){
-			print_r($item);
-			echo "<br/>";
+		$day_pivot = $from;
+		$schedule_days = [];
+		while(strtotime($day_pivot) <= strtotime($to)){
+			$schedule_days[$day_pivot] = ["start" => null, "end" => null];
+			$day_pivot = date("Y-m-d", strtotime($day_pivot." +1 day"));
 		}
 		
-		return;
-		/*
+		//print_r($schedule_days); echo "<br/><br/>";
+		
+		$schedule_pr = [];
+		foreach($prs as $item) $schedule_pr[$item] = $schedule_days;
+		
+		//print_r($schedule_pr); echo "<br/><br/>";
+		
+		
+		$schedule = $this->gen_m->filter("hr_schedule", false, ["date_from <=" => $to], null, [["field" => "pr", "values" => $prs]], [["pr", "asc"], ["date_from", "desc"]]);
+		foreach($schedule as $item){
+			//print_r($item); echo "<br/><br/>";
+			
+			$day_pivot = date("Y-m-d", max(strtotime($from), strtotime($item->date_from)));
+			while(strtotime($day_pivot) <= strtotime($to)){
+				//echo $day_pivot."<br/>";
+				
+				if (!$schedule_pr[$item->pr][$day_pivot]["start"]){
+					$schedule_pr[$item->pr][$day_pivot]["start"] = $item->work_start;
+					$schedule_pr[$item->pr][$day_pivot]["end"] = $item->work_end;
+				}else break;
+				
+				$day_pivot = date("Y-m-d", strtotime($day_pivot." +1 day"));
+			}
+			//echo "<br/><br/>";
+		}
+		
+		/* schedule_pr checking
+		foreach($schedule_pr as $key_pr => $item_pr){
+			echo $key_pr."<br/>";
+			print_r($item_pr);
+			echo "<br/><br/>";
+		}
 		*/
 		
 		/*
+		T: Tardiness
+		E: Early-Out
+		V: Vacation
+		
+		*/
+		
+		$no_attn_days = ["Sat", "Sun"];
 		foreach($employees as $pr => $item){
-			echo $pr."<br/>";
-			print_r($item["data"]); echo "<br/>";
-			foreach($item["access"] as $access){
-				print_r($access);
-				echo "<br/>";
+			//echo $pr."<br/>";
+			//print_r($item["data"]); echo "<br/>";
+			foreach($item["access"] as $aux => $access){
+				$day_pivot = date("Y-m-", strtotime($from)).$access["day"];
+				
+				if (!in_array(date("D", strtotime($day_pivot)), $no_attn_days)){
+					//echo $day_pivot."<br/>";
+					
+					if ($access["first_access"]["time"]){
+						$start = strtotime($schedule_pr[$pr][$day_pivot]["start"]);
+						$first = strtotime($access["first_access"]["time"]);
+						
+						if ($start < $first){
+							$employees[$pr]["summary"]["tardiness"]++;
+							$employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "T";
+						}
+						
+						/*
+						echo date("H:i", $start)."<br/>";
+						echo date("H:i", $first)."<br/>";
+						*/
+					}
+					
+					//echo "<br/>";
+					
+					if ($access["first_access"]["time"]){
+						$end = strtotime($schedule_pr[$pr][$day_pivot]["end"]);
+						$last = strtotime($access["last_access"]["time"]);
+						
+						if ($last < $end){
+							$employees[$pr]["summary"]["early_out"]++;
+							$employees[$pr]["access"][$access["day"]]["last_access"]["remark"] = "E";
+						}
+						
+						/*
+						echo date("H:i", $end)."<br/>";
+						echo date("H:i", $last)."<br/>";
+						*/
+					}
+					
+					//print_r($employees[$pr]["access"][$access["day"]]); echo "<br/>"; echo "<br/><br/>";	
+				}
 			}
 			//print_r($item); echo "<br/><br/>";
-			echo "<br/>";
+			//echo "<br/>";
 		}
-		return;
-		*/
 		
 		$data = [
 			"period" => $period,
+			"from" => $from,
+			"to" => $to,
 			"days" => $days,
 			"days_week" => $days_week,
 			"free_days" => $free_days,
 			"employees" => $employees,
+			"schedule_pr" => $schedule_pr,
 			"main" => "module/hr_attendance/index", 
 		];
 		
@@ -295,18 +367,6 @@ class Hr_attendance extends CI_Controller {
 				
 				$row["work_start"] = $schedule[0];
 				$row["work_end"] = $schedule[1];
-				
-				/*
-				//validate actual schedule
-				$w = [
-					"pr" 			=> $row["pr"],
-					"date_from <=" 	=> $row["date_from"],
-					//"date_to >=" 	=> $row["date_from"],
-				];
-				
-				$record = $this->gen_m->filter("hr_schedule", false, $w);
-				if ($record) $this->gen_m->update("hr_schedule", ["schedule_id" => $record[0]->schedule_id], ["date_to" => date('Y-m-d', strtotime($row["date_from"].' -1 day'))]);
-				*/
 				
 				if (!$this->gen_m->filter("hr_schedule", false, $row)) $this->gen_m->insert("hr_schedule", $row);
             }

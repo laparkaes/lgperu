@@ -38,6 +38,8 @@
 									<th scope="col">Employee</th>
 									<th scope="col">PR</th>
 									<th scope="col">Days</th>
+									<th scope="col">Time</th>
+									<th scope="col" class="border-end">T<br/>E</th>
 									<?php foreach($days as $item){ ?>
 									<th scope="col">
 										<div class="text-center text-<?= (in_array($item["day"], $free_days)) ? "danger" : "" ?>">
@@ -56,10 +58,19 @@
 									</td>
 									<td><?= $item["data"]->employee_number ?></td>
 									<td><?= $item["summary"]["check_days"] ?></td>
+									<td>
+										<div><?= date("H:i", strtotime($schedule_pr[$item["data"]->employee_number][$to]["start"])) ?></div>
+										<div><?= date("H:i", strtotime($schedule_pr[$item["data"]->employee_number][$to]["end"])) ?></div>
+									</td>
+									<td class="border-end"><?= $item["summary"]["tardiness"] ?><br/><?= $item["summary"]["early_out"] ?></td>
 									<?php foreach($days as $item_day){ ?>
 									<td>
-										<div><?= $item["access"][$item_day["day"]]["first_access"]["time"] ?></div>
-										<div><?= $item["access"][$item_day["day"]]["last_access"]["time"] ?></div>
+										<div class="text-<?= $item["access"][$item_day["day"]]["first_access"]["remark"] === "T" ? "danger" : "" ?>">
+											<?= $item["access"][$item_day["day"]]["first_access"]["time"] ?>
+										</div>
+										<div class="text-<?= $item["access"][$item_day["day"]]["last_access"]["remark"] === "E" ? "danger" : "" ?>">
+											<?= $item["access"][$item_day["day"]]["last_access"]["time"] ?>
+										</div>
 									</td>
 									<?php } ?>
 								</tr>
