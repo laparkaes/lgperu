@@ -97,6 +97,7 @@ class Hr_attendance extends CI_Controller {
 			["field" => "pr", "values" => ["PR"]],
 		];
 		
+		$prs = [];//used to load valid emmployee's schedules
 		$records = $this->gen_m->filter("v_hr_attendance_summary", false, $w, $l);
 		foreach($records as $item){
 			if ($item->pr){
@@ -129,24 +130,26 @@ class Hr_attendance extends CI_Controller {
 					//print_r($item); echo "<br/>";
 				}
 				
+				$prs[] = $item->pr;
 				$employees[$item->pr]["summary"]["check_days"]++;
 				$employees[$item->pr]["access"][$day]["first_access"]["time"] = $first_time;
 				$employees[$item->pr]["access"][$day]["last_access"]["time"] = $first_time !== $last_time ? $last_time : null;
 			}
 		}
 		
-		/*
 		//work schedule validation
+		sort($prs);
+		$prs = array_unique($prs);
+		$prs = array_values($prs); print_r($prs); echo "<br/><br/>";
 		$from = "2024-02-01";
 		$to = "2024-02-29";
 		
 		echo $from." ~ ".$to."<br/><br/>";
 		
 		$w = [
-			"date_from >=" => $from,
-			"date_to <=" => $to,
+			"date_from <=" => $to,
 		];
-		$schedule = $this->gen_m->filter("hr_schedule", false, $w, null, null, [["pr", "asc"], ["date_from", "asc"]]);
+		$schedule = $this->gen_m->filter("hr_schedule", false, $w, null, [["field" => "pr", "values" => $prs]], [["pr", "asc"], ["date_from", "desc"]]);
 		
 		foreach($schedule as $item){
 			print_r($item);
@@ -154,6 +157,7 @@ class Hr_attendance extends CI_Controller {
 		}
 		
 		return;
+		/*
 		*/
 		
 		/*
