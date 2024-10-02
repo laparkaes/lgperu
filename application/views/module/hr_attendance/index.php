@@ -32,7 +32,7 @@
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title"><?= $period ?></h5>
-						<table class="table align-middle">
+						<table class="table datatable align-middle">
 							<thead>
 								<tr>
 									<th scope="col">Employee</th>
