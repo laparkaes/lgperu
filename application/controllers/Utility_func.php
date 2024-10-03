@@ -15,10 +15,10 @@ class Utility_func extends CI_Controller {
 		set_time_limit(0);
 	}
 	
-	public function trade_marketing_download(){
+	public function trade_marketing_download($filename = "tm_db"){
 		//utility_func/trade_marketing_download
 		
-		$spreadsheet = IOFactory::load("./test_files/tm_db.xlsx");
+		$spreadsheet = IOFactory::load("./test_files/".$filename.".xlsx");
 		$sheet = $spreadsheet->getActiveSheet();
 		
 		$img_cols = range('D', 'T');
