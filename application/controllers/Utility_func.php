@@ -54,12 +54,13 @@ class Utility_func extends CI_Controller {
 					$aux = explode("/", $item);
 					$filepath = $dir.$aux[count($aux) - 1];
 					
-					if (file_exists($filepath)) echo $filepath." already exists.<br/>";
-					else{
+					if (file_exists($filepath)){
+						//echo $filepath." already exists.<br/>";
+					}else{
 						$fileContent = @file_get_contents($item);
 						if ($fileContent !== false){
 							file_put_contents($filepath, $fileContent);
-							echo "[Downloaded] ".$filepath."<br/>";
+							//echo "[Downloaded] ".$filepath."<br/>";
 						}else{
 							echo "[Error!!!] ".$item."<br/>";
 						}				
@@ -68,7 +69,7 @@ class Utility_func extends CI_Controller {
 					
 				}
 				
-				echo "<br/>";	
+				echo $dir." done!<br/>";	
 			}
 			
 		}
