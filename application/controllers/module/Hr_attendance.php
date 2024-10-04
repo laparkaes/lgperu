@@ -13,7 +13,7 @@ class Hr_attendance extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 	}
 	
-	public function index($period){
+	public function index($period = null){
 		//priod define
 		if (!$period) $period = date("Y-m");
 		//$period = "2024-09";
