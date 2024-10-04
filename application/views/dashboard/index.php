@@ -27,6 +27,7 @@
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/sa_sell_inout">SA - Sell In/Out Report</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/sa_sell_out">SA - Sell Out</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/scm_purchase_order">SCM - Purchase Order</a>
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/scm_sku_management">SCM - SKU Management</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/tax_invoice_comparison">Tax - Invoice Comparison</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/tax_paperless_document">Tax - Paperless Document</a>
 					</ul>
