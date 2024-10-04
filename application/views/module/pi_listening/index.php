@@ -49,9 +49,9 @@
 						<thead>
 							<tr>
 								<th scope="col">Num</th>
-								<th scope="col" style="width: 150px;">Status</th>
-								<th scope="col" style="width: 150px;">From</th>
-								<th scope="col" style="width: 150px;">To</th>
+								<th scope="col" style="width: 200px;">Status</th>
+								<th scope="col" style="width: 200px;">From</th>
+								<th scope="col" style="width: 200px;">To</th>
 								<th scope="col">Issue</th>
 								<th scope="col">Propose</th>
 								<th scope="col">Response</th>
@@ -73,9 +73,9 @@
 								</td>
 								<td><?= $item->dptFrom ?></td>
 								<td><?= $item->dptTo ?></td>
-								<td><textarea class="form-control ta_issue" style="height: 150px;" listening_id="<?= $item->listening_id ?>"><?= $item->issue ?></textarea></td>
-								<td><textarea class="form-control ta_solution" style="height: 150px;" listening_id="<?= $item->listening_id ?>"><?= $item->solution ?></textarea></td>
-								<td><textarea class="form-control ta_response" style="height: 150px;" listening_id="<?= $item->listening_id ?>"><?= $item->response ?></textarea></td>
+								<td><textarea class="form-control ta_issue" style="height: 250px;" listening_id="<?= $item->listening_id ?>"><?= $item->issue ?></textarea></td>
+								<td><textarea class="form-control ta_solution" style="height: 250px;" listening_id="<?= $item->listening_id ?>"><?= $item->solution ?></textarea></td>
+								<td><textarea class="form-control ta_response" style="height: 250px;" listening_id="<?= $item->listening_id ?>"><?= $item->response ?></textarea></td>
 							</tr>
 							<?php } ?>
 						</tbody>
