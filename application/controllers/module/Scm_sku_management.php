@@ -93,9 +93,10 @@ class Scm_sku_management extends CI_Controller {
 	}
 	
 	public function test(){
-		$res = ["type" => "error", "msg" => "Incorrect file to upload SKU."];
-		
 		set_time_limit(0);
+		
+		$start_time = microtime(true);
+		$res = ["type" => "error", "msg" => "Incorrect file to upload SKU."];
 		
 		//load excel file
 		$spreadsheet = IOFactory::load('./upload/scm_sku.xlsx');
@@ -130,10 +131,11 @@ class Scm_sku_management extends CI_Controller {
 			];
 			
 			if (!$this->gen_m->filter("scm_sku", false, $row)) $this->gen_m->insert("scm_sku", $row);
+			else{ print_r($row); echo " exists.<br/>"; }
 			
 		}
 		
-		
+		echo number_Format(microtime(true) - $start_time, 3)." sec";
 	}
 	
 }
