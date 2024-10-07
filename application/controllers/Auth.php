@@ -43,7 +43,6 @@ class Auth extends CI_Controller {
 					);
 					$this->session->set_userdata($session_data);
 					
-					
 					$type = "success";
 					$msg = "Welcome!";
 					$url = base_url()."dashboard";

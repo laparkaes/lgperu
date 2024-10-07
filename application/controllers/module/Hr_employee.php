@@ -124,6 +124,12 @@ module/tax_paperless_document
 			unset($data["checked"]);
 			$this->gen_m->insert("sys_access", $data);
 			$msg = "Access assigned.";
+			
+			$access = [];
+			$acc_recs = $this->gen_m->filter("sys_access", false, ["employee_id" => $data["employee_id"]]);
+			foreach($acc_recs as $item) $access[] = $item->module;
+			
+			$this->session->set_userdata('access', $access);
 		}else{
 			unset($data["checked"]);
 			$this->gen_m->delete("sys_access", $data);

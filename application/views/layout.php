@@ -18,12 +18,13 @@
 	<link href="<?= base_url() ?>assets/vendor/toastr/toastr.min.css" rel="stylesheet">
 	<link href="<?= base_url() ?>assets/css/style.css" rel="stylesheet">
 </head>
-<body class="toggle-sidebar">
+<body>
 	<header id="header" class="header fixed-top d-flex align-items-center">
 		<div class="d-flex align-items-center justify-content-between">
 			<a href="<?= base_url() ?>" class="logo d-flex align-items-center" style="width:auto;">
 				<img src="<?= base_url() ?>assets/img/logo-lg-100-44.svg" alt="">
 			</a>
+			<i class="bi bi-list toggle-sidebar-btn"></i>
 		</div>
 		<nav class="header-nav ms-auto">
 			<ul class="d-flex align-items-center">
@@ -59,6 +60,95 @@
 			</ul>
 		</nav>
 	</header>
+	<aside id="sidebar" class="sidebar">
+		<ul class="sidebar-nav" id="sidebar-nav">
+			<li class="nav-item">
+				<a class="nav-link collapsed" href="<?= base_url() ?>dashboard">
+					<i class="bi bi-grid"></i>
+					<span>Dashboard</span>
+				</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link collapsed" data-bs-target="#modules-nav" data-bs-toggle="collapse" href="#">
+					<i class="bi bi-menu-button-wide"></i><span>Modules</span><i class="bi bi-chevron-down ms-auto"></i>
+				</a>
+				<ul id="modules-nav" class="nav-content collapse show" data-bs-parent="#modules-nav">
+					<?php 
+					$modules = [
+						["hr_attendance", "HR - Attendance"],
+						["hr_employee", "HR - Employee"],
+						["ism_activity_management", "ISM - Activity"],
+						["obs_report", "OBS - Sales Report"],
+						["sa_promotion", "SA - Promotion Calculation"],
+						["sa_sell_inout", "SA - Sell in/out Report"],
+						["scm_purchase_order", "SCM - PO Conversion"],
+						["tax_invoice_comparison", "TAX - Invoice Comparison"],
+					];
+					
+					$aceess = $this->session->userdata('access') ? $this->session->userdata('access') : [];
+					
+					foreach($modules as $item){ if (in_array($item[0], $aceess)){ ?>
+					<li>
+						<a href="<?= base_url() ?>module/<?= $item[0] ?>">
+							<i class="bi bi-circle"></i><span><?= $item[1] ?></span>
+						</a>
+					</li>
+					<?php }} ?>
+				</ul>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link collapsed" data-bs-target="#data_uploads-nav" data-bs-toggle="collapse" href="#">
+					<i class="bi bi-upload"></i><span>Data Uploads</span><i class="bi bi-chevron-down ms-auto"></i>
+				</a>
+				<ul id="data_uploads-nav" class="nav-content collapse show" data-bs-parent="#data_uploads-nav">
+					<?php 
+					$data_uploads = [
+						["gerp_sales_order", "GERP Sales order"],
+						["obs_gerp", "OBS - GERP Sales order"],
+						["obs_magento", "OBS - Magento"],
+						["obs_most_likely", "OBS - ML"],
+						["sa_sell_out", "SA - Sell out"],
+						["tax_paperless_document", "TAX - Paperless eDocuments"],
+					];
+					
+					$aceess = $this->session->userdata('access') ? $this->session->userdata('access') : [];
+					
+					foreach($data_uploads as $item){ if (in_array($item[0], $aceess)){ ?>
+					<li>
+						<a href="<?= base_url() ?>module/<?= $item[0] ?>">
+							<i class="bi bi-circle"></i><span><?= $item[1] ?></span>
+						</a>
+					</li>
+					<?php }} ?>
+				</ul>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link collapsed" data-bs-target="#reports-nav" data-bs-toggle="collapse" href="#">
+					<i class="bi bi-journal-text"></i><span>Reports</span><i class="bi bi-chevron-down ms-auto"></i>
+				</a>
+				<ul id="reports-nav" class="nav-content collapse show" data-bs-parent="#reports-nav">
+					<li>
+						<a href="<?= base_url() ?>report/obs_nsp" target="_blank">
+							<i class="bi bi-circle"></i><span>OBS - NSP</span>
+						</a>
+					</li>
+				</ul>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link collapsed" data-bs-target="#pages-nav" data-bs-toggle="collapse" href="#">
+					<i class="bi bi-file-earmark"></i><span>Pages</span><i class="bi bi-chevron-down ms-auto"></i>
+				</a>
+				<ul id="pages-nav" class="nav-content collapse show" data-bs-parent="#pages-nav">
+					<li>
+						<a href="<?= base_url() ?>page/pi_listening" target="_blank">
+							<i class="bi bi-circle"></i><span>PI - Listening to you</span>
+						</a>
+					</li>
+				</ul>
+			</li>
+		</ul>
+	</aside>
+	
 	<main id="main" class="main">
 		<?php $this->load->view($main); ?>
 	</main><!-- End #main -->

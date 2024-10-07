@@ -1,45 +1,64 @@
-<div class="d-flex justify-content-between align-items-start">
-	<div class="pagetitle">
-		<h1>Attendance</h1>
-		<nav>
-			<ol class="breadcrumb">
-				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item active">Attendance</li>
-			</ol>
-		</nav>
-	</div>
-	<div class="d-flex justify-content-end">
-		<form class="input-group me-1" id="form_upload_access">
-			<input type="file" class="form-control" name="attach" accept=".xls,.xlsx,.csv">
-			<button type="submit" class="btn btn-success">
-				<i class="bi bi-hand-index"></i>
-			</button>
-		</form>
-		<form class="input-group me-1" id="form_upload_schedule">
-			<input type="file" class="form-control" name="attach" accept=".xls,.xlsx,.csv">
-			<button type="submit" class="btn btn-success">
-				<i class="bi bi-alarm"></i>
-			</button>
-		</form>
-		<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#md_exr">
-			<i class="bi bi-file-earmark-spreadsheet"></i>
-		</button>
-	</div>
+<div class="pagetitle">
+	<h1>Attendance</h1>
+	<nav>
+		<ol class="breadcrumb">
+			<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
+			<li class="breadcrumb-item active">Attendance</li>
+		</ol>
+	</nav>
 </div>
 <section class="section">
+	<div class="row row-cols-1 row-cols-md-3 g-3">
+		<div class="col">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Functions</h5>
+					<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#md_exr">
+						<i class="bi bi-file-earmark-spreadsheet"></i> Report
+					</button>
+				</div>
+			</div>
+		</div>
+		<div class="col">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Access Records</h5>
+					<form class="input-group" id="form_upload_access">
+						<input type="file" class="form-control" name="attach" accept=".xls,.xlsx,.csv">
+						<button type="submit" class="btn btn-success">
+							<i class="bi bi-upload"></i>
+						</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="col">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Employee's Schedules</h5>
+					<form class="input-group" id="form_upload_schedule">
+						<input type="file" class="form-control" name="attach" accept=".xls,.xlsx,.csv">
+						<button type="submit" class="btn btn-success">
+							<i class="bi bi-upload"></i>
+						</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
 	<div class="row">
 		<div class="col">
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title"><?= $period ?></h5>
-						<table class="table datatable align-middle">
+						<table class="table align-middle">
 							<thead>
 								<tr>
 									<th scope="col">Employee</th>
 									<th scope="col">PR</th>
 									<th scope="col">Days</th>
-									<th scope="col">Time</th>
-									<th scope="col" class="border-end">T<br/>E</th>
+									<th scope="col">T<br/>E</th>
+									<th scope="col" class="border-end">Time</th>
 									<?php foreach($days as $item){ ?>
 									<th scope="col">
 										<div class="text-center text-<?= (in_array($item["day"], $free_days)) ? "danger" : "" ?>">
@@ -58,11 +77,11 @@
 									</td>
 									<td><?= $item["data"]->employee_number ?></td>
 									<td><?= $item["summary"]["check_days"] ?></td>
-									<td>
+									<td><?= $item["summary"]["tardiness"] ?><br/><?= $item["summary"]["early_out"] ?></td>
+									<td class="border-end">
 										<div><?= date("H:i", strtotime($schedule_pr[$item["data"]->employee_number][$to]["start"])) ?></div>
 										<div><?= date("H:i", strtotime($schedule_pr[$item["data"]->employee_number][$to]["end"])) ?></div>
 									</td>
-									<td class="border-end"><?= $item["summary"]["tardiness"] ?><br/><?= $item["summary"]["early_out"] ?></td>
 									<?php foreach($days as $item_day){ ?>
 									<td>
 										<div class="text-<?= $item["access"][$item_day["day"]]["first_access"]["remark"] === "T" ? "danger" : "" ?>">

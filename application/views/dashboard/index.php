@@ -3,15 +3,6 @@
 		<div class="col-md-4">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Reports</h5>
-					<ul class="list-group list-group-flush">
-						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>report/obs_nsp" target="_blank">OBS - NSP</a>
-						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>report/pi_listening" target="_blank">PI - Listening to you</a>
-					</ul>
-				</div>
-			</div>
-			<div class="card">
-				<div class="card-body">
 					<h5 class="card-title">Modules</h5>
 					<!-- ul class="list-group list-group-flush">
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/gerp_sales_order">GERP - Sales Order</a>
@@ -32,7 +23,28 @@
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/tax_paperless_document">Tax - Paperless Document</a>
 					</ul -->
 					<ul class="list-group list-group-flush">
-						<?php foreach($modules as $item){ if (in_array($item[0], $aceess)){ ?>
+						<?php 
+						
+						$modules = [
+							["gerp_sales_order", "GERP Sales order upload"],
+							["hr_attendance", "HR - Attendance management"],
+							["hr_employee", "HR - Employee management"],
+							["ism_activity_management", "ISM - Activity management"],
+							["obs_gerp", "OBS - GERP Sales order upload"],
+							["obs_magento", "OBS - Magento upload"],
+							["obs_most_likely", "OBS - ML upload"],
+							["obs_report", "OBS - Sales report"],
+							["sa_promotion", "SA - Promotion calculation"],
+							["sa_sell_inout", "SA - Sell in/out report"],
+							["sa_sell_out", "SA - Sell out upload"],
+							["scm_purchase_order", "SCM - PO Conversion"],
+							["tax_invoice_comparison", "TAX - Invoice comparison GERP & Paperless"],
+							["tax_paperless_document", "TAX - Paperless eDocuments download"],
+						];
+						
+						$aceess = $this->session->userdata('access') ? $this->session->userdata('access') : [];
+						
+						foreach($modules as $item){ if (in_array($item[0], $aceess)){ ?>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/<?= $item[0] ?>"><?= $item[1] ?></a>
 						<?php }} ?>
 					</ul>
