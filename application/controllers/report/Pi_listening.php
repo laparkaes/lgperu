@@ -72,6 +72,7 @@ class Pi_listening extends CI_Controller {
 			$data["dptTo"] = $dpts[$data["dptTo"]];
 			
 			if (!$this->gen_m->filter("pi_listening", false, $data)){
+				$data["status"] = "Registered";
 				$data["registered"] = date('Y-m-d H:i:s', time());
 				$this->gen_m->insert("pi_listening", $data);
 			}
