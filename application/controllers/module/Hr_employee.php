@@ -52,31 +52,35 @@ module/tax_invoice_comparison
 module/tax_paperless_document
 */
 
-$access = [
-	["gerp_sales_order", "GERP Sales order upload"],
-	["hr_attendance", "HR - Attendance management"],
-	["hr_employee", "HR - Employee management"],
-	["ism_activity_management", "ISM - Activity management"],
-	["obs_gerp", "OBS - GERP Sales order upload"],
-	["obs_magento", "OBS - Magento upload"],
-	["obs_most_likely", "OBS - ML upload"],
-	["obs_report", "OBS - Sales report"],
-	["sa_promotion", "SA - Promotion calculation"],
-	["sa_sell_inout", "SA - Sell in/out report"],
-	["sa_sell_out", "SA - Sell out upload"],
-	["scm_purchase_order", "SCM - PO Conversion"],
-	["tax_invoice_comparison", "TAX - Invoice comparison GERP & Paperless"],
-	["tax_paperless_document", "TAX - Paperless eDocuments download"],
-
-];
+		$access = [
+			["gerp_sales_order", "GERP Sales order upload"],
+			["hr_attendance", "HR - Attendance management"],
+			["hr_employee", "HR - Employee management"],
+			["ism_activity_management", "ISM - Activity management"],
+			["obs_gerp", "OBS - GERP Sales order upload"],
+			["obs_magento", "OBS - Magento upload"],
+			["obs_most_likely", "OBS - ML upload"],
+			["obs_report", "OBS - Sales report"],
+			["sa_promotion", "SA - Promotion calculation"],
+			["sa_sell_inout", "SA - Sell in/out report"],
+			["sa_sell_out", "SA - Sell out upload"],
+			["scm_purchase_order", "SCM - PO Conversion"],
+			["tax_invoice_comparison", "TAX - Invoice comparison GERP & Paperless"],
+			["tax_paperless_document", "TAX - Paperless eDocuments download"],
+		];
+		
+		$acc_asg = [];
+		$acc_recs = $this->gen_m->filter("sys_access", false, ["employee_id" => $employee_id]);
+		foreach($acc_recs as $item) $acc_asg[] = $item->module;
 		
 		$data = [
-			"subs" 	=> $this->gen_m->only("hr_employee", "subsidiary"),
-			"orgs" 	=> $this->gen_m->only("hr_employee", "organization"),
-			"dpts" 	=> $this->gen_m->only("hr_employee", "department"),
-			"emp"	=> $this->gen_m->unique("hr_employee", "employee_id", $employee_id, false),
-			"acc"	=> $access,
-			"main" 	=> "module/hr_employee/edit",
+			"subs" 		=> $this->gen_m->only("hr_employee", "subsidiary"),
+			"orgs" 		=> $this->gen_m->only("hr_employee", "organization"),
+			"dpts" 		=> $this->gen_m->only("hr_employee", "department"),
+			"emp"		=> $this->gen_m->unique("hr_employee", "employee_id", $employee_id, false),
+			"acc"		=> $access,
+			"acc_asg"	=> $acc_asg,
+			"main" 		=> "module/hr_employee/edit",
 		];
 		
 		$this->load->view('layout', $data);
@@ -111,6 +115,23 @@ $access = [
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg]);
+	}
+	
+	public function acc_ctrl(){
+		$data = $this->input->post();
+		
+		if ($data["checked"] === "true"){
+			unset($data["checked"]);
+			$this->gen_m->insert("sys_access", $data);
+			$msg = "Access assigned.";
+		}else{
+			unset($data["checked"]);
+			$this->gen_m->delete("sys_access", $data);
+			$msg = "Access removed.";
+		}
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => "success", "msg" => $msg]);
 	}
 	
 }

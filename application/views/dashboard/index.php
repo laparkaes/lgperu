@@ -13,7 +13,7 @@
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Modules</h5>
-					<ul class="list-group list-group-flush">
+					<!-- ul class="list-group list-group-flush">
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/gerp_sales_order">GERP - Sales Order</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/hr_attendance">HR - Attendance</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/hr_employee">HR - Employee</a>
@@ -30,6 +30,11 @@
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/scm_sku_management">SCM - SKU Management</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/tax_invoice_comparison">Tax - Invoice Comparison</a>
 						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/tax_paperless_document">Tax - Paperless Document</a>
+					</ul -->
+					<ul class="list-group list-group-flush">
+						<?php foreach($modules as $item){ if (in_array($item[0], $aceess)){ ?>
+						<a class="list-group-item list-group-item-action" href="<?= base_url() ?>module/<?= $item[0] ?>"><?= $item[1] ?></a>
+						<?php }} ?>
 					</ul>
 				</div>
 			</div>

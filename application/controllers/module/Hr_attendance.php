@@ -99,7 +99,7 @@ class Hr_attendance extends CI_Controller {
 			["field" => "pr", "values" => ["PR"]],
 		];
 		
-		$prs = [];//used to load valid emmployee's schedules
+		$prs = [-1];//used to load valid emmployee's schedules
 		$records = $this->gen_m->filter("v_hr_attendance_summary", false, $w, $l);
 		foreach($records as $item){
 			if ($item->pr){

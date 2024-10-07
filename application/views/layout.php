@@ -15,6 +15,7 @@
 	<link href="<?= base_url() ?>assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
 	<link href="<?= base_url() ?>assets/vendor/sweetalert2/dist/sweetalert2.min.css" rel="stylesheet">
 	<link href="<?= base_url() ?>assets/vendor/simple-datatables/style.css" rel="stylesheet">
+	<link href="<?= base_url() ?>assets/vendor/toastr/toastr.min.css" rel="stylesheet">
 	<link href="<?= base_url() ?>assets/css/style.css" rel="stylesheet">
 </head>
 <body class="toggle-sidebar">
@@ -59,7 +60,7 @@
 		</nav>
 	</header>
 	<main id="main" class="main">
-	<?php $this->load->view($main); ?>
+		<?php $this->load->view($main); ?>
 	</main><!-- End #main -->
 
 	<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
@@ -69,12 +70,17 @@
 	<script src="<?= base_url() ?>assets/vendor/echarts/echarts.min.js"></script>
 	<script src="<?= base_url() ?>assets/vendor/sweetalert2/dist/sweetalert2.all.min.js"></script>
 	<script src="<?= base_url() ?>assets/vendor/simple-datatables/simple-datatables.js"></script>
+	<script src="<?= base_url() ?>assets/vendor/toastr/toastr.min.js"></script>
 	<script src="<?= base_url() ?>assets/js/main.js"></script>
 	<script src="<?= base_url() ?>assets/js/func.js"></script>
 	<script>
 	document.addEventListener("DOMContentLoaded", () => {
 		$('#btn_logout').click(function(){
 			swal_warning_redirect("Are you sure to leave?", "auth/logout");
+		});
+		
+		$('.alert .btn-close').click(function(){
+			$(".alert").addClass("d-none");
 		});
 	});
 	</script>

@@ -106,18 +106,18 @@
 						<?php foreach($acc as $item){ ?>
 						<li class="list-group-item">
 							<div class="form-check form-switch">
-								<input class="form-check-input me-3" type="checkbox" id="sw_<?= str_replace(" ", "_", $item[1]) ?>" value="<?= $item[0] ?>">
-								<label class="form-check-label" for="sw_<?= str_replace(" ", "_", $item[1]) ?>"><?= $item[1] ?></label>
+								<input class="form-check-input me-3 chk_acc_ctrl" type="checkbox" id="sw_<?= $item[0] ?>" value="<?= $item[0] ?>" <?= in_array($item[0], $acc_asg) ? "checked" : "" ?>>
+								<label class="form-check-label" for="sw_<?= $item[0] ?>"><?= $item[1] ?></label>
 							</div>
 						</li>
 						<?php } ?>
 					</ul>
-					
 				</div>
 			</div>
 		</div>
 	</div>
 </section>
+<input type="hidden" id="emp_id" value="<?= $emp->employee_id ?>">
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 	
@@ -130,6 +130,14 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 	
 	
+	$(".chk_acc_ctrl").on("change", function() {
+		//update_voice({listening_id: $(this).attr("listening_id"), status: $(this).val()});
+		//alert($(this).val());
+		ajax_simple({checked: $(this).is(':checked'), employee_id: $("#emp_id").val(), module: $(this).val()}, "module/hr_employee/acc_ctrl").done(function(res) {
+			//console.log(res);
+			toastr.success(res.msg, null, {timeOut: 5000});
+		});
+	});
 	
 	/*
 	

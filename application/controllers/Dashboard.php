@@ -19,7 +19,26 @@ class Dashboard extends CI_Controller {
 	public function index(){
 		if (!$this->session->userdata('logged_in')) redirect("/auth/login");
 		
+		$modules = [
+			["gerp_sales_order", "GERP Sales order upload"],
+			["hr_attendance", "HR - Attendance management"],
+			["hr_employee", "HR - Employee management"],
+			["ism_activity_management", "ISM - Activity management"],
+			["obs_gerp", "OBS - GERP Sales order upload"],
+			["obs_magento", "OBS - Magento upload"],
+			["obs_most_likely", "OBS - ML upload"],
+			["obs_report", "OBS - Sales report"],
+			["sa_promotion", "SA - Promotion calculation"],
+			["sa_sell_inout", "SA - Sell in/out report"],
+			["sa_sell_out", "SA - Sell out upload"],
+			["scm_purchase_order", "SCM - PO Conversion"],
+			["tax_invoice_comparison", "TAX - Invoice comparison GERP & Paperless"],
+			["tax_paperless_document", "TAX - Paperless eDocuments download"],
+		];
+		
 		$data = [
+			"aceess" => $this->session->userdata('access') ? $this->session->userdata('access') : [],
+			"modules" => $modules,
 			"main" => "dashboard/index",
 		];
 		
