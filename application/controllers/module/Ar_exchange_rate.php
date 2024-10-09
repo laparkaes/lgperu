@@ -12,7 +12,10 @@ class Ar_exchange_rate extends CI_Controller {
 	}
 	
 	public function index(){
+		$from = date("Y-m-d", strtotime(date("Y-m-d")." -1 year"));
+		
 		$data = [
+			"er_pyg" => $this->gen_m->filter("exchange_rate", false, ["date >=" => $from, "currency" => "PYG"], null, null, [["date", "desc"]]),
 			"main" => "module/ar_exchange_rate/index",
 		];
 		
@@ -29,7 +32,72 @@ class Ar_exchange_rate extends CI_Controller {
 		echo $content;
 	}
 	
+	public function upload_pyg(){
+		$data = $this->input->post("data");
+		foreach($data as $item){
+			$aux_date = $item[0]."-".$item[1]."-".$item[2];
+			
+			$row = [
+				"date" => $aux_date,
+				"date_apply" => date("Y-m-d", strtotime($aux_date." +1 day")),
+				"currency" => "PYG",
+			];
+			
+			if (!$this->gen_m->filter("exchange_rate", false, $row)){
+				$row["buy"] = $item[3];
+				$row["sell"] = $item[4];
+				$row["avg"] = round((floatval($item[3]) + floatval($item[4])) / 2 , 2);
+				
+				$this->gen_m->insert("exchange_rate", $row);
+			}
+		}
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => "success", "msg" => "Exchage rate USD > PYG has been updated."]);
+	}
 	
+	public function upload_pen(){
+		$now = "2024-09-18";
+		$code = "02";
+		
+		
+		//$er = $this->my_func->load_exchange_rate_sbs($now);
+		
+		if ($now) $now = date("dmY", strtotime($now));
+		else $now = date("dmY");
+		
+		$token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibGdlIiwic3ViIjoibGdlIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIk1hbmFnZXIiLCJTdXBlcnZpc29yIl0sIm5iZiI6MTcxODgxOTgzOSwiZXhwIjoxNzUwMzU1ODM5LCJpc3MiOiJodHRwOi8vand0YXV0aHpzcnYuYXp1cmV3ZWJzaXRlcy5uZXQiLCJhdWQiOiIwOTkxNTNjMjYyNTE0OWJjOGVjYjNlODVlMDNmMDAyMiJ9.1ejIUlAPbq8FhggDzJIhXkYrRCMli1ghC8OI2PETwZc';
+		
+		$ch = curl_init();
+		$url = 'http://serviciosweb.sbs.gob.pe/api/tipocambio/'.$now.'/'.$code;
+		$headers = [
+			'Accept: application/json',
+			'Authorization: Bearer '.$token,
+		];
+		
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 5);//max waiting time 5 secs
+
+		$response = curl_exec($ch);
+		
+		curl_close($ch);
+		
+		
+		print_r($response);
+	}
+	
+	public function test(){
+		
+		$data = [
+			"date" => "2024-10-08",
+			"date_apply" => "2024-10-09",
+			"currency" => "PYG",
+		];
+		
+		print_r($this->gen_m->filter("exchange_rate", false, $data));
+	}
 	
 	
 	
@@ -80,12 +148,6 @@ class Ar_exchange_rate extends CI_Controller {
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => "success", "msg" => number_format(count($rows))." invoices inserted."]);
-	}
-	
-	public function test(){
-		$filepath = "./upload/hr_attendance.csv";
-		
-		if (file_exists($filepath)) echo "ok";
 	}
 	
 	
