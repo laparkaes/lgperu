@@ -57,9 +57,14 @@ class Ar_exchange_rate extends CI_Controller {
 	}
 	
 	public function upload_pen(){
+		
+		
+		
 		$now = "2024-09-18";
 		$code = "02";
 		
+		$ex = $this->my_func->get_exchange_rate_usd($now);
+		print_r($ex); return;
 		
 		//$er = $this->my_func->load_exchange_rate_sbs($now);
 		
