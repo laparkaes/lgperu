@@ -58,39 +58,52 @@ class Ar_exchange_rate extends CI_Controller {
 	
 	public function upload_pen(){
 		
+		set_time_limit(0);
 		
+		$date_start = $this->input->get("f");
+		$date_end = $this->input->get("t");
 		
-		$now = "2024-09-18";
-		$code = "02";
+		$last_ex = $this->gen_m->filter("exchange_rate", false, ["currency" => "PEN"], null, null, [["date", "desc"]], 1, 0);
 		
-		$ex = $this->my_func->get_exchange_rate_usd($now);
-		print_r($ex); return;
+		if (!$date_start) $date_start = $last_ex ? date('Y-m-d', strtotime($last_ex[0]->date . ' +1 day')) : date("Y-m-01");
+		if (!$date_end) $date_end = date("Y-m-d");
 		
-		//$er = $this->my_func->load_exchange_rate_sbs($now);
+		if (strtotime($date_end) >= strtotime($date_start)){
+			echo "Exchange rate update start: ".$date_start." ~ ".$date_end; echo "<br/><br/>";
 		
-		if ($now) $now = date("dmY", strtotime($now));
-		else $now = date("dmY");
+			$dates = $this->my_func->dates_between($date_start, $date_end);
+			foreach($dates as $i => $d){
+				if (!$this->gen_m->filter("exchange_rate", false, ["date" => $d, "currency" => "PEN"])){
+					$ex = $this->my_func->get_exchange_rate_usd($d);
+					print_r($ex); echo "<br/>";
+					
+					/*
+					if ($ex){
+						$f = ["date" => $ex["date"], "currency" => $ex["currency"]];
+						$ex_rec = $this->gen_m->filter("exchange_rate", false, $f); //echo $this->db->last_query(); 
+						print_r($ex_rec);
+						
+						echo "<br/>";
+						if ($ex_rec){
+							$this->gen_m->update("exchange_rate", ["exchange_rate_id", $ex_rec[0]->exchange_rate_id], $ex);
+							echo $d." exchange rate updated.<br/>";
+						}else{
+							$this->gen_m->insert("exchange_rate", $ex);
+							echo $d." exchange rate inserted.<br/>";
+						}
+						
+					}else echo $d." no exchange rate data from SBS.<br/>";
+					
+					*/
+						
+					//echo "<br/><br/>";
+					//if ($i > 5) break;	
+				}else echo $d." already exists.<br/>";
+			}
+		}else echo "Exchange rate is updated until today ".$date_end;
 		
-		$token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibGdlIiwic3ViIjoibGdlIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIk1hbmFnZXIiLCJTdXBlcnZpc29yIl0sIm5iZiI6MTcxODgxOTgzOSwiZXhwIjoxNzUwMzU1ODM5LCJpc3MiOiJodHRwOi8vand0YXV0aHpzcnYuYXp1cmV3ZWJzaXRlcy5uZXQiLCJhdWQiOiIwOTkxNTNjMjYyNTE0OWJjOGVjYjNlODVlMDNmMDAyMiJ9.1ejIUlAPbq8FhggDzJIhXkYrRCMli1ghC8OI2PETwZc';
+		echo "<br/>Exchange rate update finished.";
 		
-		$ch = curl_init();
-		$url = 'http://serviciosweb.sbs.gob.pe/api/tipocambio/'.$now.'/'.$code;
-		$headers = [
-			'Accept: application/json',
-			'Authorization: Bearer '.$token,
-		];
-		
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 5);//max waiting time 5 secs
-
-		$response = curl_exec($ch);
-		
-		curl_close($ch);
-		
-		
-		print_r($response);
 	}
 	
 	public function test(){
