@@ -74,7 +74,7 @@ class Ar_exchange_rate extends CI_Controller {
 			$dates = $this->my_func->dates_between($date_start, $date_end);
 			foreach($dates as $i => $d){
 				if (!$this->gen_m->filter("exchange_rate", false, ["date" => $d, "currency" => "PEN"])){
-					$ex = $this->my_func->get_exchange_rate_usd($d);
+					$ex = $this->my_func->load_exchange_rate_sbs($d);
 					print_r($ex); echo "<br/>";
 					
 					/*
