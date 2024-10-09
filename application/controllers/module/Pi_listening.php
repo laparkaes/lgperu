@@ -49,7 +49,7 @@ class Pi_listening extends CI_Controller {
 		if ($this->input->get("dptFrom")) $w["dptFrom"] = $this->input->get("dptFrom");
 		if ($this->input->get("dptTo")) $w["dptTo"] = $this->input->get("dptTo");
 		
-		$records = $this->gen_m->filter("pi_listening", false, $w);
+		$records = $this->gen_m->filter("pi_listening", false, $w, null, null, [["dptFrom" , "asc"], ["dptTo" , "asc"]]);
 		
 		$data = [
 			"dptsFrom" => $this->gen_m->only("pi_listening", "dptFrom"),
