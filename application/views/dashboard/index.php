@@ -27,6 +27,7 @@
 						
 						$modules = [
 							["gerp_sales_order", "GERP Sales order upload"],
+							["ar_exchange_rate", "AR - Exchange rate"],
 							["hr_attendance", "HR - Attendance management"],
 							["hr_employee", "HR - Employee management"],
 							["ism_activity_management", "ISM - Activity management"],

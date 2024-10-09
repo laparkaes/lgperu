@@ -54,9 +54,10 @@ module/tax_paperless_document
 
 		$access = [
 			["gerp_sales_order", "GERP Sales order upload"],
-			["hr_attendance", "HR - Attendance management"],
-			["hr_employee", "HR - Employee management"],
-			["ism_activity_management", "ISM - Activity management"],
+			["ar_exchange_rate", "HR - Exchange rate"],
+			["hr_attendance", "HR - Attendance"],
+			["hr_employee", "HR - Employee"],
+			["ism_activity_management", "ISM - Activity"],
 			["obs_gerp", "OBS - GERP Sales order upload"],
 			["obs_magento", "OBS - Magento upload"],
 			["obs_most_likely", "OBS - ML upload"],
