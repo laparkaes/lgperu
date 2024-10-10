@@ -82,21 +82,16 @@ class Ar_exchange_rate extends CI_Controller {
 							"date" => $d,
 							"date_apply" => date("Y-m-d", strtotime($d." +1 day")),
 							"currency" => "PEN",
+							"buy" => str_replace(",", ".", $ex["valor_compra"]),
+							"sell" => str_replace(",", ".", $ex["valor_venta"]),
+							
 						];	
 						
-						if (!$this->gen_m->filter("exchange_rate", false, $row)){
-							$row["buy"] = str_replace(",", ".", $ex["valor_compra"]);
-							$row["sell"] = str_replace(",", ".", $ex["valor_venta"]);
-							$row["avg"] = (floatval($item[3]) + floatval($item[4])) / 2;
-							
-							//$this->gen_m->insert("exchange_rate", $row);
-							
-							print_r($row); echo "<br/>";
-						}
-						
+						$row["avg"] = (floatval($row["buy"]) + floatval($row["sell"])) / 2,
+						print_r($row); echo "<br/>";
 						
 					}
-				}else echo $d." already exists.<br/>";
+				}
 			}
 		}else echo "Exchange rate is updated until today ".$date_end;
 		
