@@ -80,6 +80,7 @@
 						["hr_employee", "HR - Employee"],
 						["ism_activity_management", "ISM - Activity"],
 						["obs_report", "OBS - Sales Report"],
+						["pi_listening", "PI - Listening to You"],
 						["sa_promotion", "SA - Promotion Calculation"],
 						["sa_sell_inout", "SA - Sell in/out Report"],
 						["scm_purchase_order", "SCM - PO Conversion"],

@@ -62,6 +62,7 @@ module/tax_paperless_document
 			["obs_magento", "OBS - Magento upload"],
 			["obs_most_likely", "OBS - ML upload"],
 			["obs_report", "OBS - Sales report"],
+			["pi_listening", "PI - Listening to You"],
 			["sa_promotion", "SA - Promotion calculation"],
 			["sa_sell_inout", "SA - Sell in/out report"],
 			["sa_sell_out", "SA - Sell out upload"],
