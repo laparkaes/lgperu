@@ -74,31 +74,28 @@ class Ar_exchange_rate extends CI_Controller {
 			$dates = $this->my_func->dates_between($date_start, $date_end);
 			foreach($dates as $i => $d){
 				if (!$this->gen_m->filter("exchange_rate", false, ["date" => $d, "currency" => "PEN"])){
-					echo $d." /// ";
-					$ex = $this->my_func->load_exchange_rate_sbs($d);
-					print_r($ex); echo "<br/>";
 					
-					/*
+					$ex = $this->my_func->load_exchange_rate_sbs($d);
 					if ($ex){
-						$f = ["date" => $ex["date"], "currency" => $ex["currency"]];
-						$ex_rec = $this->gen_m->filter("exchange_rate", false, $f); //echo $this->db->last_query(); 
-						print_r($ex_rec);
+					
+						$row = [
+							"date" => $d,
+							"date_apply" => date("Y-m-d", strtotime($d." +1 day")),
+							"currency" => "PEN",
+						];	
 						
-						echo "<br/>";
-						if ($ex_rec){
-							$this->gen_m->update("exchange_rate", ["exchange_rate_id", $ex_rec[0]->exchange_rate_id], $ex);
-							echo $d." exchange rate updated.<br/>";
-						}else{
-							$this->gen_m->insert("exchange_rate", $ex);
-							echo $d." exchange rate inserted.<br/>";
+						if (!$this->gen_m->filter("exchange_rate", false, $row)){
+							$row["buy"] = str_replace(",", ".", $ex["valor_compra"]);
+							$row["sell"] = str_replace(",", ".", $ex["valor_venta"]);
+							$row["avg"] = (floatval($item[3]) + floatval($item[4])) / 2;
+							
+							//$this->gen_m->insert("exchange_rate", $row);
+							
+							print_r($row); echo "<br/>";
 						}
 						
-					}else echo $d." no exchange rate data from SBS.<br/>";
-					
-					*/
 						
-					//echo "<br/><br/>";
-					//if ($i > 5) break;	
+					}
 				}else echo $d." already exists.<br/>";
 			}
 		}else echo "Exchange rate is updated until today ".$date_end;
