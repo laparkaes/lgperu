@@ -84,10 +84,9 @@ class Ar_exchange_rate extends CI_Controller {
 							"currency" => "PEN",
 							"buy" => str_replace(",", ".", $ex["valor_compra"]),
 							"sell" => str_replace(",", ".", $ex["valor_venta"]),
-							
 						];	
 						
-						$row["avg"] = (floatval($row["buy"]) + floatval($row["sell"])) / 2,
+						$row["avg"] = (floatval($row["buy"]) + floatval($row["sell"])) / 2;
 						print_r($row); echo "<br/>";
 						
 					}
