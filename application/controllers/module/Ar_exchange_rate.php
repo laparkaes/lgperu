@@ -88,6 +88,7 @@ class Ar_exchange_rate extends CI_Controller {
 						
 						$row["avg"] = (floatval($row["buy"]) + floatval($row["sell"])) / 2;
 						
+						print_r($row);
 						$this->gen_m->insert("exchange_rate", $row);
 					}
 				}
