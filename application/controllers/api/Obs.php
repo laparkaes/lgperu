@@ -230,7 +230,7 @@ class Obs extends CI_Controller {
 			$now = strtotime($item);
 			$f = date("Y-m-01", $now);
 			$t = date("Y-m-t", $now);
-			$er = $this->gen_m->avg("exchange_rate", "avg", ["date >=" => $f, "date <=" => $t]);
+			$er = $this->gen_m->avg("exchange_rate", "avg", ["date >=" => $f, "date <=" => $t, "currency" => "PEN"]);
 			
 			if ($er->avg) $last_er = round($er->avg, 2);
 			$exchange_rates[$item] = $er->avg ? round($er->avg, 2) : $last_er;
@@ -430,7 +430,7 @@ class Obs extends CI_Controller {
 			$now = strtotime($item);
 			$f = date("Y-m-01", $now);
 			$t = date("Y-m-t", $now);
-			$er = $this->gen_m->avg("exchange_rate", "avg", ["date >=" => $f, "date <=" => $t]);
+			$er = $this->gen_m->avg("exchange_rate", "avg", ["date >=" => $f, "date <=" => $t, "currency" => "PEN"]);
 			
 			if ($er->avg) $last_er = round($er->avg, 2);
 			$exchange_rates[$item] = $er->avg ? round($er->avg, 2) : $last_er;
