@@ -31,9 +31,9 @@
 							<tr>
 								<td><?= $item->date ?></td>
 								<td><?= $item->date_apply ?></td>
-								<td><?= number_format($item->buy, 2) ?></td>
-								<td><?= number_format($item->sell, 2) ?></td>
-								<td><?= number_format($item->avg, 2) ?></td>
+								<td><?= $item->buy ?></td>
+								<td><?= $item->sell ?></td>
+								<td><?= $item->avg ?></td>
 							</tr>
 							<?php } ?>
 						</tbody>
