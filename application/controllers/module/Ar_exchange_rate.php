@@ -65,10 +65,8 @@ class Ar_exchange_rate extends CI_Controller {
 		
 		$last_ex = $this->gen_m->filter("exchange_rate", false, ["currency" => "PEN"], null, null, [["date", "desc"]], 1, 0);
 		
-		if (!$date_start) $date_start = $last_ex ? date('Y-m-d', strtotime($last_ex[0]->date . ' +1 day')) : "2020-01-01";
+		if (!$date_start) $date_start = $last_ex ? date('Y-m-d', strtotime($last_ex[0]->date . ' +1 day')) : "2024-01-01";
 		if (!$date_end) $date_end = date("Y-m-d");
-		
-		$date_start = "2010-01-01";
 		
 		if (strtotime($date_end) >= strtotime($date_start)){
 			echo "Exchange rate update start: ".$date_start." ~ ".$date_end; echo "<br/><br/>";
