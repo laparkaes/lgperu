@@ -192,9 +192,9 @@ class My_func{
 		
 		//echo $from." ".$to;
 		
-		$exchange_rate = $this->CI->gen_m->avg("exchange_rate", "avg", ["date >=" => $from, "date <=" => $to])->avg;
+		$exchange_rate = $this->CI->gen_m->avg("exchange_rate", "avg", ["date >=" => $from, "date <=" => $to, "currency" => "PEN"])->avg;
 		if (!$exchange_rate){
-			$last_ex = $this->CI->gen_m->filter("exchange_rate", false, ["currency" => "USD"], null, null, [["date", "desc"]], 1, 0);
+			$last_ex = $this->CI->gen_m->filter("exchange_rate", false, ["currency" => "PEN"], null, null, [["date", "desc"]], 1, 0);
 			$exchange_rate = round($last_ex[0]->avg, 2);
 		}
 		
