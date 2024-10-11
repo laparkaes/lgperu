@@ -15,6 +15,7 @@ class Ar_exchange_rate extends CI_Controller {
 		$from = date("Y-m-d", strtotime(date("Y-m-d")." -1 year"));
 		
 		$data = [
+			"er_pen" => $this->gen_m->filter("exchange_rate", false, ["date >=" => $from, "currency" => "PEN"], null, null, [["date", "desc"]]),
 			"er_pyg" => $this->gen_m->filter("exchange_rate", false, ["date >=" => $from, "currency" => "PYG"], null, null, [["date", "desc"]]),
 			"main" => "module/ar_exchange_rate/index",
 		];
@@ -69,7 +70,7 @@ class Ar_exchange_rate extends CI_Controller {
 		if (!$date_end) $date_end = date("Y-m-d");
 		
 		if (strtotime($date_end) >= strtotime($date_start)){
-			echo "Exchange rate update start: ".$date_start." ~ ".$date_end; echo "<br/><br/>";
+			//echo "Exchange rate update start: ".$date_start." ~ ".$date_end; echo "<br/><br/>";
 		
 			$dates = $this->my_func->dates_between($date_start, $date_end);
 			foreach($dates as $i => $d){
@@ -88,15 +89,15 @@ class Ar_exchange_rate extends CI_Controller {
 						
 						$row["avg"] = (floatval($row["buy"]) + floatval($row["sell"])) / 2;
 						
-						print_r($row);
+						//print_r($row);
 						$this->gen_m->insert("exchange_rate", $row);
 					}
 				}
 			}
-		}else echo "Exchange rate is updated until today ".$date_end;
+		}//else echo "Exchange rate is updated until today ".$date_end;
 		
-		echo "<br/>Exchange rate update finished.";
-		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => "success", "msg" => "Exchage rate USD > PEN has been updated."]);
 	}
 	
 	public function test(){

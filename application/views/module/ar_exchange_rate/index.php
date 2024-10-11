@@ -16,7 +16,28 @@
 						<h5 class="card-title">USD > PEN</h5>
 						<button type="button" class="btn btn-primary btn-sm" id="btn_load_pen">Load E.R.</button>
 					</div>
-
+					<table class="table datatable">
+						<thead>
+							<tr>
+								<th scope="col">Date</th>
+								<th scope="col">Apply</th>
+								<th scope="col">Buy</th>
+								<th scope="col">Sell</th>
+								<th scope="col">Avg</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach($er_pen as $item){ ?>
+							<tr>
+								<td><?= $item->date ?></td>
+								<td><?= $item->date_apply ?></td>
+								<td><?= number_format($item->buy, 2) ?></td>
+								<td><?= number_format($item->sell, 2) ?></td>
+								<td><?= number_format($item->avg, 2) ?></td>
+							</tr>
+							<?php } ?>
+						</tbody>
+					</table>
 				</div>
 			</div>
 		</div>
@@ -117,15 +138,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		$("#btn_load_pen").attr("disabled", true);
 		
 		ajax_simple({}, "module/ar_exchange_rate/upload_pen").done(function(res) {
-			swal_redirection("success", res, "module/ar_exchange_rate");
-			//swal_redirection(res.type, res.msg, "module/ar_exchange_rate");
+			swal_redirection(res.type, res.msg, "module/ar_exchange_rate");
 		});
 	});
 	
-	/*
-	$("#btn_show").on("click", function() {
-		$("#bl_html").html($("#txt_html").val());
-	});
-	*/
 });
 </script>
