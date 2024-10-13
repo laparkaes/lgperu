@@ -32,26 +32,30 @@ class Hr_employee extends CI_Controller {
 	public function edit($employee_id){
 		if ($this->session->userdata('department') !== "Process Innovation & IT") redirect("/module/hr_employee");
 		
-/*				
-report/obs_nsp
-report/pi_listening
+		$emp = $this->gen_m->unique("hr_employee", "employee_id", $employee_id, false);
 		
-module/gerp_sales_order
-module/hr_attendance
-module/hr_employee
-module/ism_activity_management
-module/obs_gerp
-module/obs_magento
-module/obs_most_likely
-module/obs_report
-module/sa_promotion
-module/sa_sell_inout
-module/sa_sell_out
-module/scm_purchase_order
-module/tax_invoice_comparison
-module/tax_paperless_document
-*/
-
+		$today = date("Y-m-d");
+		$work_schedule_now = null;
+		$work_schedule = $this->gen_m->filter("hr_schedule", false, ["pr" => $emp->employee_number], null, null, [["date_from", "desc"]]);
+		foreach($work_schedule as $item){
+			if (strtotime($item->date_from) <= strtotime($today)){
+				$work_schedule_now = $item;
+			}
+		}
+		
+		
+		
+		$emp->work_sch = $work_schedule ? date("H:i", strtotime($work_schedule_now->work_start))." ~ ".date("H:i", strtotime($work_schedule_now->work_end)) : "";
+		
+		$schs = [
+			"07:00 ~ 17:00",
+			"07:30 ~ 17:30",
+			"08:00 ~ 18:00",
+			"08:30 ~ 18:30",
+			"09:00 ~ 19:00",
+			"09:30 ~ 19:30",
+		];
+		
 		$access = [
 			["gerp_sales_order", "GERP Sales order upload"],
 			["ar_exchange_rate", "HR - Exchange rate"],
@@ -79,7 +83,8 @@ module/tax_paperless_document
 			"subs" 		=> $this->gen_m->only("hr_employee", "subsidiary"),
 			"orgs" 		=> $this->gen_m->only("hr_employee", "organization"),
 			"dpts" 		=> $this->gen_m->only("hr_employee", "department"),
-			"emp"		=> $this->gen_m->unique("hr_employee", "employee_id", $employee_id, false),
+			"emp"		=> $emp,
+			"schs"		=> $schs,
 			"acc"		=> $access,
 			"acc_asg"	=> $acc_asg,
 			"main" 		=> "module/hr_employee/edit",
@@ -109,6 +114,46 @@ module/tax_paperless_document
 		}
 		
 		if ($is_updated){
+			//$data["work_schedule"];
+			$work_schedule_now = null;
+			$work_schedule = $this->gen_m->filter("hr_schedule", false, ["pr" => $data["employee_number"]], null, null, [["date_from", "desc"]]);
+			foreach($work_schedule as $item){
+				if (strtotime($item->date_from) <= strtotime($data["date_from"])){
+					$work_schedule_now = $item;
+				}
+			}
+			
+			if ($work_schedule_now){
+				$work_sch = date("H:i", strtotime($work_schedule_now->work_start))." ~ ".date("H:i", strtotime($work_schedule_now->work_end));
+				if ($data["work_schedule"] !== $work_sch){
+					//update actual to (from - 1) day
+					//insert new work schedule record
+					
+					//calculate date_from and aux schedule array
+					if (!$data["date_from"]) $data["date_from"] = date("Y-m-d", strtotime("+1 day"));
+					$aux_sch = explode(" ~ ", $data["work_schedule"]);
+					
+					//set basic schedule array
+					$data_sch = [
+						"pr" => $data["employee_number"],
+						"name" => $data["name"],
+						"date_from" => $data["date_from"],
+					];
+					
+					//cleansing
+					$this->gen_m->delete("hr_schedule", $data_sch);
+					
+					//insert
+					$data_sch["work_start"] = $aux_sch[0];
+					$data_sch["work_end"] = $aux_sch[1];
+					
+					$this->gen_m->insert("hr_schedule", $data_sch);
+				}
+			}
+			
+			unset($data["work_schedule"]);
+			unset($data["date_from"]);
+			
 			$this->gen_m->update("hr_employee", ["employee_id" => $data["employee_id"]], $data);
 			
 			$type = "success";

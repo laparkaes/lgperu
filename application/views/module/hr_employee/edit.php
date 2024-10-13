@@ -65,6 +65,18 @@
 							<label class="form-label">EP Mail</label>
 							<input class="form-control" type="text" name="ep_mail" value="<?= $emp->ep_mail ?>">
 						</div>
+						<div class="col-md-8">
+							<label class="form-label">Work Schedule</label>
+							<select class="form-select" name="work_schedule">
+								<?php foreach($schs as $item){ ?>
+								<option value="<?= $item ?>" <?= ($item === $emp->work_sch) ? "selected" : "" ?>><?= $item ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-md-4">
+							<label class="form-label">Schedule Apply From (Just in case)</label>
+							<input class="form-control" type="date" name="date_from">
+						</div>
 						<div class="col-md-12 pt-3">
 							<div class="row">
 								<div class="col-md-4">
