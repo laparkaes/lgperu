@@ -37,13 +37,10 @@ class Hr_employee extends CI_Controller {
 		$today = date("Y-m-d");
 		$work_schedule_now = null;
 		$work_schedule = $this->gen_m->filter("hr_schedule", false, ["pr" => $emp->employee_number], null, null, [["date_from", "desc"]]);
-		foreach($work_schedule as $item){
-			if (strtotime($item->date_from) <= strtotime($today)){
-				$work_schedule_now = $item;
-			}
+		foreach($work_schedule as $i => $item){
+			if (strtotime($item->date_from) <= strtotime($today)) $work_schedule_now = $item;
+			//else unset($work_schedule[$i]);
 		}
-		
-		
 		
 		$emp->work_sch = $work_schedule ? date("H:i", strtotime($work_schedule_now->work_start))." ~ ".date("H:i", strtotime($work_schedule_now->work_end)) : "";
 		
@@ -84,6 +81,7 @@ class Hr_employee extends CI_Controller {
 			"orgs" 		=> $this->gen_m->only("hr_employee", "organization"),
 			"dpts" 		=> $this->gen_m->only("hr_employee", "department"),
 			"emp"		=> $emp,
+			"w_schs"	=> $work_schedule,
 			"schs"		=> $schs,
 			"acc"		=> $access,
 			"acc_asg"	=> $acc_asg,
@@ -161,7 +159,7 @@ class Hr_employee extends CI_Controller {
 		}else $msg = "PR duplicated.";
 		
 		header('Content-Type: application/json');
-		echo json_encode(["type" => $type, "msg" => $msg]);
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => "module/hr_employee/edit/".$data["employee_id"]]);
 	}
 	
 	public function acc_ctrl(){

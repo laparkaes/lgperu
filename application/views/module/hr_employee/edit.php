@@ -109,6 +109,29 @@
 					</form>
 				</div>
 			</div>
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Work Times</h5>
+					<table class="table">
+						<thead>
+							<tr>
+								<th scope="col">From</th>
+								<th scope="col">Entrance</th>
+								<th scope="col">Leave</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach($w_schs as $item){ ?>
+							<tr>
+								<td><?= $item->date_from ?></td>
+								<td><?= $item->work_start ?></td>
+								<td><?= $item->work_end ?></td>
+							</tr>
+							<?php } ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
 		</div> 
 		<div class="col-md-4">
 			<div class="card">
@@ -137,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		e.preventDefault();
 		$("#form_save_data .sys_msg").html("");
 		ajax_form_warning(this, "module/hr_employee/save_data", "Do you want to save data?").done(function(res) {
-			swal(res.type, res.msg);
+			swal_redirection(res.type, res.msg, res.url);
 		});
 	});
 	
