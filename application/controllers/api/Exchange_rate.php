@@ -17,17 +17,17 @@ class Exchange_rate extends CI_Controller {
 		if ($this->input->get("k") === "lgepr"){
 			$d = $this->input->get("d");
 			$er = $this->gen_m->filter("exchange_rate", false, ["date <=" => $d, "currency" => $this->input->get("c")], null, null, [["date", "desc"]], 1);
-			
-			$res = [
-				"status"	=> "success",
-				"requested"	=> $d,
-				"pulished"	=> $er[0]->date,
-				"currency"	=> $er[0]->currency,
-				"buy"	=> $er[0]->buy,
-				"sell"	=> $er[0]->sell,
-			];
+			if ($er){
+				$res = [
+					"status"	=> "success",
+					"requested"	=> $d,
+					"pulished"	=> $er[0]->date,
+					"currency"	=> $er[0]->currency,
+					"buy"	=> $er[0]->buy,
+					"sell"	=> $er[0]->sell,
+				];	
+			}else $res = ["status" => "error", "msg" => "No exchange rate registered before request date."];
 		}else $res = ["status" => "error", "msg" => "Wrong key."];
-		
 		
 		header('Content-Type: application/json');
 		echo json_encode($res);
