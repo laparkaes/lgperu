@@ -78,7 +78,7 @@ class Utility_func extends CI_Controller {
 	public function cloud_pc_shutdown_email(){
 		
 		$to = "lg-lgepr@lge.com";
-		$to = "georgio.park@lge.com";
+		//$to = "georgio.park@lge.com";
 		
 		$subject = "[Comunicado PI] Apague Cloud PC antes de retirar de la oficina !!!";
 		$content = $this->load->view('email/cloud_pc_shutdown_email', null, true);

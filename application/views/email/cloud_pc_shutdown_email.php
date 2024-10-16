@@ -78,15 +78,15 @@
 	<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f4f4f4">
 		<tr>
 			<td align="center" valign="top">
-				<table width="650" border="0" cellspacing="0" cellpadding="0" class="mobile-shell">
+				<table width="800" border="0" cellspacing="0" cellpadding="0" class="mobile-shell">
 					<tr>
-						<td class="td container" style="width:650px; min-width:650px; font-size:0pt; line-height:0pt; margin:0; font-weight:normal; padding: 0px;">
+						<td class="td container" style="width:800px; min-width:650px; font-size:0pt; line-height:0pt; margin:0; font-weight:normal; padding: 0px;">
 							
 
 							<!-- Head -->
 							<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#">
 								<tr>
-									<td class="img" height="10" bgcolor="#4ec7ff" style="font-size:0pt; line-height:0pt; text-align:left;">&nbsp;</td>
+									<td class="img" height="10" bgcolor="#ff0000" style="font-size:0pt; line-height:0pt; text-align:left;">&nbsp;</td>
 								</tr>
 								<tr>
 									<td class="p30-15" style="padding: 45px 30px;" bgcolor="#ffffff" align="center">
@@ -96,7 +96,7 @@
 											</tr>
 											<tr>
 												<td class="text center" style="color:#666666; font-family:'Roboto', Arial,sans-serif; font-size:16px; line-height:28px; text-align:center;">
-													Por cada hora que Cloud PC permanece sin uso fuera del horario laboral, estamos ahorrando S/ 1.50 soles por persona.
+													Por cada hora que Cloud PC permanece sin uso fuera del horario laboral,<br/>estamos ahorrando S/ 1.50 soles por persona.
 												</td>
 											</tr>
 										</table>
@@ -111,7 +111,7 @@
 									<td style="padding-bottom: 10px;">
 										<table width="100%" border="0" cellspacing="0" cellpadding="0">
 											<tr>
-												<td class="fluid-img" style="font-size:0pt; line-height:0pt; text-align:left;"><img src="http://136.166.13.9/llamasys/assets/img/cloud_pc_shutdown_email.jpg" width="650" height="366" border="0" alt="" /></td>
+												<td class="fluid-img" style="font-size:0pt; line-height:0pt; text-align:left;"><img src="http://136.166.13.9/llamasys/assets/img/cloud_pc_shutdown_email.jpg" width="800" height="450" border="0" alt="" /></td>
 											</tr>
 										</table>
 									</td>
