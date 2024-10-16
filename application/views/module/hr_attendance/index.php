@@ -50,52 +50,56 @@
 		<div class="col">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title"><?= $period ?></h5>
-						<table class="table align-middle">
-							<thead>
-								<tr>
-									<th scope="col">Employee</th>
-									<th scope="col">PR</th>
-									<th scope="col">Days</th>
-									<th scope="col">T<br/>E</th>
-									<th scope="col" class="border-end">Time</th>
-									<?php foreach($days as $item){ ?>
-									<th scope="col">
-										<div class="text-center text-<?= (in_array($item["day"], $free_days)) ? "danger" : "" ?>">
-											<?= $item["day"] ?><br/><?= substr($days_week[$item["day"]], 0, 3) ?>
-										</div>
-									</th>
-									<?php } ?>
-								</tr>
-							</thead>
-							<tbody>
-								<?php foreach($employees as $i => $item){ if ($item["summary"]["check_days"] > 0){ ?>
-								<tr>
-									<td>
-										<div><?= $item["data"]->name ?></div>
-										<div class="text-nowrap"><small><?= $item["data"]->dept ?></small></div>
-									</td>
-									<td><?= $item["data"]->employee_number ?></td>
-									<td><?= $item["summary"]["check_days"] ?></td>
-									<td><?= $item["summary"]["tardiness"] ?><br/><?= $item["summary"]["early_out"] ?></td>
-									<td class="border-end">
-										<div><?= date("H:i", strtotime($schedule_pr[$item["data"]->employee_number][$to]["start"])) ?></div>
-										<div><?= date("H:i", strtotime($schedule_pr[$item["data"]->employee_number][$to]["end"])) ?></div>
-									</td>
-									<?php foreach($days as $item_day){ ?>
-									<td>
-										<div class="text-<?= $item["access"][$item_day["day"]]["first_access"]["remark"] === "T" ? "danger" : "" ?>">
-											<?= $item["access"][$item_day["day"]]["first_access"]["time"] ?>
-										</div>
-										<div class="text-<?= $item["access"][$item_day["day"]]["last_access"]["remark"] === "E" ? "danger" : "" ?>">
-											<?= $item["access"][$item_day["day"]]["last_access"]["time"] ?>
-										</div>
-									</td>
-									<?php } ?>
-								</tr>
-								<?php }} ?>
-							</tbody>
-						</table>
+					<div class="d-flex justify-content-between align-items-center">
+						<h5 class="card-title"><?= $period ?></h5>
+						<div><input type="text" class="form-control" id="ip_search" placeholder="Search"></div>
+					</div>
+					<table class="table align-middle">
+						<thead>
+							<tr>
+								<th scope="col">Employee</th>
+								<th scope="col">PR</th>
+								<th scope="col">Days</th>
+								<th scope="col">T<br/>E</th>
+								<th scope="col" class="border-end">Time</th>
+								<?php foreach($days as $item){ ?>
+								<th scope="col">
+									<div class="text-center text-<?= (in_array($item["day"], $free_days)) ? "danger" : "" ?>">
+										<?= $item["day"] ?><br/><?= substr($days_week[$item["day"]], 0, 3) ?>
+									</div>
+								</th>
+								<?php } ?>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach($employees as $i => $item){ if ($item["summary"]["check_days"] > 0){ ?>
+							<tr class="row_emp">
+								<td>
+									<div class="search_criteria d-none"><?= $item["data"]->name." ".$item["data"]->dept." ".$item["data"]->employee_number." ".$item["data"]->ep_mail ?></div>
+									<div><?= $item["data"]->name ?></div>
+									<div class="text-nowrap"><small><?= $item["data"]->dept ?></small></div>
+								</td>
+								<td><?= $item["data"]->employee_number ?></td>
+								<td><?= $item["summary"]["check_days"] ?></td>
+								<td><?= $item["summary"]["tardiness"] ?><br/><?= $item["summary"]["early_out"] ?></td>
+								<td class="border-end">
+									<div><?= date("H:i", strtotime($schedule_pr[$item["data"]->employee_number][$to]["start"])) ?></div>
+									<div><?= date("H:i", strtotime($schedule_pr[$item["data"]->employee_number][$to]["end"])) ?></div>
+								</td>
+								<?php foreach($days as $item_day){ ?>
+								<td>
+									<div class="text-<?= $item["access"][$item_day["day"]]["first_access"]["remark"] === "T" ? "danger" : "" ?>">
+										<?= $item["access"][$item_day["day"]]["first_access"]["time"] ?>
+									</div>
+									<div class="text-<?= $item["access"][$item_day["day"]]["last_access"]["remark"] === "E" ? "danger" : "" ?>">
+										<?= $item["access"][$item_day["day"]]["last_access"]["time"] ?>
+									</div>
+								</td>
+								<?php } ?>
+							</tr>
+							<?php }} ?>
+						</tbody>
+					</table>
 				</div>
 			</div>
 		</div> 
@@ -127,6 +131,7 @@
 </div>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+	
 	$("#form_exp_report").submit(function(e) {
 		e.preventDefault();
 		$("#form_exp_report .sys_msg").html("");
@@ -149,6 +154,29 @@ document.addEventListener("DOMContentLoaded", () => {
 		ajax_form(this, "module/hr_attendance/upload_schedule").done(function(res) {
 			swal_redirection(res.type, res.msg, "module/hr_attendance");
 		});
+	});
+	
+	
+	
+	$("#ip_search").keyup(function(e) {
+		var criteria = $(this).val().toUpperCase();
+		
+		$(".row_emp").each(function(index, elem) {
+			//var text = $(elem).text();
+			if ($(elem).find(".search_criteria").html().toUpperCase().includes(criteria)){
+				$(elem).show();
+			} else {
+				$(elem).hide();
+			}
+			/*
+			if (text.includes("hola")) {
+				$(elem).show();
+			} else {
+				$(elem).hide();
+			}
+			*/
+		});
+		//console.log();
 	});
 });
 </script>
