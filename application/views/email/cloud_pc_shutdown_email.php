@@ -80,7 +80,7 @@
 			<td align="center" valign="top">
 				<table width="650" border="0" cellspacing="0" cellpadding="0" class="mobile-shell">
 					<tr>
-						<td class="td container" style="width:650px; min-width:650px; font-size:0pt; line-height:0pt; margin:0; font-weight:normal; padding:0px 0px 40px 0px;">
+						<td class="td container" style="width:650px; min-width:650px; font-size:0pt; line-height:0pt; margin:0; font-weight:normal; padding: 0px;">
 							
 
 							<!-- Head -->
@@ -92,11 +92,11 @@
 									<td class="p30-15" style="padding: 45px 30px;" bgcolor="#ffffff" align="center">
 										<table width="100%" border="0" cellspacing="0" cellpadding="0">
 											<tr>
-												<td class="h1 center pb20" style="color:#050505; font-family:'Roboto', Arial,sans-serif; font-size:28px; line-height:34px; text-align:center; padding-bottom:20px;">Business at its finest.</td>
+												<td class="h1 center pb20" style="color:#050505; font-family:'Roboto', Arial,sans-serif; font-size:28px; line-height:34px; text-align:center; padding-bottom:20px;">Apaga tu Cloud PC antes de salir de la oficina!</td>
 											</tr>
 											<tr>
 												<td class="text center" style="color:#666666; font-family:'Roboto', Arial,sans-serif; font-size:16px; line-height:28px; text-align:center;">
-													Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+													Por cada hora que Cloud PC permanece sin uso fuera del horario laboral, estamos ahorrando S/ 1.50 soles por persona.
 												</td>
 											</tr>
 										</table>
