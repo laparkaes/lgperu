@@ -66,7 +66,6 @@ class Utility_func extends CI_Controller {
 						}				
 					}
 					
-					
 				}
 				
 				echo $dir." done!<br/>";	
@@ -74,5 +73,14 @@ class Utility_func extends CI_Controller {
 			
 		}
 		
+	}
+
+	public function cloud_pc_shutdown_email(){
+		
+		$to = "lg-lgepr@lge.com";
+		
+		$content = $this->load->view('email/cloud_pc_shutdown_email', null, true);
+		
+		echo $this->my_func->send_email("comunicacionpi@lge.com", "georgio.park@lge.com", "[Comunicado PI] Apagar Cloud antes de retirar !!!", $content);
 	}
 }
