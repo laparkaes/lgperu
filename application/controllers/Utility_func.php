@@ -76,6 +76,7 @@ class Utility_func extends CI_Controller {
 	}
 
 	public function cloud_pc_shutdown_email(){
+		//llamasys/utility_func/cloud_pc_shutdown_email
 		
 		$to = "lg-lgepr@lge.com";
 		//$to = "georgio.park@lge.com";
