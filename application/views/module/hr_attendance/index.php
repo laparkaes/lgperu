@@ -53,6 +53,15 @@
 					<div class="d-flex justify-content-between align-items-center">
 						<h5 class="card-title"><?= $period ?></h5>
 						<div>
+							<?php 
+							$i = 0;
+							while($i < 12){
+								echo date("Y-m", strtotime($period." -".$i." months"))."<br/>";
+								$i++;
+							}
+							?>
+						</div>
+						<div>
 							<select class="form-select">
 								<option value="1">One</option>
 								<option value="2">Two</option>
