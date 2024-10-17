@@ -52,24 +52,16 @@
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
 						<h5 class="card-title"><?= $period ?></h5>
-						<div>
-							<?php 
-							$i = 0;
-							while($i < 12){
-								echo date("Y-m", strtotime($period." -".$i." months"))."<br/>";
-								$i++;
-							}
-							?>
-						</div>
-						<div>
-							<select class="form-select">
-								<option value="1">One</option>
-								<option value="2">Two</option>
-								<option value="3">Three</option>
+						<div class="d-flex justify-content-end">
+							<select class="form-select me-1" id="sl_period" style="width: 150px;">
+								<?php $i = 0; while($i < 12){ $now = date("Y-m", strtotime($period." -".$i." months")); ?>
+								<option value="<?= $now ?>"><?= $now ?></option>
+								<?php $i++; } ?>
 							</select>
-						</div>
-						<div>
-							<input type="text" class="form-control" id="ip_search" placeholder="Search">
+							<input type="text" class="form-control me-1" id="ip_search" placeholder="Search" style="width: 300px;">
+							<button type="button" class="btn btn-success" disabled>
+								<i class="bi bi-file-earmark-spreadsheet"></i> Export
+							</button>
 						</div>
 					</div>
 					<table class="table align-middle">
@@ -174,7 +166,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	});
 	
-	
+	$("#sl_period").change(function(e) {
+		alert($(this).val());
+	});
 	
 	$("#ip_search").keyup(function(e) {
 		var criteria = $(this).val().toUpperCase();
