@@ -38,8 +38,8 @@ class Hr_attendance extends CI_Controller {
 			$days_week[$day] = $day_w;
 			$days[$day] = [
 				"day" => $day,
-				"first_access" => ["time" => "01:00", "remark" => null],
-				"last_access" => ["time" => "23:00", "remark" => null],
+				"first_access" => ["time" => null, "remark" => null],
+				"last_access" => ["time" => null, "remark" => null],
 			];
 		}
 		
@@ -142,7 +142,7 @@ class Hr_attendance extends CI_Controller {
 		$day_pivot = $from;
 		$schedule_days = [];
 		while(strtotime($day_pivot) <= strtotime($to)){
-			$schedule_days[$day_pivot] = ["start" => null, "end" => null];
+			$schedule_days[$day_pivot] = ["start" => "01:00", "end" => "23:00"];
 			$day_pivot = date("Y-m-d", strtotime($day_pivot." +1 day"));
 		}
 		
@@ -184,7 +184,6 @@ class Hr_attendance extends CI_Controller {
 		T: Tardiness
 		E: Early-Out
 		V: Vacation
-		
 		*/
 		
 		$no_attn_days = ["Sat", "Sun"];
@@ -194,8 +193,13 @@ class Hr_attendance extends CI_Controller {
 			foreach($item["access"] as $aux => $access){
 				$day_pivot = date("Y-m-", strtotime($from)).$access["day"];
 				
-				if (!in_array(date("D", strtotime($day_pivot)), $no_attn_days) and (array_key_exists($pr, $schedule_pr))){
+				if (!in_array(date("D", strtotime($day_pivot)), $no_attn_days)){
 					//echo $day_pivot."<br/>";
+					
+					if (!array_key_exists($pr, $schedule_pr)){
+						$schedule_pr[$pr][$day_pivot]["start"] = "01:00";
+						$schedule_pr[$pr][$day_pivot]["end"] = "23:00";
+					}
 					
 					if ($access["first_access"]["time"]){
 						$start = strtotime($schedule_pr[$pr][$day_pivot]["start"]);
