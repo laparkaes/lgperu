@@ -166,10 +166,11 @@ class Hr_employee extends CI_Controller {
 			unset($data["date_from"]);
 			
 			//department separating
+			
 			$aux = explode(" > ", $data["dpt"]);
-			$data["subsidiary"] = $aux[0];
-			$data["organization"] = $aux[1];
-			$data["department"] = $aux[2];
+			$data["subsidiary"] = array_key_exists(0, $aux) ? $aux[0] : "";
+			$data["organization"] = array_key_exists(1, $aux) ? $aux[1] : "";
+			$data["department"] = array_key_exists(2, $aux) ? $aux[2] : "";
 			unset($data["dpt"]);
 			
 			//update employee data
