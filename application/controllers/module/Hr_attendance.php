@@ -38,8 +38,8 @@ class Hr_attendance extends CI_Controller {
 			$days_week[$day] = $day_w;
 			$days[$day] = [
 				"day" => $day,
-				"first_access" => ["time" => null, "remark" => null],
-				"last_access" => ["time" => null, "remark" => null],
+				"first_access" => ["time" => "01:00", "remark" => null],
+				"last_access" => ["time" => "23:00", "remark" => null],
 			];
 		}
 		
@@ -194,7 +194,7 @@ class Hr_attendance extends CI_Controller {
 			foreach($item["access"] as $aux => $access){
 				$day_pivot = date("Y-m-", strtotime($from)).$access["day"];
 				
-				if (!in_array(date("D", strtotime($day_pivot)), $no_attn_days)){
+				if (!in_array(date("D", strtotime($day_pivot)), $no_attn_days) and (array_key_exists($pr, $schedule_pr))){
 					//echo $day_pivot."<br/>";
 					
 					if ($access["first_access"]["time"]){
