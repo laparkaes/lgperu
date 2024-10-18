@@ -167,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 	
 	$("#sl_period").change(function(e) {
-		alert($(this).val());
+		window.location.href = "/llamasys/module/hr_attendance?p=" + $(this).val();
 	});
 	
 	$("#ip_search").keyup(function(e) {
