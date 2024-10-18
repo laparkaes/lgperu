@@ -107,6 +107,7 @@
 					$data_uploads = [
 						["gerp_sales_order", "GERP Sales order"],
 						["ar_exchange_rate", "AR - Exchange rate"],
+						["hr_access_record", "HR - Access record"],
 						["obs_gerp", "OBS - GERP Sales order"],
 						["obs_magento", "OBS - Magento"],
 						["obs_most_likely", "OBS - ML"],

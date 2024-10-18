@@ -54,22 +54,26 @@ class Hr_employee extends CI_Controller {
 			"09:30 ~ 19:30",
 		];
 		
-		$access = [
-			["gerp_sales_order", "GERP Sales order upload"],
-			["ar_exchange_rate", "HR - Exchange rate"],
+		$access_module = [
 			["hr_attendance", "HR - Attendance"],
 			["hr_employee", "HR - Employee"],
 			["ism_activity_management", "ISM - Activity"],
-			["obs_gerp", "OBS - GERP Sales order upload"],
-			["obs_magento", "OBS - Magento upload"],
-			["obs_most_likely", "OBS - ML upload"],
 			["obs_report", "OBS - Sales report"],
 			["pi_listening", "PI - Listening to You"],
 			["sa_promotion", "SA - Promotion calculation"],
 			["sa_sell_inout", "SA - Sell in/out report"],
-			["sa_sell_out", "SA - Sell out upload"],
 			["scm_purchase_order", "SCM - PO Conversion"],
 			["tax_invoice_comparison", "TAX - Invoice comparison GERP & Paperless"],
+		];
+		
+		$access_data_upload = [
+			["gerp_sales_order", "GERP Sales order upload"],
+			["ar_exchange_rate", "HR - Exchange rate"],
+			["hr_access_record", "HR - Access record"],
+			["obs_gerp", "OBS - GERP Sales order upload"],
+			["obs_magento", "OBS - Magento upload"],
+			["obs_most_likely", "OBS - ML upload"],
+			["sa_sell_out", "SA - Sell out upload"],
 			["tax_paperless_document", "TAX - Paperless eDocuments download"],
 		];
 		
@@ -91,7 +95,8 @@ class Hr_employee extends CI_Controller {
 			"emp"		=> $emp,
 			"w_schs"	=> $work_schedule,
 			"schs"		=> $schs,
-			"acc"		=> $access,
+			"acc_mod"	=> $access_module,
+			"acc_du"	=> $access_data_upload,
 			"acc_asg"	=> $acc_asg,
 			"main" 		=> "module/hr_employee/edit",
 		];
@@ -107,7 +112,7 @@ class Hr_employee extends CI_Controller {
 		$data["is_supervised"] = $this->input->post("is_supervised") ? true : false;
 		$data["access"] = $this->input->post("access") ? true : false;
 		
-		$is_updated = true;
+		$to_updated = true;
 		
 		if ($data["employee_number"]){
 			$f = [
@@ -116,11 +121,11 @@ class Hr_employee extends CI_Controller {
 				"active" => true,
 			];
 			
-			if ($this->gen_m->filter("hr_employee", false, $f)) $is_updated = false;
+			if ($this->gen_m->filter("hr_employee", false, $f)) $to_updated = false;
 		}
 		
-		if ($is_updated){
-			//$data["work_schedule"];
+		if ($to_updated){
+			//work schedule update using $data["work_schedule"];
 			$work_schedule_now = null;
 			$work_schedule = $this->gen_m->filter("hr_schedule", false, ["pr" => $data["employee_number"]], null, null, [["date_from", "desc"]]);
 			foreach($work_schedule as $item){
@@ -160,6 +165,14 @@ class Hr_employee extends CI_Controller {
 			unset($data["work_schedule"]);
 			unset($data["date_from"]);
 			
+			//department separating
+			$aux = explode(" > ", $data["dpt"]);
+			$data["subsidiary"] = $aux[0];
+			$data["organization"] = $aux[1];
+			$data["department"] = $aux[2];
+			unset($data["dpt"]);
+			
+			//update employee data
 			$this->gen_m->update("hr_employee", ["employee_id" => $data["employee_id"]], $data);
 			
 			$type = "success";

@@ -22,31 +22,13 @@
 				<div class="card-body">
 					<h5 class="card-title">Employee Information</h5>
 					<form class="row g-3" id="form_save_data">
-						<div class="col-md-12">
+						<div class="col-md-8">
 							<label class="form-label">Name</label>
 							<input class="form-control" type="text" name="name" value="<?= $emp->name ?>">
 						</div>
 						<div class="col-md-4">
-							<label class="form-label">Subsidiary</label>
-							<select class="form-select" name="subsidiary">
-								<option value="">--</option>
-								<?php foreach($subs as $item){ if ($item->subsidiary){ ?>
-								<option value="<?= $item->subsidiary ?>" <?= $emp->subsidiary === $item->subsidiary ? "selected" : "" ?>><?= $item->subsidiary ?></option>
-								<?php }} ?>
-							</select>
-						</div>
-						<div class="col-md-4">
-							<label class="form-label">Organization</label>
-							<select class="form-select" name="organization">
-								<option value="">--</option>
-								<?php foreach($orgs as $item){ if ($item->organization){ ?>
-								<option value="<?= $item->organization ?>" <?= $emp->organization === $item->organization ? "selected" : "" ?>><?= $item->organization ?></option>
-								<?php }} ?>
-							</select>
-						</div>
-						<div class="col-md-4">
 							<label class="form-label">Department</label>
-							<select class="form-select" name="department">
+							<select class="form-select" name="dpt">
 								<option value="">--</option>
 								<?php foreach($dpts as $item){ ?>
 								<option value="<?= $item ?>" <?= $emp->dpt === $item ? "selected" : "" ?>><?= $item ?></option>
@@ -136,9 +118,24 @@
 		<div class="col-md-4">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Access</h5>
+					<h5 class="card-title">Module</h5>
 					<ul class="list-group">
-						<?php foreach($acc as $item){ ?>
+						<?php foreach($acc_mod as $item){ ?>
+						<li class="list-group-item">
+							<div class="form-check form-switch">
+								<input class="form-check-input me-3 chk_acc_ctrl" type="checkbox" id="sw_<?= $item[0] ?>" value="<?= $item[0] ?>" <?= in_array($item[0], $acc_asg) ? "checked" : "" ?>>
+								<label class="form-check-label" for="sw_<?= $item[0] ?>"><?= $item[1] ?></label>
+							</div>
+						</li>
+						<?php } ?>
+					</ul>
+				</div>
+			</div>
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Data Upload</h5>
+					<ul class="list-group">
+						<?php foreach($acc_du as $item){ ?>
 						<li class="list-group-item">
 							<div class="form-check form-switch">
 								<input class="form-check-input me-3 chk_acc_ctrl" type="checkbox" id="sw_<?= $item[0] ?>" value="<?= $item[0] ?>" <?= in_array($item[0], $acc_asg) ? "checked" : "" ?>>

@@ -8,44 +8,6 @@
 	</nav>
 </div>
 <section class="section">
-	<div class="row row-cols-1 row-cols-md-3 g-3">
-		<div class="col">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Functions</h5>
-					<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#md_exr">
-						<i class="bi bi-file-earmark-spreadsheet"></i> Report
-					</button>
-				</div>
-			</div>
-		</div>
-		<div class="col">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Access Records</h5>
-					<form class="input-group" id="form_upload_access">
-						<input type="file" class="form-control" name="attach" accept=".xls,.xlsx,.csv">
-						<button type="submit" class="btn btn-success">
-							<i class="bi bi-upload"></i>
-						</button>
-					</form>
-				</div>
-			</div>
-		</div>
-		<div class="col">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Employee's Schedules</h5>
-					<form class="input-group" id="form_upload_schedule">
-						<input type="file" class="form-control" name="attach" accept=".xls,.xlsx,.csv">
-						<button type="submit" class="btn btn-success">
-							<i class="bi bi-upload"></i>
-						</button>
-					</form>
-				</div>
-			</div>
-		</div>
-	</div>
 	<div class="row">
 		<div class="col">
 			<div class="card">
