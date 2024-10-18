@@ -43,6 +43,7 @@ class Hr_employee extends CI_Controller {
 		}
 		
 		$emp->work_sch = $work_schedule ? date("H:i", strtotime($work_schedule_now->work_start))." ~ ".date("H:i", strtotime($work_schedule_now->work_end)) : "";
+		$emp->dpt = $emp->subsidiary." > ".$emp->organization." > ".$emp->department;
 		
 		$schs = [
 			"07:00 ~ 17:00",
@@ -76,10 +77,17 @@ class Hr_employee extends CI_Controller {
 		$acc_recs = $this->gen_m->filter("sys_access", false, ["employee_id" => $employee_id]);
 		foreach($acc_recs as $item) $acc_asg[] = $item->module;
 		
+		
+		$f = ["subsidiary", "organization", "department"];
+		$dpts = [];
+		$dpts_rec = $this->gen_m->only_multi("hr_employee", $f, ["department !=" => ""], $f);
+		foreach($dpts_rec as $item) $dpts[] = $item->subsidiary." > ".$item->organization." > ".$item->department;
+		sort($dpts);
+		
 		$data = [
 			"subs" 		=> $this->gen_m->only("hr_employee", "subsidiary"),
 			"orgs" 		=> $this->gen_m->only("hr_employee", "organization"),
-			"dpts" 		=> $this->gen_m->only("hr_employee", "department"),
+			"dpts" 		=> $dpts,
 			"emp"		=> $emp,
 			"w_schs"	=> $work_schedule,
 			"schs"		=> $schs,

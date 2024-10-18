@@ -54,9 +54,9 @@
 						<h5 class="card-title"><?= $period ?></h5>
 						<div class="d-flex justify-content-end">
 							<select class="form-select me-1" id="sl_period" style="width: 150px;">
-								<?php $i = 0; while($i < 12){ $now = date("Y-m", strtotime($period." -".$i." months")); ?>
-								<option value="<?= $now ?>"><?= $now ?></option>
-								<?php $i++; } ?>
+								<?php foreach($periods as $item){  ?>
+								<option value="<?= $item ?>" <?= ($item === $period) ? "selected" : "" ?>><?= $item ?></option>
+								<?php } ?>
 							</select>
 							<input type="text" class="form-control me-1" id="ip_search" placeholder="Search" style="width: 300px;">
 							<button type="button" class="btn btn-success" disabled>

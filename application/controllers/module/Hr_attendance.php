@@ -244,8 +244,17 @@ class Hr_attendance extends CI_Controller {
 			//echo "<br/>";
 		}
 		
+		$periods = [];
+		$jan = date("Y-01"); 
+		$now = date("Y-m");
+		while(strtotime($now) >= strtotime($jan)){
+			$periods[] = $now;
+			$now = date("Y-m", strtotime($now." -1 month"));
+		}
+		
 		$data = [
 			"period" => $period,
+			"periods" => $periods,
 			"from" => $from,
 			"to" => $to,
 			"days" => $days,

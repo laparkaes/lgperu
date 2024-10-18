@@ -48,9 +48,9 @@
 							<label class="form-label">Department</label>
 							<select class="form-select" name="department">
 								<option value="">--</option>
-								<?php foreach($dpts as $item){ if ($item->department){ ?>
-								<option value="<?= $item->department ?>" <?= $emp->department === $item->department ? "selected" : "" ?>><?= $item->department ?></option>
-								<?php }} ?>
+								<?php foreach($dpts as $item){ ?>
+								<option value="<?= $item ?>" <?= $emp->dpt === $item ? "selected" : "" ?>><?= $item ?></option>
+								<?php } ?>
 							</select>
 						</div>
 						<div class="col-md-4">
