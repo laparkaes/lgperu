@@ -59,7 +59,11 @@
 									<div><?= date("H:i", strtotime($schedule_pr[$item["data"]->employee_number][$to]["end"])) ?></div>
 								</td>
 								<?php foreach($days as $item_day){ ?>
-								<td>
+								<td class="md_exception" 
+									emp_pr="<?= $item["data"]->employee_number ?>" 
+									emp_name="<?= $item["data"]->name ?>" 
+									date="<?= $item_day["date"] ?>" 
+									data-bs-toggle="modal" data-bs-target="#verticalycentered">
 									<div class="text-<?= $item["access"][$item_day["day"]]["first_access"]["remark"] === "T" ? "danger" : "" ?>">
 										<?= $item["access"][$item_day["day"]]["first_access"]["time"] ?>
 									</div>
@@ -77,30 +81,24 @@
 		</div> 
 	</div>
 </section>
-<div class="modal fade" id="md_exr" tabindex="-1" style="display: none;" aria-hidden="true">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title">Export Report</h5>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			</div>
-			<div class="modal-body">
-				<form class="row g-3" id="form_exp_report">
-					<div class="col-12">
-						<label class="form-label">Period</label>
-						<select class="form-select" name="period">
-							<option value="2024-02">2024-02</option>
-						</select>
-					</div>
-					<div class="text-end pt-3">
-						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-						<button type="submit" class="btn btn-primary">Export</button>
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
-</div>
+
+<div class="modal fade" id="verticalycentered" tabindex="-1" style="display: none;" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Vertically Centered</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      Non omnis incidunt qui sed occaecati magni asperiores est mollitia. Soluta at et reprehenderit. Placeat autem numquam et fuga numquam. Tempora in facere consequatur sit dolor ipsum. Consequatur nemo amet incidunt est facilis. Dolorem neque recusandae quo sit molestias sint dignissimos.
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                      <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 	
@@ -136,21 +134,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		var criteria = $(this).val().toUpperCase();
 		
 		$(".row_emp").each(function(index, elem) {
-			//var text = $(elem).text();
-			if ($(elem).find(".search_criteria").html().toUpperCase().includes(criteria)){
-				$(elem).show();
-			} else {
-				$(elem).hide();
-			}
-			/*
-			if (text.includes("hola")) {
-				$(elem).show();
-			} else {
-				$(elem).hide();
-			}
-			*/
+			if ($(elem).find(".search_criteria").html().toUpperCase().includes(criteria)) $(elem).show();
+			else $(elem).hide();
 		});
-		//console.log();
 	});
 });
 </script>

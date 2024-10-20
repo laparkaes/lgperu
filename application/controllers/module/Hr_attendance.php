@@ -45,6 +45,7 @@ class Hr_attendance extends CI_Controller {
 			
 			$days_week[$day] = $day_w;
 			$days[$day] = [
+				"date" => $item,
 				"day" => $day,
 				"first_access" => ["time" => null, "remark" => null],
 				"last_access" => ["time" => null, "remark" => null],
