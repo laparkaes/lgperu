@@ -63,7 +63,7 @@
 									emp_pr="<?= $item["data"]->employee_number ?>" 
 									emp_name="<?= $item["data"]->name ?>" 
 									date="<?= $item_day["date"] ?>" 
-									data-bs-toggle="modal" data-bs-target="#verticalycentered">
+									data-bs-toggle="modal" data-bs-target="#md_sch_exception">
 									<div class="text-<?= $item["access"][$item_day["day"]]["first_access"]["remark"] === "T" ? "danger" : "" ?>">
 										<?= $item["access"][$item_day["day"]]["first_access"]["time"] ?>
 									</div>
@@ -82,23 +82,44 @@
 	</div>
 </section>
 
-<div class="modal fade" id="verticalycentered" tabindex="-1" style="display: none;" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title">Vertically Centered</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                      Non omnis incidunt qui sed occaecati magni asperiores est mollitia. Soluta at et reprehenderit. Placeat autem numquam et fuga numquam. Tempora in facere consequatur sit dolor ipsum. Consequatur nemo amet incidunt est facilis. Dolorem neque recusandae quo sit molestias sint dignissimos.
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                      <button type="button" class="btn btn-primary">Save changes</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+<div class="modal fade" id="md_sch_exception" tabindex="-1" style="display: none;" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Vertically Centered</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form class="row g-3">
+					<div class="col-md-12">
+						<label for="sl_type" class="form-label">Type</label>
+						<select id="sl_type" class="form-select" name="type">
+							<option value="">Select...</option>
+							<option value="MV">Vacation (Morning)</option>
+							<option value="AV">Vacation (Afternoon)</option>
+							<option value="FV">Vacation (Full-day)</option>
+						</select>
+					</div>
+					<div class="col-md-12">
+						<label for="ip_remark" class="form-label">Remark</label>
+						<input type="text" class="form-control" id="ip_remark" name="remark">
+					</div>
+					<div class="col-md-8">
+						<label for="ip_name" class="form-label">Name</label>
+						<input type="text" class="form-control" id="ip_name" readonly>
+					</div>
+					<div class="col-md-4">
+						<label for="ip_pr" class="form-label">PR</label>
+						<input type="text" class="form-control" id="ip_pr" name="pr" readonly>
+					</div>
+					<div class="text-center pt-3">
+						<button type="submit" class="btn btn-primary">Submit</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 	
@@ -137,6 +158,13 @@ document.addEventListener("DOMContentLoaded", () => {
 			if ($(elem).find(".search_criteria").html().toUpperCase().includes(criteria)) $(elem).show();
 			else $(elem).hide();
 		});
+	});
+	
+	$(".md_exception").click(function() {
+		$("#sl_type").val("");
+		$("#ip_pr").val($(this).attr("emp_pr"));
+		$("#ip_name").val($(this).attr("emp_name"));
+		//$(this).attr("emp_pr");
 	});
 });
 </script>
