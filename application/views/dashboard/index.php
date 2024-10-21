@@ -1,5 +1,11 @@
 <section class="section dashboard">
 	<div class="row">
+		<div class="col-md-12">
+			<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                Please contact with PI if you can't see any menu
+				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+			</div>
+		</div>
 		<div class="col-md-4">
 			<div class="card">
 				<div class="card-body">
