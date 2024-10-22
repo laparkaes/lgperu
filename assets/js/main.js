@@ -170,4 +170,12 @@
     }, 200);
   }
 
+
+  $('.datepicker').datepicker({
+	  autoclose: true,
+	  format: 'yyyy-mm-dd',
+	  orientation: 'auto',
+	  todayHighlight: true,
+  });
+
 })();

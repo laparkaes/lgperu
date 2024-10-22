@@ -103,7 +103,7 @@ h6 {
 /*--------------------------------------------------------------
 # Override some default Bootstrap stylings
 --------------------------------------------------------------*/
-/* Dropdown menus */
+/* Dropdown menus
 .dropdown-menu {
   border-radius: 4px;
   padding: 10px 0;
@@ -179,7 +179,7 @@ h6 {
     opacity: 0;
   }
 }
-
+ */
 /* Light Backgrounds */
 .bg-primary-light {
   background-color: #cfe2ff;

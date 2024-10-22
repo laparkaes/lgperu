@@ -90,19 +90,27 @@
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
-				<form class="row g-3">
+				<form class="row g-3" id="form_add_exception">
+					<div class="col-md-6">
+						<label for="ip_from" class="form-label">From</label>
+						<input type="text" class="form-control datepicker" id="ip_from" name="d_from" readonly>
+					</div>
+					<div class="col-md-6">
+						<label for="ip_to" class="form-label">To</label>
+						<input type="text" class="form-control datepicker" id="ip_to" name="d_to" readonly>
+					</div>
 					<div class="col-md-12">
 						<label for="sl_type" class="form-label">Type</label>
-						<select id="sl_type" class="form-select" name="type">
+						<select id="sl_type" class="form-select" name="exc[type]">
 							<option value="">Select...</option>
-							<option value="MV">Vacation (Morning)</option>
-							<option value="AV">Vacation (Afternoon)</option>
-							<option value="FV">Vacation (Full-day)</option>
+							<?php foreach($exceptions as $item){ ?>
+							<option value="<?= $item[0] ?>"><?= $item[1] ?></option>
+							<?php } ?>
 						</select>
 					</div>
 					<div class="col-md-12">
 						<label for="ip_remark" class="form-label">Remark</label>
-						<input type="text" class="form-control" id="ip_remark" name="remark">
+						<input type="text" class="form-control" id="ip_remark" name="exc[remark]" placeholder="Optional">
 					</div>
 					<div class="col-md-8">
 						<label for="ip_name" class="form-label">Name</label>
@@ -110,7 +118,7 @@
 					</div>
 					<div class="col-md-4">
 						<label for="ip_pr" class="form-label">PR</label>
-						<input type="text" class="form-control" id="ip_pr" name="pr" readonly>
+						<input type="text" class="form-control" id="ip_pr" name="exc[pr]" readonly>
 					</div>
 					<div class="text-center pt-3">
 						<button type="submit" class="btn btn-primary">Submit</button>
@@ -127,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		e.preventDefault();
 		$("#form_exp_report .sys_msg").html("");
 		ajax_form_warning(this, "module/attendance/export_monthly_report", "Do you want to export monthly attendance report?").done(function(res) {
-			window.location.href = res.url;
+			swal_redirection(res.type, res.msg, "module/hr_attendance");
 			//alert();
 			//swal_redirection(res.type, res.msg, "module/attendance");
 		});
@@ -164,7 +172,17 @@ document.addEventListener("DOMContentLoaded", () => {
 		$("#sl_type").val("");
 		$("#ip_pr").val($(this).attr("emp_pr"));
 		$("#ip_name").val($(this).attr("emp_name"));
-		//$(this).attr("emp_pr");
+		$("#ip_from").val($(this).attr("date"));
+		$("#ip_to").val($(this).attr("date"));
+		$('.datepicker').datepicker('update', $(this).attr("date"));
+	});
+	
+	$("#form_add_exception").submit(function(e) {
+		e.preventDefault();
+		$("#form_add_exception .sys_msg").html("");
+		ajax_form_warning(this, "module/hr_attendance/add_exception", "Do you want to add exception? (You can remove exceptions in employee detail page.)").done(function(res) {
+			swal_redirection(res.type, res.msg, "module/hr_attendance");
+		});
 	});
 });
 </script>

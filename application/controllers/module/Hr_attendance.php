@@ -233,6 +233,14 @@ class Hr_attendance extends CI_Controller {
 			$now = date("Y-m", strtotime($now." -1 month"));
 		}
 		
+		//options to select in exception list
+		$exceptions = [
+			["V", "Vacation"],
+			["MV", "Half Vacation (Morning)"],
+			["AV", "Half Vacation (Afternoon)"],
+			["MED", "Medical Vacation"],
+		];
+		
 		$data = [
 			"period" => $period,
 			"periods" => $periods,
@@ -243,10 +251,47 @@ class Hr_attendance extends CI_Controller {
 			"free_days" => $free_days,
 			"employees" => $employees,
 			"schedule_pr" => $schedule_pr,
+			"exceptions" => $exceptions,
 			"main" => "module/hr_attendance/index", 
 		];
 		
 		$this->load->view('layout', $data);
 	}
+	
+	public function add_exception(){
+		$type = "error"; $msg = null;
+		$d_from = $this->input->post("d_from");
+		$d_to = $this->input->post("d_to");
+		$exc = $this->input->post("exc");
 		
+		if (strtotime($d_from) <= strtotime($d_to)){
+			if (!$this->gen_m->filter("hr_attendance_exception", false, ["exc_date >=" => $d_from, "exc_date <=" => $d_to])){
+				if ($exc["type"]){
+					
+					$now = $d_from;
+					while (strtotime($now) <= strtotime($d_to)){
+						/*
+						Array
+						(
+							[d_from] => 2024-10-02
+							[d_to] => 2024-10-02
+							[type] => V
+							[remark] => 
+							[pr] => PR001736
+						)
+						*/
+						
+						$exc["exc_date"] = $now;
+						$this->gen_m->insert("hr_attendance_exception", $exc);
+						
+						$now = date("Y-m-d", strtotime($now.' +1 day'));
+					}
+
+				}else $msg = "Select an exception type.";
+			}else $msg = "There is at least one exception between the dates.";
+		}else $msg = "Date selection error.";
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg]);
+	}
 }

@@ -1,0 +1,2 @@
+https://github.com/uxsolutions/bootstrap-datepicker/tree/master
+https://bootstrap-datepicker.readthedocs.io/en/latest/index.html
