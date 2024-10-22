@@ -32,4 +32,22 @@ class Exchange_rate extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode($res);
 	}
+	
+	public function get_last($currency){//RPA
+		//llamasys/api/exchange_rate/get_last/pen
+		//llamasys/api/exchange_rate/get_last/pyg
+		
+		$er = $this->gen_m->filter("exchange_rate", false, ["currency" => $currency], null, null, [["date", "desc"]], 1)[0];
+		
+		$res = [
+			"cur_from"	=> "USD",
+			"cur_to"	=> strtoupper($currency),
+			"conv_date"	=> date("Ymd"),
+			"conv_type"	=> "LGEPR_TTM",
+			"conv_rate" => $er->sell,
+		];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
 }
