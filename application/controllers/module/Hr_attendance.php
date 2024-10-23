@@ -248,7 +248,9 @@ class Hr_attendance extends CI_Controller {
 					if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
 					if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
 					
+					$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
 					$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+					$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
 					$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
 					break;
 			}
