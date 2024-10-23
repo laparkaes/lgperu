@@ -172,6 +172,7 @@ class Hr_attendance extends CI_Controller {
 		T: Tardiness
 		E: Early-Out
 		V: Vacation
+		MED: Medical Vacation
 		*/
 		
 		$no_attn_days = ["Sat", "Sun"];
@@ -180,6 +181,8 @@ class Hr_attendance extends CI_Controller {
 				$day_pivot = date("Y-m-", strtotime($from)).$access["day"];
 				
 				if (!in_array(date("D", strtotime($day_pivot)), $no_attn_days)){
+					
+					//$employees[$pr]["summary"]["check_days"]++;
 					
 					if ($access["first_access"]["time"]){
 						$start = strtotime($schedule_pr[$pr][$day_pivot]["start"]);
@@ -201,6 +204,53 @@ class Hr_attendance extends CI_Controller {
 						}
 					}
 				}
+			}
+		}
+		
+		//exception days setting
+		/*
+		stdClass Object
+        (
+            [exception_id] => 4
+            [pr] => PR009350
+            [exc_date] => 2024-10-07
+            [type] => V
+            [remark] => 
+        )
+		*/
+		//$employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "T";
+		$exceptions = $this->gen_m->filter("hr_attendance_exception", false, ["exc_date >=" => $from, "exc_date <=" => $to]);
+		foreach($exceptions as $item){
+			$day = date("d", strtotime($item->exc_date));
+			switch($item->type){
+				case "V":
+					if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+					if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+					if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+					
+					$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
+					$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+					$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
+					$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+					break;
+				case "MV":
+					if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+				
+					$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+					break;
+				case "AV":
+					if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+				
+					$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+					break;
+				case "MED":
+					if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+					if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+					if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+					
+					$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+					$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+					break;
 			}
 		}
 		
@@ -260,12 +310,14 @@ class Hr_attendance extends CI_Controller {
 	
 	public function add_exception(){
 		$type = "error"; $msg = null;
+		
 		$d_from = $this->input->post("d_from");
 		$d_to = $this->input->post("d_to");
 		$exc = $this->input->post("exc");
+		$no_attn_days = ["Sat", "Sun"];
 		
 		if (strtotime($d_from) <= strtotime($d_to)){
-			if (!$this->gen_m->filter("hr_attendance_exception", false, ["exc_date >=" => $d_from, "exc_date <=" => $d_to])){
+			if (!$this->gen_m->filter("hr_attendance_exception", false, ["pr" => $exc["pr"], "exc_date >=" => $d_from, "exc_date <=" => $d_to])){
 				if ($exc["type"]){
 					
 					$now = $d_from;
@@ -281,12 +333,16 @@ class Hr_attendance extends CI_Controller {
 						)
 						*/
 						
-						$exc["exc_date"] = $now;
-						$this->gen_m->insert("hr_attendance_exception", $exc);
+						if (!in_array(date("D", strtotime($now)), $no_attn_days)){
+							$exc["exc_date"] = $now;
+							$this->gen_m->insert("hr_attendance_exception", $exc);
+						}
 						
 						$now = date("Y-m-d", strtotime($now.' +1 day'));
 					}
-
+					
+					$type = "success";
+					$msg = "Exception has been registered.";
 				}else $msg = "Select an exception type.";
 			}else $msg = "There is at least one exception between the dates.";
 		}else $msg = "Date selection error.";

@@ -27,7 +27,7 @@
 						</div>
 					</div>
 					<table class="table align-middle">
-						<thead>
+						<thead class="sticky-top">
 							<tr>
 								<th scope="col">Employee</th>
 								<th scope="col">PR</th>
@@ -59,17 +59,27 @@
 									<div><?= date("H:i", strtotime($schedule_pr[$item["data"]->employee_number][$to]["end"])) ?></div>
 								</td>
 								<?php foreach($days as $item_day){ ?>
-								<td class="md_exception" 
+								<td class="text-center md_exception" 
 									emp_pr="<?= $item["data"]->employee_number ?>" 
 									emp_name="<?= $item["data"]->name ?>" 
 									date="<?= $item_day["date"] ?>" 
 									data-bs-toggle="modal" data-bs-target="#md_sch_exception">
-									<div class="text-<?= $item["access"][$item_day["day"]]["first_access"]["remark"] === "T" ? "danger" : "" ?>">
-										<?= $item["access"][$item_day["day"]]["first_access"]["time"] ?>
-									</div>
-									<div class="text-<?= $item["access"][$item_day["day"]]["last_access"]["remark"] === "E" ? "danger" : "" ?>">
-										<?= $item["access"][$item_day["day"]]["last_access"]["time"] ?>
-									</div>
+									<?php
+									$now = $item["access"][$item_day["day"]];
+									$aux = [];
+									
+									if ($now["first_access"]["time"]){
+										if ($now["first_access"]["remark"] === "MV") $aux[] = $now["first_access"]["remark"];
+										$aux[] = '<span class="text-'.($now["first_access"]["remark"] === "T" ? "danger" : "").'">'.$now["first_access"]["time"].'</span>';
+									}else $aux[] = $now["first_access"]["remark"];
+									
+									if ($now["last_access"]["time"]){
+										$aux[] = '<span class="text-'.($now["last_access"]["remark"] === "E" ? "danger" : "").'">'.$now["last_access"]["time"].'</span>';
+										if ($now["last_access"]["remark"] === "AV") $aux[] = $now["last_access"]["remark"];
+									}else $aux[] = $now["last_access"]["remark"];
+									
+									if ($aux) echo implode("<br/>", array_unique($aux));
+									?>
 								</td>
 								<?php } ?>
 							</tr>
