@@ -35,8 +35,10 @@
 								<th scope="col">T<br/>E</th>
 								<th scope="col" class="border-end">Time</th>
 								<?php foreach($days as $item){ ?>
-								<th scope="col">
-									<div class="text-center text-<?= (in_array($item["day"], $free_days)) ? "danger" : "" ?>">
+								<th scope="col" class="text-center md_holiday" 
+									date="<?= $item["date"] ?>" 
+									data-bs-toggle="modal" data-bs-target="#md_sch_holiday">
+									<div class="text-<?= (in_array($item["day"], $free_days)) ? "danger" : "" ?>">
 										<?= $item["day"] ?><br/><?= substr($days_week[$item["day"]], 0, 3) ?>
 									</div>
 								</th>
@@ -96,11 +98,11 @@
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title">Vertically Centered</h5>
+				<h5 class="modal-title">Employee Exception</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
-				<form class="row g-3" id="form_add_exception">
+				<form class="row g-3 form_add_exception">
 					<div class="col-md-6">
 						<label for="ip_from" class="form-label">From</label>
 						<input type="text" class="form-control datepicker" id="ip_from" name="d_from" readonly>
@@ -138,6 +140,47 @@
 		</div>
 	</div>
 </div>
+
+<div class="modal fade" id="md_sch_holiday" tabindex="-1" style="display: none;" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Holiday</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form class="row g-3 form_add_exception">
+					<div class="col-md-6">
+						<label for="ip_ho_from" class="form-label">From</label>
+						<input type="text" class="form-control datepicker" id="ip_ho_from" name="d_from" readonly>
+					</div>
+					<div class="col-md-6">
+						<label for="ip_ho_to" class="form-label">To</label>
+						<input type="text" class="form-control datepicker" id="ip_ho_to" name="d_to" readonly>
+					</div>
+					<div class="col-md-12">
+						<label for="sl_ho_type" class="form-label">Type</label>
+						<select id="sl_ho_type" class="form-select" name="exc[type]">
+							<option value="H">Holiday</option>
+						</select>
+					</div>
+					<div class="col-md-12">
+						<label for="ip_ho_remark" class="form-label">Remark</label>
+						<input type="text" class="form-control" id="ip_ho_remark" name="exc[remark]" placeholder="Optional">
+					</div>
+					<div class="col-md-12">
+						<label for="ip_ho_pr" class="form-label">PR</label>
+						<input type="text" class="form-control" id="ip_ho_pr" name="exc[pr]" value="LGEPR" readonly>
+					</div>
+					<div class="text-center pt-3">
+						<button type="submit" class="btn btn-primary">Submit</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 	
@@ -187,7 +230,13 @@ document.addEventListener("DOMContentLoaded", () => {
 		$('.datepicker').datepicker('update', $(this).attr("date"));
 	});
 	
-	$("#form_add_exception").submit(function(e) {
+	$(".md_holiday").click(function() {
+		$("#ip_from").val($(this).attr("date"));
+		$("#ip_to").val($(this).attr("date"));
+		$('.datepicker').datepicker('update', $(this).attr("date"));
+	});
+	
+	$(".form_add_exception").submit(function(e) {
 		e.preventDefault();
 		$("#form_add_exception .sys_msg").html("");
 		ajax_form_warning(this, "module/hr_attendance/add_exception", "Do you want to add exception? (You can remove exceptions in employee detail page.)").done(function(res) {
