@@ -121,7 +121,6 @@ class Hr_attendance extends CI_Controller {
 				}
 				
 				$prs[] = $item->pr;
-				$employees[$item->pr]["summary"]["check_days"]++;
 				$employees[$item->pr]["access"][$day]["first_access"]["time"] = $first_time;
 				$employees[$item->pr]["access"][$day]["last_access"]["time"] = $last_time;
 			}
@@ -175,16 +174,21 @@ class Hr_attendance extends CI_Controller {
 		MED: Medical Vacation
 		*/
 		
+		$exceptions = $this->gen_m->filter("hr_attendance_exception", false, ["exc_date >=" => $from, "exc_date <=" => $to, "pr" => "LGEPR"]);
+		foreach($exceptions as $item) $free_days[] = date("d", strtotime($item->exc_date));
+		
 		$no_attn_days = ["Sat", "Sun"];
 		foreach($employees as $pr => $item){
 			foreach($item["access"] as $aux => $access){
 				$day_pivot = date("Y-m-", strtotime($from)).$access["day"];
 				
-				if (!in_array(date("D", strtotime($day_pivot)), $no_attn_days)){
+				if (!(in_array($access["day"], $free_days))){
 					
 					//$employees[$pr]["summary"]["check_days"]++;
 					
 					if ($access["first_access"]["time"]){
+						$employees[$pr]["summary"]["check_days"]++;
+						
 						$start = strtotime($schedule_pr[$pr][$day_pivot]["start"]);
 						$first = strtotime($access["first_access"]["time"]);
 						
@@ -219,40 +223,42 @@ class Hr_attendance extends CI_Controller {
         )
 		*/
 		//$employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "T";
-		$exceptions = $this->gen_m->filter("hr_attendance_exception", false, ["exc_date >=" => $from, "exc_date <=" => $to, "pr !=" => "LGEPR"]);
+		$exceptions = $this->gen_m->filter("hr_attendance_exception", false, ["exc_date >=" => $from, "exc_date <=" => $to], null, null, [["pr", "asc"]]);
 		foreach($exceptions as $item){
-			$day = date("d", strtotime($item->exc_date));
-			switch($item->type){
-				case "V":
-					if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
-					if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
-					if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+			if ($item->pr !== "LGEPR"){
+				$day = date("d", strtotime($item->exc_date));
+				switch($item->type){
+					case "V":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+						
+						$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "MV":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
 					
-					$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
-					$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
-					$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
-					$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
-					break;
-				case "MV":
-					if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
-				
-					$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
-					break;
-				case "AV":
-					if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
-				
-					$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
-					break;
-				case "MED":
-					if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
-					if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
-					if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						break;
+					case "AV":
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
 					
-					$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
-					$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
-					$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
-					$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
-					break;
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "MED":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+						
+						$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+				}
 			}
 		}
 		
@@ -286,7 +292,7 @@ class Hr_attendance extends CI_Controller {
 		}
 		
 		//options to select in exception list
-		$exceptions = [
+		$exceptions_op = [
 			["V", "Vacation"],
 			["MV", "Half Vacation (Morning)"],
 			["AV", "Half Vacation (Afternoon)"],
@@ -304,6 +310,7 @@ class Hr_attendance extends CI_Controller {
 			"employees" => $employees,
 			"schedule_pr" => $schedule_pr,
 			"exceptions" => $exceptions,
+			"exceptions_op" => $exceptions_op,
 			"main" => "module/hr_attendance/index", 
 		];
 		

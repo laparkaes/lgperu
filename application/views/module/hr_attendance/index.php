@@ -21,13 +21,16 @@
 								<?php } ?>
 							</select>
 							<input type="text" class="form-control me-1" id="ip_search" placeholder="Search" style="width: 300px;">
-							<button type="button" class="btn btn-success" disabled>
+							<button type="button" class="btn btn-success me-1" disabled>
 								<i class="bi bi-file-earmark-spreadsheet"></i> Export
+							</button>
+							<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#largeModal">
+								<i class="bi bi-calendar2-week-fill"></i>
 							</button>
 						</div>
 					</div>
 					<table class="table align-middle">
-						<thead class="sticky-top">
+						<thead class="sticky-top" style="z-index: 10; top: 60px;">
 							<tr>
 								<th scope="col">Employee</th>
 								<th scope="col">PR</th>
@@ -115,7 +118,7 @@
 						<label for="sl_type" class="form-label">Type</label>
 						<select id="sl_type" class="form-select" name="exc[type]">
 							<option value="">Select...</option>
-							<?php foreach($exceptions as $item){ ?>
+							<?php foreach($exceptions_op as $item){ ?>
 							<option value="<?= $item[0] ?>"><?= $item[1] ?></option>
 							<?php } ?>
 						</select>
@@ -176,6 +179,20 @@
 						<button type="submit" class="btn btn-primary">Submit</button>
 					</div>
 				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="largeModal" tabindex="-1" style="display: none;" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Exceptions</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<?php print_r($exceptions); ?>
 			</div>
 		</div>
 	</div>
