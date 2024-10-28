@@ -29,11 +29,10 @@
 							</button>
 						</div>
 					</div>
-					<table class="table align-middle">
+					<table class="table align-middle" style="font-size: 0.8rem;">
 						<thead class="sticky-top" style="z-index: 10; top: 60px;">
 							<tr>
-								<th scope="col">Employee</th>
-								<th scope="col">PR</th>
+								<th scope="col">Employee | PR</th>
 								<th scope="col">Days</th>
 								<th scope="col">T<br/>E</th>
 								<th scope="col" class="border-end">Time</th>
@@ -54,9 +53,9 @@
 								<td>
 									<div class="search_criteria d-none"><?= $item["data"]->name." ".$item["data"]->dept." ".$item["data"]->employee_number." ".$item["data"]->ep_mail ?></div>
 									<div><?= $item["data"]->name ?></div>
+									<div><?= $item["data"]->employee_number ?></div>
 									<div class="text-nowrap"><small><?= $item["data"]->dept ?></small></div>
 								</td>
-								<td><?= $item["data"]->employee_number ?></td>
 								<td><?= $item["summary"]["check_days"] ?></td>
 								<td><?= $item["summary"]["tardiness"] ?><br/><?= $item["summary"]["early_out"] ?></td>
 								<td class="border-end">
