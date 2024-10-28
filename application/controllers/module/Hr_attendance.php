@@ -205,8 +205,8 @@ class Hr_attendance extends CI_Controller {
 					}
 					
 					if ($access["last_access"]["time"]){
-						$end = strtotime($schedule_pr[$pr][$day_pivot]["end"]);
-						$last = in_array($access["day"], $early_friday_days) ? strtotime("12:30:00") :strtotime($access["last_access"]["time"]);
+						$end = in_array($access["day"], $early_friday_days) ? strtotime("12:30:00") : strtotime($schedule_pr[$pr][$day_pivot]["end"]);
+						$last = strtotime($access["last_access"]["time"]);
 						
 						if ($last < $end){
 							$employees[$pr]["summary"]["early_out"]++;
