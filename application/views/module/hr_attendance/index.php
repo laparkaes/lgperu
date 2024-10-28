@@ -165,6 +165,7 @@
 						<label for="sl_ho_type" class="form-label">Type</label>
 						<select id="sl_ho_type" class="form-select" name="exc[type]">
 							<option value="H">Holiday</option>
+							<option value="EF">Early Friday</option>
 						</select>
 					</div>
 					<div class="col-md-12">
@@ -192,7 +193,34 @@
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
-				<?php print_r($exceptions); ?>
+				<div>H: Holiday | EF: Early Friday<br/>MV: Morning Vacation | AV: Afternoon Vacation | V: Vacation | MED: Medical Vacation</div>
+				<table class="table">
+					<thead>
+						<tr>
+							<th scope="col">PR</th>
+							<th scope="col">Date</th>
+							<th scope="col">Type</th>
+							<th scope="col">Remark</th>
+							<th scope="col"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach($exceptions as $item){ // [0] => stdClass Object ( [exception_id] => 4 [pr] => LGEPR [exc_date] => 2024-10-08 [type] => H [remark] => ) ?>
+						<tr id="row_exc_<?= $item->exception_id ?>">
+							<td><?= $item->pr ?></td>
+							<td><?= $item->exc_date ?></td>
+							<td><?= $item->type ?></td>
+							<td><?= $item->remark ?></td>
+							<td>
+								<div class="text-end">
+									<button type="button" class="btn btn-outline-danger btn-sm btn_remove_exc" value="<?= $item->exception_id ?>"><i class="bi bi-x-lg"></i></button>
+								</div>
+							</td>
+						</tr>
+						<?php } ?>
+					</tbody>
+				</table>
+				<a class="btn btn-primary mt-3" href="<?= base_url() ?>module/hr_attendance">Close & Refresh Page</a>
 			</div>
 		</div>
 	</div>
@@ -256,9 +284,20 @@ document.addEventListener("DOMContentLoaded", () => {
 	$(".form_add_exception").submit(function(e) {
 		e.preventDefault();
 		$("#form_add_exception .sys_msg").html("");
-		ajax_form_warning(this, "module/hr_attendance/add_exception", "Do you want to add exception? (You can remove exceptions in employee detail page.)").done(function(res) {
+		ajax_form_warning(this, "module/hr_attendance/add_exception", "Do you want to add exception?").done(function(res) {
 			swal_redirection(res.type, res.msg, "module/hr_attendance");
 		});
 	});
+	
+	
+	$(".btn_remove_exc").click(function() {
+		var exc_id = $(this).val();
+		
+		ajax_simple_warning({exc_id: exc_id}, "module/hr_attendance/remove_exception", "Remove selected exception?").done(function(res) {
+			toastr.success("Exception removed !!!", null, {timeOut: 5000});
+			$("#row_exc_" + exc_id).remove();
+		});
+	});
+	
 });
 </script>

@@ -156,6 +156,27 @@
     new simpleDatatables.DataTable(datatable, options);
   })
   
+  
+  const datatables_10 = select('.datatable_10', true);
+  let options_10 = {
+	searchable: true,
+	sortable: false,
+    perPage: 10,
+	perPageSelect: [10, 25, 50, 100],
+	classes: {
+		input: "form-control",
+		selector: "form-select",
+		top: "datatable-top px-0 py-2",
+	},
+	labels: {
+		perPage: "",
+		info: "{start} - {end} / {rows}",
+	},
+  };
+  datatables_10.forEach(datatable => {
+    new simpleDatatables.DataTable(datatable, options_10);
+  })
+  
   /**
    * Autoresize echart charts
    */

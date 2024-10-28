@@ -175,7 +175,15 @@ class Hr_attendance extends CI_Controller {
 		*/
 		
 		$exceptions = $this->gen_m->filter("hr_attendance_exception", false, ["exc_date >=" => $from, "exc_date <=" => $to, "pr" => "LGEPR"]);
-		foreach($exceptions as $item) $free_days[] = date("d", strtotime($item->exc_date));
+		foreach($exceptions as $item) if ($item->type === "H") $free_days[] = date("d", strtotime($item->exc_date));
+		
+		$early_friday_days = [];
+		$early_friday = $this->gen_m->filter("hr_attendance_exception", false, ["exc_date >=" => $from, "exc_date <=" => $to, "pr" => "LGEPR", "type" => "EF"]);
+		foreach($early_friday as $item){
+			$early_friday_days[] = date("d", strtotime($item->exc_date));
+		}
+		
+		print_r($early_friday);
 		
 		$no_attn_days = ["Sat", "Sun"];
 		foreach($employees as $pr => $item){
@@ -184,12 +192,12 @@ class Hr_attendance extends CI_Controller {
 				
 				if (!(in_array($access["day"], $free_days))){
 					
-					//$employees[$pr]["summary"]["check_days"]++;
+					if ($access["first_access"]["time"] === $access["last_access"]["time"]) $access["last_access"]["time"] = null;
 					
 					if ($access["first_access"]["time"]){
 						$employees[$pr]["summary"]["check_days"]++;
 						
-						$start = strtotime($schedule_pr[$pr][$day_pivot]["start"]);
+						$start = in_array($access["day"], $early_friday_days) ? strtotime("08:30:00") : strtotime($schedule_pr[$pr][$day_pivot]["start"]);
 						$first = strtotime($access["first_access"]["time"]);
 						
 						if ($start < $first){
@@ -200,7 +208,7 @@ class Hr_attendance extends CI_Controller {
 					
 					if ($access["last_access"]["time"]){
 						$end = strtotime($schedule_pr[$pr][$day_pivot]["end"]);
-						$last = strtotime($access["last_access"]["time"]);
+						$last = in_array($access["day"], $early_friday_days) ? strtotime("18:30:00") :strtotime($access["last_access"]["time"]);
 						
 						if ($last < $end){
 							$employees[$pr]["summary"]["early_out"]++;
@@ -325,6 +333,10 @@ class Hr_attendance extends CI_Controller {
 		$exc = $this->input->post("exc");
 		$no_attn_days = ["Sat", "Sun"];
 		
+		$free_days = [];
+		$exceptions = $this->gen_m->filter("hr_attendance_exception", false, ["exc_date >=" => $d_from, "exc_date <=" => $d_to, "pr" => "LGEPR"]);
+		foreach($exceptions as $item) $free_days[] = date("d", strtotime($item->exc_date));
+		
 		if (strtotime($d_from) <= strtotime($d_to)){
 			if (!$this->gen_m->filter("hr_attendance_exception", false, ["pr" => $exc["pr"], "exc_date >=" => $d_from, "exc_date <=" => $d_to])){
 				if ($exc["type"]){
@@ -342,7 +354,7 @@ class Hr_attendance extends CI_Controller {
 						)
 						*/
 						
-						if (!in_array(date("D", strtotime($now)), $no_attn_days)){
+						if (!(in_array(date("D", strtotime($now)), $no_attn_days) or (in_array(date("d", strtotime($now)), $free_days)))){
 							$exc["exc_date"] = $now;
 							$this->gen_m->insert("hr_attendance_exception", $exc);
 						}
@@ -358,5 +370,9 @@ class Hr_attendance extends CI_Controller {
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg]);
+	}
+	
+	public function remove_exception(){
+		$this->gen_m->delete("hr_attendance_exception", ["exception_id" => $this->input->post("exc_id")]);
 	}
 }
