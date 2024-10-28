@@ -32,7 +32,7 @@
 					<table class="table align-middle" style="font-size: 0.8rem;">
 						<thead class="sticky-top" style="z-index: 10; top: 60px;">
 							<tr>
-								<th scope="col">Employee | PR</th>
+								<th scope="col">Employee</th>
 								<th scope="col">Days</th>
 								<th scope="col">T<br/>E</th>
 								<th scope="col" class="border-end">Time</th>
@@ -52,9 +52,7 @@
 							<tr class="row_emp">
 								<td>
 									<div class="search_criteria d-none"><?= $item["data"]->name." ".$item["data"]->dept." ".$item["data"]->employee_number." ".$item["data"]->ep_mail ?></div>
-									<div><?= $item["data"]->name ?></div>
-									<div><?= $item["data"]->employee_number ?></div>
-									<div class="text-nowrap"><small><?= $item["data"]->dept ?></small></div>
+									<div><?= $item["data"]->name ?><br/><small><?= $item["data"]->employee_number ?><br/><?= $item["data"]->dept ?></small></div>
 								</td>
 								<td><?= $item["summary"]["check_days"] ?></td>
 								<td><?= $item["summary"]["tardiness"] ?><br/><?= $item["summary"]["early_out"] ?></td>
