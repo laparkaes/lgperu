@@ -198,6 +198,7 @@
 					<thead>
 						<tr>
 							<th scope="col">PR</th>
+							<th scope="col">Name</th>
 							<th scope="col">Date</th>
 							<th scope="col">Type</th>
 							<th scope="col">Remark</th>
@@ -208,6 +209,7 @@
 						<?php foreach($exceptions as $item){ // [0] => stdClass Object ( [exception_id] => 4 [pr] => LGEPR [exc_date] => 2024-10-08 [type] => H [remark] => ) ?>
 						<tr id="row_exc_<?= $item->exception_id ?>">
 							<td><?= $item->pr ?></td>
+							<td><?= $item->name ?></td>
 							<td><?= $item->exc_date ?></td>
 							<td><?= $item->type ?></td>
 							<td><?= $item->remark ?></td>

@@ -183,8 +183,6 @@ class Hr_attendance extends CI_Controller {
 			$early_friday_days[] = date("d", strtotime($item->exc_date));
 		}
 		
-		print_r($early_friday);
-		
 		$no_attn_days = ["Sat", "Sun"];
 		foreach($employees as $pr => $item){
 			foreach($item["access"] as $aux => $access){
@@ -234,6 +232,8 @@ class Hr_attendance extends CI_Controller {
 		$exceptions = $this->gen_m->filter("hr_attendance_exception", false, ["exc_date >=" => $from, "exc_date <=" => $to], null, null, [["pr", "asc"]]);
 		foreach($exceptions as $item){
 			if ($item->pr !== "LGEPR"){
+				$aux_emp = $this->gen_m->unique("hr_employee", "employee_number", $item->pr, false);
+				$item->name = $aux_emp ? $aux_emp->name : "";
 				$day = date("d", strtotime($item->exc_date));
 				switch($item->type){
 					case "V":
