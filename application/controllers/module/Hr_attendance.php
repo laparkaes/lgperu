@@ -231,6 +231,7 @@ class Hr_attendance extends CI_Controller {
 		//$employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "T";
 		$exceptions = $this->gen_m->filter("hr_attendance_exception", false, ["exc_date >=" => $from, "exc_date <=" => $to], null, null, [["pr", "asc"]]);
 		foreach($exceptions as $item){
+			$item->name = "";
 			if ($item->pr !== "LGEPR"){
 				$aux_emp = $this->gen_m->unique("hr_employee", "employee_number", $item->pr, false);
 				$item->name = $aux_emp ? $aux_emp->name : "";
