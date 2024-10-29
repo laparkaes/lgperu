@@ -13,19 +13,8 @@ class Hr_attendance extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 	}
 	
-	public function index(){
-		//mapping access update
-		$pr_mapping = [
-			["M875S9193", "PR009297"],//WOO WONSHIK
-			["M60682453", "PR009182"],//CHO, HYUN
-			["M75951391", "PR009329"],//HAN MUHYUN
-		];
-		foreach($pr_mapping as $item) $this->gen_m->update("hr_attendance", ["pr" => $item[0]], ["pr" => $item[1]]);
-		
-		//priod define
-		$period = $this->input->get("p");
-		if (!$period) $period = date("Y-m");
-		//$period = "2024-09";
+	private function set_attandance($period, $prs){
+		if (!$prs) $prs = [-1];
 		
 		//first & last date
 		$from = date("Y-m-01", strtotime($period));
@@ -60,8 +49,9 @@ class Hr_attendance extends CI_Controller {
 			["name", "asc"],
 		];
 		
+		//employee data array setting
 		$employees = [];
-		$employees_rec = $this->gen_m->filter("hr_employee", false, ["active" => true], null, null, $order);
+		$employees_rec = $this->gen_m->filter("hr_employee", false, ["active" => true], null, [["field" => "employee_number", "values" => $prs]], $order);
 		foreach($employees_rec as $item){
 			unset($item->password);
 			
@@ -89,12 +79,9 @@ class Hr_attendance extends CI_Controller {
 			];
 		}
 		
-		//access records load
+		//assign asistance summary in array
 		$w = ["work_date >=" => $from, "work_date <=" => $to];
-		$l = [["field" => "pr", "values" => ["PR"]]];
-		$prs = [-1];//used to load valid emmployee's schedules
-		
-		$records = $this->gen_m->filter("v_hr_attendance_summary", false, $w, $l);
+		$records = $this->gen_m->filter("v_hr_attendance_summary", false, $w, null, [["field" => "pr", "values" => $prs]]);
 		foreach($records as $item){
 			if ($item->pr){
 				$day = date("d", strtotime($item->work_date));
@@ -120,17 +107,12 @@ class Hr_attendance extends CI_Controller {
 					
 				}
 				
-				$prs[] = $item->pr;
 				$employees[$item->pr]["access"][$day]["first_access"]["time"] = $first_time;
 				$employees[$item->pr]["access"][$day]["last_access"]["time"] = $last_time;
 			}
 		}
 		
 		//work schedule validation
-		sort($prs);
-		$prs = array_unique($prs);
-		$prs = array_values($prs); //print_r($prs); echo "<br/><br/>";
-		
 		$day_pivot = $from;
 		$schedule_days = [];
 		while(strtotime($day_pivot) <= strtotime($to)){
@@ -292,25 +274,8 @@ class Hr_attendance extends CI_Controller {
 		return;
 		*/
 		
-		$periods = [];
-		$jan = date("Y-01"); 
-		$now = date("Y-m");
-		while(strtotime($now) >= strtotime($jan)){
-			$periods[] = $now;
-			$now = date("Y-m", strtotime($now." -1 month"));
-		}
-		
-		//options to select in exception list
-		$exceptions_op = [
-			["V", "Vacation"],
-			["MV", "Half Vacation (Morning)"],
-			["AV", "Half Vacation (Afternoon)"],
-			["MED", "Medical Vacation"],
-		];
-		
 		$data = [
 			"period" => $period,
-			"periods" => $periods,
 			"from" => $from,
 			"to" => $to,
 			"days" => $days,
@@ -319,11 +284,80 @@ class Hr_attendance extends CI_Controller {
 			"employees" => $employees,
 			"schedule_pr" => $schedule_pr,
 			"exceptions" => $exceptions,
-			"exceptions_op" => $exceptions_op,
-			"main" => "module/hr_attendance/index", 
 		];
 		
+		return $data;
+	}
+	
+	public function index(){
+		//mapping access update
+		$pr_mapping = [
+			["M875S9193", "PR009297"],//WOO WONSHIK
+			["M60682453", "PR009182"],//CHO, HYUN
+			["M75951391", "PR009329"],//HAN MUHYUN
+		];
+		foreach($pr_mapping as $item) $this->gen_m->update("hr_attendance", ["pr" => $item[0]], ["pr" => $item[1]]);
+		
+		//priod define
+		$period = $this->input->get("p");
+		if (!$period) $period = date("Y-m");
+		//$period = "2024-09";
+		
+		//first & last date
+		$from = date("Y-m-01", strtotime($period));
+		$to = date("Y-m-t", strtotime($period));
+		
+		//access records load
+		$w = ["work_date >=" => $from, "work_date <=" => $to];
+		$l = [["field" => "pr", "values" => ["PR"]]];
+		$prs = [];//used to load valid emmployee's schedules
+		
+		//load attendance records and 
+		$records = $this->gen_m->filter("v_hr_attendance_summary", false, $w, $l);
+		foreach($records as $item) $prs[] = $item->pr;
+		
+		sort($prs);
+		$prs = array_unique($prs);
+		$prs = array_values($prs);
+		
+		//additional data set
+		//period list
+		$periods = [];
+		$jan = date("Y-01"); 
+		$now = date("Y-m");
+		while(strtotime($now) >= strtotime($jan)){
+			$periods[] = $now;
+			$now = date("Y-m", strtotime($now." -1 month"));
+		}
+		
+		//options to select in exception list for employee
+		$exceptions_emp = [
+			["V", "Vacation"],
+			["MV", "Half Vacation (Morning)"],
+			["AV", "Half Vacation (Afternoon)"],
+			["MED", "Medical Vacation"],
+		];
+		
+		//options to select in exception list for company
+		$exceptions_com = [
+			["H", "Holiday"],
+			["EF", "Early Friday"],
+		];
+		
+		$data = $this->set_attandance($period, $prs);
+		
+		$data["periods"] = $periods;
+		$data["exceptions_emp"] = $exceptions_emp;
+		$data["exceptions_com"] = $exceptions_com;
+		$data["main"] = "module/hr_attendance/index";
+		
 		$this->load->view('layout', $data);
+	}
+	
+	public function export(){
+		//$data = $this->set_attandance($period, $prs);
+		$data = $this->set_attandance("2024-10", ["PR009337"]);
+		print_r($data);
 	}
 	
 	public function add_exception(){

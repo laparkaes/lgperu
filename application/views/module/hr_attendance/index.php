@@ -115,7 +115,7 @@
 						<label for="sl_type" class="form-label">Type</label>
 						<select id="sl_type" class="form-select" name="exc[type]">
 							<option value="">Select...</option>
-							<?php foreach($exceptions_op as $item){ ?>
+							<?php foreach($exceptions_emp as $item){ ?>
 							<option value="<?= $item[0] ?>"><?= $item[1] ?></option>
 							<?php } ?>
 						</select>
@@ -145,7 +145,7 @@
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title">Holiday</h5>
+				<h5 class="modal-title">Company Exception</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
@@ -161,8 +161,9 @@
 					<div class="col-md-12">
 						<label for="sl_ho_type" class="form-label">Type</label>
 						<select id="sl_ho_type" class="form-select" name="exc[type]">
-							<option value="H">Holiday</option>
-							<option value="EF">Early Friday</option>
+							<?php foreach($exceptions_com as $item){ ?>
+							<option value="<?= $item[0] ?>"><?= $item[1] ?></option>
+							<?php } ?>
 						</select>
 					</div>
 					<div class="col-md-12">
