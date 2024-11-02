@@ -224,7 +224,7 @@ class Hr_attendance extends CI_Controller {
 				$aux_emp = $this->gen_m->unique("hr_employee", "employee_number", $item->pr, false);
 				$item->name = $aux_emp ? $aux_emp->name : "";
 				$day = date("d", strtotime($item->exc_date));
-				switch($item->type){
+				if (array_key_exists($item->pr, $employees)) switch($item->type){
 					case "V":
 						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
 						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
@@ -382,17 +382,19 @@ class Hr_attendance extends CI_Controller {
 		
 		$sheet->getStyleByColumnAndRow(5, 3)->getAlignment()->setWrapText(true);
 		
-		$i = 7;
+		$j = 7;
 		foreach($data["days"] as $item){
-			$sheet->setCellValueByColumnAndRow($i, 3, $item["day"]."\n".substr($data["days_week"][$item["day"]], 0, 3));
-			$sheet->getStyleByColumnAndRow($i, 3)->getAlignment()->setWrapText(true);
+			$sheet->setCellValueByColumnAndRow($j, 3, $item["day"]."\n".substr($data["days_week"][$item["day"]], 0, 3));
+			$sheet->getStyleByColumnAndRow($j, 3)->getAlignment()->setWrapText(true);
 			
 			//setting color
-			if (in_array($item["day"], $data["free_days"])) $sheet->getStyleByColumnAndRow($i, 3)->getFont()->getColor()->setARGB('RED');
+			if (in_array($item["day"], $data["free_days"])) $sheet->getStyleByColumnAndRow($j, 3)->getFont()->getColor()->setARGB('RED');
 			
-			$i++;
+			$j++;
 		}
 		
+		$fill_color = "ffffff";
+		$fill_type = \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID;
 		$i = 0;
 		foreach($data["employees"] as $item){
 			$row_1 = ($i * 2) + 4;
@@ -400,7 +402,8 @@ class Hr_attendance extends CI_Controller {
 			
 			//employee datas
 			$sheet->setCellValueByColumnAndRow(1, $row_1, $item["data"]->name);
-			$sheet->setCellValueByColumnAndRow(2, $row_1, $item["data"]->dept);
+			$sheet->setCellValueByColumnAndRow(2, $row_1, $item["data"]->subsidiary." > ".$item["data"]->organization);
+			$sheet->setCellValueByColumnAndRow(2, $row_2, $item["data"]->department);
 			$sheet->setCellValueByColumnAndRow(3, $row_1, $item["data"]->employee_number);
 			$sheet->setCellValueByColumnAndRow(4, $row_1, $item["summary"]["check_days"]);
 			$sheet->setCellValueByColumnAndRow(5, $row_1, $item["summary"]["tardiness"]);
@@ -408,12 +411,31 @@ class Hr_attendance extends CI_Controller {
 			$sheet->setCellValueByColumnAndRow(6, $row_1, date("H:i", strtotime($data["schedule_pr"][$item["data"]->employee_number][$data["to"]]["start"])));
 			$sheet->setCellValueByColumnAndRow(6, $row_2, date("H:i", strtotime($data["schedule_pr"][$item["data"]->employee_number][$data["to"]]["end"])));
 			
+			$j = 7;
+			foreach($item["access"] as $item_ac){
+				$sheet->setCellValueByColumnAndRow($j, $row_1, $item_ac["first_access"]["time"]);
+				$sheet->setCellValueByColumnAndRow($j, $row_2, $item_ac["last_access"]["time"]);
+				
+				if ($item_ac["first_access"]["remark"] === "T") $sheet->getStyleByColumnAndRow($j, $row_1)->getFont()->getColor()->setARGB('RED');
+				if ($item_ac["last_access"]["remark"] === "E") $sheet->getStyleByColumnAndRow($j, $row_2)->getFont()->getColor()->setARGB('RED');
+				
+				$j++;
+			}
 			
+			$sheet->getStyle("A".$row_1.":AZ".$row_1)->getFill()->setFillType($fill_type)->getStartColor()->setARGB($fill_color);
+			$sheet->getStyle("A".$row_2.":AZ".$row_2)->getFill()->setFillType($fill_type)->getStartColor()->setARGB($fill_color);
 			
-			//print_r($item); echo "<br/><br/>";
+			$fill_color = ("ffffff" === $fill_color) ? "efefef" : "ffffff";
 			
 			$i++;
 		}
+		
+		$sheet->getStyle("A1:AZ1")->getFill()->setFillType($fill_type)->getStartColor()->setARGB("ffffff");
+		$sheet->getStyle("A2:AZ2")->getFill()->setFillType($fill_type)->getStartColor()->setARGB("ffffff");
+		$sheet->getStyle("A3:AZ3")->getFill()->setFillType($fill_type)->getStartColor()->setARGB("efefef");
+
+		$sheet->getStyle("A1:AZ1")->getFont()->setBold(true);
+		$sheet->getStyle("A3:AZ3")->getFont()->setBold(true);
 		
 		//save excel file to a temporary directory
 		$filename = "hr_attendance_report.xlsx";
@@ -425,42 +447,19 @@ class Hr_attendance extends CI_Controller {
 		
 		echo '<br/><a href="'.$url.'" download="Attendance '.$data["period"].'.xlsx">파일 다운로드</a><br/><br/><br/>';
 		
-		foreach($data as $key => $item){ echo $key."================="; print_r($item); echo "<br/><br/><br/><br/>"; }
+		//foreach($data as $key => $item){ echo $key."================="; print_r($item); echo "<br/><br/><br/><br/>"; }
 		
 		return $url;
 		
-		/*
-		if ($title){
-			//set report parameters
-			$sheet->setCellValueByColumnAndRow(1, $row_now, $title);
-			
-			$row_now++;
-			$sheet->setCellValueByColumnAndRow(1, $row_now, "Date");
-			$sheet->setCellValueByColumnAndRow(2, $row_now, date('Y-m-d H:i:s'));
-			
-			$row_now = $row_now + 2;
-		}
-		
-		
-		//set header
-		foreach($header as $i => $h) $sheet->setCellValueByColumnAndRow(($i + 1), $row_now, $h);
-		
-		//set rows
-		$row_from = $row_now + 1;
-		foreach($rows as $j => $row) 
-			foreach($row as $i => $r) 
-				$sheet->getCellByColumnAndRow(($i + 1), $row_from + $j)->setValue($r);
-				//$sheet->getCellByColumnAndRow(($i + 1), $row_from + $j)->setValueExplicit($r, DataType::TYPE_STRING);
-		
-		
-		
-		
-		*/
 	}
 	
 	public function export(){
-		//$data = $this->set_attandance($period, $prs);
-		$data = $this->set_attandance("2024-10", ["PR009337", "PR009243", "PR009027"]);
+		$period = $this->input->get("p");
+		if (!$period) $period = date("Y-m");
+		
+		$prs = ["PR009337", "PR009243", "PR009027"];
+		
+		$data = $this->set_attandance($period, $prs);
 		
 		$url = $this->make_excel($data);
 		
