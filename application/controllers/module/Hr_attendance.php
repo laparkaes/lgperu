@@ -455,16 +455,30 @@ class Hr_attendance extends CI_Controller {
 	
 	public function export(){
 		$period = $this->input->get("p");
+		if (!$period) $period = $this->input->post("p");
 		if (!$period) $period = date("Y-m");
 		
-		$prs = ["PR009337", "PR009243", "PR009027"];
+		//first & last date
+		$from = date("Y-m-01", strtotime($period));
+		$to = date("Y-m-t", strtotime($period));
+		
+		//access records load
+		$w = ["work_date >=" => $from, "work_date <=" => $to];
+		$l = [["field" => "pr", "values" => ["PR"]]];
+		$prs = [];//used to load valid emmployee's schedules
+		
+		//load attendance records and 
+		$records = $this->gen_m->filter("v_hr_attendance_summary", false, $w, $l);
+		foreach($records as $item) $prs[] = $item->pr;
+		
+		sort($prs);
+		$prs = array_unique($prs);
+		$prs = array_values($prs);
 		
 		$data = $this->set_attandance($period, $prs);
-		
 		$url = $this->make_excel($data);
 		
 		echo $url;
-		
 	}
 	
 	public function add_exception(){
