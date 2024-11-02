@@ -2,6 +2,12 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
 class Hr_attendance extends CI_Controller {
 
@@ -354,10 +360,112 @@ class Hr_attendance extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
+	private function make_excel($data){
+		$spreadsheet = new Spreadsheet();
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		//col, row in number
+		$sheet->setCellValueByColumnAndRow(1, 1, "Attendance Report ".$data["period"]);
+		
+		$sheet->getColumnDimension('A')->setWidth(30);
+		$sheet->getColumnDimension('B')->setWidth(40);
+		$sheet->getStyle('A:Z')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+		$sheet->getStyle('C:AZ')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+		
+		//header
+		$sheet->setCellValueByColumnAndRow(1, 3, "Employee");
+		$sheet->setCellValueByColumnAndRow(2, 3, "Department");
+		$sheet->setCellValueByColumnAndRow(3, 3, "PR");
+		$sheet->setCellValueByColumnAndRow(4, 3, "Days");
+		$sheet->setCellValueByColumnAndRow(5, 3, "Tardness\nEarly-out");
+		$sheet->setCellValueByColumnAndRow(6, 3, "Worktime");
+		
+		$sheet->getStyleByColumnAndRow(5, 3)->getAlignment()->setWrapText(true);
+		
+		$i = 7;
+		foreach($data["days"] as $item){
+			$sheet->setCellValueByColumnAndRow($i, 3, $item["day"]."\n".substr($data["days_week"][$item["day"]], 0, 3));
+			$sheet->getStyleByColumnAndRow($i, 3)->getAlignment()->setWrapText(true);
+			
+			//setting color
+			if (in_array($item["day"], $data["free_days"])) $sheet->getStyleByColumnAndRow($i, 3)->getFont()->getColor()->setARGB('RED');
+			
+			$i++;
+		}
+		
+		$i = 0;
+		foreach($data["employees"] as $item){
+			$row_1 = ($i * 2) + 4;
+			$row_2 = $row_1 + 1;
+			
+			//employee datas
+			$sheet->setCellValueByColumnAndRow(1, $row_1, $item["data"]->name);
+			$sheet->setCellValueByColumnAndRow(2, $row_1, $item["data"]->dept);
+			$sheet->setCellValueByColumnAndRow(3, $row_1, $item["data"]->employee_number);
+			$sheet->setCellValueByColumnAndRow(4, $row_1, $item["summary"]["check_days"]);
+			$sheet->setCellValueByColumnAndRow(5, $row_1, $item["summary"]["tardiness"]);
+			$sheet->setCellValueByColumnAndRow(5, $row_2, $item["summary"]["early_out"]);
+			$sheet->setCellValueByColumnAndRow(6, $row_1, date("H:i", strtotime($data["schedule_pr"][$item["data"]->employee_number][$data["to"]]["start"])));
+			$sheet->setCellValueByColumnAndRow(6, $row_2, date("H:i", strtotime($data["schedule_pr"][$item["data"]->employee_number][$data["to"]]["end"])));
+			
+			
+			
+			//print_r($item); echo "<br/><br/>";
+			
+			$i++;
+		}
+		
+		//save excel file to a temporary directory
+		$filename = "hr_attendance_report.xlsx";
+		$writer = new Xlsx($spreadsheet);
+		$writer->save('./upload/'.$filename);
+		
+		//file url
+		$url = base_url()."upload/".$filename;
+		
+		echo '<br/><a href="'.$url.'" download="Attendance '.$data["period"].'.xlsx">파일 다운로드</a><br/><br/><br/>';
+		
+		foreach($data as $key => $item){ echo $key."================="; print_r($item); echo "<br/><br/><br/><br/>"; }
+		
+		return $url;
+		
+		/*
+		if ($title){
+			//set report parameters
+			$sheet->setCellValueByColumnAndRow(1, $row_now, $title);
+			
+			$row_now++;
+			$sheet->setCellValueByColumnAndRow(1, $row_now, "Date");
+			$sheet->setCellValueByColumnAndRow(2, $row_now, date('Y-m-d H:i:s'));
+			
+			$row_now = $row_now + 2;
+		}
+		
+		
+		//set header
+		foreach($header as $i => $h) $sheet->setCellValueByColumnAndRow(($i + 1), $row_now, $h);
+		
+		//set rows
+		$row_from = $row_now + 1;
+		foreach($rows as $j => $row) 
+			foreach($row as $i => $r) 
+				$sheet->getCellByColumnAndRow(($i + 1), $row_from + $j)->setValue($r);
+				//$sheet->getCellByColumnAndRow(($i + 1), $row_from + $j)->setValueExplicit($r, DataType::TYPE_STRING);
+		
+		
+		
+		
+		*/
+	}
+	
 	public function export(){
 		//$data = $this->set_attandance($period, $prs);
-		$data = $this->set_attandance("2024-10", ["PR009337"]);
-		print_r($data);
+		$data = $this->set_attandance("2024-10", ["PR009337", "PR009243", "PR009027"]);
+		
+		$url = $this->make_excel($data);
+		
+		echo $url;
+		
 	}
 	
 	public function add_exception(){
