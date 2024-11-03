@@ -48,7 +48,10 @@
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach($employees as $pr => $item){ if ($item["data"]->name and ($item["summary"]["check_days"] > 0)){ ?>
+							<?php foreach($employees as $pr => $item){ 
+								//if (($item["data"]->name) and ($item["summary"]["check_days"] > 0)){ 
+								if ($item["summary"]["check_days"] > 0){ 
+							?>
 							<tr class="row_emp">
 								<td>
 									<div class="search_criteria d-none"><?= $item["data"]->name." ".$item["data"]->dept." ".$item["data"]->employee_number." ".$item["data"]->ep_mail ?></div>
