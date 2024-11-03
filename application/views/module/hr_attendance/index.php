@@ -21,10 +21,10 @@
 								<?php } ?>
 							</select>
 							<input type="text" class="form-control me-1" id="ip_search" placeholder="Search" style="width: 300px;">
-							<button type="button" class="btn btn-success me-1" disabled>
+							<a href="" class="btn btn-success d-none me-1" id="btn_export" download="Attendance <?= $period ?>">
 								<i class="bi bi-file-earmark-spreadsheet"></i> Export
-							</button>
-							<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#largeModal">
+							</a>
+							<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#md_exception_list">
 								<i class="bi bi-calendar2-week-fill"></i>
 							</button>
 						</div>
@@ -39,7 +39,7 @@
 								<?php foreach($days as $item){ ?>
 								<th scope="col" class="text-center md_holiday" 
 									date="<?= $item["date"] ?>" 
-									data-bs-toggle="modal" data-bs-target="#md_sch_holiday">
+									data-bs-toggle="modal" data-bs-target="#md_com_exception">
 									<div class="text-<?= (in_array($item["day"], $free_days)) ? "danger" : "" ?>">
 										<?= $item["day"] ?><br/><?= substr($days_week[$item["day"]], 0, 3) ?>
 									</div>
@@ -65,7 +65,7 @@
 									emp_pr="<?= $item["data"]->employee_number ?>" 
 									emp_name="<?= $item["data"]->name ?>" 
 									date="<?= $item_day["date"] ?>" 
-									data-bs-toggle="modal" data-bs-target="#md_sch_exception">
+									data-bs-toggle="modal" data-bs-target="#md_emp_exception">
 									<?php
 									$now = $item["access"][$item_day["day"]];
 									$aux = [];
@@ -93,8 +93,9 @@
 		</div> 
 	</div>
 </section>
+<div class="d-none" id="bl_export_result"></div>
 
-<div class="modal fade" id="md_sch_exception" tabindex="-1" style="display: none;" aria-hidden="true">
+<div class="modal fade" id="md_emp_exception" tabindex="-1" style="display: none;" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -141,7 +142,7 @@
 	</div>
 </div>
 
-<div class="modal fade" id="md_sch_holiday" tabindex="-1" style="display: none;" aria-hidden="true">
+<div class="modal fade" id="md_com_exception" tabindex="-1" style="display: none;" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -183,7 +184,7 @@
 	</div>
 </div>
 
-<div class="modal fade" id="largeModal" tabindex="-1" style="display: none;" aria-hidden="true">
+<div class="modal fade" id="md_exception_list" tabindex="-1" style="display: none;" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered modal-lg">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -225,6 +226,7 @@
 		</div>
 	</div>
 </div>
+<input type="hidden" id="ip_period" value="<?= $period ?>">
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -289,7 +291,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	});
 	
-	
 	$(".btn_remove_exc").click(function() {
 		var exc_id = $(this).val();
 		
@@ -297,6 +298,11 @@ document.addEventListener("DOMContentLoaded", () => {
 			toastr.success("Exception removed !!!", null, {timeOut: 5000});
 			$("#row_exc_" + exc_id).remove();
 		});
+	});
+	
+	ajax_simple({p: $("#ip_period").val()}, "module/hr_attendance/export").done(function(res) {
+		$("#btn_export").removeClass("d-none");
+		$("#btn_export").attr("href", res.url);
 	});
 	
 });

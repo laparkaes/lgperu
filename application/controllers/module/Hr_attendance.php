@@ -367,8 +367,8 @@ class Hr_attendance extends CI_Controller {
 		//col, row in number
 		$sheet->setCellValueByColumnAndRow(1, 1, "Attendance Report ".$data["period"]);
 		
-		$sheet->getColumnDimension('A')->setWidth(30);
-		$sheet->getColumnDimension('B')->setWidth(40);
+		$sheet->getColumnDimension('A')->setWidth(40);
+		$sheet->getColumnDimension('B')->setWidth(30);
 		$sheet->getStyle('A:Z')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 		$sheet->getStyle('C:AZ')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 		
@@ -445,8 +445,7 @@ class Hr_attendance extends CI_Controller {
 		//file url
 		$url = base_url()."upload/".$filename;
 		
-		echo '<br/><a href="'.$url.'" download="Attendance '.$data["period"].'.xlsx">파일 다운로드</a><br/><br/><br/>';
-		
+		//echo '<br/><a href="'.$url.'" download="Attendance '.$data["period"].'.xlsx">파일 다운로드</a><br/><br/><br/>';
 		//foreach($data as $key => $item){ echo $key."================="; print_r($item); echo "<br/><br/><br/><br/>"; }
 		
 		return $url;
@@ -478,7 +477,8 @@ class Hr_attendance extends CI_Controller {
 		$data = $this->set_attandance($period, $prs);
 		$url = $this->make_excel($data);
 		
-		echo $url;
+		header('Content-Type: application/json');
+		echo json_encode(["url" => $url, "period" => $period]);
 	}
 	
 	public function add_exception(){
