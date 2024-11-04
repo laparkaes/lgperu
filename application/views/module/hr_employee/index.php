@@ -36,7 +36,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								<?php foreach($employees as $i => $emp){ if ($emp->name){ ?>
+								<?php foreach($employees as $i => $emp){ ?>
 								<tr>
 									<td><?= number_format($i + 1) ?></td>
 									<td><?= $emp->subsidiary  ?></td>
@@ -54,7 +54,7 @@
 										</div>
 									</td>
 								</tr>
-								<?php }} ?>
+								<?php } ?>
 							</tbody>
 						</table>
 					</div>
