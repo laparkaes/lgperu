@@ -25,10 +25,7 @@
 							<thead>
 								<tr>
 									<th scope="col" style="width: 80px;">#</th>
-									<th scope="col">Subsidiary</th>
-									<th scope="col">Organization</th>
 									<th scope="col">Department</th>
-									<th scope="col">Location</th>
 									<th scope="col">PR</th>
 									<th scope="col">Name</th>
 									<th scope="col">Status</th>
@@ -39,10 +36,16 @@
 								<?php foreach($employees as $i => $emp){ ?>
 								<tr>
 									<td><?= number_format($i + 1) ?></td>
-									<td><?= $emp->subsidiary  ?></td>
-									<td><?= $emp->organization  ?></td>
-									<td><?= $emp->department  ?></td>
-									<td><?= $emp->location  ?></td>
+									<td>
+										<?php
+										$aux = [];
+										if ($emp->subsidiary) $aux[] = $emp->subsidiary;
+										if ($emp->organization) $aux[] = $emp->organization;
+										if ($emp->department) $aux[] = $emp->department;
+										
+										if ($aux) echo implode(" > ", $aux);
+										?>
+									</td>
 									<td><?= $emp->employee_number  ?></td>
 									<td><?= $emp->name  ?></td>
 									<td><?= $emp->active ? "Activate" : "Disabled" ?></td>
