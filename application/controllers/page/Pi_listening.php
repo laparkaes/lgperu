@@ -46,6 +46,7 @@ class Pi_listening extends CI_Controller {
 		
 		$data = [
 			"dpts" => $this->dpts,
+			"overflow" => "hidden",
 			"main" => "page/pi_listening/index",
 		];
 		

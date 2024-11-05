@@ -145,6 +145,11 @@
 				</a>
 				<ul id="pages-nav" class="nav-content collapse show" data-bs-parent="#pages-nav">
 					<li>
+						<a href="<?= base_url() ?>page/hr_attendance" target="_blank">
+							<i class="bi bi-circle"></i><span>HR - Attendance</span>
+						</a>
+					</li>
+					<li>
 						<a href="<?= base_url() ?>page/pi_listening" target="_blank">
 							<i class="bi bi-circle"></i><span>PI - Listening to you</span>
 						</a>
@@ -167,6 +172,7 @@
 	<script src="<?= base_url() ?>assets/vendor/sweetalert2/dist/sweetalert2.all.min.js"></script>
 	<script src="<?= base_url() ?>assets/vendor/simple-datatables/simple-datatables.js"></script>
 	<script src="<?= base_url() ?>assets/vendor/toastr/toastr.min.js"></script>
+	<script src="<?= base_url() ?>assets/vendor/peity/jquery.peity.min.js"></script>
 	<script src="<?= base_url() ?>assets/js/main.js"></script>
 	<script src="<?= base_url() ?>assets/js/func.js"></script>
 	<script>
