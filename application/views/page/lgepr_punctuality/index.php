@@ -2,7 +2,7 @@
 			<div class="card mt-3">
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
-						<h5 class="card-title">Attendance <?= $period ?></h5>
+						<h5 class="card-title">Punctuality <?= $period ?></h5>
 						<div class="d-flex justify-content-end">
 							<select class="form-select me-1" id="sl_period" style="width: 150px;">
 								<?php foreach($periods as $item){  ?>
@@ -10,7 +10,7 @@
 								<?php } ?>
 							</select>
 							<input type="text" class="form-control me-1" id="ip_search" placeholder="Search" style="width: 300px;">
-							<a href="" class="btn btn-success d-none me-1" id="btn_export" download="Attendance <?= $period ?>">
+							<a href="" class="btn btn-success d-none me-1" id="btn_export" download="Punctuality <?= $period ?>">
 								<i class="bi bi-file-earmark-spreadsheet"></i> Export
 							</a>
 						</div>
@@ -92,13 +92,13 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_exp_report").submit(function(e) {
 		e.preventDefault();
 		$("#form_exp_report .sys_msg").html("");
-		ajax_form_warning(this, "page/attendance/export_monthly_report", "Do you want to export monthly attendance report?").done(function(res) {
-			swal_redirection(res.type, res.msg, "page/hr_attendance");
+		ajax_form_warning(this, "page/lgepr_punctuality/export_monthly_report", "Do you want to export monthly punctuality report?").done(function(res) {
+			swal_redirection(res.type, res.msg, "page/lgepr_punctuality");
 		});
 	});
 	
 	$("#sl_period").change(function(e) {
-		window.location.href = "/llamasys/page/hr_attendance?p=" + $(this).val();
+		window.location.href = "/llamasys/page/lgepr_punctuality?p=" + $(this).val();
 	});
 	
 	$("#ip_search").keyup(function(e) {
@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	});
 	
-	ajax_simple({p: $("#ip_period").val()}, "page/hr_attendance/export").done(function(res) {
+	ajax_simple({p: $("#ip_period").val()}, "page/lgepr_punctuality/export").done(function(res) {
 		$("#btn_export").removeClass("d-none");
 		$("#btn_export").attr("href", res.url);
 	});

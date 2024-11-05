@@ -9,7 +9,7 @@ use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
-class Hr_attendance extends CI_Controller {
+class Lgepr_punctuality extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
@@ -355,7 +355,7 @@ class Hr_attendance extends CI_Controller {
 		$data["exceptions_emp"] = $exceptions_emp;
 		$data["exceptions_com"] = $exceptions_com;
 		$data["overflow"] = "scroll";
-		$data["main"] = "page/hr_attendance/index";
+		$data["main"] = "page/lgepr_punctuality/index";
 		
 		$this->load->view('layout_dashboard', $data);
 	}

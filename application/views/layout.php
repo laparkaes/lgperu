@@ -145,8 +145,8 @@
 				</a>
 				<ul id="pages-nav" class="nav-content collapse show" data-bs-parent="#pages-nav">
 					<li>
-						<a href="<?= base_url() ?>page/hr_attendance" target="_blank">
-							<i class="bi bi-circle"></i><span>HR - Attendance</span>
+						<a href="<?= base_url() ?>page/lgepr_punctuality" target="_blank">
+							<i class="bi bi-circle"></i><span>LGEPR - Punctuality</span>
 						</a>
 					</li>
 					<li>
