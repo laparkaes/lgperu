@@ -42,7 +42,7 @@ class Hr_employee extends CI_Controller {
 			//else unset($work_schedule[$i]);
 		}
 		
-		$emp->work_sch = $work_schedule ? date("H:i", strtotime($work_schedule_now->work_start))." ~ ".date("H:i", strtotime($work_schedule_now->work_end)) : "";
+		$emp->work_sch = $work_schedule_now ? date("H:i", strtotime($work_schedule_now->work_start))." ~ ".date("H:i", strtotime($work_schedule_now->work_end)) : "";
 		$emp->dpt = $emp->subsidiary." > ".$emp->organization." > ".$emp->department;
 		
 		$schs = [
@@ -160,8 +160,7 @@ class Hr_employee extends CI_Controller {
 					
 					$this->gen_m->insert("hr_schedule", $data_sch);
 				}
-			}else{//without cleansing work
-				if (!$data["date_from"]) $data["date_from"] = date("Y-m-d", strtotime("+1 day"));
+			}elseif ($data["date_from"]){//without cleansing work
 				$aux_sch = explode(" ~ ", $data["work_schedule"]);
 				
 				//set basic schedule array
