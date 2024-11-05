@@ -134,7 +134,7 @@ class Hr_employee extends CI_Controller {
 				}
 			}
 			
-			if ($work_schedule_now){
+			if ($work_schedule_now){//with cleansing work
 				$work_sch = date("H:i", strtotime($work_schedule_now->work_start))." ~ ".date("H:i", strtotime($work_schedule_now->work_end));
 				if ($data["work_schedule"] !== $work_sch){
 					//update actual to (from - 1) day
@@ -160,6 +160,22 @@ class Hr_employee extends CI_Controller {
 					
 					$this->gen_m->insert("hr_schedule", $data_sch);
 				}
+			}else{//without cleansing work
+				if (!$data["date_from"]) $data["date_from"] = date("Y-m-d", strtotime("+1 day"));
+				$aux_sch = explode(" ~ ", $data["work_schedule"]);
+				
+				//set basic schedule array
+				$data_sch = [
+					"pr" => $data["employee_number"],
+					"name" => $data["name"],
+					"date_from" => $data["date_from"],
+				];
+				
+				//insert
+				$data_sch["work_start"] = $aux_sch[0];
+				$data_sch["work_end"] = $aux_sch[1];
+				
+				$this->gen_m->insert("hr_schedule", $data_sch);
 			}
 			
 			unset($data["work_schedule"]);
