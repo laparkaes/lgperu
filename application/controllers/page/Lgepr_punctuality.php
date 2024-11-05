@@ -365,7 +365,7 @@ class Lgepr_punctuality extends CI_Controller {
 		$sheet = $spreadsheet->getActiveSheet();
 		
 		//col, row in number
-		$sheet->setCellValueByColumnAndRow(1, 1, "Attendance Report ".$data["period"]);
+		$sheet->setCellValueByColumnAndRow(1, 1, "Punctuality Report ".$data["period"]);
 		
 		$sheet->getColumnDimension('A')->setWidth(40);
 		$sheet->getColumnDimension('B')->setWidth(30);
