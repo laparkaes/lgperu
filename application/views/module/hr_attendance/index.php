@@ -66,7 +66,10 @@
 									</div>
 								</td>
 								<td><?= $item["summary"]["check_days"] ?></td>
-								<td><?= $item["summary"]["tardiness"] ?><br/><?= $item["summary"]["early_out"] ?></td>
+								<td>
+									<div class="text-center text-<?= $item["summary"]["tardiness"] > 4 ? "light bg-danger" : "" ?>"><?= $item["summary"]["tardiness"] ?></div>
+									<div class="text-center text-<?= $item["summary"]["early_out"] > 4 ? "light bg-danger" : "" ?>"><?= $item["summary"]["early_out"] ?></div>
+								</td>
 								<td class="border-end">
 									<?= date("H:i", strtotime($schedule_pr[$item["data"]->employee_number][$to]["start"])) ?><br/>
 									<?= date("H:i", strtotime($schedule_pr[$item["data"]->employee_number][$to]["end"])) ?>
@@ -83,7 +86,14 @@
 									
 									if ($now["first_access"]["time"]){
 										if ($now["first_access"]["remark"] === "MV") $aux[] = $now["first_access"]["remark"];
-										$aux[] = '<span class="text-'.($now["first_access"]["remark"] === "T" ? "danger" : "").'">'.$now["first_access"]["time"].'</span>';
+										
+										switch($now["first_access"]["remark"]){
+											case "T": $color = "danger"; break;
+											case "TT": $color = "warning bg-secondary"; break;
+											default: $color = "";
+										}
+										
+										$aux[] = '<span class="text-'.$color.'">'.$now["first_access"]["time"].'</span>';
 									}else $aux[] = $now["first_access"]["remark"];
 									
 									if ($now["last_access"]["time"]){

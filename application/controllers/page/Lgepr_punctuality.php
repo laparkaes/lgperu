@@ -183,11 +183,17 @@ class Lgepr_punctuality extends CI_Controller {
 						$employees[$pr]["summary"]["check_days"]++;
 						
 						$start = in_array($access["day"], $early_friday_days) ? strtotime("08:30:00") : strtotime($schedule_pr[$pr][$day_pivot]["start"]);
+						$start_tolerance = in_array($access["day"], $early_friday_days) ? strtotime("08:35:00") : strtotime('+5 minutes', strtotime($schedule_pr[$pr][$day_pivot]["start"]));
+						
 						$first = strtotime($access["first_access"]["time"]);
 						
 						if ($start < $first){
-							$employees[$pr]["summary"]["tardiness"]++;
-							$employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "T";
+							if ($start_tolerance < $first){
+								$employees[$pr]["summary"]["tardiness"]++;
+								$employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "T";
+							}else{
+								$employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "TT";//Tardeness Toleranced
+							}
 						}
 					}
 					
@@ -411,12 +417,16 @@ class Lgepr_punctuality extends CI_Controller {
 			$sheet->setCellValueByColumnAndRow(6, $row_1, date("H:i", strtotime($data["schedule_pr"][$item["data"]->employee_number][$data["to"]]["start"])));
 			$sheet->setCellValueByColumnAndRow(6, $row_2, date("H:i", strtotime($data["schedule_pr"][$item["data"]->employee_number][$data["to"]]["end"])));
 			
+			if ($item["summary"]["tardiness"] > 4) $sheet->getStyleByColumnAndRow(5, $row_1)->getFont()->getColor()->setARGB('RED');
+			if ($item["summary"]["early_out"] > 4) $sheet->getStyleByColumnAndRow(5, $row_2)->getFont()->getColor()->setARGB('RED');
+			
 			$j = 7;
 			foreach($item["access"] as $item_ac){
 				$sheet->setCellValueByColumnAndRow($j, $row_1, $item_ac["first_access"]["time"]);
 				$sheet->setCellValueByColumnAndRow($j, $row_2, $item_ac["last_access"]["time"]);
 				
 				if ($item_ac["first_access"]["remark"] === "T") $sheet->getStyleByColumnAndRow($j, $row_1)->getFont()->getColor()->setARGB('RED');
+				if ($item_ac["first_access"]["remark"] === "TT") $sheet->getStyleByColumnAndRow($j, $row_1)->getFont()->getColor()->setARGB('FFA500');//ORANGE
 				if ($item_ac["last_access"]["remark"] === "E") $sheet->getStyleByColumnAndRow($j, $row_2)->getFont()->getColor()->setARGB('RED');
 				
 				$j++;
