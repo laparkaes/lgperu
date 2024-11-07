@@ -259,10 +259,14 @@
 function apply_filter(dom){
 	var criteria = $(dom).val().toUpperCase();
 	
-	$(".row_emp").each(function(index, elem) {
-		if ($(elem).find(".search_criteria").html().toUpperCase().includes(criteria)) $(elem).show();
-		else $(elem).hide();
-	});
+	if (criteria == ""){
+		$(".row_emp").show();
+	}else{
+		$(".row_emp").each(function(index, elem) {
+			if ($(elem).find(".search_criteria").html().toUpperCase().includes(criteria)) $(elem).show();
+			else $(elem).hide();
+		});	
+	}
 }
 
 document.addEventListener("DOMContentLoaded", () => {
