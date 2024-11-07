@@ -84,6 +84,8 @@ class Lgepr_punctuality extends CI_Controller {
 			];
 		}
 		
+		$depts = [];
+		
 		//assign asistance summary in array
 		$w = ["work_date >=" => $from, "work_date <=" => $to];
 		$records = $this->gen_m->filter("v_hr_attendance_summary", false, $w, null, [["field" => "pr", "values" => $prs]]);
@@ -114,8 +116,14 @@ class Lgepr_punctuality extends CI_Controller {
 				
 				$employees[$item->pr]["access"][$day]["first_access"]["time"] = $first_time;
 				$employees[$item->pr]["access"][$day]["last_access"]["time"] = $last_time;
+				
+				if ($employees[$item->pr]["data"]->dept) $depts[] = $employees[$item->pr]["data"]->dept;
 			}
 		}
+		
+		$depts = array_unique($depts);
+		sort($depts);
+		//foreach($depts as $item) echo $item."<br/>";
 		
 		//work schedule validation
 		$day_pivot = $from;
@@ -295,6 +303,7 @@ class Lgepr_punctuality extends CI_Controller {
 			"employees" => $employees,
 			"schedule_pr" => $schedule_pr,
 			"exceptions" => $exceptions,
+			"depts" => $depts,
 		];
 		
 		return $data;

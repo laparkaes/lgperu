@@ -9,7 +9,13 @@
 								<option value="<?= $item ?>" <?= ($item === $period) ? "selected" : "" ?>><?= $item ?></option>
 								<?php } ?>
 							</select>
-							<input type="text" class="form-control me-1" id="ip_search" placeholder="Search" style="width: 300px;">
+							<select class="form-select me-1" id="sl_dept" style="width: 250px;">
+								<option value="">All departments --</option>
+								<?php foreach($depts as $item){  ?>
+								<option value="<?= str_replace([" ", ">", "&"], "", $item) ?>"><?= str_replace("LGEPR > ", "", $item) ?></option>
+								<?php } ?>
+							</select>
+							<input type="text" class="form-control me-1" id="ip_search" placeholder="Search [Type 'enter' to apply filter]" style="width: 300px;">
 							<a href="" class="btn btn-success d-none me-1" id="btn_export" download="Punctuality <?= $period ?>">
 								<i class="bi bi-file-earmark-spreadsheet"></i> Export
 							</a>
@@ -38,7 +44,7 @@
 							?>
 							<tr class="row_emp">
 								<td>
-									<div class="search_criteria d-none"><?= $item["data"]->name." ".$item["data"]->dept." ".$item["data"]->employee_number." ".$item["data"]->ep_mail ?></div>
+									<div class="search_criteria d-none"><?= $item["data"]->name." ".str_replace([" ", "&", ">"], "", $item["data"]->dept)." ".$item["data"]->employee_number." ".$item["data"]->ep_mail ?></div>
 									<div>
 										<?php
 										$aux = [];
@@ -97,6 +103,15 @@
 <input type="hidden" id="ip_period" value="<?= $period ?>">
 
 <script>
+function apply_filter(dom){
+	var criteria = $(dom).val().toUpperCase();
+	
+	$(".row_emp").each(function(index, elem) {
+		if ($(elem).find(".search_criteria").html().toUpperCase().includes(criteria)) $(elem).show();
+		else $(elem).hide();
+	});
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 	
 	$("#form_exp_report").submit(function(e) {
@@ -111,13 +126,14 @@ document.addEventListener("DOMContentLoaded", () => {
 		window.location.href = "/llamasys/page/lgepr_punctuality?p=" + $(this).val();
 	});
 	
-	$("#ip_search").keyup(function(e) {
-		var criteria = $(this).val().toUpperCase();
-		
-		$(".row_emp").each(function(index, elem) {
-			if ($(elem).find(".search_criteria").html().toUpperCase().includes(criteria)) $(elem).show();
-			else $(elem).hide();
-		});
+	$("#sl_dept").change(function(e) {
+		$("#ip_search").val('');
+		apply_filter(this);
+	});
+	
+	$("#ip_search").change(function(e) {
+		$("#sl_dept").val('');
+		apply_filter(this);
 	});
 	
 	ajax_simple({p: $("#ip_period").val()}, "page/lgepr_punctuality/export").done(function(res) {
