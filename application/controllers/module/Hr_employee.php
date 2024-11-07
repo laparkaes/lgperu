@@ -18,6 +18,27 @@ class Hr_employee extends CI_Controller {
 		$this->load->model('vacation_model', 'vac_m');
 		$this->load->model('working_hour_model', 'whour_m');
 	}
+	
+	public function hc_update(){
+		echo "HC 20241107<br/><br/>";
+		
+		$val = '[["PR008255","Accounting"],["PR009311","Accounting"],["PR009175","Accounting"],["PR009364","Air Solution"],["PR009224","Air Solution"],["PR008956","AR"],["PR009333","AR"],["PR009342","AR"],["PR009329","AV Product"],["PR009060","AV Product"],["PR009246","AV Product"],["PR009239","B2B2C"],["PR009237","Brand Marketing"],["PR009289","Brand Marketing"],["PR009180","Brand Marketing"],["PR008210","Business Management"],["PR008672","CE Sales"],["PR009297","CFO"],["PR008857","CIC Operation"],["PR009339","CIC Operation"],["PR009358","Customs"],["PR009344","Customs"],["PR001736","Finance"],["PR001849","Financial Control"],["PR008206","GP"],["PR009321","GP"],["PR009291","HA / HE Provincia"],["PR009305","HA Product"],["PR009230","HA Product"],["PR009232","HA Product"],["PR009179","HA Product"],["PR008756","HA Product"],["PR001100","HA Sales"],["PR008667","HA Sales"],["PR009250","HA Sales"],["PR009200","HA Sales"],["PR009212","HA Sales"],["PR009360","HA Sales"],["PR009011","HE Sales"],["PR009105","HE Sales"],["PR100000","HE Sales"],["PR009254","HE Sales"],["PR009350","HE Sales"],["PR009220","HE Sales"],["PR009255","Human Resources"],["PR009153","Human Resources"],["PR009361","Human Resources"],["PR009252","Human Resources"],["PR009370","Human Resources"],["PR009331","ID Sales"],["PR008997","ID Sales"],["PR009177","ID Sales"],["PR009287","ID Sales"],["PR009103","ID Sales"],["PR009234","ISM"],["PR001724","IT Sales"],["PR009348","IT Sales"],["PR009317","IT Sales"],["PR008451","IT&ID Product"],["PR009216","IT&ID Product"],["PR009352","IT&ID Product"],["PR009226","IT/ID PM"],["PR009238","IT/ID PM"],["PR009129","Legal"],["PR009326","Legal"],["PR008656","LG SVC Center"],["PR009102","LG SVC Center"],["PR008644","LG SVC Center"],["PR008901","LG SVC Center"],["PR008641","LG SVC Center"],["PR008860","LG SVC Center"],["PR008754","LG SVC Center"],["PR009286","LG SVC Center"],["PR009182","LGEPR"],["PR008295","Marketing"],["PR009229","Marketing"],["PR008522","OBS"],["PR009335","OBS"],["PR009027","OBS"],["PR009354","OBS"],["PR009156","OBS"],["PR008737","PI"],["PR009337","PI"],["PR008985","PI"],["PR008208","Planning"],["PR009100","Planning"],["PR009325","Planning"],["PR008161","Promotor/Retail Marketing CE"],["PR009132","Promotor/Retail Marketing CE"],["PR009070","Promotor/Retail Marketing CE"],["PR009242","Promotor/Retail Marketing CE"],["PR009243","Promotor/Retail Marketing CE"],["PR001808","RAC Sales"],["PR008978","SAC Engineering"],["PR009133","SAC Engineering"],["PR009162","SAC Engineering"],["PR009184","SAC Sales"],["PR008780","SAC Sales"],["PR009109","SAC Sales"],["PR009303","SAC Sales"],["PR009346","SAC Sales"],["PR009015","Sales Admin"],["PR009064","Sales Admin"],["PR009172","Sales Admin"],["PR009301","Sales Admin"],["PR001871","SCM"],["PR008941","SCM"],["PR009207","SCM"],["PR009327","SCM"],["PR009210","SCM"],["PR009356","SCM"],["PR009368","SCM"],["PR009134","SOM"],["PR008144","SOM"],["PR009130","SOM"],["PR009201","SOM"],["PR009174","SOM"],["PR009310","SOM"],["PR009115","SVC"],["PR001847","SVC Networks & Parts"],["PR001703","SVC Networks & Parts"],["PR008200","SVC Networks & Parts"],["PR001762","SVC Networks & Parts"],["PR008457","SVC Networks & Parts"],["PR009160","SVC Networks & Parts"],["PR009366","SVC Networks & Parts"],["PR009299","SVC Networks & Parts"],["PR009082","Tax Part"],["PR009092","Tax Part"],["PR009062","Tax Team"],["PR008652","Technical Support"],["PR009031","Technical Support"],["PR009236","Technical Support"],["PR008733","Technical Support"],["PR008793","Trade Marketing"],["PR009119","Treasury"],["PR009309","Treasury"],["PR009113","TV Product"],["PR008969","TV Product"],["PR009033","TV Product"]]';
+		
+		$rows = json_decode($val);
+		
+		foreach($rows as $item) $this->gen_m->update("hr_employee", ["employee_number" => $item[0]], ["department" => $item[1]]);
+		
+		//subsidiary, organization assigned
+		$emps = $this->gen_m->only_multi("hr_employee", ["subsidiary", "organization", "department"]);
+		foreach($emps as $item){
+			if ($item->subsidiary and $item->organization and $item->department){
+				//print_r($item); echo "<br/>";
+				$this->gen_m->update("hr_employee", ["department" => $item->department], ["subsidiary" => $item->subsidiary, "organization" => $item->organization, "department" => $item->department]);
+			}
+		}
+		
+		echo "Done!!!";
+	}
 
 	public function index(){
 		$employees = $this->gen_m->filter("hr_employee", false, ["active" => true], null, null, [["subsidiary", "asc"], ["organization", "asc"], ["department", "asc"], ["name", "asc"]]);
