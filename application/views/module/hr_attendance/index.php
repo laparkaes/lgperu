@@ -95,7 +95,7 @@
 										
 										switch($now["first_access"]["remark"]){
 											case "T": $color = "danger"; break;
-											case "TT": $color = "warning bg-secondary"; break;
+											case "TT": $color = "success"; break;
 											default: $color = "";
 										}
 										
