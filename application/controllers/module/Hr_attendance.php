@@ -184,7 +184,7 @@ class Hr_attendance extends CI_Controller {
 						$employees[$pr]["summary"]["check_days"]++;
 						
 						$start = in_array($access["day"], $early_friday_days) ? strtotime("08:30:00") : strtotime($schedule_pr[$pr][$day_pivot]["start"]);
-						$start_tolerance = in_array($access["day"], $early_friday_days) ? strtotime("08:35:00") : strtotime('+5 minutes', strtotime($schedule_pr[$pr][$day_pivot]["start"]));
+						$start_tolerance = in_array($access["day"], $early_friday_days) ? strtotime("08:34:00") : strtotime('+4 minutes', strtotime($schedule_pr[$pr][$day_pivot]["start"]));
 						
 						$first = strtotime($access["first_access"]["time"]);
 						
