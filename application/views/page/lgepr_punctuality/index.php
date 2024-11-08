@@ -25,8 +25,8 @@
 						<thead class="sticky-top" style="z-index: 10;">
 							<tr>
 								<th scope="col">Employee</th>
-								<th scope="col">Days</th>
-								<th scope="col">T<br/>E</th>
+								<th scope="col" class="text-center">Working<br/>Days</th>
+								<th scope="col" class="text-center">T<br/>E</th>
 								<th scope="col" class="border-end">Time</th>
 								<?php foreach($days as $item){ ?>
 								<th scope="col" class="text-center">
@@ -55,7 +55,7 @@
 										<br/><small><?= $item["data"]->dept ?></small>
 									</div>
 								</td>
-								<td><?= $item["summary"]["check_days"] ?></td>
+								<td class="text-center"><?= $item["summary"]["check_days"] ?></td>
 								<td>
 									<div class="px-1 text-center text-<?= $item["summary"]["tardiness"] > 4 ? "light bg-danger" : "" ?>"><?= $item["summary"]["tardiness"] ?></div>
 									<div class="px-1 text-center text-<?= $item["summary"]["early_out"] > 4 ? "light bg-danger" : "" ?>"><?= $item["summary"]["early_out"] ?></div>

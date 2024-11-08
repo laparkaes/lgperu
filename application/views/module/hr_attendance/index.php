@@ -39,8 +39,8 @@
 						<thead class="sticky-top" style="z-index: 10; top: 60px;">
 							<tr>
 								<th scope="col">Employee</th>
-								<th scope="col">Days</th>
-								<th scope="col">T<br/>E</th>
+								<th scope="col" class="text-center">Working<br/>Days</th>
+								<th scope="col" class="text-center">T<br/>E</th>
 								<th scope="col" class="border-end">Time</th>
 								<?php foreach($days as $item){ ?>
 								<th scope="col" class="text-center md_holiday" 
