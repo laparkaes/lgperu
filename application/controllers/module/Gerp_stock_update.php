@@ -14,10 +14,17 @@ class Gerp_stock_update extends CI_Controller {
 	}
 	
 	public function index(){
+		$last = $this->gen_m->filter("gerp_stock", false, null, null, null, [["updated", "desc"]], 1, 0);
+		if ($last) $last = $last[0];
+		
+		$w = [
+			"model_status" => "Active",
+			"updated" => $last->updated,
+		];
 		
 		$data = [
-			"stocks"	=> $this->gen_m->filter("gerp_stock", false, ["model_status" => "Active"], null, null, [["model_description", "asc"], ["model", "asc"]]),
-			"updated"	=> $this->gen_m->filter("gerp_stock", false, null, null, null, [["updated", "desc"]], 1, 0)[0],
+			"stocks"	=> $this->gen_m->filter("gerp_stock", false, $w, null, null, [["model_description", "asc"], ["model", "asc"]]),
+			"last"		=> $last,
 			"main" 		=> "module/gerp_stock_update/index",
 		];
 		
@@ -70,6 +77,9 @@ class Gerp_stock_update extends CI_Controller {
 					"updated"				=> $updated,
 				];
 				
+				$this->gen_m->insert("gerp_stock", $row);//create daily stock record
+				
+				/* update stock
 				$filter = [
 					"org" 					=> $row["org"],
 					"sub_inventory" 		=> $row["sub_inventory"],
@@ -80,6 +90,7 @@ class Gerp_stock_update extends CI_Controller {
 				$stock = $this->gen_m->filter("gerp_stock", false, $filter);
 				if ($stock) $this->gen_m->update("gerp_stock", ["stock_id" => $stock[0]->stock_id], $row);
 				else $this->gen_m->insert("gerp_stock", $row);
+				*/
 			}
 			
 			return "Stock update has been finished. (".$updated.")";
