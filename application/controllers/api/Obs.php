@@ -6,9 +6,161 @@ class Obs extends CI_Controller {
 	public function __construct(){
 		parent::__construct();
 		
+		/*
+		Tercer Ojo (to)
+		API Manual: https://www.postman.com/mission-architect-95404300/3eye-api/documentation/qvic7db/3eye-api
+		*/
+		$this->to_base_url ="https://third-eye-696435034903.us-central1.run.app/";
+		$this->to_api_key_id = "khOltii1GVPOnOYkzYdwlabbcFT2";
+		$this->to_api_key_secret = "5c6495o7RPJVwHBp6EKkAes0MpsSy+HFLwYAHA==";
+		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
 	}
+	
+    private function to_get_access_token(){
+        $url = $this->to_base_url."api/auth/generate-api-access-token";
+        $data = array(
+            "api_key_id" => $this->to_api_key_id,
+            "api_key_secret" => $this->to_api_key_secret,
+        );
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json'
+        ));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+
+        $response = curl_exec($ch);
+
+        if (curl_errno($ch)) {
+			$result = [
+				"type" => "error",
+				"msg" => curl_error($ch),
+			];
+        }else{
+			$data = json_decode($response, true);
+			$result = [
+				"type" => "success",
+				"token" => $data["access_token"],
+			];
+		}
+
+        curl_close($ch);
+
+        return $result;
+	}
+	
+	public function to_get_daily_price(){
+		
+		//get token
+		$token = $this->to_get_access_token();
+		if ($token["type"] === "error"){
+			echo $token["type"];
+			return;
+		}
+	
+		$category_ids = [1, 11, 18, 26, 28, 31, 34, 37];
+		
+		$url = $this->to_base_url."api/daily-price?categoryIds=[".implode(",", $category_ids)."]";
+		echo $url."<br/><br/>";
+		
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Authorization: Bearer ' . $token["token"],
+            'Content-Type: application/json'
+        ));
+
+        $response = curl_exec($ch);
+
+        if (curl_errno($ch)) {
+            echo 'cURL Error: ' . curl_error($ch);
+            return null;
+        }
+
+        curl_close($ch);
+
+        $result = json_decode($response, true);
+		print_r($result);
+		
+		/* foreach($result as $item){
+			print_r($item);
+			echo "<br/>";
+		}
+		*/
+	}
+	
+	public function to_get_categories(){
+		
+		//get token
+		$token = $this->to_get_access_token();
+		if ($token["type"] === "error"){
+			echo $token["type"];
+			return;
+		}
+	
+		$url = $this->to_base_url."api/categories";
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Authorization: Bearer ' . $token["token"],
+            'Content-Type: application/json'
+        ));
+
+        $response = curl_exec($ch);
+
+        if (curl_errno($ch)) {
+            echo 'cURL Error: ' . curl_error($ch);
+            return null;
+        }
+
+        curl_close($ch);
+
+        $result = json_decode($response, true);
+		foreach($result as $item){
+			print_r($item);
+			echo "<br/>";
+		}
+		
+		/*
+		----------- Filtered
+		Array ( [id] => 1 [name] => AIRE ACONDICIONADO )
+		Array ( [id] => 11 [name] => COCINA )
+		Array ( [id] => 18 [name] => HORNOS )
+		Array ( [id] => 26 [name] => MONITORES )
+		Array ( [id] => 28 [name] => PARLANTES )
+		Array ( [id] => 31 [name] => REFRIGERADORAS )
+		Array ( [id] => 34 [name] => SOUND BAR )
+		Array ( [id] => 37 [name] => TV ) 
+		
+		----------- All Categories
+		Array ( [id] => 1 [name] => AIRE ACONDICIONADO )
+		Array ( [id] => 3 [name] => AUDIFONO )
+		Array ( [id] => 9 [name] => CAMPANAS EXTRACTORAS )
+		Array ( [id] => 11 [name] => COCINA )
+		Array ( [id] => 13 [name] => CONGELADORA )
+		Array ( [id] => 15 [name] => ENCIMERAS )
+		Array ( [id] => 16 [name] => FREIDORAS DE AIRE )
+		Array ( [id] => 18 [name] => HORNOS )
+		Array ( [id] => 19 [name] => IMPRESORAS )
+		Array ( [id] => 22 [name] => LAVADORAS )
+		Array ( [id] => 24 [name] => LAVAVAJILLAS )
+		Array ( [id] => 26 [name] => MONITORES )
+		Array ( [id] => 28 [name] => PARLANTES )
+		Array ( [id] => 30 [name] => PROYECTORES )
+		Array ( [id] => 31 [name] => REFRIGERADORAS )
+		Array ( [id] => 34 [name] => SOUND BAR )
+		Array ( [id] => 37 [name] => TV ) 
+		*/
+	}
+	/* brand and retails are ommited (no necessary to be filtered) */
 	
 	public function view_maker_obs_sales(){
 		/* 

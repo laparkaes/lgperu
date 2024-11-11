@@ -89,6 +89,7 @@ class Hr_employee extends CI_Controller {
 		
 		$access_data_upload = [
 			["gerp_sales_order", "GERP Sales order upload"],
+			["gerp_stock_update", "GERP Stock update"],
 			["ar_exchange_rate", "HR - Exchange rate"],
 			["hr_access_record", "HR - Access record"],
 			["obs_gerp", "OBS - GERP Sales order upload"],

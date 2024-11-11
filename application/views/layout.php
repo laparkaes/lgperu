@@ -107,6 +107,7 @@
 					<?php 
 					$data_uploads = [
 						["gerp_sales_order", "GERP Sales order"],
+						["gerp_stock_update", "GERP Stock update"],
 						["ar_exchange_rate", "AR - Exchange rate"],
 						["hr_access_record", "HR - Access record"],
 						["obs_gerp", "OBS - GERP Sales order"],
