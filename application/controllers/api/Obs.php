@@ -59,14 +59,14 @@ class Obs extends CI_Controller {
 		//get token
 		$token = $this->to_get_access_token();
 		if ($token["type"] === "error"){
-			echo $token["type"];
+			echo $token["msg"];
 			return;
 		}
 	
 		$category_ids = [1, 11, 18, 26, 28, 31, 34, 37];
 		
 		$url = $this->to_base_url."api/daily-price?categoryIds=[".implode(",", $category_ids)."]";
-		echo $url."<br/><br/>";
+		//echo $url."<br/><br/>";
 		
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -86,13 +86,50 @@ class Obs extends CI_Controller {
         curl_close($ch);
 
         $result = json_decode($response, true);
-		print_r($result);
 		
-		/* foreach($result as $item){
-			print_r($item);
+		$rows = [];
+		foreach($result as $item){
+			//unset($item["url"]);
+			$item["features"] = implode(", ", $item["features"]);
+			
+			$filter = [
+				"category" 	=> $item["category"],
+				"retail" 	=> $item["retail"],
+				"brand" 	=> $item["brand"],
+				"product" 	=> $item["product"],
+				"seller" 	=> $item["seller"],
+				"features" 	=> $item["features"],
+			];
+			
+			$price = $this->gen_m->filter("tercer_ojo_market_price", false, $filter);
+			if ($price) $this->gen_m->update("tercer_ojo_market_price", ["stock_id" => $price[0]->price_id], $item);
+			else $this->gen_m->insert("tercer_ojo_market_price", $item);
+
+			//$this->gen_m->insert("tercer_ojo_market_price", $item);
+			
+			//$rows[] = $item;
+			print_r($item); echo "<br/>";
 			echo "<br/>";
 		}
+		
+		//print_r($rows);
+		echo "done!";
+		
+		//foreach($item as $key => $val) echo $key."<br/>";
+		/*
+		category
+		retail
+		brand
+		product
+		minimum
+		extra
+		offer
+		list
+		url
+		card
+		features
 		*/
+		
 	}
 	
 	public function to_get_categories(){
