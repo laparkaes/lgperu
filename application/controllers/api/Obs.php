@@ -87,11 +87,10 @@ class Obs extends CI_Controller {
 
         $result = json_decode($response, true);
 		
-		$rows = [];
 		foreach($result as $item){
 			//unset($item["url"]);
 			$item["features"] = implode(", ", $item["features"]);
-			
+			/*
 			$filter = [
 				"category" 	=> $item["category"],
 				"retail" 	=> $item["retail"],
@@ -104,15 +103,14 @@ class Obs extends CI_Controller {
 			$price = $this->gen_m->filter("tercer_ojo_market_price", false, $filter);
 			if ($price) $this->gen_m->update("tercer_ojo_market_price", ["stock_id" => $price[0]->price_id], $item);
 			else $this->gen_m->insert("tercer_ojo_market_price", $item);
-
+			*/
+			
 			//$this->gen_m->insert("tercer_ojo_market_price", $item);
 			
-			//$rows[] = $item;
-			print_r($item); echo "<br/>";
-			echo "<br/>";
+			print_r($item); echo "<br/><br/>";
 		}
 		
-		//print_r($rows);
+		print_r($result);
 		echo "done!";
 		
 		//foreach($item as $key => $val) echo $key."<br/>";
