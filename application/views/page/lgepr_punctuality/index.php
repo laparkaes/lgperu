@@ -40,7 +40,7 @@
 						<tbody>
 							<?php foreach($employees as $pr => $item){ 
 								//if (($item["data"]->name) and ($item["summary"]["check_days"] > 0)){ 
-								if ($item["summary"]["check_days"] > 0){ 
+								if (($item["summary"]["check_days"] > 0) and ($item["data"]->employee_number !== "PR009182")){ 
 							?>
 							<tr class="row_emp">
 								<td>
