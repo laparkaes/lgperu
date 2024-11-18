@@ -18,6 +18,7 @@ class Obs extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 	}
 	
+	/* tercer ojo API start */
     private function to_get_access_token(){
         $url = $this->to_base_url."api/auth/generate-api-access-token";
         $data = array(
@@ -54,8 +55,11 @@ class Obs extends CI_Controller {
         return $result;
 	}
 	
-	public function to_get_daily_price(){
+	public function to_get_daily_price(){//update tercer ojo daily price
+		//llamasys/api/obs/to_get_daily_price
+		
 		set_time_limit(0);
+		$start_time = microtime(true);
 		
 		//get token
 		$token = $this->to_get_access_token();
@@ -88,10 +92,12 @@ class Obs extends CI_Controller {
 
         $result = json_decode($response, true);
 		
+		$updated = date("Y-m-d H:i:s");
 		$qty_update = $qty_insert = 0;
 		foreach($result as $item){
 			//unset($item["url"]);
 			$item["features"] = implode(", ", $item["features"]);
+			$item["updated"] = $updated;
 			
 			$filter = [
 				"category" 	=> $item["category"],
@@ -112,7 +118,7 @@ class Obs extends CI_Controller {
 			}
 		}
 		
-		echo number_format($qty_insert)." records inserted. ".number_format($qty_update)." records updated.";
+		echo number_format($qty_insert)." records inserted. ".number_format($qty_update)." records updated. (".number_Format(microtime(true) - $start_time, 2)." secs)";
 		
 		/*
 		foreach($item as $key => $val) echo $key."<br/>";
@@ -198,6 +204,44 @@ class Obs extends CI_Controller {
 		*/
 	}
 	/* brand and retails are ommited (no necessary to be filtered) */
+	/* tercer ojo API end */
+	
+	public function get_retail_price(){
+		//llamasys/api/obs/get_retail_price?brand=LG
+		
+		echo "<table>
+			<tr>
+				<td>category</td>
+				<td>retail</td>
+				<td>brand</td><td>product</td><td>seller</td><td>minimum</td>
+		
+		<td>minimum</td>
+		<td>minimum</td>
+		<td>minimum</td>
+		
+		
+		</tr>";
+		
+		$w = $this->input->get();
+		$w_in = [];
+		$o = [
+			["category", "asc"],
+			["retail", "asc"],
+			["brand", "asc"],
+			["seller", "asc"],
+			["minimum", "asc"],
+		];
+		
+		$prices = $this->gen_m->filter("tercer_ojo_market_price", false, $w, null, $w_in, $o);
+		foreach($prices as $item){
+			unset($item->price_id);
+			//unset($item->url);
+			print_r($item);
+			echo "<br/><br/>";
+		}
+		
+		echo "</table>";
+	}
 	
 	public function view_maker_obs_sales(){
 		/* 

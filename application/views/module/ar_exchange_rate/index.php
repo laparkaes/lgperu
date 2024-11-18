@@ -1,5 +1,5 @@
 <div class="pagetitle">
-	<h1>Paperless Document</h1>
+	<h1>Exchange Rate</h1>
 	<nav>
 		<ol class="breadcrumb">
 			<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
