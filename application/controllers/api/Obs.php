@@ -55,6 +55,7 @@ class Obs extends CI_Controller {
 	}
 	
 	public function to_get_daily_price(){
+		set_time_limit(0);
 		
 		//get token
 		$token = $this->to_get_access_token();
@@ -87,34 +88,35 @@ class Obs extends CI_Controller {
 
         $result = json_decode($response, true);
 		
+		$qty_update = $qty_insert = 0;
 		foreach($result as $item){
 			//unset($item["url"]);
 			$item["features"] = implode(", ", $item["features"]);
-			/*
+			
 			$filter = [
 				"category" 	=> $item["category"],
 				"retail" 	=> $item["retail"],
 				"brand" 	=> $item["brand"],
 				"product" 	=> $item["product"],
-				"seller" 	=> $item["seller"],
+				"seller" 	=> array_key_exists("seller", $item) ? $item["seller"] : null,
 				"features" 	=> $item["features"],
 			];
 			
 			$price = $this->gen_m->filter("tercer_ojo_market_price", false, $filter);
-			if ($price) $this->gen_m->update("tercer_ojo_market_price", ["stock_id" => $price[0]->price_id], $item);
-			else $this->gen_m->insert("tercer_ojo_market_price", $item);
-			*/
-			
-			//$this->gen_m->insert("tercer_ojo_market_price", $item);
-			
-			print_r($item); echo "<br/><br/>";
+			if ($price){
+				$this->gen_m->update("tercer_ojo_market_price", ["price_id" => $price[0]->price_id], $item);
+				$qty_update++;
+			}else{
+				$this->gen_m->insert("tercer_ojo_market_price", $item);
+				$qty_insert++;
+			}
 		}
 		
-		print_r($result);
-		echo "done!";
+		echo number_format($qty_insert)." records inserted. ".number_format($qty_update)." records updated.";
 		
-		//foreach($item as $key => $val) echo $key."<br/>";
 		/*
+		foreach($item as $key => $val) echo $key."<br/>";
+		
 		category
 		retail
 		brand

@@ -51,7 +51,7 @@ class Hr_employee extends CI_Controller {
 	}
 
 	public function edit($employee_id){
-		if ($this->session->userdata('department') !== "PI") redirect("/module/hr_employee");
+		if (($this->session->userdata('department') !== "PI") and ($this->session->userdata('department') !== "Human Resources")) redirect("/module/hr_employee");
 		
 		$emp = $this->gen_m->unique("hr_employee", "employee_id", $employee_id, false);
 		
