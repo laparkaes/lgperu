@@ -209,17 +209,21 @@ class Obs extends CI_Controller {
 	public function get_retail_price(){
 		//llamasys/api/obs/get_retail_price?brand=LG
 		
-		echo "<table>
+		echo "<table style='width: 100%'>
 			<tr>
 				<td>category</td>
 				<td>retail</td>
-				<td>brand</td><td>product</td><td>seller</td><td>minimum</td>
-		
-		<td>minimum</td>
-		<td>minimum</td>
-		<td>minimum</td>
-		
-		
+				<td>brand</td>
+				<td>product</td>
+				<td>seller</td>
+				<td>card</td>
+				<td>minimum</td>
+				<td>extra</td>
+				<td>offer</td>
+				<td>list</td>
+				<td>features</td>
+				<td>updated</td>
+				<td>url</td>
 		</tr>";
 		
 		$w = $this->input->get();
@@ -234,10 +238,28 @@ class Obs extends CI_Controller {
 		
 		$prices = $this->gen_m->filter("tercer_ojo_market_price", false, $w, null, $w_in, $o);
 		foreach($prices as $item){
+			/*
 			unset($item->price_id);
 			//unset($item->url);
 			print_r($item);
 			echo "<br/><br/>";
+			*/
+			
+			echo "<tr>
+					<td>".$item->category."</td>
+					<td>".$item->retail."</td>
+					<td>".$item->brand."</td>
+					<td>".$item->product."</td>
+					<td>".$item->seller."</td>
+					<td>".($item->card ? "Yes" : "No")."</td>
+					<td>".$item->minimum."</td>
+					<td>".$item->extra."</td>
+					<td>".$item->offer."</td>
+					<td>".$item->list."</td>
+					<td>".$item->features."</td>
+					<td>".$item->updated."</td>
+					<td><a href='".$item->url."' target='_blank'>Go</a></td>
+			</tr>";
 		}
 		
 		echo "</table>";
