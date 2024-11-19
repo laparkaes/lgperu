@@ -68,6 +68,7 @@ class Pi_listening extends CI_Controller {
 		//1. capturar y guardar cada dato
 		$data = $this->input->post();
 		
+		/* with dpt from validation
 		if (array_key_exists($data["dptFrom"], $dpts)){
 			$data["dptFrom"] = $dpts[$data["dptFrom"]];
 			$data["dptTo"] = $dpts[$data["dptTo"]];
@@ -87,6 +88,15 @@ class Pi_listening extends CI_Controller {
 			
 			$this->session->set_flashdata('error_msg', 'Insert your department code correctly.');
 		}
+		*/
+		
+		/* without dpt from validation */
+		$data["dptTo"] = $dpts[$data["dptTo"]];
+		$data["status"] = "Registered";
+		$data["registered"] = date('Y-m-d H:i:s', time());
+		$this->gen_m->insert("pi_listening", $data);
+		
+		$this->session->set_flashdata('success_msg', 'Your voice has been registered.');
 		
 		redirect("./page/pi_listening");
 	}
