@@ -107,10 +107,8 @@ class Tax_paperless_document extends CI_Controller {
 				//pdf document
 				$pdf_file = $dir."/".$item->doc_number.".pdf";
 				
-				if (file_exists($pdf_file)){
-					echo $pdf_file." already exists.<br/>";
-					$this->gen_m->update("tax_invoice", ["invoice_id" => $item->invoice_id], ["downloaded" => true]);
-				}else{
+				if (file_exists($pdf_file)) echo $pdf_file." already exists.<br/>";
+				else{
 					$fileContent = @file_get_contents($base_pdf.$item->paperless_id);
 					if ($fileContent !== false) file_put_contents($pdf_file, $fileContent);
 					else{
@@ -122,10 +120,8 @@ class Tax_paperless_document extends CI_Controller {
 				//xml document
 				$xml_file = $dir."/".$item->doc_number.".xml";
 				
-				if (file_exists($xml_file)){
-					echo $xml_file." already exists.<br/>";
-					$this->gen_m->update("tax_invoice", ["invoice_id" => $item->invoice_id], ["downloaded" => true]);
-				}else{
+				if (file_exists($xml_file)) echo $xml_file." already exists.<br/>";
+				else{
 					$fileContent = @file_get_contents($base_xml.$item->paperless_id);
 					if ($fileContent !== false) file_put_contents($xml_file, $fileContent);
 					else{
