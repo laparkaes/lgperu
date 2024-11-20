@@ -40,13 +40,16 @@
 </section>
 <script>
 function update_voice(data){
+	/*
 	ajax_simple(data, "module/pi_listening/update").done(function(res) {
 		//swal(res.type, res.msg);
 		console.log(res.msg);
 	});
+	*/
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+	/*
 	$(".sl_status").on("change", function() {
 		update_voice({listening_id: $(this).attr("listening_id"), status: $(this).val()});
 	});
@@ -62,5 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	$(".ta_response").on("focusout", function() {
 		update_voice({listening_id: $(this).attr("listening_id"), response: $(this).val()});
 	});
+	*/
 });
 </script>
