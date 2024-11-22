@@ -69,6 +69,7 @@ class Obs extends CI_Controller {
 		}
 	
 		$category_ids = [1, 11, 18, 26, 28, 31, 34, 37];
+		$category_ids = [10];
 		
 		$url = $this->to_base_url."api/daily-price?categoryIds=[".implode(",", $category_ids)."]";
 		//echo $url."<br/><br/>";
