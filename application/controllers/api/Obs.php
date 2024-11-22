@@ -68,8 +68,7 @@ class Obs extends CI_Controller {
 			return;
 		}
 	
-		$category_ids = [1, 11, 18, 26, 28, 31, 34, 37];
-		$category_ids = [10];
+		$category_ids = [1, 11, 18, 22, 26, 28, 31, 34, 37];
 		
 		$url = $this->to_base_url."api/daily-price?categoryIds=[".implode(",", $category_ids)."]";
 		//echo $url."<br/><br/>";
@@ -178,6 +177,7 @@ class Obs extends CI_Controller {
 		Array ( [id] => 1 [name] => AIRE ACONDICIONADO )
 		Array ( [id] => 11 [name] => COCINA )
 		Array ( [id] => 18 [name] => HORNOS )
+		Array ( [id] => 22 [name] => LAVADORAS )
 		Array ( [id] => 26 [name] => MONITORES )
 		Array ( [id] => 28 [name] => PARLANTES )
 		Array ( [id] => 31 [name] => REFRIGERADORAS )
