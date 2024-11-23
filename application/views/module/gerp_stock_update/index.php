@@ -11,28 +11,18 @@
 </div>
 <section class="section">
 	<div class="row">
-		<div class="col-md-4 mx-auto">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Update</h5>
-					<form class="row g-3" id="form_stock_update">
-						<div class="col-md-12">
-							<label class="form-label"><?= $last->updated ?></label>
-							<input class="form-control" type="file" name="attach">
-						</div>
-						<div class="text-center pt-3">
-							<button type="submit" class="btn btn-primary">Submit</button>
-						</div>
-					</form>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="row">
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Stock List</h5>
+					<div class="d-flex justify-content-between align-items-center">
+						<h5 class="card-title">Stock List</h5>
+						<form id="form_stock_update">
+							<div class="input-group">
+								<input class="form-control" type="file" name="attach">
+								<button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i></button>
+							</div>
+						</form>
+					</div>
 					<table class="table datatable">
 						<thead>
 							<tr>
@@ -73,7 +63,6 @@
 document.addEventListener("DOMContentLoaded", () => {
 	$("#form_stock_update").submit(function(e) {
 		e.preventDefault();
-		$("#form_stock_update .sys_msg").html("");
 		ajax_form_warning(this, "module/gerp_stock_update/update", "Do you want to update stock data?").done(function(res) {
 			swal_redirection(res.type, res.msg, "module/gerp_stock_update");
 		});

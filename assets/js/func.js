@@ -1,6 +1,9 @@
 const base_url = "/llamasys/";
 
 function ajax_form(dom, url){
+	var btn_html = $(dom).find('button').html();
+	alert(btn_html);
+	
 	$(dom).find('button').addClass("d-none");
 	$(dom).append('<div class="text-center ajax_spinner"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>');
 	var deferred = $.Deferred();
