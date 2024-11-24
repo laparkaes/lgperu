@@ -2,10 +2,9 @@ const base_url = "/llamasys/";
 
 function ajax_form(dom, url){
 	var btn_html = $(dom).find('button').html();
-	alert(btn_html);
 	
-	$(dom).find('button').addClass("d-none");
-	$(dom).append('<div class="text-center ajax_spinner"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+	$(dom).find('button').prop("disabled", true);
+	$(dom).find('button').html("Loading...");
 	var deferred = $.Deferred();
 	$.ajax({
 		url: base_url + url,
@@ -14,8 +13,8 @@ function ajax_form(dom, url){
 		contentType: false,
 		processData:false,
 		success:function(res){
-			$(".ajax_spinner").remove();
-			$(dom).find('button').removeClass("d-none");
+			$(dom).find('button').html(btn_html);
+			$(dom).find('button').prop("disabled", false);
 			deferred.resolve(res);
 		}
 	});

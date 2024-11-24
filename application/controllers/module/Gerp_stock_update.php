@@ -14,17 +14,12 @@ class Gerp_stock_update extends CI_Controller {
 	}
 	
 	public function index(){
-		$last = $this->gen_m->filter("gerp_stock", false, null, null, null, [["updated", "desc"]], 1, 0);
-		if ($last) $last = $last[0];
 		
-		$w = [
-			"model_status" => "Active",
-			"updated" => $last->updated,
-		];
+		$w = ["updated >=" => date("Y-m-d", strtotime("-3 months"))];
+		$o = [["updated", "desc"], ["model_description", "asc"], ["model", "asc"]];
 		
 		$data = [
-			"stocks"	=> $this->gen_m->filter("gerp_stock", false, $w, null, null, [["model_description", "asc"], ["model", "asc"]]),
-			"last"		=> $last,
+			"stocks"	=> $this->gen_m->filter("gerp_stock", false, $w, null, null, $o, 10000),
 			"main" 		=> "module/gerp_stock_update/index",
 		];
 		
@@ -61,7 +56,7 @@ class Gerp_stock_update extends CI_Controller {
 		foreach($h as $i => $h_i) if ($h_i !== $header[$i]) $is_ok = false;
 		
 		if ($is_ok){
-			$updated = date("Y-m-d H:i:s");
+			$updated = date("Y-m-d");
 			$max_row = $sheet->getHighestRow();
 			for($i = 2; $i < $max_row; $i++){
 				$row = [
@@ -77,20 +72,21 @@ class Gerp_stock_update extends CI_Controller {
 					"updated"				=> $updated,
 				];
 				
-				$this->gen_m->insert("gerp_stock", $row);//create daily stock record
+				//$this->gen_m->insert("gerp_stock", $row);//create daily stock record
 				
 				/* update stock
+				*/
 				$filter = [
 					"org" 					=> $row["org"],
 					"sub_inventory" 		=> $row["sub_inventory"],
 					"grade" 				=> $row["grade"],
 					"model"					=> $row["model"],
+					"updated"				=> $row["updated"],
 				];
 				
 				$stock = $this->gen_m->filter("gerp_stock", false, $filter);
 				if ($stock) $this->gen_m->update("gerp_stock", ["stock_id" => $stock[0]->stock_id], $row);
 				else $this->gen_m->insert("gerp_stock", $row);
-				*/
 			}
 			
 			return "Stock update has been finished. (".$updated.")";
