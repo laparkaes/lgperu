@@ -14,12 +14,11 @@ class Gerp_sales_order extends CI_Controller {
 	}
 	
 	public function index(){
-		$first = $this->gen_m->filter("gerp_sales_order", false, ["create_date !=" => null], null, null, [["create_date", "asc"]], 1, 0);
-		$last = $this->gen_m->filter("gerp_sales_order", false, ["create_date !=" => null], null, null, [["create_date", "desc"]], 1, 0);
+		
+		$o = [["create_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 		
 		$data = [
-			"first_date"	=> $first ? $first[0]->create_date : "",
-			"last_date" 	=> $last ? $last[0]->create_date : "",
+			"sales_orders"	=> $this->gen_m->filter("v_gerp_sales_order", false, null, null, null, $o, 10000),
 			"main" 			=> "module/gerp_sales_order/index",
 		];
 		

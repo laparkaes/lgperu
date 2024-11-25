@@ -1,49 +1,71 @@
+<div class="d-flex justify-content-between align-items-start">
+	<div class="pagetitle">
+		<h1>GERP - Sale Order Update</h1>
+		<nav>
+			<ol class="breadcrumb">
+				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
+				<li class="breadcrumb-item active">GERP - Sale Order Update </li>
+			</ol>
+		</nav>
+	</div>
+</div>
 <section class="section">
 	<div class="row">
-		<div class="col-md-4 mx-auto">
-			<div class="d-flex justify-content-between align-items-start">
-				<div class="pagetitle">
-					<h1>GERP - Sale Order</h1>
-					<nav>
-						<ol class="breadcrumb">
-							<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-							<li class="breadcrumb-item active">GERP - Sale Order</li>
-						</ol>
-					</nav>
-				</div>
-			</div>
+		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Upload</h5>
-					<form class="row g-3" id="form_upload">
-						<div class="col-md-12">
-							<label class="form-label">GERP Sales Order File</label>
-							<input class="form-control" type="file" name="attach">
-						</div>
-						<div class="text-center pt-3">
-							<button type="submit" class="btn btn-primary">Upload</button>
-							<button type="reset" class="btn btn-secondary">Reset</button>
-						</div>
-					</form>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-md-4 mx-auto">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Dates</h5>
-					<div class="row g-3">
-						<div class="col-md-6">
-							<label class="form-label">First Record</label>
-							<input class="form-control" type="text" value="<?= $first_date ?>" readonly>
-						</div>
-						<div class="col-md-6">
-							<label class="form-label">Last Record</label>
-							<input class="form-control" type="text" value="<?= $last_date ?>" readonly>
-						</div>
+					<div class="d-flex justify-content-between align-items-center">
+						<h5 class="card-title">Sale Order List (Last 10,000 records)</h5>
+						<form id="form_sales_order_upload">
+							<div class="input-group">
+								<a class="btn btn-success" href="<?= base_url() ?>template/gerp_sales_order_template.xls" download="gerp_sales_order_template"><i class="bi bi-file-earmark-spreadsheet"></i></a>
+								<input class="form-control" type="file" name="attach">
+								<button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i></button>
+							</div>
+						</form>
 					</div>
+					<table class="table datatable">
+						<thead>
+							<tr>
+								<th scope="col">Order</th>
+								<th scope="col">Status</th>
+								<th scope="col">Inventory</th>
+								<th scope="col">Bill to</th>
+								<th scope="col">Order no & Line</th>
+								<th scope="col">Model</th>
+								<th scope="col">Qty</th>
+								<th scope="col">Currency</th>
+								<th scope="col">Sales Amount</th>
+								<th scope="col">Created</th>
+								<th scope="col">Requested</th>
+								<th scope="col">Closed</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach($sales_orders as $item){ ?>
+							<tr>
+								<td><?= $item->order_category ?></td>
+								<td><?= $item->line_status ?></td>
+								<td><?= $item->inventory_org ?></td>
+								<td><?= $item->bill_to_name ?> (<?= $item->bill_to ?>)</td>
+								<td>
+									<div><?= $item->order_no ?></div>
+									<div><?= $item->line_no ?></div>
+								</td>
+								<td>
+									<div><?= $item->model_category ?></div>
+									<div><?= $item->model ?></div>
+								</td>
+								<td><?= number_format($item->ordered_qty) ?></td>
+								<td><?= $item->currency ?></td>
+								<td><?= number_format($item->sales_amount, 2) ?></td>
+								<td><?= $item->create_date ?></td>
+								<td><?= $item->req_arrival_date_to ?></td>
+								<td><?= $item->close_date ?></td>
+							</tr>
+							<?php } ?>
+						</tbody>
+					</table>
 				</div>
 			</div>
 		</div>
@@ -52,10 +74,9 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-	$("#form_upload").submit(function(e) {
+	$("#form_sales_order_upload").submit(function(e) {
 		e.preventDefault();
-		$("#form_upload .sys_msg").html("");
-		ajax_form_warning(this, "module/gerp_sales_order/upload", "Data upload will be started.").done(function(res) {
+		ajax_form_warning(this, "module/gerp_sales_order/upload", "Do you want to update sales order data?").done(function(res) {
 			swal_redirection(res.type, res.msg, "module/gerp_sales_order");
 		});
 	});

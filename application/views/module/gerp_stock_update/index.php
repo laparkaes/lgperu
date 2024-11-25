@@ -15,9 +15,10 @@
 			<div class="card">
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
-						<h5 class="card-title">Stock List</h5>
+						<h5 class="card-title">Stock List (Last 10,000 records)</h5>
 						<form id="form_stock_update">
 							<div class="input-group">
+								<a class="btn btn-success" href="<?= base_url() ?>template/gerp_stock_template.xlsx" download="stock_template"><i class="bi bi-file-earmark-spreadsheet"></i></a>
 								<input class="form-control" type="file" name="attach">
 								<button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i></button>
 							</div>

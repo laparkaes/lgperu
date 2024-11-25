@@ -13,8 +13,8 @@ function ajax_form(dom, url){
 		contentType: false,
 		processData:false,
 		success:function(res){
-			$(dom).find('button').html(btn_html);
 			$(dom).find('button').prop("disabled", false);
+			$(dom).find('button').html(btn_html);
 			deferred.resolve(res);
 		}
 	});
