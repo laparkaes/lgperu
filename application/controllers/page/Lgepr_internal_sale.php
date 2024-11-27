@@ -9,13 +9,12 @@ class Lgepr_internal_sale extends CI_Controller {
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
 		
-        $this->load->model('Internal_sale_model');
-        $this->load->helper(['form', 'url']);
-        $this->load->library(['form_validation', 'upload']);
+        $this->load->model('Internal_sale_model', 'int_sale');
+        $this->load->library(['upload', 'image_lib']);
 	}
 		
 	public function index(){
-		
+		/*
 		$w = [
 			"registered >=" => "2024-11-01 00:00:00",
 		];
@@ -27,43 +26,53 @@ class Lgepr_internal_sale extends CI_Controller {
 		];
 		
 		$this->load->view('layout', $data);
+		*/
+		
+		echo '<a href="'.base_url().'page/lgepr_internal_sale/create">go</a>';
 	}
 	
-	public function create()
-	{
-		$this->form_validation->set_rules('category', 'Category', 'required');
-		$this->form_validation->set_rules('model', 'Model', 'required');
-		$this->form_validation->set_rules('grade', 'Grade', 'required');
-		$this->form_validation->set_rules('created_at', 'Created At', 'required');
-		$this->form_validation->set_rules('end_date', 'End Date', 'required');
+	public function create(){
+		
+		$data["overflow"] = "scroll";
+		$data["main"] = "page/lgepr_internal_sale/create";
+		
+		$this->load->view('layout_dashboard', $data);
+	}
+	
+	public function insert(){
+		$data = $this->input->post();
+		
+		$errors = $this->data_validation($data, $_FILES['images']);
+		
+		if (!$errors){
+			$data["created_at"] = date('Y-m-d H:i:s');
+			$product_id = $this->int_sale->insert_product($data);
 
-		if ($this->form_validation->run() == FALSE) {
-			$this->load->view('page/lgepr_internal_sale/create', ['errors' => $this->form_validation->error_array()]);
-		} else {
-			// 데이터 저장
-			$data = [
-				'category' => $this->input->post('category'),
-				'model' => $this->input->post('model'),
-				'grade' => $this->input->post('grade'),
-				'created_at' => $this->input->post('created_at'),
-				'end_date' => $this->input->post('end_date')
-			];
-
-			$product_id = $this->Product_model->insert_product($data);
-
-			// 이미지 업로드
-			$images = $this->upload_individual_images($product_id);
+			// 이미지 업로드 처리
+			list($images, $upload_errors) = $this->upload_multiple_images($_FILES['images'], $product_id);
 
 			// 이미지 경로를 DB에 저장
 			if (!empty($images)) {
-				$this->Product_model->insert_images($images);
+				$this->int_sale->insert_images($images);
 			}
-
-			redirect('products/success');
+			
+			if (!empty($upload_errors)) $errors = array_merge($errors, $upload_errors);
+			else redirect('page/lgepr_internal_sale');
 		}
+		
+		if ($errors) redirect('page/lgepr_internal_sale/create');
 	}
-
-	private function upload_individual_images($product_id)
+	
+	private function data_validation($data, $files){
+		
+		print_r($data);
+		echo "<br/><br/><br/>";
+		print_r($files);
+		
+		return ["aaaa"];
+	}
+	
+	private function upload_multiple_images($files, $product_id)
 	{
 		$upload_path = './upload/internal_sale_images/';
 
@@ -74,34 +83,50 @@ class Lgepr_internal_sale extends CI_Controller {
 
 		$config['upload_path'] = $upload_path;
 		$config['allowed_types'] = 'jpg|png|jpeg';
-		$config['max_size'] = 2048; // 2MB 제한
+		//$config['max_size'] = 2048; // 2MB 제한
 
+		$upload_errors = [];
 		$uploaded_images = [];
+		$this->load->library('upload');
 
-		for ($i = 1; $i <= 5; $i++) {
-			$file_key = "image_$i";
+		foreach ($files['name'] as $key => $image) {
+			if ($files['size'][$key]){
+				$_FILES['single_image']['name'] = $files['name'][$key];
+				$_FILES['single_image']['type'] = $files['type'][$key];
+				$_FILES['single_image']['tmp_name'] = $files['tmp_name'][$key];
+				$_FILES['single_image']['error'] = $files['error'][$key];
+				$_FILES['single_image']['size'] = $files['size'][$key];
 
-			if (!empty($_FILES[$file_key]['name'])) {
-				$this->load->library('upload', $config);
+				$config['upload_path'] = $upload_path;
+				$this->upload->initialize($config);
 
-				if ($this->upload->do_upload($file_key)) {
+				if ($this->upload->do_upload('single_image')) {
 					$upload_data = $this->upload->data();
 					$original_path = $upload_data['full_path'];
 
-					// 리사이즈 처리
-					if ($upload_data['image_width'] > 1200) {
-						$this->resize_image($original_path, 1200);
-					}
+					// 새로운 파일명 생성
+					$new_filename = $product_id . '_' . $key . $upload_data['file_ext'];
+					$new_filepath = $upload_path . $new_filename;
 
-					$uploaded_images[] = [
-						'product_id' => $product_id,
-						'image_path' => 'internal_sale_images/' . $upload_data['file_name']
-					];
+					if (rename($original_path, $new_filepath)) {
+						// 리사이즈 처리 (필요한 경우)
+						if ($upload_data['image_width'] > 1200) {
+							$this->resize_image($new_filepath, 1200);
+						}
+
+						$uploaded_images[] = [
+							'product_id' => $product_id,
+							'image_path' => $new_filename,
+						];
+					} else {
+						// 업로드 실패 시 오류 메시지 저장
+						$upload_errors[] = "Failed to rename file: " . $upload_data['file_name'];
+					}
 				}
 			}
 		}
 
-		return $uploaded_images;
+		return [$uploaded_images, $upload_errors];
 	}
 
 	private function resize_image($path, $width)
@@ -111,7 +136,7 @@ class Lgepr_internal_sale extends CI_Controller {
 		$config['maintain_ratio'] = TRUE;
 		$config['width'] = $width;
 
-		$this->load->library('image_lib', $config);
+		$this->image_lib->initialize($config);
 
 		if (!$this->image_lib->resize()) {
 			echo $this->image_lib->display_errors();
