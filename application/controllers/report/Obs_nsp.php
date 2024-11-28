@@ -357,6 +357,7 @@ class Obs_nsp extends CI_Controller {
 		}
 		
 		$data = [
+			"overflow" => "scroll",
 			"period" => $period,
 			"days" => $days,
 			"dates" => $dates,

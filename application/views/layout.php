@@ -157,6 +157,23 @@
 					</li>
 				</ul>
 			</li>
+			<li class="nav-item">
+				<a class="nav-link collapsed" data-bs-target="#system-nav" data-bs-toggle="collapse" href="#">
+					<i class="bi bi-pc-display-horizontal"></i><span>System</span><i class="bi bi-chevron-down ms-auto"></i>
+				</a>
+				<ul id="system-nav" class="nav-content collapse" data-bs-parent="#system-nav">
+					<li>
+						<a href="<?= base_url() ?>sys/functions">
+							<i class="bi bi-circle"></i><span>Functions</span>
+						</a>
+					</li>
+					<li>
+						<a href="<?= base_url() ?>page/pi_listening" target="_blank">
+							<i class="bi bi-circle"></i><span>PI - Listening to you</span>
+						</a>
+					</li>
+				</ul>
+			</li>
 		</ul>
 	</aside>
 	
