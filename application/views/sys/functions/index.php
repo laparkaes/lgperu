@@ -68,7 +68,7 @@
 									<td><?= $item->path  ?></td>
 									<td>
 										<div class="form-check form-switch d-flex justify-content-end">
-											<input class="form-check-input chk_active" type="checkbox" value="33" <?= $item->valid ? "checked" : "" ?>>
+											<input class="form-check-input chk_active" type="checkbox" value="<?= $item->function_id ?>" <?= $item->valid ? "checked" : "" ?>>
 										</div>
 									</td>
 								</tr>
@@ -84,7 +84,12 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 	$(".chk_active").change(function() {
-		alert($(this).val());
+		var data = {function_id: $(this).val()};
+		
+		if ($(this).is(":checked")) data.valid = true;
+        else data.valid = false;
+		
+		console.log(data);
 		
 		return;
 		
