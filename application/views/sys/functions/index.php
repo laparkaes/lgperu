@@ -58,19 +58,17 @@
 									<th scope="col">Title</th>
 									<th scope="col">Type</th>
 									<th scope="col">Path</th>
-									<th scope="col">Created</th>
-									<th scope="col">Updated</th>
+									<th scope="col">Last Update</th>
 									<th scope="col"></th>
 								</tr>
 							</thead>
 							<tbody>
 								<?php foreach($funcs as $i => $item){ ?>
 								<tr>
-									<td><?= $item->title  ?></td>
-									<td><?= $item->type  ?></td>
-									<td><?= $item->path  ?></td>
-									<td><?= $item->created_at  ?></td>
-									<td><?= $item->updated_at  ?></td>
+									<td><?= $item->title ?></td>
+									<td><?= $item->type ?></td>
+									<td><a href="<?= base_url() ?><?= $item->type ?>/<?= $item->path ?>" target="_blank"><i class="bi bi-box-arrow-in-right"></i></a> <?= $item->path ?></td>
+									<td><?= $item->updated_at ?></td>
 									<td>
 										<div class="form-check form-switch d-flex justify-content-end">
 											<input class="form-check-input chk_active" type="checkbox" value="<?= $item->function_id ?>" <?= $item->valid ? "checked" : "" ?>>
