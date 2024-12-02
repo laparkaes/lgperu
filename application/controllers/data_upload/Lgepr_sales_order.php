@@ -106,46 +106,43 @@ class Lgepr_sales_order extends CI_Controller {
 			$records = 0;
 			
 			for($i = 2; $i <= $max_row; $i++){
-				$row = [];
-				foreach($vars as $var_i => $var){
-					$row[$var] = trim($sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue());
-					if (!$row[$var]) $row[$var] = null;
-				}
+				$row = [
+					'bill_to' 				=> trim($sheet->getCell('AI'.$i)->getValue()),
+					'bill_to_name' 			=> trim($sheet->getCell('A'.$i)->getValue()),
+					'ship_to' 				=> trim($sheet->getCell('AK'.$i)->getValue()),
+					'ship_to_name' 			=> trim($sheet->getCell('B'.$i)->getValue()),
+					'order_type' 			=> trim($sheet->getCell('F'.$i)->getValue()),
+					'order_no' 				=> trim($sheet->getCell('D'.$i)->getValue()),
+					'line_no' 				=> trim($sheet->getCell('E'.$i)->getValue()),
+					'line_status' 			=> trim($sheet->getCell('G'.$i)->getValue()),
+					'order_status' 			=> trim($sheet->getCell('BB'.$i)->getValue()),
+					'order_category'		=> trim($sheet->getCell('BC'.$i)->getValue()),
+					'model' 				=> trim($sheet->getCell('C'.$i)->getValue()),
+					'ordered_qty' 			=> trim($sheet->getCell('L'.$i)->getValue()),
+					'currency' 				=> trim($sheet->getCell('U'.$i)->getValue()),
+					'unit_selling_price'	=> trim($sheet->getCell('M'.$i)->getValue()),
+					'sales_amount' 			=> trim($sheet->getCell('N'.$i)->getValue()),
+					'tax_amount' 			=> trim($sheet->getCell('O'.$i)->getValue()),
+					'charge_amount'			=> trim($sheet->getCell('P'.$i)->getValue()),
+					'line_total' 			=> trim($sheet->getCell('Q'.$i)->getValue()),
+					'create_date' 			=> trim($sheet->getCell('DK'.$i)->getValue()),
+					'booked_date' 			=> trim($sheet->getCell('Y'.$i)->getValue()),
+					'req_arrival_date_to'	=> trim($sheet->getCell('AC'.$i)->getValue()),
+					'shipment_date'			=> trim($sheet->getCell('AE'.$i)->getValue()),
+					'close_date' 			=> trim($sheet->getCell('AF'.$i)->getValue()),
+					'receiver_city'			=> trim($sheet->getCell('BT'.$i)->getValue()),
+					'item_type_desctiption' => trim($sheet->getCell('CG'.$i)->getValue()),
+					'item_division' 		=> trim($sheet->getCell('BZ'.$i)->getValue()),
+					'model_category' 		=> trim($sheet->getCell('CF'.$i)->getValue()),
+					'product_level1_name'	=> trim($sheet->getCell('CA'.$i)->getValue()),
+					'product_level2_name' 	=> trim($sheet->getCell('CB'.$i)->getValue()),
+					'product_level3_name' 	=> trim($sheet->getCell('CC'.$i)->getValue()),
+					'product_level4_name' 	=> trim($sheet->getCell('CD'.$i)->getValue()),
+					'product_level4_code' 	=> trim($sheet->getCell('CE'.$i)->getValue()),
+					'customer_department'	=> trim($sheet->getCell('AJ'.$i)->getValue()),
+					'inventory_org' 		=> trim($sheet->getCell('AW'.$i)->getValue()),
+				];
 				
-				/*
-				$row[‘bill_to’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘bill_to_name’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘order_no’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘line_no’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘line_status’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘order_status’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘order_category’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘model_category’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘model’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘ordered_qty’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘currency’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘unit_selling_price’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘sales_amount’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘tax_amount’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘charge_amount’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘line_total’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘create_date’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘booked_date’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘req_arrival_date_to’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘shipment_date’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘close_date’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘receiver_city’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘item_type_desctiption’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘item_division’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘product_level1_name’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘product_level2_name’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘product_level3_name’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘product_level4_name’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘customer_department’] => trim($sheet->getCell(‘M1’)->getValue()),
-				$row[‘inventory_org’] => trim($sheet->getCell(‘M1’)->getValue()),
-				*/
-				
-
 				//apply trim
 				$row["order_no"] = trim($row["order_no"]);
 				$row["line_no"] = trim($row["line_no"]);
@@ -157,33 +154,13 @@ class Lgepr_sales_order extends CI_Controller {
 				$row["tax_amount"] = str_replace(",", "", $row["tax_amount"]);
 				$row["charge_amount"] = str_replace(",", "", $row["charge_amount"]);
 				$row["line_total"] = str_replace(",", "", $row["line_total"]);
-				$row["list_price"] = str_replace(",", "", $row["list_price"]);
-				$row["original_list_price"] = str_replace(",", "", $row["original_list_price"]);
-				$row["item_weight"] = str_replace(",", "", $row["item_weight"]);
-				$row["item_cbm"] = str_replace(",", "", $row["item_cbm"]);
-				$row["sbp_tax_include"] = str_replace(",", "", $row["sbp_tax_include"]);
-				$row["sbp_tax_exclude"] = str_replace(",", "", $row["sbp_tax_exclude"]);
-				$row["rrp_tax_include"] = str_replace(",", "", $row["rrp_tax_include"]);
-				$row["rrp_tax_exclude"] = str_replace(",", "", $row["rrp_tax_exclude"]);
 				
 				//date convert: 24/06/2021 > 2021-10-28
-				$row["booked_date"] = $this->my_func->date_convert($row["booked_date"]);
-				$row["scheduled_cancel_date"] = $this->my_func->date_convert($row["scheduled_cancel_date"]);
-				$row["expire_date"] = $this->my_func->date_convert($row["expire_date"]);
-				$row["req_arrival_date_from"] = $this->my_func->date_convert($row["req_arrival_date_from"]);
-				$row["req_arrival_date_to"] = $this->my_func->date_convert($row["req_arrival_date_to"]);
-				$row["req_ship_date"] = $this->my_func->date_convert($row["req_ship_date"]);
-				$row["shipment_date"] = $this->my_func->date_convert($row["shipment_date"]);
-				$row["close_date"] = $this->my_func->date_convert($row["close_date"]);
-				$row["invoice_date"] = $this->my_func->date_convert($row["invoice_date"]);
-				$row["create_date"] = $this->my_func->date_convert($row["create_date"]);
-				$row["customer_po_date"] = $this->my_func->date_convert($row["customer_po_date"]);
-				
-				//date convert: 2021/11/02 00:00:00 > 2021-11-02
-				//$row["customer_rad"] = $this->my_func->date_convert_2($row["customer_rad"]);
-				
-				//% > float
-				$row["dc_rate"] = str_replace("%", "", $row["dc_rate"])/100;
+				$row["booked_date"] = $this->my_func->date_convert_4($row["booked_date"]);
+				$row["req_arrival_date_to"] = $this->my_func->date_convert_4($row["req_arrival_date_to"]);
+				$row["shipment_date"] = $this->my_func->date_convert_4($row["shipment_date"]);
+				$row["close_date"] = $this->my_func->date_convert_4($row["close_date"]);
+				$row["create_date"] = $this->my_func->date_convert_4($row["create_date"]);
 				
 				if (count($order_lines) > 1000){
 					//echo "Inserting ======================= <br/>"; print_r($order_lines);
