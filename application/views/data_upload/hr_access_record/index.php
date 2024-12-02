@@ -40,15 +40,15 @@ document.addEventListener("DOMContentLoaded", () => {
 	
 	$("#form_upload_access").submit(function(e) {
 		e.preventDefault();
-		ajax_form(this, "module/hr_access_record/upload_access").done(function(res) {
-			swal_redirection(res.type, res.msg, "module/hr_access_record");
+		ajax_form(this, "data_upload/hr_access_record/upload_access").done(function(res) {
+			swal_redirection(res.type, res.msg, "data_upload/hr_access_record");
 		});
 	});
 	
 	$("#form_upload_schedule").submit(function(e) {
 		e.preventDefault();
-		ajax_form(this, "module/hr_access_record/upload_schedule").done(function(res) {
-			swal_redirection(res.type, res.msg, "module/hr_access_record");
+		ajax_form(this, "data_upload/hr_access_record/upload_schedule").done(function(res) {
+			swal_redirection(res.type, res.msg, "data_upload/hr_access_record");
 		});
 	});
 	

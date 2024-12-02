@@ -1,0 +1,9 @@
+edit php.ini >>> max_input_vars = 10000 >>> data_upload/ar_exchange_rate/upload_pyg
+RENAME TABLE gerp_sales_order TO lgepr_sales_order;
+DROP VIEW v_gerp_sales_order
+
+
+Ricardo
+module/ar_exchange_rate => data_upload/ar_exchange_rate
+module/hr_access_record => data_upload/hr_access_record
+module/gerp_sales_order => data_upload/lgepr_sales_order

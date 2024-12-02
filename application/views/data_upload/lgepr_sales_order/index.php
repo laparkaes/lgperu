@@ -1,10 +1,10 @@
 <div class="d-flex justify-content-between align-items-start">
 	<div class="pagetitle">
-		<h1>GERP - Sale Order Update</h1>
+		<h1>LGEPR Sale Order Update</h1>
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item active">GERP - Sale Order Update </li>
+				<li class="breadcrumb-item active">LGEPR Sale Order Update </li>
 			</ol>
 		</nav>
 	</div>
@@ -15,7 +15,7 @@
 			<div class="card">
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
-						<h5 class="card-title">Sale Order List (Last 10,000 records)</h5>
+						<h5 class="card-title">Last 5,000 sales orders</h5>
 						<form id="form_sales_order_upload">
 							<div class="input-group">
 								<a class="btn btn-success" href="<?= base_url() ?>template/gerp_sales_order_template.xls" download="gerp_sales_order_template"><i class="bi bi-file-earmark-spreadsheet"></i></a>
@@ -76,8 +76,8 @@
 document.addEventListener("DOMContentLoaded", () => {
 	$("#form_sales_order_upload").submit(function(e) {
 		e.preventDefault();
-		ajax_form_warning(this, "module/gerp_sales_order/upload", "Do you want to update sales order data?").done(function(res) {
-			swal_redirection(res.type, res.msg, "module/gerp_sales_order");
+		ajax_form_warning(this, "data_upload/gerp_sales_order/upload", "Do you want to update sales order data?").done(function(res) {
+			swal_redirection(res.type, res.msg, "data_upload/gerp_sales_order");
 		});
 	});
 });

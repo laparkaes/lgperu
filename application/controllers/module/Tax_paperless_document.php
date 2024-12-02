@@ -64,13 +64,6 @@ class Tax_paperless_document extends CI_Controller {
 		echo json_encode(["type" => "success", "msg" => number_format(count($rows))." invoices inserted."]);
 	}
 	
-	public function test(){
-		$filepath = "./upload/hr_attendance.csv";
-		
-		if (file_exists($filepath)) echo "ok";
-	}
-	
-	
 	public function download(){
 		/*
 		https://ereceipt-pe-s02.sovos.com/Facturacion/PDFServlet?o=E&d=true&id=TXYfNpnacT5a4oa(MaS)JKkt9A(IgU)(IgU)

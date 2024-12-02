@@ -106,9 +106,13 @@ document.addEventListener("DOMContentLoaded", () => {
 		$.get('ar_exchange_rate/proxy_dnit', function(data) {
 			$('#bl_er_pyg').html(data);
 			
+			const currentYear = new Date().getFullYear();
 			var data = [];
 			$(".journal-content-article").each(function(index, element) {
 				var month_year = $(element).find(".section__midtitle").html().replace("Tipos de cambios del mes de ", "").split(" ");
+				month_year[1] = parseInt(month_year[1], 10) // year to int
+				
+				if (currentYear > (month_year[1] + 1)) return;
 				
 				var td_aux;
 				$(element).find("tr").each(function(index_day, row) {
@@ -127,8 +131,10 @@ document.addEventListener("DOMContentLoaded", () => {
 				});
 			});
 			
-			ajax_simple({data: data}, "module/ar_exchange_rate/upload_pyg").done(function(res) {
-				swal_redirection(res.type, res.msg, "module/ar_exchange_rate");
+			console.log(data);
+			
+			ajax_simple({data: data}, "data_upload/ar_exchange_rate/upload_pyg").done(function(res) {
+				swal_redirection(res.type, res.msg, "data_upload/ar_exchange_rate");
 			});
 		});
 	});
@@ -137,8 +143,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		$("#btn_load_pen").html('Cargando...');
 		$("#btn_load_pen").attr("disabled", true);
 		
-		ajax_simple({}, "module/ar_exchange_rate/upload_pen").done(function(res) {
-			swal_redirection(res.type, res.msg, "module/ar_exchange_rate");
+		ajax_simple({}, "data_upload/ar_exchange_rate/upload_pen").done(function(res) {
+			swal_redirection(res.type, res.msg, "data_upload/ar_exchange_rate");
 		});
 	});
 	
