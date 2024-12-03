@@ -64,17 +64,6 @@ class Access extends CI_Controller {
 		
 		$data = $this->input->post();
 		
-		if ($data["title"]){
-			if ($this->gen_m->filter("sys_function", true, ["title" => $data["title"]])) $errors[] = "Title is duplicated.";
-		}else $errors[] = "Title is required field.";
-		
-		if (!$data["type"]) $errors[] = "Type is required field.";
-		
-		if ($data["path"]){
-			if ($this->gen_m->filter("sys_function", true, ["path" => $data["path"]])) $errors[] = "Path is duplicated.";
-		}else $errors[] = "Path is required field.";
-		
-		
 		if ($errors){
 			$this->session->set_flashdata('errors', $errors);
 			$this->session->set_flashdata('type', $data["type"]);

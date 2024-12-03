@@ -76,7 +76,7 @@
 				<form class="row g-3" action="<?= base_url() ?>sys/access/create" method="post">
 					<div class="col-md-12">
 						<label class="form-label">Employee</label>
-						<select class="form-select" name="employee_id">
+						<select class="form-select" name="employee_id" required>
 							<option value="">Select...</option>
 							<?php foreach($employees as $item){ ?>
 							<option value="<?= $item->employee_id ?>"><?= $item->employee_number ?>_<?= $item->name ?> (<?= $item->subsidiary ?>_<?= $item->organization ?>_<?= $item->department ?>)</option>
@@ -85,7 +85,7 @@
 					</div>
 					<div class="col-md-12">
 						<label class="form-label">Function</label>
-						<select class="form-select" name="function_id">
+						<select class="form-select" name="function_id" required>
 							<option value="">Select...</option>
 							<?php foreach($funcs as $item){ ?>
 							<option value="<?= $item->function_id ?>"><?= $item->type ?> _ <?= $item->title ?></option>
