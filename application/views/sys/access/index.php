@@ -8,14 +8,13 @@
 	</nav>
 </div>
 <section class="section">
-	<?php if ($this->session->flashdata('error')){ ?>
-	<div class="alert alert-danger fade show" role="alert">
-		<?= $this->session->flashdata('error') ?>
-	</div>
-	<?php } if ($this->session->flashdata('success')){ ?>
-	<div class="alert alert-success fade show" role="alert">
-		<?= $this->session->flashdata('success') ?>
-	</div>
+	<?php
+	$msgs = $this->session->flashdata('msgs');
+	if ($msgs) foreach($msgs as $item){ if ($item[0] === "success") $color = "success"; else $color = "danger";
+	?>
+	<div class="alert alert-<?= $color ?> fade show" role="alert">
+		<?= $item[1] ?>
+	</div>	
 	<?php } ?>
 	<div class="row">
 		<div class="col-md-12">
@@ -65,19 +64,11 @@
 				</div>
 			</div>
 		</div> 
-		<div class="col-md-5">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Create</h5>
-					
-				</div>
-			</div>
-		</div>
 	</div>
 </section>
 
 <div class="modal fade" id="md_create" tabindex="-1" aria-hidden="true" style="display: none;">
-	<div class="modal-dialog modal-dialog-centered">
+	<div class="modal-dialog modal-xl modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title">Create Access</h5>
@@ -85,19 +76,17 @@
 			</div>
 			<div class="modal-body">
 				<form class="row g-3" action="<?= base_url() ?>sys/access/create" method="post">
-					<div class="col-md-12">
+					<div class="col-md-6">
 						<label class="form-label">Employee</label>
-						<select class="form-select" name="employee_id" required>
-							<option value="">Select...</option>
+						<select class="form-select" name="employee_ids[]" style="height: 500px;" multiple required>
 							<?php foreach($employees as $item){ ?>
-							<option value="<?= $item->employee_id ?>"><?= $item->employee_number ?>_<?= $item->name ?> (<?= $item->subsidiary ?>_<?= $item->organization ?>_<?= $item->department ?>)</option>
+							<option value="<?= $item->employee_id ?>">(<?= $item->subsidiary ?>_<?= $item->organization ?>_<?= $item->department ?>) <?= $item->name ?> <?= $item->employee_number ?></option>
 							<?php } ?>
 						</select>
 					</div>
-					<div class="col-md-12">
+					<div class="col-md-6">
 						<label class="form-label">Function</label>
-						<select class="form-select" name="function_id" required>
-							<option value="">Select...</option>
+						<select class="form-select" name="function_ids[]" style="height: 500px;" multiple required>
 							<?php foreach($funcs as $item){ ?>
 							<option value="<?= $item->function_id ?>"><?= $item->type ?> _ <?= $item->title ?></option>
 							<?php } ?>

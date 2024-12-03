@@ -11,37 +11,14 @@ class Access extends CI_Controller {
 		$this->load->model('general_model','gen_m');
 	}
 	
-	public function init(){
-		$emp = [22, 23, 24];
-		$funcs = $this->gen_m->all('sys_function');
-		foreach($funcs as $item){
-			foreach($emp as $emp_id){
-				if (!$this->gen_m->filter('sys_access', false, ["employee_id" => $emp_id, "function_id" => $item->function_id])){
-					$data = ["employee_id" => $emp_id, "function_id" => $item->function_id, "valid" => true];
-					$this->gen_m->insert('sys_access', $data);		
-				}
-			}
-		}
-		
-		print_r($funcs);
-		
-		return;
-		$funcs = $this->gen_m->filter("sys_function", false);
-		foreach($funcs as $item){
-			$this->gen_m->update('sys_access', ["module" => $item->path], ["function_id" => $item->function_id]);
-			echo $item->path." done!<br/>";
-		}
-		
-	}
-
 	public function index(){
 		
 		$o_emp = [
-			["employee_number", "asc"],
-			["name", "asc"],
 			["subsidiary", "asc"], 
 			["organization", "asc"], 
-			["department", "asc"], 
+			["department", "asc"],
+			["name", "asc"],
+			["employee_number", "asc"],
 		];
 		
 		$o_func = [
@@ -73,15 +50,31 @@ class Access extends CI_Controller {
 	}
 	
 	public function create(){
-		$data = $this->input->post();
+		$msgs = [];
 		
-		$access = $this->gen_m->filter("sys_access", false, $data);
-		if ($access) $this->session->set_flashdata('error', "Access request already exists. Actually access is <strong>".($access[0]->valid ? "allowed" : "denied")."</strong>.");
-		else{
-			$data["valid"] = false;
-			$this->gen_m->insert("sys_access", $data);
-			$this->session->set_flashdata('success', "New access has been created. Please allow or deny this request.");
+		$employee_ids = $this->input->post('employee_ids');
+		$function_ids = $this->input->post('function_ids');
+		
+		foreach($employee_ids as $emp_id){
+			foreach($function_ids as $func_id){
+				$data = ["employee_id" => $emp_id, "function_id" => $func_id];
+				
+				$func = $this->gen_m->unique("sys_function", "function_id", $func_id, false);
+				$emp = $this->gen_m->unique("hr_employee", "employee_id", $emp_id, false);
+				
+				$access = $this->gen_m->filter("sys_access", false, $data);
+				if ($access) $msgs[] = ['error', $emp->name."'s [".$func->title."] access request already exists. Actually access is <strong>".($access[0]->valid ? "allowed" : "denied")."</strong>."];
+				else{
+					$data["valid"] = false;
+					$this->gen_m->insert("sys_access", $data);
+					$this->session->set_flashdata('', );
+					
+					$msgs[] = ['success', $emp->name."'s [".$func->title."]new access request has been created. Please allow or deny this request."];
+				}
+			}	
 		}
+		
+		$this->session->set_flashdata('msgs', $msgs);
 		
 		redirect("sys/access");
 	}
