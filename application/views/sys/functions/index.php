@@ -34,6 +34,7 @@
 								<option value="module" <?= $this->session->flashdata('type') === "module" ? "selected" : "" ?>>Module</option>
 								<option value="data_upload" <?= $this->session->flashdata('type') === "data_upload" ? "selected" : "" ?>>Data Upload</option>
 								<option value="page" <?= $this->session->flashdata('type') === "page" ? "selected" : "" ?>>Page</option>
+								<option value="sys" <?= $this->session->flashdata('type') === "sys" ? "selected" : "" ?>>System</option>
 							</select>
 						</div>
 						<div class="col-md-6">

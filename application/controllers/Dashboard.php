@@ -19,12 +19,6 @@ class Dashboard extends CI_Controller {
 	public function index(){
 		if (!$this->session->userdata('logged_in')) redirect("/auth/login");
 		
-		$access = [];
-		$acc_recs = $this->gen_m->filter("sys_access", false, ["employee_id" => $this->session->userdata('employee_id')]);
-		foreach($acc_recs as $item) $access[] = $item->module;
-		
-		$this->session->set_userdata("access", $access);
-		
 		$data = [
 			"main" => "dashboard/index",
 		];

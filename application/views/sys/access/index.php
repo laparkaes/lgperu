@@ -8,6 +8,15 @@
 	</nav>
 </div>
 <section class="section">
+	<?php if ($this->session->flashdata('error')){ ?>
+	<div class="alert alert-danger fade show" role="alert">
+		<?= $this->session->flashdata('error') ?>
+	</div>
+	<?php } if ($this->session->flashdata('success')){ ?>
+	<div class="alert alert-success fade show" role="alert">
+		<?= $this->session->flashdata('success') ?>
+	</div>
+	<?php } ?>
 	<div class="row">
 		<div class="col-md-12">
 			<div class="card">
@@ -41,10 +50,12 @@
 									<td><?= $item->emp_dept ?></td>
 									<td><?= $item->func ?></td>
 									<td>
-										<?php if ($item->valid == 0){ ?>
-										<button type="button" class="btn btn-success btn-sm">Allow</button>
-										<?php } ?>
-										<button type="button" class="btn btn-outline-danger btn-sm">Deny</button>
+										<div class="text-end">
+											<?php if ($item->valid == 0){ ?>
+											<a href="<?= base_url() ?>sys/access/allow/<?= $item->access_id ?>" class="btn btn-success btn-sm">Allow</a>
+											<?php } ?>
+											<a href="<?= base_url() ?>sys/access/deny/<?= $item->access_id ?>" class="btn btn-outline-danger btn-sm">Deny</a>
+										</div>
 									</td>
 								</tr>
 								<?php } ?>

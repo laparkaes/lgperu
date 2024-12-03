@@ -29,16 +29,20 @@ class Auth extends CI_Controller {
 					unset($employee->is_supervised);
 					unset($employee->access);
 					
-					$access = [];
-					$acc_recs = $this->gen_m->filter("sys_access", false, ["employee_id" => $employee->employee_id]);
-					foreach($acc_recs as $item) $access[] = $item->module;
+					$func_ids = [];
+					$access = $this->gen_m->filter("sys_access", true, ["employee_id" => $employee->employee_id]);
+					foreach($access as $item) $func_ids[] = $item->function_id;
+					
+					$nav = ['module' => [], 'data_upload' => [], 'page' => [], 'sys' => []];
+					$funcs = $this->gen_m->filter("sys_function", true, null, null, [["field" => "function_id", "values" => $func_ids]], [["title", "asc"]]);
+					foreach($funcs as $item) $nav[$item->type][] = $item;
 					
 					$session_data = array(
 						"employee_id" => $employee->employee_id,
 						"employee_number" => $employee->employee_number,
 						"name" => $employee->name,
 						"department" => $employee->department,
-						"access" => $access,
+						"nav" => $nav,
 						"logged_in" => true
 					);
 					$this->session->set_userdata($session_data);

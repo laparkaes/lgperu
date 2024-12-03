@@ -63,6 +63,7 @@
 		</nav>
 	</header>
 	<aside id="sidebar" class="sidebar">
+		<?php $nav = $this->session->userdata('nav'); ?>
 		<ul class="sidebar-nav" id="sidebar-nav">
 			<li class="nav-item">
 				<a class="nav-link collapsed" href="<?= base_url() ?>dashboard">
@@ -70,110 +71,67 @@
 					<span>Dashboard</span>
 				</a>
 			</li>
+			<?php if ($nav['module']){ ?>
 			<li class="nav-item">
 				<a class="nav-link collapsed" data-bs-target="#modules-nav" data-bs-toggle="collapse" href="#">
 					<i class="bi bi-menu-button-wide"></i><span>Modules</span><i class="bi bi-chevron-down ms-auto"></i>
 				</a>
 				<ul id="modules-nav" class="nav-content collapse show" data-bs-parent="#modules-nav">
-					<?php 
-					$modules = [
-						["hr_attendance", "HR - Attendance"],
-						["hr_employee", "HR - Employee"],
-						["ism_activity_management", "ISM - Activity"],
-						["obs_report", "OBS - Sales Report"],
-						["pi_listening", "PI - Listening to You"],
-						["sa_promotion", "SA - Promotion Calculation"],
-						["sa_sell_inout", "SA - Sell in/out Report"],
-						["scm_purchase_order", "SCM - PO Conversion"],
-						["tax_invoice_comparison", "TAX - Invoice Comparison"],
-					];
-					
-					$aceess = $this->session->userdata('access') ? $this->session->userdata('access') : [];
-					
-					foreach($modules as $item){ if (in_array($item[0], $aceess)){ ?>
+					<?php foreach ($nav['module'] as $item){ ?>
 					<li>
-						<a href="<?= base_url() ?>module/<?= $item[0] ?>">
-							<i class="bi bi-circle"></i><span><?= $item[1] ?></span>
+						<a href="<?= base_url() ?><?= $item->type ?>/<?= $item->path ?>">
+							<i class="bi bi-circle"></i><span><?= $item->title ?></span>
 						</a>
 					</li>
-					<?php }} ?>
+					<?php } ?>
 				</ul>
 			</li>
+			<?php } if ($nav['data_upload']){ ?>
 			<li class="nav-item">
 				<a class="nav-link collapsed" data-bs-target="#data_uploads-nav" data-bs-toggle="collapse" href="#">
 					<i class="bi bi-upload"></i><span>Data Uploads</span><i class="bi bi-chevron-down ms-auto"></i>
 				</a>
-				<ul id="data_uploads-nav" class="nav-content collapse" data-bs-parent="#data_uploads-nav">
-					<?php 
-					$data_uploads = [
-						["gerp_sales_order", "GERP Sales order"],
-						["gerp_stock_update", "GERP Stock update"],
-						["ar_exchange_rate", "AR - Exchange rate"],
-						["hr_access_record", "HR - Access record"],
-						["obs_gerp", "OBS - GERP Sales order"],
-						["obs_magento", "OBS - Magento"],
-						["obs_most_likely", "OBS - ML"],
-						["sa_sell_out", "SA - Sell out"],
-						["tax_paperless_document", "TAX - Paperless eDocuments"],
-					];
-					
-					$aceess = $this->session->userdata('access') ? $this->session->userdata('access') : [];
-					
-					foreach($data_uploads as $item){ if (in_array($item[0], $aceess)){ ?>
+				<ul id="data_uploads-nav" class="nav-content collapse show" data-bs-parent="#data_uploads-nav">
+					<?php foreach ($nav['data_upload'] as $item){ ?>
 					<li>
-						<a href="<?= base_url() ?>module/<?= $item[0] ?>">
-							<i class="bi bi-circle"></i><span><?= $item[1] ?></span>
+						<a href="<?= base_url() ?><?= $item->type ?>/<?= $item->path ?>">
+							<i class="bi bi-circle"></i><span><?= $item->title ?></span>
 						</a>
 					</li>
-					<?php }} ?>
+					<?php } ?>
 				</ul>
 			</li>
-			<li class="nav-item">
-				<a class="nav-link collapsed" data-bs-target="#reports-nav" data-bs-toggle="collapse" href="#">
-					<i class="bi bi-journal-text"></i><span>Reports</span><i class="bi bi-chevron-down ms-auto"></i>
-				</a>
-				<ul id="reports-nav" class="nav-content collapse" data-bs-parent="#reports-nav">
-					<li>
-						<a href="<?= base_url() ?>report/obs_nsp" target="_blank">
-							<i class="bi bi-circle"></i><span>OBS - NSP</span>
-						</a>
-					</li>
-				</ul>
-			</li>
+			<?php } if ($nav['page']){ ?>
 			<li class="nav-item">
 				<a class="nav-link collapsed" data-bs-target="#pages-nav" data-bs-toggle="collapse" href="#">
 					<i class="bi bi-file-earmark"></i><span>Pages</span><i class="bi bi-chevron-down ms-auto"></i>
 				</a>
-				<ul id="pages-nav" class="nav-content collapse" data-bs-parent="#pages-nav">
+				<ul id="pages-nav" class="nav-content collapse show" data-bs-parent="#pages-nav">
+					<?php foreach ($nav['page'] as $item){ ?>
 					<li>
-						<a href="<?= base_url() ?>page/lgepr_punctuality" target="_blank">
-							<i class="bi bi-circle"></i><span>LGEPR - Punctuality</span>
+						<a href="<?= base_url() ?><?= $item->type ?>/<?= $item->path ?>" target="_blank">
+							<i class="bi bi-circle"></i><span><?= $item->title ?></span>
 						</a>
 					</li>
-					<li>
-						<a href="<?= base_url() ?>page/pi_listening" target="_blank">
-							<i class="bi bi-circle"></i><span>PI - Listening to you</span>
-						</a>
-					</li>
+					<?php } ?>
 				</ul>
 			</li>
+			<?php } if ($nav['sys']){ ?>
 			<li class="nav-item">
 				<a class="nav-link collapsed" data-bs-target="#system-nav" data-bs-toggle="collapse" href="#">
 					<i class="bi bi-pc-display-horizontal"></i><span>System</span><i class="bi bi-chevron-down ms-auto"></i>
 				</a>
 				<ul id="system-nav" class="nav-content collapse show" data-bs-parent="#system-nav">
+					<?php foreach ($nav['sys'] as $item){ ?>
 					<li>
-						<a href="<?= base_url() ?>sys/functions">
-							<i class="bi bi-circle"></i><span>Functions</span>
+						<a href="<?= base_url() ?><?= $item->type ?>/<?= $item->path ?>">
+							<i class="bi bi-circle"></i><span><?= $item->title ?></span>
 						</a>
 					</li>
-					<li>
-						<a href="<?= base_url() ?>sys/access">
-							<i class="bi bi-circle"></i><span>Access</span>
-						</a>
-					</li>
+					<?php } ?>
 				</ul>
 			</li>
+			<?php } ?>
 		</ul>
 	</aside>
 	

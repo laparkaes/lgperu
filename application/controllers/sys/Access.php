@@ -37,7 +37,7 @@ class Access extends CI_Controller {
 			["path", "asc"],
 		];
 		
-		$access = $this->gen_m->filter("sys_access", false);
+		$access = $this->gen_m->filter("sys_access", false, null, null, null, [["valid", "asc"], ["employee_id", "asc"]]);
 		foreach($access as $item){
 			$func = $this->gen_m->unique("sys_function", "function_id", $item->function_id, false);
 			$item->func = $func ? $func->type."_".$func->title : "";
@@ -60,57 +60,43 @@ class Access extends CI_Controller {
 	}
 	
 	public function create(){
-		$errors = [];
-		
 		$data = $this->input->post();
 		
-		if ($errors){
-			$this->session->set_flashdata('errors', $errors);
-			$this->session->set_flashdata('type', $data["type"]);
-			$this->session->set_flashdata('path', $data["path"]);
-			$this->session->set_flashdata('title', $data["title"]);
-		}else{
-			$data["valid"] = true;
-			$data["created_at"] = $data["updated_at"] = date('Y-m-d H:i:s');
-			$this->gen_m->insert("sys_function", $data);
-			$this->session->set_flashdata('success', "New function menu has been created.");
+		$access = $this->gen_m->filter("sys_access", false, $data);
+		if ($access) $this->session->set_flashdata('error', "Access request already exists. Actually access is <strong>".($access[0]->valid ? "allowed" : "denied")."</strong>.");
+		else{
+			$data["valid"] = false;
+			$this->gen_m->insert("sys_access", $data);
+			$this->session->set_flashdata('success', "New access has been created. Please allow or deny this request.");
 		}
 		
 		redirect("sys/access");
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	///////////////////////////////////////////////////
+	public function allow($access_id){
+		$access = $this->gen_m->unique("sys_access", "access_id", $access_id, false);
 
-	public function update(){
-		$data = $this->input->post();
-		$data["valid"] = $data["valid"] === "true" ? true : false;
-		$data["updated_at"] = date('Y-m-d H:i:s');
+		$func = $this->gen_m->unique("sys_function", "function_id", $access->function_id, false);
+		$emp = $this->gen_m->unique("hr_employee", "employee_id", $access->employee_id, false);
 		
-		$func = $this->gen_m->unique("sys_function", "function_id", $data["function_id"], false);
+		if ($this->gen_m->update("sys_access", ["access_id" => $access_id], ["valid" => true]))
+			$this->session->set_flashdata('success', $emp->name." has been <strong>allowed</strong> access to ".($func ? $func->type."_".$func->title : "").".");
+		else $this->session->set_flashdata('error', "An error has been occurred. Try again.");
 		
-		if ($this->gen_m->update("sys_function", ["function_id" => $data["function_id"]], $data)){
-			$msg = $func->title." has been ";
-			$res = ["type" => "success", "msg" => $msg.($data["valid"] ? "enabled." : "disabled.")];
-		}else{
-			$res = ["type" => "error", "msg" => "An error occurred. Try again please."];
-		}
+		redirect("sys/access");
+	}
+	
+	public function deny($access_id){
+		$access = $this->gen_m->unique("sys_access", "access_id", $access_id, false);
+
+		$func = $this->gen_m->unique("sys_function", "function_id", $access->function_id, false);
+		$emp = $this->gen_m->unique("hr_employee", "employee_id", $access->employee_id, false);
 		
-		header('Content-Type: application/json');
-		echo json_encode($res);
+		if ($this->gen_m->update("sys_access", ["access_id" => $access_id], ["valid" => false]))
+			$this->session->set_flashdata('success', $emp->name." has been <strong>denied</strong> access to ".($func ? $func->type."_".$func->title : "").".");
+		else $this->session->set_flashdata('error', "An error has been occurred. Try again.");
+		
+		redirect("sys/access");
 	}
 
 }
