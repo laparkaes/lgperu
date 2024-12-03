@@ -18,7 +18,7 @@
 						<h5 class="card-title">Last 5,000 sales orders</h5>
 						<form id="form_sales_order_upload">
 							<div class="input-group">
-								<a class="btn btn-success" href="<?= base_url() ?>template/gerp_sales_order_template.xls" download="gerp_sales_order_template"><i class="bi bi-file-earmark-spreadsheet"></i></a>
+								<a class="btn btn-success" href="<?= base_url() ?>template/lgepr_sales_order_template.xls" download="lgepr_sales_order_template"><i class="bi bi-file-earmark-spreadsheet"></i></a>
 								<input class="form-control" type="file" name="attach">
 								<button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i></button>
 							</div>

@@ -103,7 +103,7 @@
 				<a class="nav-link collapsed" data-bs-target="#data_uploads-nav" data-bs-toggle="collapse" href="#">
 					<i class="bi bi-upload"></i><span>Data Uploads</span><i class="bi bi-chevron-down ms-auto"></i>
 				</a>
-				<ul id="data_uploads-nav" class="nav-content collapse show" data-bs-parent="#data_uploads-nav">
+				<ul id="data_uploads-nav" class="nav-content collapse" data-bs-parent="#data_uploads-nav">
 					<?php 
 					$data_uploads = [
 						["gerp_sales_order", "GERP Sales order"],
@@ -132,7 +132,7 @@
 				<a class="nav-link collapsed" data-bs-target="#reports-nav" data-bs-toggle="collapse" href="#">
 					<i class="bi bi-journal-text"></i><span>Reports</span><i class="bi bi-chevron-down ms-auto"></i>
 				</a>
-				<ul id="reports-nav" class="nav-content collapse show" data-bs-parent="#reports-nav">
+				<ul id="reports-nav" class="nav-content collapse" data-bs-parent="#reports-nav">
 					<li>
 						<a href="<?= base_url() ?>report/obs_nsp" target="_blank">
 							<i class="bi bi-circle"></i><span>OBS - NSP</span>
@@ -144,7 +144,7 @@
 				<a class="nav-link collapsed" data-bs-target="#pages-nav" data-bs-toggle="collapse" href="#">
 					<i class="bi bi-file-earmark"></i><span>Pages</span><i class="bi bi-chevron-down ms-auto"></i>
 				</a>
-				<ul id="pages-nav" class="nav-content collapse show" data-bs-parent="#pages-nav">
+				<ul id="pages-nav" class="nav-content collapse" data-bs-parent="#pages-nav">
 					<li>
 						<a href="<?= base_url() ?>page/lgepr_punctuality" target="_blank">
 							<i class="bi bi-circle"></i><span>LGEPR - Punctuality</span>
@@ -161,15 +161,15 @@
 				<a class="nav-link collapsed" data-bs-target="#system-nav" data-bs-toggle="collapse" href="#">
 					<i class="bi bi-pc-display-horizontal"></i><span>System</span><i class="bi bi-chevron-down ms-auto"></i>
 				</a>
-				<ul id="system-nav" class="nav-content collapse" data-bs-parent="#system-nav">
+				<ul id="system-nav" class="nav-content collapse show" data-bs-parent="#system-nav">
 					<li>
 						<a href="<?= base_url() ?>sys/functions">
 							<i class="bi bi-circle"></i><span>Functions</span>
 						</a>
 					</li>
 					<li>
-						<a href="<?= base_url() ?>page/pi_listening" target="_blank">
-							<i class="bi bi-circle"></i><span>PI - Listening to you</span>
+						<a href="<?= base_url() ?>sys/access">
+							<i class="bi bi-circle"></i><span>Access</span>
 						</a>
 					</li>
 				</ul>

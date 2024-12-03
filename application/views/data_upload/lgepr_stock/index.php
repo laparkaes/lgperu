@@ -1,10 +1,10 @@
 <div class="d-flex justify-content-between align-items-start">
 	<div class="pagetitle">
-		<h1>GERP - Stock Update</h1>
+		<h1>GERP Stock</h1>
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item active">GERP - Stock Update</li>
+				<li class="breadcrumb-item active">GERP Stock</li>
 			</ol>
 		</nav>
 	</div>
@@ -15,10 +15,10 @@
 			<div class="card">
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
-						<h5 class="card-title">Stock List (Last 10,000 records)</h5>
+						<h5 class="card-title">Last 5,000 records</h5>
 						<form id="form_stock_update">
 							<div class="input-group">
-								<a class="btn btn-success" href="<?= base_url() ?>template/gerp_stock_template.xlsx" download="stock_template"><i class="bi bi-file-earmark-spreadsheet"></i></a>
+								<a class="btn btn-success" href="<?= base_url() ?>template/lgepr_stock_template.xlsx" download="lgepr_stock_template"><i class="bi bi-file-earmark-spreadsheet"></i></a>
 								<input class="form-control" type="file" name="attach">
 								<button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i></button>
 							</div>
@@ -64,8 +64,8 @@
 document.addEventListener("DOMContentLoaded", () => {
 	$("#form_stock_update").submit(function(e) {
 		e.preventDefault();
-		ajax_form_warning(this, "module/gerp_stock_update/update", "Do you want to update stock data?").done(function(res) {
-			swal_redirection(res.type, res.msg, "module/gerp_stock_update");
+		ajax_form_warning(this, "data_upload/lgepr_stock/update", "Do you want to update stock data?").done(function(res) {
+			swal_redirection(res.type, res.msg, "data_upload/lgepr_stock");
 		});
 	});
 });

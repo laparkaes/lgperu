@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Pi_listening extends CI_Controller {
+class Pi_listening_request extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
@@ -42,11 +42,11 @@ class Pi_listening extends CI_Controller {
 	}
 		
 	public function index(){
-	
 		
 		$data = [
 			"dpts" => $this->dpts,
-			"main" => "report/pi_listening/index",
+			"overflow" => "hidden",
+			"main" => "page/pi_listening_request/index",
 		];
 		
 		$this->load->view('layout_dashboard', $data);
@@ -67,6 +67,7 @@ class Pi_listening extends CI_Controller {
 		//1. capturar y guardar cada dato
 		$data = $this->input->post();
 		
+		/* with dpt from validation
 		if (array_key_exists($data["dptFrom"], $dpts)){
 			$data["dptFrom"] = $dpts[$data["dptFrom"]];
 			$data["dptTo"] = $dpts[$data["dptTo"]];
@@ -86,8 +87,17 @@ class Pi_listening extends CI_Controller {
 			
 			$this->session->set_flashdata('error_msg', 'Insert your department code correctly.');
 		}
+		*/
 		
-		redirect("./report/pi_listening");
+		/* without dpt from validation */
+		$data["dptTo"] = $dpts[$data["dptTo"]];
+		$data["status"] = "Registered";
+		$data["registered"] = date('Y-m-d H:i:s', time());
+		$this->gen_m->insert("pi_listening", $data);
+		
+		$this->session->set_flashdata('success_msg', 'Your voice has been registered.');
+		
+		redirect("./page/Pi_listening_request");
 	}
 
 	public function test(){

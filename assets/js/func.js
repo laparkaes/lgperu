@@ -4,7 +4,7 @@ function ajax_form(dom, url){
 	var btn_html = $(dom).find('button').html();
 	
 	$(dom).find('button').prop("disabled", true);
-	$(dom).find('button').html("Loading...");
+	$(dom).find('button[type=submit]').html("Loading...");
 	var deferred = $.Deferred();
 	$.ajax({
 		url: base_url + url,
@@ -14,7 +14,7 @@ function ajax_form(dom, url){
 		processData:false,
 		success:function(res){
 			$(dom).find('button').prop("disabled", false);
-			$(dom).find('button').html(btn_html);
+			$(dom).find('button[type=submit]').html(btn_html);
 			deferred.resolve(res);
 		}
 	});

@@ -92,8 +92,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_upload_data").submit(function(e) {
 		e.preventDefault();
 		$("#form_upload_data .sys_msg").html("");
-		ajax_form_warning(this, "module/sa_sell_out/upload", "Are you sure to upload sell-out records?").done(function(res) {
-			swal_redirection(res.type, res.msg, "module/sa_sell_out");
+		ajax_form_warning(this, "data_upload/sa_sell_out/upload", "Are you sure to upload sell-out records?").done(function(res) {
+			swal_redirection(res.type, res.msg, "data_upload/sa_sell_out");
 		});
 	});
 });

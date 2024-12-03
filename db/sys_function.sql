@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.1.3
+-- version 5.2.0
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- 생성 시간: 24-12-01 01:35
--- 서버 버전: 10.4.24-MariaDB
--- PHP 버전: 7.4.29
+-- Generation Time: Dec 02, 2024 at 04:40 PM
+-- Server version: 10.4.27-MariaDB
+-- PHP Version: 7.4.33
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- 데이터베이스: `llamasys`
+-- Database: `llamasys`
 --
 
 -- --------------------------------------------------------
 
 --
--- 테이블 구조 `sys_function`
+-- Table structure for table `sys_function`
 --
 
 CREATE TABLE `sys_function` (
@@ -35,10 +35,10 @@ CREATE TABLE `sys_function` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `valid` tinyint(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
--- 테이블의 덤프 데이터 `sys_function`
+-- Dumping data for table `sys_function`
 --
 
 INSERT INTO `sys_function` (`function_id`, `type`, `path`, `title`, `created_at`, `updated_at`, `valid`) VALUES
@@ -52,7 +52,7 @@ INSERT INTO `sys_function` (`function_id`, `type`, `path`, `title`, `created_at`
 (8, 'module', 'scm_purchase_order', '[SCM] Purchase Order', '2024-12-01 05:35:58', '2024-12-01 05:35:58', 1),
 (9, 'module', 'tax_invoice_comparison', '[TAX] Invoice Comparison', '2024-12-01 05:36:38', '2024-12-01 05:36:38', 1),
 (10, 'data_upload', 'lgepr_sales_order', '[LGEPR] Sale Order', '2024-12-01 05:43:38', '2024-12-01 05:43:38', 1),
-(11, 'data_upload', 'lgepr_stock_update', '[LGEPR] Stock Update', '2024-12-01 05:44:03', '2024-12-01 05:44:03', 1),
+(11, 'data_upload', 'lgepr_stock', '[LGEPR] Stock', '2024-12-01 05:44:03', '2024-12-01 05:44:03', 1),
 (12, 'data_upload', 'ar_exchange_rate', '[AR] Exchange Rate', '2024-12-01 05:49:02', '2024-12-01 05:49:02', 1),
 (13, 'data_upload', 'hr_access_record', '[HR] Access Record', '2024-12-01 05:50:14', '2024-12-01 05:50:14', 1),
 (14, 'data_upload', 'obs_gerp', '[OBS] GERP Sale Order', '2024-12-01 05:51:56', '2024-12-01 05:51:56', 1),
@@ -65,21 +65,21 @@ INSERT INTO `sys_function` (`function_id`, `type`, `path`, `title`, `created_at`
 (21, 'page', 'obs_nsp', '[OBS] NSP', '2024-12-01 06:31:48', '2024-12-01 06:31:48', 1);
 
 --
--- 덤프된 테이블의 인덱스
+-- Indexes for dumped tables
 --
 
 --
--- 테이블의 인덱스 `sys_function`
+-- Indexes for table `sys_function`
 --
 ALTER TABLE `sys_function`
   ADD PRIMARY KEY (`function_id`);
 
 --
--- 덤프된 테이블의 AUTO_INCREMENT
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- 테이블의 AUTO_INCREMENT `sys_function`
+-- AUTO_INCREMENT for table `sys_function`
 --
 ALTER TABLE `sys_function`
   MODIFY `function_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;

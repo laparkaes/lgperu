@@ -2,8 +2,23 @@ edit php.ini >>> max_input_vars = 100000 >>> data_upload/ar_exchange_rate/upload
 RENAME TABLE gerp_sales_order TO lgepr_sales_order;
 DROP VIEW v_gerp_sales_order
 
+RENAME TABLE gerp_stock TO lgepr_stock;
+[[[change lgepr_stock updated data type to date]]]
+
+add function_id, valid to sys_access
+exec sys/access/init to sync given access
+____________remove module field of sys_access
 
 Ricardo
 module/ar_exchange_rate => data_upload/ar_exchange_rate
 module/hr_access_record => data_upload/hr_access_record
 module/gerp_sales_order => data_upload/lgepr_sales_order
+module/gerp_stock_update => data_upload/lgepr_stock
+module/obs_gerp => data_upload/obs_gerp
+module/obs_magento => data_upload/obs_magento
+module/obs_most_likely => data_upload/obs_most_likely
+module/sa_sell_out => data_upload/sa_sell_out
+module/tax_paperless_document => data_upload/tax_paperless_document
+
+Roberto
+report/obs_nsp => page/obs_nsp

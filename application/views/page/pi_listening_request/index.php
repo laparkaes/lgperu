@@ -19,7 +19,7 @@
 		<div class="card overflow-hidden">
 			<div class="card-body">
 				<h5 class="card-title">PI - LISTENING TO YOU !!!</h5>
-				<form class="row g-3" method="POST" action="<?= base_url() ?>page/pi_listening/cpilistening">
+				<form class="row g-3" method="POST" action="<?= base_url() ?>page/pi_listening_request/cpilistening">
 					<!-- div class="col-md-6">
 						<label for="dptFrom" class="form-label">From (Department code provided by PI)</label>
 						<input type="text" class="form-control" id="dptFrom" name="dptFrom" value="<?= $this->session->flashdata('dptFrom') ?>" required>
