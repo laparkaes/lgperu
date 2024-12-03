@@ -12,7 +12,20 @@ class Access extends CI_Controller {
 	}
 	
 	public function init(){
+		$emp = [22, 23, 24];
+		$funcs = $this->gen_m->all('sys_function');
+		foreach($funcs as $item){
+			foreach($emp as $emp_id){
+				if (!$this->gen_m->filter('sys_access', false, ["employee_id" => $emp_id, "function_id" => $item->function_id])){
+					$data = ["employee_id" => $emp_id, "function_id" => $item->function_id, "valid" => true];
+					$this->gen_m->insert('sys_access', $data);		
+				}
+			}
+		}
 		
+		print_r($funcs);
+		
+		return;
 		$funcs = $this->gen_m->filter("sys_function", false);
 		foreach($funcs as $item){
 			$this->gen_m->update('sys_access', ["module" => $item->path], ["function_id" => $item->function_id]);
