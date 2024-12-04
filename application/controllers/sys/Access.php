@@ -86,8 +86,10 @@ class Access extends CI_Controller {
 		$emp = $this->gen_m->unique("hr_employee", "employee_id", $access->employee_id, false);
 		
 		if ($this->gen_m->update("sys_access", ["access_id" => $access_id], ["valid" => true]))
-			$this->session->set_flashdata('success', $emp->name." has been <strong>allowed</strong> access to ".($func ? $func->type."_".$func->title : "").".");
-		else $this->session->set_flashdata('error', "An error has been occurred. Try again.");
+			$msgs[] = ['success', $emp->name." has been <strong>allowed</strong> access to ".($func ? $func->type."_".$func->title : "")."."];
+		else $msgs[] = ['error', "An error has been occurred. Try again."];
+		
+		$this->session->set_flashdata('msgs', $msgs);
 		
 		redirect("sys/access");
 	}
@@ -98,9 +100,11 @@ class Access extends CI_Controller {
 		$func = $this->gen_m->unique("sys_function", "function_id", $access->function_id, false);
 		$emp = $this->gen_m->unique("hr_employee", "employee_id", $access->employee_id, false);
 		
-		if ($this->gen_m->update("sys_access", ["access_id" => $access_id], ["valid" => false]))
-			$this->session->set_flashdata('success', $emp->name." has been <strong>denied</strong> access to ".($func ? $func->type."_".$func->title : "").".");
-		else $this->session->set_flashdata('error', "An error has been occurred. Try again.");
+		if ($this->gen_m->delete("sys_access", ["employee_id" => $access->employee_id, "access_id" => $access_id]))
+			$msgs[] = ['success', $emp->name." has been <strong>denied</strong> access to ".($func ? $func->type."_".$func->title : "")."."];
+		else $msgs[] = ['error', "An error has been occurred. Try again."];
+		
+		$this->session->set_flashdata('msgs', $msgs);
 		
 		redirect("sys/access");
 	}
