@@ -29,7 +29,7 @@ class Auth extends CI_Controller {
 					unset($employee->is_supervised);
 					unset($employee->access);
 					
-					$func_ids = [];
+					$func_ids = [-1];
 					$access = $this->gen_m->filter("sys_access", true, ["employee_id" => $employee->employee_id]);
 					foreach($access as $item) $func_ids[] = $item->function_id;
 					
