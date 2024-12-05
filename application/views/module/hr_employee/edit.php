@@ -91,9 +91,11 @@
 					</form>
 				</div>
 			</div>
+		</div>
+		<div class="col-md-4">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Work Times</h5>
+					<h5 class="card-title">Worktime History</h5>
 					<table class="table">
 						<thead>
 							<tr>
@@ -115,38 +117,6 @@
 				</div>
 			</div>
 		</div> 
-		<div class="col-md-4">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Module</h5>
-					<ul class="list-group">
-						<?php foreach($acc_mod as $item){ ?>
-						<li class="list-group-item">
-							<div class="form-check form-switch">
-								<input class="form-check-input me-3 chk_acc_ctrl" type="checkbox" id="sw_<?= $item[0] ?>" value="<?= $item[0] ?>" <?= in_array($item[0], $acc_asg) ? "checked" : "" ?>>
-								<label class="form-check-label" for="sw_<?= $item[0] ?>"><?= $item[1] ?></label>
-							</div>
-						</li>
-						<?php } ?>
-					</ul>
-				</div>
-			</div>
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Data Upload</h5>
-					<ul class="list-group">
-						<?php foreach($acc_du as $item){ ?>
-						<li class="list-group-item">
-							<div class="form-check form-switch">
-								<input class="form-check-input me-3 chk_acc_ctrl" type="checkbox" id="sw_<?= $item[0] ?>" value="<?= $item[0] ?>" <?= in_array($item[0], $acc_asg) ? "checked" : "" ?>>
-								<label class="form-check-label" for="sw_<?= $item[0] ?>"><?= $item[1] ?></label>
-							</div>
-						</li>
-						<?php } ?>
-					</ul>
-				</div>
-			</div>
-		</div>
 	</div>
 </section>
 <input type="hidden" id="emp_id" value="<?= $emp->employee_id ?>">
@@ -161,24 +131,5 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	});
 	
-	
-	$(".chk_acc_ctrl").on("change", function() {
-		//update_voice({listening_id: $(this).attr("listening_id"), status: $(this).val()});
-		//alert($(this).val());
-		ajax_simple({checked: $(this).is(':checked'), employee_id: $("#emp_id").val(), module: $(this).val()}, "module/hr_employee/acc_ctrl").done(function(res) {
-			//console.log(res);
-			toastr.success(res.msg, null, {timeOut: 5000});
-		});
-	});
-	
-	/*
-	
-	//cancel purchase
-	$("#btn_delete_payment").click(function() {
-		ajax_simple_warning({id: $(this).val()}, "commerce/purchase/delete_payment", "wm_payment_delete").done(function(res) {
-			swal_redirection(res.type, res.msg, window.location.href);
-		});
-	});
-	*/
 });
 </script>

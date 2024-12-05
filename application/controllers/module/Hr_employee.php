@@ -18,7 +18,7 @@ class Hr_employee extends CI_Controller {
 		$this->load->model('vacation_model', 'vac_m');
 		$this->load->model('working_hour_model', 'whour_m');
 	}
-	
+	/*
 	public function hc_update(){
 		echo "HC 20241107<br/><br/>";
 		
@@ -39,7 +39,7 @@ class Hr_employee extends CI_Controller {
 		
 		echo "Done!!!";
 	}
-
+	*/
 	public function index(){
 		$employees = $this->gen_m->filter("hr_employee", false, ["active" => true], null, null, [["subsidiary", "asc"], ["organization", "asc"], ["department", "asc"], ["name", "asc"]]);
 		
@@ -51,8 +51,6 @@ class Hr_employee extends CI_Controller {
 	}
 
 	public function edit($employee_id){
-		if (($this->session->userdata('department') !== "PI") and ($this->session->userdata('department') !== "Human Resources")) redirect("/module/hr_employee");
-		
 		$emp = $this->gen_m->unique("hr_employee", "employee_id", $employee_id, false);
 		
 		$today = date("Y-m-d");
@@ -68,41 +66,13 @@ class Hr_employee extends CI_Controller {
 		
 		$schs = [
 			"07:00 ~ 17:00",
+			"07:30 ~ 16:30",
 			"07:30 ~ 17:30",
 			"08:00 ~ 18:00",
 			"08:30 ~ 18:30",
 			"09:00 ~ 19:00",
 			"09:30 ~ 19:30",
 		];
-		
-		$access_module = [
-			["hr_attendance", "HR - Attendance"],
-			["hr_employee", "HR - Employee"],
-			["ism_activity_management", "ISM - Activity"],
-			["obs_report", "OBS - Sales report"],
-			["pi_listening", "PI - Listening to You"],
-			["sa_promotion", "SA - Promotion calculation"],
-			["sa_sell_inout", "SA - Sell in/out report"],
-			["scm_purchase_order", "SCM - PO Conversion"],
-			["tax_invoice_comparison", "TAX - Invoice comparison GERP & Paperless"],
-		];
-		
-		$access_data_upload = [
-			["gerp_sales_order", "GERP Sales order upload"],
-			["gerp_stock_update", "GERP Stock update"],
-			["ar_exchange_rate", "HR - Exchange rate"],
-			["hr_access_record", "HR - Access record"],
-			["obs_gerp", "OBS - GERP Sales order upload"],
-			["obs_magento", "OBS - Magento upload"],
-			["obs_most_likely", "OBS - ML upload"],
-			["sa_sell_out", "SA - Sell out upload"],
-			["tax_paperless_document", "TAX - Paperless eDocuments download"],
-		];
-		
-		$acc_asg = [];
-		$acc_recs = $this->gen_m->filter("sys_access", false, ["employee_id" => $employee_id]);
-		foreach($acc_recs as $item) $acc_asg[] = $item->module;
-		
 		
 		$f = ["subsidiary", "organization", "department"];
 		$dpts = [];
@@ -117,9 +87,6 @@ class Hr_employee extends CI_Controller {
 			"emp"		=> $emp,
 			"w_schs"	=> $work_schedule,
 			"schs"		=> $schs,
-			"acc_mod"	=> $access_module,
-			"acc_du"	=> $access_data_upload,
-			"acc_asg"	=> $acc_asg,
 			"main" 		=> "module/hr_employee/edit",
 		];
 		
@@ -219,29 +186,6 @@ class Hr_employee extends CI_Controller {
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => "module/hr_employee/edit/".$data["employee_id"]]);
-	}
-	
-	public function acc_ctrl(){
-		$data = $this->input->post();
-		
-		if ($data["checked"] === "true"){
-			unset($data["checked"]);
-			$this->gen_m->insert("sys_access", $data);
-			$msg = "Access assigned.";
-			
-			$access = [];
-			$acc_recs = $this->gen_m->filter("sys_access", false, ["employee_id" => $data["employee_id"]]);
-			foreach($acc_recs as $item) $access[] = $item->module;
-			
-			$this->session->set_userdata('access', $access);
-		}else{
-			unset($data["checked"]);
-			$this->gen_m->delete("sys_access", $data);
-			$msg = "Access removed.";
-		}
-		
-		header('Content-Type: application/json');
-		echo json_encode(["type" => "success", "msg" => $msg]);
 	}
 	
 }

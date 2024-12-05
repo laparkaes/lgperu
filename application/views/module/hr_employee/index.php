@@ -9,7 +9,7 @@
 		</nav>
 	</div>
 	<div>
-		<a href="#" type="button" class="btn btn-success">
+		<a href="<?= base_url() ?>module/hr_employee/create" type="button" class="btn btn-success">
 			<i class="bi bi-plus-lg"></i>
 		</a>
 	</div>
