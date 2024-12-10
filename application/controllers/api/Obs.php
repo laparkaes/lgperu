@@ -67,7 +67,26 @@ class Obs extends CI_Controller {
 			echo $token["msg"];
 			return;
 		}
-	
+		
+		/* http://localhost:8080/llamasys/api/obs/to_get_categories
+		Array ( [id] => 1 [name] => AIRE ACONDICIONADO )
+		Array ( [id] => 3 [name] => AUDIFONO )
+		Array ( [id] => 9 [name] => CAMPANAS EXTRACTORAS )
+		Array ( [id] => 11 [name] => COCINA )
+		Array ( [id] => 13 [name] => CONGELADORA )
+		Array ( [id] => 15 [name] => ENCIMERAS )
+		Array ( [id] => 16 [name] => FREIDORAS DE AIRE )
+		Array ( [id] => 18 [name] => HORNOS )
+		Array ( [id] => 19 [name] => IMPRESORAS )
+		Array ( [id] => 22 [name] => LAVADORAS )
+		Array ( [id] => 24 [name] => LAVAVAJILLAS )
+		Array ( [id] => 26 [name] => MONITORES )
+		Array ( [id] => 28 [name] => PARLANTES )
+		Array ( [id] => 30 [name] => PROYECTORES )
+		Array ( [id] => 31 [name] => REFRIGERADORAS )
+		Array ( [id] => 34 [name] => SOUND BAR )
+		Array ( [id] => 37 [name] => TV )
+		*/
 		$category_ids = [1, 11, 18, 22, 26, 28, 31, 34, 37];
 		
 		$url = $this->to_base_url."api/daily-price?categoryIds=[".implode(",", $category_ids)."]";
@@ -94,11 +113,47 @@ class Obs extends CI_Controller {
 		
 		$updated = date("Y-m-d H:i:s");
 		$qty_update = $qty_insert = 0;
-		foreach($result as $item){
-			//unset($item["url"]);
-			$item["features"] = implode(", ", $item["features"]);
-			$item["updated"] = $updated;
+		
+		$prices = [];
+		foreach($result as $i => $item){
+			/*
+			$this->gen_m->insert("tercer_ojo_market_price", $item);
+			$qty_insert++;
+			*/
 			
+			$prices[] = [
+				"category" 	=> array_key_exists("category", $item) ? $item["category"] : null,
+				"retail" 	=> array_key_exists("retail", $item) ? $item["retail"] : null,
+				"brand" 	=> array_key_exists("brand", $item) ? $item["brand"] : null,
+				"product" 	=> array_key_exists("product", $item) ? $item["product"] : null,
+				"seller" 	=> array_key_exists("seller", $item) ? $item["seller"] : null,
+				"minimum" 	=> array_key_exists("minimum", $item) ? $item["minimum"] : null,
+				"extra" 	=> array_key_exists("extra", $item) ? $item["extra"] : null,
+				"offer" 	=> array_key_exists("offer", $item) ? $item["offer"] : null,
+				"list" 		=> array_key_exists("list", $item) ? $item["list"] : null,
+				"url" 		=> array_key_exists("url", $item) ? $item["url"] : null,
+				"card" 		=> array_key_exists("card", $item) ? $item["card"] : null,
+				"features" 	=> str_replace("''", '"', implode(", ", $item["features"])),
+				"updated" 	=> $updated,
+			];
+			
+			/*
+			$prices[] = $item;
+			
+			
+			
+			if (count($prices) > 5000){
+				
+				print_r($prices);
+				
+				$this->gen_m->insert_m("tercer_ojo_market_price", $prices);
+				$prices = [];
+			}
+			
+			echo $this->db->last_query();
+			*/
+			
+			/*
 			$filter = [
 				"category" 	=> $item["category"],
 				"retail" 	=> $item["retail"],
@@ -116,9 +171,13 @@ class Obs extends CI_Controller {
 				$this->gen_m->insert("tercer_ojo_market_price", $item);
 				$qty_insert++;
 			}
+			*/
 		}
 		
-		echo number_format($qty_insert)." records inserted. ".number_format($qty_update)." records updated. (".number_Format(microtime(true) - $start_time, 2)." secs)";
+		$this->gen_m->truncate("tercer_ojo_market_price");
+		$record_qty = $this->gen_m->insert_m("tercer_ojo_market_price", $prices);
+		
+		echo number_format($record_qty)." records created. (".number_Format(microtime(true) - $start_time, 2)." secs)";
 		
 		/*
 		foreach($item as $key => $val) echo $key."<br/>";
