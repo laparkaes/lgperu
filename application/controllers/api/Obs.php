@@ -116,11 +116,6 @@ class Obs extends CI_Controller {
 		
 		$prices = [];
 		foreach($result as $i => $item){
-			/*
-			$this->gen_m->insert("tercer_ojo_market_price", $item);
-			$qty_insert++;
-			*/
-			
 			$prices[] = [
 				"category" 	=> array_key_exists("category", $item) ? $item["category"] : null,
 				"retail" 	=> array_key_exists("retail", $item) ? $item["retail"] : null,
@@ -136,22 +131,6 @@ class Obs extends CI_Controller {
 				"features" 	=> str_replace("''", '"', implode(", ", $item["features"])),
 				"updated" 	=> $updated,
 			];
-			
-			/*
-			$prices[] = $item;
-			
-			
-			
-			if (count($prices) > 5000){
-				
-				print_r($prices);
-				
-				$this->gen_m->insert_m("tercer_ojo_market_price", $prices);
-				$prices = [];
-			}
-			
-			echo $this->db->last_query();
-			*/
 			
 			/*
 			$filter = [

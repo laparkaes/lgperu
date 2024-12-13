@@ -1,8 +1,28 @@
+<div class="d-flex justify-content-between align-items-start">
+	<div class="pagetitle">
+		<h1>Internal Sale</h1>
+		<nav>
+			<ol class="breadcrumb">
+				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
+				<li class="breadcrumb-item">Internal Sale</li>
+				<li class="breadcrumb-item active">Create</li>
+			</ol>
+		</nav>
+	</div>
+	<div>
+		<a href="<?= base_url() ?>module/hr_internal_sale" type="button" class="btn btn-success">
+			<i class="bi bi-arrow-left"></i>
+		</a>
+	</div>
+</div>
+
 <div class="card mt-3">
 	<div class="card-body">
 		<h5 class="card-title">Product Creation for Internal Sale - LGEPR</h5>
+		<form action="<?= base_url() ?>module/hr_internal_sale/insert" enctype="multipart/form-data" method="post" accept-charset="utf-8">
 		
-		<form action="<?= base_url() ?>page/lgepr_internal_sale/insert" enctype="multipart/form-data" method="post" accept-charset="utf-8">
+		
+		
 
     <label for="category">Category:</label>
     <input type="text" name="category" value=""><br>

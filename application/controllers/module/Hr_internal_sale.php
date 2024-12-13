@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Lgepr_internal_sale extends CI_Controller {
+class Hr_internal_sale extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
@@ -28,15 +28,19 @@ class Lgepr_internal_sale extends CI_Controller {
 		$this->load->view('layout', $data);
 		*/
 		
-		echo '<a href="'.base_url().'page/lgepr_internal_sale/create">go</a>';
+		
+		$data["main"] = "module/hr_internal_sale/index";
+		
+		$this->load->view('layout', $data);
+		
+		//echo '<a href="'.base_url().'module/hr_internal_sale/create">go</a>';
 	}
 	
 	public function create(){
 		
-		$data["overflow"] = "scroll";
-		$data["main"] = "page/lgepr_internal_sale/create";
+		$data["main"] = "module/hr_internal_sale/create";
 		
-		$this->load->view('layout_dashboard', $data);
+		$this->load->view('layout', $data);
 	}
 	
 	public function insert(){
@@ -44,23 +48,30 @@ class Lgepr_internal_sale extends CI_Controller {
 		
 		$errors = $this->data_validation($data, $_FILES['images']);
 		
-		if (!$errors){
+		if ($errors){
+			
+			$redirect = 'module/hr_internal_sale/create';
+		}else{
 			$data["created_at"] = date('Y-m-d H:i:s');
-			$product_id = $this->int_sale->insert_product($data);
+			$sale_id = $this->gen_m->insert("hr_internal_sale", $data);
 
 			// 이미지 업로드 처리
-			list($images, $upload_errors) = $this->upload_multiple_images($_FILES['images'], $product_id);
+			list($images, $upload_errors) = $this->upload_multiple_images($_FILES['images'], $sale_id);
 
+			/*
+			
 			// 이미지 경로를 DB에 저장
 			if (!empty($images)) {
-				$this->int_sale->insert_images($images);
+				$this->int_sale->insert_m("hr_internal_sale_image", $images);
 			}
 			
 			if (!empty($upload_errors)) $errors = array_merge($errors, $upload_errors);
-			else redirect('page/lgepr_internal_sale');
+			else $redirect = 'module/hr_internal_sale';
+			
+			*/
 		}
 		
-		if ($errors) redirect('page/lgepr_internal_sale/create');
+		//redirect($redirect);
 	}
 	
 	private function data_validation($data, $files){
@@ -69,12 +80,12 @@ class Lgepr_internal_sale extends CI_Controller {
 		echo "<br/><br/><br/>";
 		print_r($files);
 		
-		return ["aaaa"];
+		return [];
 	}
 	
-	private function upload_multiple_images($files, $product_id)
+	private function upload_multiple_images($files, $sale_id)
 	{
-		$upload_path = './upload/internal_sale_images/';
+		$upload_path = './upload/internal_sale/';
 
 		// 업로드 폴더 생성
 		if (!is_dir($upload_path)) {
@@ -105,7 +116,7 @@ class Lgepr_internal_sale extends CI_Controller {
 					$original_path = $upload_data['full_path'];
 
 					// 새로운 파일명 생성
-					$new_filename = $product_id . '_' . $key . $upload_data['file_ext'];
+					$new_filename = $sale_id . '_' . $key . $upload_data['file_ext'];
 					$new_filepath = $upload_path . $new_filename;
 
 					if (rename($original_path, $new_filepath)) {
@@ -115,7 +126,7 @@ class Lgepr_internal_sale extends CI_Controller {
 						}
 
 						$uploaded_images[] = [
-							'product_id' => $product_id,
+							'sale_id' => $sale_id,
 							'image_path' => $new_filename,
 						];
 					} else {

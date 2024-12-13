@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.1.3
+-- version 5.2.0
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- 생성 시간: 24-11-26 23:49
--- 서버 버전: 10.4.24-MariaDB
--- PHP 버전: 7.4.29
+-- Generation Time: Dec 14, 2024 at 12:12 AM
+-- Server version: 10.4.27-MariaDB
+-- PHP Version: 7.4.33
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,39 +18,39 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- 데이터베이스: `llamasys`
+-- Database: `llamasys`
 --
 
 -- --------------------------------------------------------
 
 --
--- 테이블 구조 `internal_sale_product_images`
+-- Table structure for table `hr_internal_sale_image`
 --
 
-CREATE TABLE `internal_sale_product_images` (
+CREATE TABLE `hr_internal_sale_image` (
   `image_id` int(11) NOT NULL,
-  `product_id` int(11) NOT NULL,
+  `sale_id` int(11) NOT NULL,
   `image_path` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
--- 덤프된 테이블의 인덱스
+-- Indexes for dumped tables
 --
 
 --
--- 테이블의 인덱스 `internal_sale_product_images`
+-- Indexes for table `hr_internal_sale_image`
 --
-ALTER TABLE `internal_sale_product_images`
+ALTER TABLE `hr_internal_sale_image`
   ADD PRIMARY KEY (`image_id`);
 
 --
--- 덤프된 테이블의 AUTO_INCREMENT
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- 테이블의 AUTO_INCREMENT `internal_sale_product_images`
+-- AUTO_INCREMENT for table `hr_internal_sale_image`
 --
-ALTER TABLE `internal_sale_product_images`
+ALTER TABLE `hr_internal_sale_image`
   MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
 
