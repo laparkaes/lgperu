@@ -1,0 +1,145 @@
+CREATE VIEW v_tercer_ojo_prices AS
+SELECT 
+    t1.updated,
+    t1.category,
+    t1.product,
+    -- card 값이 1인 경우의 최소 minimum, seller, retail, url 값
+    card_data.minimum AS card_minimum,
+    card_data.seller AS card_seller,
+    card_data.retail AS card_retail,
+    card_data.url AS card_url,
+    -- seller가 null이 아닌 경우의 최소 minimum, seller, retail, url 값
+    seller_data.minimum AS seller_minimum,
+    seller_data.seller AS seller_seller,
+    seller_data.retail AS seller_retail,
+    seller_data.url AS seller_url,
+    -- seller가 null인 경우의 최소 minimum, seller, retail, url 값
+    no_seller_data.minimum AS no_seller_minimum,
+    no_seller_data.seller AS no_seller_seller,
+    no_seller_data.retail AS no_seller_retail,
+    no_seller_data.url AS no_seller_url
+FROM 
+    -- product별로 가장 최근 날짜 record 가져오기
+    (SELECT
+        t1.product,
+        t1.category,
+        t1.retail,
+        t1.brand,
+        t1.seller,
+        t1.minimum,
+        t1.extra,
+        t1.offer,
+        t1.list,
+        t1.url,
+        t1.card,
+        t1.features,
+        t1.updated
+    FROM 
+        tercer_ojo_market_price t1
+    INNER JOIN (
+        SELECT
+            product,
+            MAX(updated) AS latest_updated
+        FROM
+            tercer_ojo_market_price
+        GROUP BY
+            product
+    ) t2 ON t1.product = t2.product AND t1.updated = t2.latest_updated) t1
+LEFT JOIN 
+    (SELECT
+        t1.price_id,
+        t1.category,
+        t1.retail,
+        t1.brand,
+        t1.product,
+        t1.seller,
+        t1.minimum,
+        t1.extra,
+        t1.offer,
+        t1.list,
+        t1.url,
+        t1.card,
+        t1.features,
+        t1.updated
+    FROM 
+        tercer_ojo_market_price t1
+    INNER JOIN (
+        SELECT
+            product,
+            MIN(minimum) AS min_minimum
+        FROM
+            tercer_ojo_market_price
+        WHERE
+            card = 1
+        GROUP BY
+            product
+    ) t2 ON t1.product = t2.product AND t1.minimum = t2.min_minimum
+    WHERE
+        t1.card = 1) card_data 
+ON t1.product = card_data.product
+LEFT JOIN 
+    (SELECT
+        t1.price_id,
+        t1.category,
+        t1.retail,
+        t1.brand,
+        t1.product,
+        t1.seller,
+        t1.minimum,
+        t1.extra,
+        t1.offer,
+        t1.list,
+        t1.url,
+        t1.card,
+        t1.features,
+        t1.updated
+    FROM 
+        tercer_ojo_market_price t1
+    INNER JOIN (
+        SELECT
+            product,
+            MIN(minimum) AS min_minimum
+        FROM
+            tercer_ojo_market_price
+        WHERE
+            seller IS NOT NULL
+        GROUP BY
+            product
+    ) t2 ON t1.product = t2.product AND t1.minimum = t2.min_minimum
+    WHERE
+        t1.seller IS NOT NULL) seller_data 
+ON t1.product = seller_data.product
+LEFT JOIN 
+    (SELECT
+        t1.price_id,
+        t1.category,
+        t1.retail,
+        t1.brand,
+        t1.product,
+        t1.seller,
+        t1.minimum,
+        t1.extra,
+        t1.offer,
+        t1.list,
+        t1.url,
+        t1.card,
+        t1.features,
+        t1.updated
+    FROM 
+        tercer_ojo_market_price t1
+    INNER JOIN (
+        SELECT
+            product,
+            MIN(minimum) AS min_minimum
+        FROM
+            tercer_ojo_market_price
+        WHERE
+            seller IS NULL and card = 0
+        GROUP BY
+            product
+    ) t2 ON t1.product = t2.product AND t1.minimum = t2.min_minimum
+    WHERE
+        t1.seller IS NULL) no_seller_data 
+ON t1.product = no_seller_data.product
+GROUP BY
+    t1.product;

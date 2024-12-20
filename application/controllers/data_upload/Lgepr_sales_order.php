@@ -59,7 +59,7 @@ class Lgepr_sales_order extends CI_Controller {
 		}
 	}
 	
-	private function process(){
+	public function process(){
 		ini_set('memory_limit', '2G');
 		set_time_limit(0);
 		
@@ -141,6 +141,7 @@ class Lgepr_sales_order extends CI_Controller {
 					'product_level4_code' 	=> trim($sheet->getCell('CE'.$i)->getValue()),
 					'customer_department'	=> trim($sheet->getCell('AJ'.$i)->getValue()),
 					'inventory_org' 		=> trim($sheet->getCell('AW'.$i)->getValue()),
+					'sub_inventory' 		=> trim($sheet->getCell('AX'.$i)->getValue()),
 				];
 				
 				//apply trim
@@ -161,6 +162,8 @@ class Lgepr_sales_order extends CI_Controller {
 				$row["shipment_date"] = $this->my_func->date_convert_4($row["shipment_date"]);
 				$row["close_date"] = $this->my_func->date_convert_4($row["close_date"]);
 				$row["create_date"] = $this->my_func->date_convert_4($row["create_date"]);
+				
+				$this->gen_m->delete("lgepr_sales_order", ["order_line" => $row["order_line"]]);
 				
 				if (count($order_lines) > 1000){
 					//echo "Inserting ======================= <br/>"; print_r($order_lines);

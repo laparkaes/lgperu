@@ -89,7 +89,7 @@ class Obs extends CI_Controller {
 		*/
 		$category_ids = [1, 11, 18, 22, 26, 28, 31, 34, 37];
 		
-		$url = $this->to_base_url."api/daily-price?categoryIds=[".implode(",", $category_ids)."]";
+		$url = $this->to_base_url."api/daily-price?brandIds=[181]&categoryIds=[".implode(",", $category_ids)."]";
 		//echo $url."<br/><br/>";
 		
         $ch = curl_init();
@@ -111,7 +111,7 @@ class Obs extends CI_Controller {
 
         $result = json_decode($response, true);
 		
-		$updated = date("Y-m-d H:i:s");
+		$updated = date("Y-m-d");
 		$qty_update = $qty_insert = 0;
 		
 		$prices = [];
@@ -242,7 +242,47 @@ class Obs extends CI_Controller {
 		Array ( [id] => 37 [name] => TV ) 
 		*/
 	}
-	/* brand and retails are ommited (no necessary to be filtered) */
+	
+	public function to_get_brands(){
+		
+		//get token
+		$token = $this->to_get_access_token();
+		if ($token["type"] === "error"){
+			echo $token["type"];
+			return;
+		}
+	
+		$url = $this->to_base_url."api/brands";
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Authorization: Bearer ' . $token["token"],
+            'Content-Type: application/json'
+        ));
+
+        $response = curl_exec($ch);
+
+        if (curl_errno($ch)) {
+            echo 'cURL Error: ' . curl_error($ch);
+            return null;
+        }
+
+        curl_close($ch);
+
+        $result = json_decode($response, true);
+		foreach($result as $item){
+			print_r($item);
+			echo "<br/>";
+		}
+		
+		/*
+		----------- Filtered
+		Array ( [id] => 181 [name] => LG )
+		*/
+	}
+	/* retails is ommited (no necessary to be filtered) */
 	/* tercer ojo API end */
 	
 	public function get_retail_price(){
