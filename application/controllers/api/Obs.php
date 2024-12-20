@@ -291,7 +291,7 @@ class Obs extends CI_Controller {
 	/* tercer ojo API end */
 	
 	public function get_market_summary(){
-		//$this->to_get_daily_price();
+		$this->to_get_daily_price();
 		
 		$summary = [];
 		

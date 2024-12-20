@@ -77,7 +77,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_sales_order_upload").submit(function(e) {
 		e.preventDefault();
 		ajax_form_warning(this, "data_upload/lgepr_sales_order/upload", "Do you want to update sales order data?").done(function(res) {
-			swal_redirection(res.type, res.msg, "data_upload/lgepr_sales_order");
+			//swal_redirection(res.type, res.msg, "data_upload/lgepr_sales_order");
+			swal_open_tab(res.type, res.msg, "lgepr_sales_order/debug");
 		});
 	});
 });

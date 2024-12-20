@@ -196,7 +196,8 @@ class Lgepr_sales_order extends CI_Controller {
 			$msg = "Records: ".number_format($records).".<br/><br/>".number_Format(microtime(true) - $start_time, 2)." secs";
 		}else $msg = null;
 		
-		return $msg;
+		//return $msg;
+		echo $msg;
 	}
 	
 	public function debug(){
@@ -219,9 +220,13 @@ class Lgepr_sales_order extends CI_Controller {
 			$this->load->library('upload', $config);
 
 			if ($this->upload->do_upload('attach')){
+				$msg = "File upload is completed. DB work will be started.";
+				$type = "success";
+				/*
 				$msg = $this->process();//delete & insert
 				if ($msg) $type = "success";
 				else $msg = "Wrong file.";
+				*/
 			}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
 		}else $msg = "Your session is finished.";
 		
