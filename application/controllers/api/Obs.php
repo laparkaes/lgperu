@@ -153,8 +153,8 @@ class Obs extends CI_Controller {
 			*/
 		}
 		
-		//$this->gen_m->truncate("tercer_ojo_market_price");
-		$this->gen_m->delete("tercer_ojo_market_price", ["updated" => $updated]);
+		$this->gen_m->truncate("tercer_ojo_market_price");
+		//$this->gen_m->delete("tercer_ojo_market_price", ["updated" => $updated]);
 		$record_qty = $this->gen_m->insert_m("tercer_ojo_market_price", $prices);
 		
 		if ($debug){
