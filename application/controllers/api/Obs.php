@@ -359,7 +359,9 @@ class Obs extends CI_Controller {
 			if ($item["seller_price"]) $aux[] = $item["seller_price"];
 			if ($item["card_price"]) $aux[] = $item["card_price"];
 			
-			$summary[$i]["minimun"] = min($aux);
+			if ($aux) $summary[$i]["minimun"] = min($aux);
+			else unset($summary[$i]);
+			
 			
 			//print_r($summary[$i]); echo "<br/><br/>";
 		}
