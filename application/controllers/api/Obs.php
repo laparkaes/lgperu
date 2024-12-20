@@ -153,10 +153,11 @@ class Obs extends CI_Controller {
 			*/
 		}
 		
-		$this->gen_m->truncate("tercer_ojo_market_price");
+		//$this->gen_m->truncate("tercer_ojo_market_price");
+		$this->gen_m->delete("tercer_ojo_market_price", ["updated" => $updated]);
 		$record_qty = $this->gen_m->insert_m("tercer_ojo_market_price", $prices);
 		
-		echo number_format($record_qty)." records created. (".number_Format(microtime(true) - $start_time, 2)." secs)";
+		return number_format($record_qty)." records created. (".number_Format(microtime(true) - $start_time, 2)." secs)";
 		
 		/*
 		foreach($item as $key => $val) echo $key."<br/>";
@@ -286,11 +287,81 @@ class Obs extends CI_Controller {
 	/* tercer ojo API end */
 	
 	public function get_market_summary(){
-		$prices = $this->gen_m->all("v_tercer_ojo_prices", [], "", "", false);
-		foreach($prices as $item){
-			print_r($item);
-			echo "<br/><br/>";
+		//$this->to_get_daily_price();
+		
+		$summary = [];
+		
+		$data = $this->gen_m->all("v_tercer_ojo_prices_data", [], "", "", false);
+		foreach($data as $item){
+			$index = $item->product."_".$item->updated;
+			
+			$summary[$index]["date"] = $item->updated;
+			$summary[$index]["category"] = $item->category;
+			$summary[$index]["product"] = $item->product;
+			
+			$summary[$index]["retail"] = null;
+			$summary[$index]["retail_price"] = null;
+			$summary[$index]["retail_url"] = null;
+			
+			$summary[$index]["seller"] = null;
+			$summary[$index]["seller_retail"] = null;
+			$summary[$index]["seller_price"] = null;
+			$summary[$index]["seller_url"] = null;
+			
+			$summary[$index]["card_retail"] = null;
+			$summary[$index]["card_seller"] = null;
+			$summary[$index]["card_price"] = null;
+			$summary[$index]["card_url"] = null;
 		}
+		
+		$retails = $this->gen_m->all("v_tercer_ojo_prices_retail", [], "", "", false);
+		foreach($retails as $item){
+			$index = $item->product."_".$item->updated;
+			
+			if ($item->price){
+				$summary[$index]["retail"] = $item->retail;
+				$summary[$index]["retail_price"] = $item->price;
+				$summary[$index]["retail_url"] = $item->url;
+			}
+		}
+		
+		$sellers = $this->gen_m->all("v_tercer_ojo_prices_seller", [], "", "", false);
+		foreach($sellers as $item){
+			$index = $item->product."_".$item->updated;
+			
+			if ($item->price){
+				$summary[$index]["seller"] = $item->seller;
+				$summary[$index]["seller_retail"] = $item->retail;
+				$summary[$index]["seller_price"] = $item->price;
+				$summary[$index]["seller_url"] = $item->url;
+			}
+		}
+		
+		$cards = $this->gen_m->all("v_tercer_ojo_prices_card", [], "", "", false);
+		foreach($cards as $item){
+			$index = $item->product."_".$item->updated;
+			
+			if ($item->price){
+				$summary[$index]["card_retail"] = $item->retail;
+				$summary[$index]["card_seller"] = $item->seller;
+				$summary[$index]["card_price"] = $item->price;
+				$summary[$index]["card_url"] = $item->url;
+			}
+		}
+		
+		foreach($summary as $i => $item){
+			$aux = [];
+			if ($item["retail_price"]) $aux[] = $item["retail_price"];
+			if ($item["seller_price"]) $aux[] = $item["seller_price"];
+			if ($item["card_price"]) $aux[] = $item["card_price"];
+			
+			$summary[$i]["minimun"] = min($aux);
+			
+			//print_r($summary[$i]); echo "<br/><br/>";
+		}
+		
+		header('Content-Type: application/json');
+		echo json_encode($summary);
 	}
 	
 	public function get_retail_price(){

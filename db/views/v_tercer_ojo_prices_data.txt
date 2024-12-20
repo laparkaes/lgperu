@@ -1,0 +1,18 @@
+CREATE VIEW v_tercer_ojo_prices_data AS
+SELECT
+        t1.product,
+        t1.category,
+        t1.updated
+    FROM 
+        tercer_ojo_market_price t1
+    INNER JOIN (
+        SELECT
+            product,
+            MAX(updated) AS latest_updated
+        FROM
+            tercer_ojo_market_price
+        GROUP BY
+            product
+    ) t2 ON t1.product = t2.product AND t1.updated = t2.latest_updated
+    GROUP BY
+            product
