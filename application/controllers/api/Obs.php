@@ -285,6 +285,14 @@ class Obs extends CI_Controller {
 	/* retails is ommited (no necessary to be filtered) */
 	/* tercer ojo API end */
 	
+	public function get_market_summary(){
+		$prices = $this->gen_m->all("v_tercer_ojo_prices", [], "", "", false);
+		foreach($prices as $item){
+			print_r($item);
+			echo "<br/><br/>";
+		}
+	}
+	
 	public function get_retail_price(){
 		//llamasys/api/obs/get_retail_price?brand=LG
 		
