@@ -55,7 +55,7 @@ class Obs extends CI_Controller {
         return $result;
 	}
 	
-	public function to_get_daily_price(){//update tercer ojo daily price
+	public function to_get_daily_price($debug = false){//update tercer ojo daily price
 		//llamasys/api/obs/to_get_daily_price
 		
 		set_time_limit(0);
@@ -157,7 +157,11 @@ class Obs extends CI_Controller {
 		$this->gen_m->delete("tercer_ojo_market_price", ["updated" => $updated]);
 		$record_qty = $this->gen_m->insert_m("tercer_ojo_market_price", $prices);
 		
-		return number_format($record_qty)." records created. (".number_Format(microtime(true) - $start_time, 2)." secs)";
+		if ($debug){
+			echo number_format($record_qty)." records created. (".number_Format(microtime(true) - $start_time, 2)." secs)<br/><br/>";
+			
+			print_r($prices);
+		}
 		
 		/*
 		foreach($item as $key => $val) echo $key."<br/>";
