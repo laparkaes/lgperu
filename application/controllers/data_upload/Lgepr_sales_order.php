@@ -25,37 +25,54 @@ class Lgepr_sales_order extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
+	public function test(){
+		//$this->update_model_category();
+		
+		//all model_category test
+	}
+	
 	private function update_model_category(){
 		//select fields
 		$s = ["model_category", "model", "product_level4_name", "product_level4_code"];
 		
 		//get ger records with model category group by product lvl4 code
-		$gerps_aux = $this->gen_m->filter_select("lgepr_sales_order", false, $s, ["model_category !=" => null], null, null, [["product_level4_code", "desc"]], null, null, "product_level4_code");
+		$gerps_aux = $this->gen_m->filter_select("lgepr_sales_order", false, $s, ["model_category !=" => ""], null, null, [["product_level4_code", "desc"]], null, null, "product_level4_code");
 		
 		//set mapping array to assign model category
 		$mapping = [];
 		foreach($gerps_aux as $g){
-			$mapping[substr($g->product_level4_code, 0, 4)] = $g->model_category;
-			$mapping[substr($g->product_level4_code, 0, 2)] = $g->model_category;
+			if ($g->model_category){
+				$index_6 = substr($g->product_level4_code, 0, 6);
+				$index_4 = substr($g->product_level4_code, 0, 4);
+				
+				if (array_key_exists($index_6, $mapping)){
+					if (!$mapping[$index_6]) $mapping[$index_6] = $g->model_category;
+				}else $mapping[$index_6] = $g->model_category;	
+				
+				if (array_key_exists($index_4, $mapping)){
+					if (!$mapping[$index_4]) $mapping[$index_4] = $g->model_category;
+				}else $mapping[$index_4] = $g->model_category;
+			}
 		}
 		
+		//foreach($mapping as $key => $val) echo $key." /// ".$val."<br/>";
+		
 		//get gerp records without model category group by product lvl4 code
-		$w = ["model_category =" => null, "product_level4_code !=" => "ZZZZZZZZ", "order_status !=" => "Cancelled", "line_status !=" => "Cancelled"];
+		$w = ["model_category =" => ""];
 		$gerps = $this->gen_m->filter_select("lgepr_sales_order", false, $s, $w, null, null, [["product_level4_code", "desc"]], null, null, "product_level4_code");
 		
-		//start tu assign model category by product lvl 2 then lvl 1 (in case of no data with lvl 2)
-		foreach($gerps as $g){
-			if (!$g->model_category){
-				$sub4 = substr($g->product_level4_code, 0, 4);
-				if (array_key_exists($sub4, $mapping)) $g->model_category = $mapping[$sub4];
-			}
+		foreach($gerps as $item){
+			$mc = "";
 			
-			if (!$g->model_category){
-				$sub2 = substr($g->product_level4_code, 0, 2);
-				if (array_key_exists($sub2, $mapping)) $g->model_category = $mapping[$sub2];
-			}
+			$sub6 = substr($item->product_level4_code, 0, 6);
+			$sub4 = substr($item->product_level4_code, 0, 4);
 			
-			if ($g->model_category) $this->gen_m->update("lgepr_sales_order", ["product_level4_code" => $g->product_level4_code], ["model_category" => $g->model_category]);
+			if (array_key_exists($sub6, $mapping)) $mc = $mapping[$sub6];
+			elseif (array_key_exists($sub4, $mapping)) $mc = $mapping[$sub4]; 
+			
+			//echo $sub6." ".$sub4." >>> ".$mc."<br/>"; print_r($item); echo "<br/><br/>";
+			
+			if ($mc) $this->gen_m->update("lgepr_sales_order", ["product_level4_code" => $item->product_level4_code], ["model_category" => $mc]);
 		}
 	}
 	
@@ -192,6 +209,8 @@ class Lgepr_sales_order extends CI_Controller {
 				//insert
 				$records += $this->gen_m->insert_m("lgepr_sales_order", $rows);
 			}
+			
+			$this->update_model_category();
 			
 			$msg = number_format($records)." record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		}else $msg = "File template error. Please check upload file.";
