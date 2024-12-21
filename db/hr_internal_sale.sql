@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 14, 2024 at 12:12 AM
--- Server version: 10.4.27-MariaDB
--- PHP Version: 7.4.33
+-- 생성 시간: 24-12-21 13:22
+-- 서버 버전: 10.4.24-MariaDB
+-- PHP 버전: 7.4.29
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,18 +18,19 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `llamasys`
+-- 데이터베이스: `llamasys`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `hr_internal_sale`
+-- 테이블 구조 `hr_internal_sale`
 --
 
 CREATE TABLE `hr_internal_sale` (
   `sale_id` int(11) NOT NULL,
   `division` enum('HA','HE','BS') DEFAULT NULL,
+  `category` varchar(30) DEFAULT NULL,
   `model` varchar(255) NOT NULL,
   `grade` enum('A','B','C') NOT NULL,
   `remark` text DEFAULT NULL,
@@ -37,36 +38,37 @@ CREATE TABLE `hr_internal_sale` (
   `price_offer` float NOT NULL,
   `created_at` date NOT NULL,
   `end_date` date NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Dumping data for table `hr_internal_sale`
+-- 테이블의 덤프 데이터 `hr_internal_sale`
 --
 
-INSERT INTO `hr_internal_sale` (`sale_id`, `division`, `model`, `grade`, `remark`, `price_list`, `price_offer`, `created_at`, `end_date`) VALUES
-(1, '', '', '', NULL, 0, 0, '2024-12-13', '0000-00-00'),
-(2, '', '', '', NULL, 0, 0, '2024-12-13', '0000-00-00'),
-(3, '', '', '', NULL, 0, 0, '2024-12-13', '0000-00-00');
+INSERT INTO `hr_internal_sale` (`sale_id`, `division`, `category`, `model`, `grade`, `remark`, `price_list`, `price_offer`, `created_at`, `end_date`) VALUES
+(1, '', NULL, '', '', NULL, 0, 0, '2024-12-13', '0000-00-00'),
+(2, '', NULL, '', '', NULL, 0, 0, '2024-12-13', '0000-00-00'),
+(3, '', NULL, '', '', NULL, 0, 0, '2024-12-13', '0000-00-00'),
+(4, NULL, '', '', '', NULL, 0, 0, '2024-12-21', '0000-00-00');
 
 --
--- Indexes for dumped tables
+-- 덤프된 테이블의 인덱스
 --
 
 --
--- Indexes for table `hr_internal_sale`
+-- 테이블의 인덱스 `hr_internal_sale`
 --
 ALTER TABLE `hr_internal_sale`
   ADD PRIMARY KEY (`sale_id`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- 덤프된 테이블의 AUTO_INCREMENT
 --
 
 --
--- AUTO_INCREMENT for table `hr_internal_sale`
+-- 테이블의 AUTO_INCREMENT `hr_internal_sale`
 --
 ALTER TABLE `hr_internal_sale`
-  MODIFY `sale_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `sale_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

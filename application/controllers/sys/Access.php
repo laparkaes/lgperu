@@ -100,7 +100,8 @@ class Access extends CI_Controller {
 		$func = $this->gen_m->unique("sys_function", "function_id", $access->function_id, false);
 		$emp = $this->gen_m->unique("hr_employee", "employee_id", $access->employee_id, false);
 		
-		if ($this->gen_m->delete("sys_access", ["employee_id" => $access->employee_id, "access_id" => $access_id]))
+		if ($emp->employee_id == $this->session->userdata('employee_id')) $msgs[] = ['error', "You can't remove your own access."];
+		elseif ($this->gen_m->delete("sys_access", ["employee_id" => $access->employee_id, "access_id" => $access_id]))
 			$msgs[] = ['success', $emp->name." has been <strong>denied</strong> access to ".($func ? $func->type."_".$func->title : "")."."];
 		else $msgs[] = ['error', "An error has been occurred. Try again."];
 		

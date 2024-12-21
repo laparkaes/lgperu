@@ -163,7 +163,7 @@ class Lgepr_sales_order extends CI_Controller {
 				$row["close_date"] = $this->my_func->date_convert_4($row["close_date"]);
 				$row["create_date"] = $this->my_func->date_convert_4($row["create_date"]);
 				
-				$this->gen_m->delete("lgepr_sales_order", ["order_line" => $row["order_line"]]);
+				//$this->gen_m->delete("lgepr_sales_order", ["order_line" => $row["order_line"]]);
 				
 				if (count($order_lines) > 1000){
 					//echo "Inserting ======================= <br/>"; print_r($order_lines);
@@ -193,15 +193,13 @@ class Lgepr_sales_order extends CI_Controller {
 				$records += $this->gen_m->insert_m("lgepr_sales_order", $rows);
 			}
 			
-			$msg = "Records: ".number_format($records).".<br/><br/>".number_Format(microtime(true) - $start_time, 2)." secs";
-		}else $msg = null;
+			$msg = number_format($records)." record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
+		}else $msg = "File template error. Please check upload file.";
 		
 		//return $msg;
 		echo $msg;
-	}
-	
-	public function debug(){
-		echo $this->process();
+		echo "<br/><br/>";
+		echo 'You can close this tab now.<br/><br/><button onclick="window.close();">Close This Tab</button>';
 	}
 	
 	public function upload(){
@@ -220,7 +218,7 @@ class Lgepr_sales_order extends CI_Controller {
 			$this->load->library('upload', $config);
 
 			if ($this->upload->do_upload('attach')){
-				$msg = "File upload is completed. DB work will be started.";
+				$msg = "File upload completed successfully.<br/>A new tab will open to process the DB operations.<br/><br/>Please do not close new tab.";
 				$type = "success";
 				/*
 				$msg = $this->process();//delete & insert

@@ -95,7 +95,7 @@ class General_model extends CI_Model{
 		if ($field and $values){
 			$this->db->where_in($field, $values);
 			return $this->db->delete($tablename);
-		}
+		}else return null;
 	}
 	
 	function truncate($tablename){
@@ -167,6 +167,35 @@ class General_model extends CI_Model{
 
 	function run_query($q){
 		return $this->db->query($q);
+	}
+
+	function get_insert_query($tablename, $data){//related to insert_m
+		// 컬럼과 데이터 분리
+		$columns = array_keys($data[0]);
+		$values  = array_map(function ($row) {
+			return '(' . implode(',', array_map([$this->db, 'escape'], $row)) . ')';
+		}, $data);
+
+		// 쿼리 문자열 생성
+		$sql = sprintf(
+			"INSERT INTO `%s` (%s) VALUES %s;",
+			$tablename,
+			implode(',', array_map(function ($col) {
+				return "`" . $col . "`";
+			}, $columns)),
+			implode(',', $values)
+		);
+
+		return $sql;
+	}
+	
+	
+	
+	function get_delete_query($tablename, $field = null, $values = null){//related to delete_in
+		if ($field and $values){
+			$this->db->where_in($field, $values);
+			return $this->db->get_compiled_delete($tablename);
+		}else return "";
 	}
 }
 ?>
