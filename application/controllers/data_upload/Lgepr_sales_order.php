@@ -46,7 +46,7 @@ class Lgepr_sales_order extends CI_Controller {
 		}
 	}
 	
-	public function update_dash_div_cat(){
+	private function update_dash_div_cat(){
 		$dash_mapping = [
 			"A/C" 	=> ["dash_division" => "H&A"	, "dash_category" => "Chiller"],
 			"CAV" 	=> ["dash_division" => "HE"		, "dash_category" => "AV"],
