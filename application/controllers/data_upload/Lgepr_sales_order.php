@@ -64,12 +64,7 @@ class Lgepr_sales_order extends CI_Controller {
 			"W/M" 	=> ["dash_division" => "H&A"	, "dash_category" => "W/M"],
 		];
 		
-		foreach($dash_mapping as $key => $item){
-			echo $key."<br/>";
-			print_r($item); echo "<br/><br/>";
-			
-			$this->gen_m->update("lgepr_sales_order", ["model_category" => $key], $item);
-		}
+		foreach($dash_mapping as $key => $item) $this->gen_m->update("lgepr_sales_order", ["model_category" => $key], $item);
 	}
 	
 	private function update_model_category(){
@@ -115,6 +110,8 @@ class Lgepr_sales_order extends CI_Controller {
 			
 			if ($mc) $this->gen_m->update("lgepr_sales_order", ["product_level4_code" => $item->product_level4_code], ["model_category" => $mc]);
 		}
+		
+		$this->update_dash_div_cat();
 	}
 	
 	public function process(){
