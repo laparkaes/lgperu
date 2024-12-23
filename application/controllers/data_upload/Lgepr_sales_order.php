@@ -25,10 +25,51 @@ class Lgepr_sales_order extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	public function test(){
-		//$this->update_model_category();
+	public function check_model_categories(){
+		$s = ["model_category", "product_level1_name", "product_level2_name"];
+		$w = ["model_category !=" => ""];
 		
-		//all model_category test
+		$models = $this->gen_m->filter_select("lgepr_sales_order", false, $s, $w, null, null, [["model_category", "asc"]], null, null, "model_category");
+		
+		//check product level 1 & 2
+		foreach($models as $item){
+			print_r($item);
+			echo "<br/>";
+		}
+		
+		echo "<br/><br/>";
+		
+		//make mapping structure
+		foreach($models as $item){
+			echo '"'.$item->model_category.'" => ["dash_division" => "", "dash_category" => ""],';
+			echo "<br/>";
+		}
+	}
+	
+	public function update_dash_div_cat(){
+		$dash_mapping = [
+			"A/C" 	=> ["dash_division" => "H&A"	, "dash_category" => "Chiller"],
+			"CAV" 	=> ["dash_division" => "HE"		, "dash_category" => "AV"],
+			"CDT" 	=> ["dash_division" => "H&A"	, "dash_category" => "DW"],
+			"CTV" 	=> ["dash_division" => "BS"		, "dash_category" => "Commercial TV"],
+			"CVT" 	=> ["dash_division" => "H&A"	, "dash_category" => "Cooking"],
+			"DS" 	=> ["dash_division" => "BS"		, "dash_category" => "DS"],
+			"LTV" 	=> ["dash_division" => "HE"		, "dash_category" => "LTV"],
+			"MNT" 	=> ["dash_division" => "BS"		, "dash_category" => "MNT"],
+			"PC" 	=> ["dash_division" => "BS"		, "dash_category" => "PC"],
+			"RAC" 	=> ["dash_division" => "H&A"	, "dash_category" => "RAC"],
+			"REF" 	=> ["dash_division" => "H&A"	, "dash_category" => "REF"],
+			"SAC" 	=> ["dash_division" => "H&A"	, "dash_category" => "SAC"],
+			"SGN" 	=> ["dash_division" => "BS"		, "dash_category" => "MTN Signage"],
+			"W/M" 	=> ["dash_division" => "H&A"	, "dash_category" => "W/M"],
+		];
+		
+		foreach($dash_mapping as $key => $item){
+			echo $key."<br/>";
+			print_r($item); echo "<br/><br/>";
+			
+			$this->gen_m->update("lgepr_sales_order", ["model_category" => $key], $item);
+		}
 	}
 	
 	private function update_model_category(){
