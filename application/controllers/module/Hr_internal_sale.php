@@ -57,6 +57,10 @@ class Hr_internal_sale extends CI_Controller {
 
 			// 이미지 업로드 처리
 			list($images, $upload_errors) = $this->upload_multiple_images($_FILES['images'], $sale_id);
+			
+			print_r($images); echo "<br/><br/><br/>";
+			
+			print_r($upload_errors); echo "<br/><br/><br/>";
 
 			/*
 			
@@ -129,11 +133,8 @@ class Hr_internal_sale extends CI_Controller {
 							'sale_id' => $sale_id,
 							'image_path' => $new_filename,
 						];
-					} else {
-						// 업로드 실패 시 오류 메시지 저장
-						$upload_errors[] = "Failed to rename file: " . $upload_data['file_name'];
-					}
-				}
+					}else $upload_errors[] = "Failed to rename file: ".$upload_data['file_name'];
+				}else $upload_errors[] = "Failed to upload file: ".$files['name'][$key];
 			}
 		}
 
