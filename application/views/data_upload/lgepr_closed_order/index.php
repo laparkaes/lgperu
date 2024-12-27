@@ -42,7 +42,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach($closed_orders as $item){ ?>
+							<?php foreach($closed_orders as $item){ break; ?>
 							<tr>
 								<td><?= $item->order_category ?></td>
 								<td><?= $item->line_status ?></td>

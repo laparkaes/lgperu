@@ -68,12 +68,11 @@ class Lgepr_closed_order extends CI_Controller {
 	}
 	
 	private function update_model_category(){
-		$w = ["model_category =" => ""];
-		
-		$s = ["model_category", "model", "product_level4_name", "product_level4"];
+		//set mapping array
+		$w = ["model_category !=" => ""];
+		$s = ["model_category", "product_level4"];
 		$closed_orders = $this->gen_m->filter_select("lgepr_closed_order", false, $s, $w, null, null, [["product_level4", "desc"]], null, null, "product_level4");
 		
-		//set mapping array to assign model category
 		$mapping = [];
 		foreach($closed_orders as $item){
 			if ($item->model_category){
@@ -90,7 +89,9 @@ class Lgepr_closed_order extends CI_Controller {
 			}
 		}
 		
-		$s = ["model_category", "model", "product_level4_name", "product_level4"];
+		//update blank model categories
+		$w = ["model_category" => ""];
+		$s = ["model_category", "product_level4"];
 		$closed_orders = $this->gen_m->filter_select("lgepr_closed_order", false, $s, $w, null, null, [["product_level4", "desc"]], null, null, "product_level4");
 		
 		foreach($closed_orders as $item){
@@ -104,9 +105,10 @@ class Lgepr_closed_order extends CI_Controller {
 			
 			//echo $sub6." ".$sub4." >>> ".$mc."<br/>"; print_r($item); echo "<br/><br/>";
 			
-			if ($mc) $this->gen_m->update("lgepr_closed_order", ["product_level4" => $item->product_level4_code], ["model_category" => $mc]);
+			if ($mc) $this->gen_m->update("lgepr_closed_order", ["product_level4" => $item->product_level4], ["model_category" => $mc]);
 		}
 		
+		//update division & category for dashboard
 		$this->update_dash_div_cat();
 	}
 	
@@ -115,6 +117,8 @@ class Lgepr_closed_order extends CI_Controller {
 		set_time_limit(0);
 		
 		$start_time = microtime(true);
+		
+		libxml_disable_entity_loader(true); // XML 외부 엔티티 로더 비활성화
 		
 		//load excel file
 		$spreadsheet = IOFactory::load("./upload/lgepr_closed_order.xls");
@@ -223,24 +227,21 @@ class Lgepr_closed_order extends CI_Controller {
 				//date convert: 24/06/2021 > 2021-10-28
 				$row["order_date"] = $this->my_func->date_convert($row["order_date"]);
 				$row["closed_date"] = $this->my_func->date_convert($row["closed_date"]);
+				$row["invoice_date"] = $this->my_func->date_convert($row["invoice_date"]);
 				
-				print_r($row); echo "<br/><br/>";
-				
-				return
-				
-				/*
-				
-				if (count($rows) > 5000){
-					$records += $this->gen_m->insert_m("lgepr_closed_order", $rows);
-					$rows = [];
+				if (!$this->gen_m->filter("lgepr_closed_order", false, ["order_line" => $row["order_line"]])){
+					$rows[] = $row;
+					$order_lines[] = $row["order_line"];
 				}
-				
-				*/
-				
-				$rows[] = $row;
 			}
 			
-			//if ($rows) $records += $this->gen_m->insert_m("lgepr_closed_order", $rows);
+			//insert closed orders
+			$rows_split = array_chunk($rows, 1000);
+			foreach($rows_split as $items) $records += $this->gen_m->insert_m("lgepr_closed_order", $items);
+			
+			//remove orders in sales order
+			$order_lines_split = array_chunk($order_lines, 1000);
+			foreach($order_lines_split as $items) $this->gen_m->delete_in("lgepr_sales_order", "order_line", $items);
 			
 			$this->update_model_category();
 			
