@@ -24,6 +24,9 @@
 							</div>
 						</form>
 					</div>
+					<?php foreach($sales_orders as $item){ print_r($item); ?>
+					<br/><br/>
+					<?php } ?>
 					<table class="table datatable">
 						<thead>
 							<tr>
@@ -42,7 +45,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach($sales_orders as $item){ ?>
+							<?php foreach($sales_orders as $item){ break; ?>
 							<tr>
 								<td><?= $item->order_category ?></td>
 								<td><?= $item->line_status ?></td>

@@ -18,7 +18,7 @@ class Lgepr_sales_order extends CI_Controller {
 		$o = [["create_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 		
 		$data = [
-			"sales_orders"	=> $this->gen_m->filter("lgepr_sales_order", false, null, null, null, $o, 5000),
+			"sales_orders"	=> $this->gen_m->filter("lgepr_sales_order", false, null, null, null, $o),
 			"main" 			=> "data_upload/lgepr_sales_order/index",
 		];
 		
