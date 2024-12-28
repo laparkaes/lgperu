@@ -200,7 +200,7 @@ class Lgepr_closed_order extends CI_Controller {
 					'product_level4'		=> trim($sheet->getCell('BH'.$i)->getValue()),
 					'receiver_city'			=> trim($sheet->getCell('BN'.$i)->getValue()),
 					'invoice_no'			=> trim($sheet->getCell('BW'.$i)->getValue()),
-					'invoice_date'			=> trim($sheet->getCell('AX'.$i)->getValue()),
+					'invoice_date'			=> trim($sheet->getCell('BX'.$i)->getValue()),
 					'shipping_method'		=> trim($sheet->getCell('CI'.$i)->getValue()),
 				];
 				
