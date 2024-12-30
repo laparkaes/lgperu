@@ -14,7 +14,9 @@ class Lgepr_closed_order extends CI_Controller {
 	}
 	
 	public function index(){
+		$d = date("Y-m-d");
 		
+		$w = ["closed_date <= "]
 		$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 		
 		$data = [
