@@ -25,25 +25,9 @@ class Lgepr_closed_order extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	public function check_model_categories(){
-		$s = ["model_category", "product_level1_name", "product_level2_name"];
-		$w = ["model_category !=" => ""];
-		
-		$models = $this->gen_m->filter_select("lgepr_sales_order", false, $s, $w, null, null, [["model_category", "asc"]], null, null, "model_category");
-		
-		//check product level 1 & 2
-		foreach($models as $item){
-			print_r($item);
-			echo "<br/>";
-		}
-		
-		echo "<br/><br/>";
-		
-		//make mapping structure
-		foreach($models as $item){
-			echo '"'.$item->model_category.'" => ["dash_division" => "", "dash_category" => ""],';
-			echo "<br/>";
-		}
+	public function single_update_data(){
+		$this->update_model_category();
+		$this->update_dash_div_cat();
 	}
 	
 	private function update_dash_div_cat(){
@@ -78,6 +62,7 @@ class Lgepr_closed_order extends CI_Controller {
 			if ($item->model_category){
 				$index_6 = substr($item->product_level4, 0, 6);
 				$index_4 = substr($item->product_level4, 0, 4);
+				$index_2 = substr($item->product_level4, 0, 2);
 				
 				if (array_key_exists($index_6, $mapping)){
 					if (!$mapping[$index_6]) $mapping[$index_6] = $item->model_category;
@@ -86,6 +71,10 @@ class Lgepr_closed_order extends CI_Controller {
 				if (array_key_exists($index_4, $mapping)){
 					if (!$mapping[$index_4]) $mapping[$index_4] = $item->model_category;
 				}else $mapping[$index_4] = $item->model_category;
+				
+				if (array_key_exists($index_2, $mapping)){
+					if (!$mapping[$index_2]) $mapping[$index_2] = $item->model_category;
+				}else $mapping[$index_2] = $item->model_category;
 			}
 		}
 		
@@ -99,9 +88,11 @@ class Lgepr_closed_order extends CI_Controller {
 			
 			$sub6 = substr($item->product_level4, 0, 6);
 			$sub4 = substr($item->product_level4, 0, 4);
+			$sub2 = substr($item->product_level4, 0, 2);
 			
 			if (array_key_exists($sub6, $mapping)) $mc = $mapping[$sub6];
 			elseif (array_key_exists($sub4, $mapping)) $mc = $mapping[$sub4]; 
+			elseif (array_key_exists($sub2, $mapping)) $mc = $mapping[$sub2]; 
 			
 			//echo $sub6." ".$sub4." >>> ".$mc."<br/>"; print_r($item); echo "<br/><br/>";
 			
@@ -239,8 +230,8 @@ class Lgepr_closed_order extends CI_Controller {
 			$rows_split = array_chunk($rows, 1000);
 			foreach($rows_split as $items) $records += $this->gen_m->insert_m("lgepr_closed_order", $items);
 			
-			//remove orders in sales order
-			$order_lines_split = array_chunk($order_lines, 1000);
+			//remove closed orders in sales order table
+			$order_lines_split = array_chunk($order_lines, 500);
 			foreach($order_lines_split as $items) $this->gen_m->delete_in("lgepr_sales_order", "order_line", $items);
 			
 			$this->update_model_category();

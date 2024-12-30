@@ -15,7 +15,7 @@ class Lgepr_sales_order extends CI_Controller {
 	
 	public function index(){
 		
-		$o = [["create_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
+		$o = [["create_date", "asc"], ["order_no", "asc"], ["line_no", "asc"]];
 		
 		$data = [
 			"sales_orders"	=> $this->gen_m->filter("lgepr_sales_order", false, null, null, null, $o),
@@ -25,25 +25,9 @@ class Lgepr_sales_order extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	public function check_model_categories(){
-		$s = ["model_category", "product_level1_name", "product_level2_name"];
-		$w = ["model_category !=" => ""];
-		
-		$models = $this->gen_m->filter_select("lgepr_sales_order", false, $s, $w, null, null, [["model_category", "asc"]], null, null, "model_category");
-		
-		//check product level 1 & 2
-		foreach($models as $item){
-			print_r($item);
-			echo "<br/>";
-		}
-		
-		echo "<br/><br/>";
-		
-		//make mapping structure
-		foreach($models as $item){
-			echo '"'.$item->model_category.'" => ["dash_division" => "", "dash_category" => ""],';
-			echo "<br/>";
-		}
+	public function single_update_data(){
+		$this->update_model_category();
+		$this->update_dash_div_cat();
 	}
 	
 	private function update_dash_div_cat(){
@@ -68,17 +52,17 @@ class Lgepr_sales_order extends CI_Controller {
 	}
 	
 	private function update_model_category(){
-		$w = ["model_category =" => ""];
-		
-		$s = ["model_category", "model", "product_level4_name", "product_level4"];
+		//set mapping array
+		$w = ["model_category !=" => ""];
+		$s = ["model_category", "product_level4"];
 		$closed_orders = $this->gen_m->filter_select("lgepr_closed_order", false, $s, $w, null, null, [["product_level4", "desc"]], null, null, "product_level4");
 		
-		//set mapping array to assign model category
 		$mapping = [];
 		foreach($closed_orders as $item){
 			if ($item->model_category){
 				$index_6 = substr($item->product_level4, 0, 6);
 				$index_4 = substr($item->product_level4, 0, 4);
+				$index_2 = substr($item->product_level4, 0, 2);
 				
 				if (array_key_exists($index_6, $mapping)){
 					if (!$mapping[$index_6]) $mapping[$index_6] = $item->model_category;
@@ -87,10 +71,16 @@ class Lgepr_sales_order extends CI_Controller {
 				if (array_key_exists($index_4, $mapping)){
 					if (!$mapping[$index_4]) $mapping[$index_4] = $item->model_category;
 				}else $mapping[$index_4] = $item->model_category;
+				
+				if (array_key_exists($index_2, $mapping)){
+					if (!$mapping[$index_2]) $mapping[$index_2] = $item->model_category;
+				}else $mapping[$index_2] = $item->model_category;
 			}
 		}
 		
-		$s = ["model_category", "model", "product_level4_name", "product_level4_code"];
+		//update blank model categories
+		$w = ["model_category" => ""];
+		$s = ["model_category", "product_level4_code"];
 		$sales_orders = $this->gen_m->filter_select("lgepr_sales_order", false, $s, $w, null, null, [["product_level4_code", "desc"]], null, null, "product_level4_code");
 		
 		foreach($sales_orders as $item){
@@ -98,9 +88,11 @@ class Lgepr_sales_order extends CI_Controller {
 			
 			$sub6 = substr($item->product_level4_code, 0, 6);
 			$sub4 = substr($item->product_level4_code, 0, 4);
+			$sub2 = substr($item->product_level4_code, 0, 2);
 			
 			if (array_key_exists($sub6, $mapping)) $mc = $mapping[$sub6];
 			elseif (array_key_exists($sub4, $mapping)) $mc = $mapping[$sub4]; 
+			elseif (array_key_exists($sub2, $mapping)) $mc = $mapping[$sub2];
 			
 			//echo $sub6." ".$sub4." >>> ".$mc."<br/>"; print_r($item); echo "<br/><br/>";
 			
@@ -222,9 +214,22 @@ class Lgepr_sales_order extends CI_Controller {
 				}
 				
 				$rows[] = $row;
+				$order_lines[] = $row["order_line"];
 			}
 			
 			if ($rows) $records += $this->gen_m->insert_m("lgepr_sales_order", $rows);
+			
+			//remove closed orders in sales order table
+			$order_lines_split = array_chunk($order_lines, 500);
+			foreach($order_lines_split as $items){
+				$closed_orders = $this->gen_m->filter_select("lgepr_closed_order", false, ["order_line"], null, null, [["field" => "order_line", "values" => $items]]);
+				if ($closed_orders){
+					$aux = [];
+					foreach($closed_orders as $item) $aux[] = $item->order_line;
+					
+					$this->gen_m->delete_in("lgepr_sales_order", "order_line", $aux);
+				}
+			}
 			
 			$this->update_model_category();
 			
