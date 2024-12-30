@@ -46,6 +46,7 @@ class Lgepr_sales_order extends CI_Controller {
 			"SAC" 	=> ["dash_division" => "H&A"	, "dash_category" => "SAC"],
 			"SGN" 	=> ["dash_division" => "BS"		, "dash_category" => "MTN Signage"],
 			"W/M" 	=> ["dash_division" => "H&A"	, "dash_category" => "W/M"],
+			"MC" 	=> ["dash_division" => "MC"		, "dash_category" => "MC"],
 		];
 		
 		foreach($dash_mapping as $key => $item) $this->gen_m->update("lgepr_sales_order", ["model_category" => $key], $item);
@@ -57,7 +58,7 @@ class Lgepr_sales_order extends CI_Controller {
 		$s = ["model_category", "product_level4"];
 		$closed_orders = $this->gen_m->filter_select("lgepr_closed_order", false, $s, $w, null, null, [["product_level4", "desc"]], null, null, "product_level4");
 		
-		$mapping = [];
+		$mapping = ["MC" => "MC"];
 		foreach($closed_orders as $item){
 			if ($item->model_category){
 				$index_6 = substr($item->product_level4, 0, 6);
