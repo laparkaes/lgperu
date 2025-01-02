@@ -15,7 +15,7 @@
 			<div class="card">
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
-						<h5 class="card-title">Sales Orders (<?= number_format(count($sales_orders) + 1) ?> records)</h5>
+						<h5 class="card-title">Sales Orders (<?= number_format(count($sales_orders)) ?> records)</h5>
 						<form id="form_sales_order_upload">
 							<div class="input-group">
 								<a class="btn btn-success" href="<?= base_url() ?>template/lgepr_sales_order_template.xls" download="lgepr_sales_order_template"><i class="bi bi-file-earmark-spreadsheet"></i></a>

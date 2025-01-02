@@ -17,13 +17,17 @@ class Lgepr_closed_order extends CI_Controller {
 		$d = $this->input->get("d");
 		if (!$d) $d = date("Y-m");
 		
+		$first = $this->gen_m->filter("lgepr_closed_order", false, null, null, null, [["closed_date", "asc"]], 1);
+		
 		$w = ["closed_date >=" => date("Y-m-01", strtotime($d)), "closed_date <=" => date("Y-m-t", strtotime($d))];
 		$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 		
 		$closed_orders = $this->gen_m->filter("lgepr_closed_order", false, $w, null, null, $o);
 		
 		$data = [
-			"date" 			=> $d,
+			"first" 		=> strtotime($first ? date("Y-m", strtotime($first[0]->closed_date)) : date("Y-m")),
+			"last"			=> strtotime(date("Y-m")),
+			"d" 			=> $d,
 			"closed_orders"	=> $closed_orders,
 			"main" 			=> "data_upload/lgepr_closed_order/index",
 		];
