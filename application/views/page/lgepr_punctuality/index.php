@@ -7,6 +7,7 @@
 					<?php foreach($periods as $item){  ?>
 					<option value="<?= $item ?>" <?= ($item === $period) ? "selected" : "" ?>><?= $item ?></option>
 					<?php } ?>
+					<option value="2024-12">2024-12</option>
 				</select>
 				<select class="form-select me-1" id="sl_dept" style="width: 250px;">
 					<option value="">All departments --</option>
