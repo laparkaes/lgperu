@@ -44,16 +44,16 @@ class Lgepr_closed_order extends CI_Controller {
 		$dash_mapping = [
 			"REF" 	=> ["dash_company" => "HS"	, "dash_division" => "REF"],
 			"CVT" 	=> ["dash_company" => "HS"	, "dash_division" => "Cooking"],
+			"CDT" 	=> ["dash_company" => "HS"	, "dash_division" => "Dishwasher"],
 			"W/M" 	=> ["dash_company" => "HS"	, "dash_division" => "W/M"],
-			"CDT" 	=> ["dash_company" => "HS"	, "dash_division" => "DW"],
 			
 			"LTV" 	=> ["dash_company" => "MS"	, "dash_division" => "LTV"],
 			"CAV" 	=> ["dash_company" => "MS"	, "dash_division" => "Audio"],
 			"MNT" 	=> ["dash_company" => "MS"	, "dash_division" => "MNT"],
+			"DS" 	=> ["dash_company" => "MS"	, "dash_division" => "DS"],
 			"SGN" 	=> ["dash_company" => "MS"	, "dash_division" => "MTN Signage"],
 			"CTV" 	=> ["dash_company" => "MS"	, "dash_division" => "Commercial TV"],
 			"PC" 	=> ["dash_company" => "MS"	, "dash_division" => "PC"],
-			"DS" 	=> ["dash_company" => "MS"	, "dash_division" => "DS"],
 			
 			"RAC" 	=> ["dash_company" => "ES"	, "dash_division" => "RAC"],
 			"SAC" 	=> ["dash_company" => "ES"	, "dash_division" => "SAC"],

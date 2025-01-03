@@ -33,17 +33,20 @@ class Obs extends CI_Controller {
 		$companies = [
 			["company" => "HS",	"division" => "REF",		"seq" => "a"],
 			["company" => "HS",	"division" => "Cooking",	"seq" => "b"],
-			["company" => "HS",	"division" => "W/M",		"seq" => "c"],
+			["company" => "HS",	"division" => "Dishwasher",	"seq" => "c"],
+			["company" => "HS",	"division" => "W/M",		"seq" => "d"],
 			
-			["company" => "MS",	"division" => "LTV",			"seq" => "d"],
-			["company" => "MS",	"division" => "Audio",			"seq" => "e"],
-			["company" => "MS",	"division" => "MNT",			"seq" => "f"],
-			["company" => "MS",	"division" => "MNT Signage",	"seq" => "g"],
-			["company" => "MS",	"division" => "Commercial TV",	"seq" => "h"],
+			["company" => "MS",	"division" => "LTV",			"seq" => "e"],
+			["company" => "MS",	"division" => "Audio",			"seq" => "f"],
+			["company" => "MS",	"division" => "MNT",			"seq" => "g"],
+			["company" => "MS",	"division" => "DS",				"seq" => "h"],
+			["company" => "MS",	"division" => "PC",				"seq" => "i"],
+			["company" => "MS",	"division" => "MNT Signage",	"seq" => "j"],
+			["company" => "MS",	"division" => "Commercial TV",	"seq" => "k"],
 			
-			["company" => "ES",	"division" => "RAC",		"seq" => "i"],
-			["company" => "ES",	"division" => "SAC",		"seq" => "j"],
-			["company" => "ES",	"division" => "Chiller",	"seq" => "k"],
+			["company" => "ES",	"division" => "RAC",		"seq" => "l"],
+			["company" => "ES",	"division" => "SAC",		"seq" => "m"],
+			["company" => "ES",	"division" => "Chiller",	"seq" => "n"],
 		];
 		
 		header('Content-Type: application/json');
