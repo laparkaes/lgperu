@@ -19,6 +19,8 @@ ALTER TABLE `lgepr_sales_order` CHANGE `dash_category` `dash_division` VARCHAR(3
 ALTER TABLE `lgepr_closed_order` CHANGE `dash_division` `dash_company` VARCHAR(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
 ALTER TABLE `lgepr_closed_order` CHANGE `dash_category` `dash_division` VARCHAR(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
 
+ALTER TABLE `obs_most_likely` CHANGE `division` `company` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
+ALTER TABLE `obs_most_likely` CHANGE `category` `division` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
 
 
 
