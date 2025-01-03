@@ -66,7 +66,7 @@ class Obs extends CI_Controller {
 		
 		if ($this->input->get("key") === "lgepr"){
 			$res = $this->gen_m->filter("obs_most_likely", false, ["year" => date("Y"), "month" => date("m"), "division !=" => null]);
-		}else $res = ["msg" => "Error"];
+		}else $res = ["Key error"];
 		
 		header('Content-Type: application/json');
 		echo json_encode($res);
