@@ -11,6 +11,13 @@ ALTER TABLE `lgepr_sales_order` ADD `sales_amount_usd` FLOAT NULL AFTER `sales_a
 
 
 
+20250103
+
+ALTER TABLE `lgepr_sales_order` CHANGE `dash_division` `dash_company` VARCHAR(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
+ALTER TABLE `lgepr_sales_order` CHANGE `dash_category` `dash_division` VARCHAR(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
+
+ALTER TABLE `lgepr_closed_order` CHANGE `dash_division` `dash_company` VARCHAR(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
+ALTER TABLE `lgepr_closed_order` CHANGE `dash_category` `dash_division` VARCHAR(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
 
 
 

@@ -42,21 +42,24 @@ class Lgepr_closed_order extends CI_Controller {
 	
 	private function update_dash_div_cat(){
 		$dash_mapping = [
-			"A/C" 	=> ["dash_division" => "H&A"	, "dash_category" => "Chiller"],
-			"CAV" 	=> ["dash_division" => "HE"		, "dash_category" => "AV"],
-			"CDT" 	=> ["dash_division" => "H&A"	, "dash_category" => "DW"],
-			"CTV" 	=> ["dash_division" => "BS"		, "dash_category" => "Commercial TV"],
-			"CVT" 	=> ["dash_division" => "H&A"	, "dash_category" => "Cooking"],
-			"DS" 	=> ["dash_division" => "BS"		, "dash_category" => "DS"],
-			"LTV" 	=> ["dash_division" => "HE"		, "dash_category" => "LTV"],
-			"MNT" 	=> ["dash_division" => "BS"		, "dash_category" => "MNT"],
-			"PC" 	=> ["dash_division" => "BS"		, "dash_category" => "PC"],
-			"RAC" 	=> ["dash_division" => "H&A"	, "dash_category" => "RAC"],
-			"REF" 	=> ["dash_division" => "H&A"	, "dash_category" => "REF"],
-			"SAC" 	=> ["dash_division" => "H&A"	, "dash_category" => "SAC"],
-			"SGN" 	=> ["dash_division" => "BS"		, "dash_category" => "MTN Signage"],
-			"W/M" 	=> ["dash_division" => "H&A"	, "dash_category" => "W/M"],
-			"MC" 	=> ["dash_division" => "MC"		, "dash_category" => "MC"],
+			"REF" 	=> ["dash_company" => "HS"	, "dash_division" => "REF"],
+			"CVT" 	=> ["dash_company" => "HS"	, "dash_division" => "Cooking"],
+			"W/M" 	=> ["dash_company" => "HS"	, "dash_division" => "W/M"],
+			"CDT" 	=> ["dash_company" => "HS"	, "dash_division" => "DW"],
+			
+			"LTV" 	=> ["dash_company" => "MS"	, "dash_division" => "LTV"],
+			"CAV" 	=> ["dash_company" => "MS"	, "dash_division" => "Audio"],
+			"MNT" 	=> ["dash_company" => "MS"	, "dash_division" => "MNT"],
+			"SGN" 	=> ["dash_company" => "MS"	, "dash_division" => "MTN Signage"],
+			"CTV" 	=> ["dash_company" => "MS"	, "dash_division" => "Commercial TV"],
+			"PC" 	=> ["dash_company" => "MS"	, "dash_division" => "PC"],
+			"DS" 	=> ["dash_company" => "MS"	, "dash_division" => "DS"],
+			
+			"RAC" 	=> ["dash_company" => "ES"	, "dash_division" => "RAC"],
+			"SAC" 	=> ["dash_company" => "ES"	, "dash_division" => "SAC"],
+			"A/C" 	=> ["dash_company" => "ES"	, "dash_division" => "Chiller"],
+			
+			"MC" 	=> ["dash_company" => "MC"	, "dash_division" => "MC"],
 		];
 		
 		foreach($dash_mapping as $key => $item) $this->gen_m->update("lgepr_closed_order", ["model_category" => $key], $item);
