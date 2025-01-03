@@ -143,15 +143,10 @@ class Hr_employee extends CI_Controller {
 		
 		if (!$msg){
 			//work schedule update using $data["work_schedule"];
-			$work_schedule_now = null;
-			$work_schedule = $this->gen_m->filter("hr_schedule", false, ["pr" => $data["employee_number"]], null, null, [["date_from", "desc"]]);
-			foreach($work_schedule as $item){
-				if (strtotime($item->date_from) <= strtotime($data["date_from"])){
-					$work_schedule_now = $item;
-				}
-			}
-			
-			if ($work_schedule_now){//with cleansing work
+			$work_schedule_now = $this->gen_m->filter("hr_schedule", false, ["pr" => $data["employee_number"]], null, null, [["date_from", "desc"]], 1);
+			if ($work_schedule_now){
+				$work_schedule_now = $work_schedule_now[0];
+				
 				$work_sch = date("H:i", strtotime($work_schedule_now->work_start))." ~ ".date("H:i", strtotime($work_schedule_now->work_end));
 				if ($data["work_schedule"] !== $work_sch){
 					//update actual to (from - 1) day
