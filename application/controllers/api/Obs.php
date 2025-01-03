@@ -18,6 +18,177 @@ class Obs extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 	}
 	
+	public function get_company(){
+		$companies = [
+			["company" => "HS", "seq" => "a"],
+			["company" => "MS", "seq" => "b"],
+			["company" => "ES", "seq" => "c"],
+		];
+		
+		header('Content-Type: application/json');
+		echo json_encode($companies);
+	}
+	
+	public function get_division(){
+		$companies = [
+			["company" => "HS",	"division" => "REF",		"seq" => "a"],
+			["company" => "HS",	"division" => "Cooking",	"seq" => "b"],
+			["company" => "HS",	"division" => "W/M",		"seq" => "c"],
+			
+			["company" => "MS",	"division" => "LTV",			"seq" => "d"],
+			["company" => "MS",	"division" => "Audio",			"seq" => "e"],
+			["company" => "MS",	"division" => "MNT",			"seq" => "f"],
+			["company" => "MS",	"division" => "MNT Signage",	"seq" => "g"],
+			["company" => "MS",	"division" => "Commercial TV",	"seq" => "h"],
+			
+			["company" => "ES",	"division" => "RAC",		"seq" => "i"],
+			["company" => "ES",	"division" => "SAC",		"seq" => "j"],
+			["company" => "ES",	"division" => "Chiller",	"seq" => "k"],
+		];
+		
+		header('Content-Type: application/json');
+		echo json_encode($companies);
+	}
+	
+	public function get_market_summary(){
+		$this->to_get_daily_price();
+		
+		$summary = [];
+		
+		$data = $this->gen_m->all("v_tercer_ojo_prices_data", [], "", "", false);
+		foreach($data as $item){
+			$index = $item->product."_".$item->updated;
+			
+			$summary[$index]["date"] = $item->updated;
+			$summary[$index]["category"] = $item->category;
+			$summary[$index]["product"] = $item->product;
+			
+			$summary[$index]["retail"] = null;
+			$summary[$index]["retail_price"] = null;
+			$summary[$index]["retail_url"] = null;
+			
+			$summary[$index]["seller"] = null;
+			$summary[$index]["seller_retail"] = null;
+			$summary[$index]["seller_price"] = null;
+			$summary[$index]["seller_url"] = null;
+			
+			$summary[$index]["card_retail"] = null;
+			$summary[$index]["card_seller"] = null;
+			$summary[$index]["card_price"] = null;
+			$summary[$index]["card_url"] = null;
+		}
+		
+		$retails = $this->gen_m->all("v_tercer_ojo_prices_retail", [], "", "", false);
+		foreach($retails as $item){
+			$index = $item->product."_".$item->updated;
+			
+			if ($item->price){
+				$summary[$index]["retail"] = $item->retail;
+				$summary[$index]["retail_price"] = $item->price;
+				$summary[$index]["retail_url"] = $item->url;
+			}
+		}
+		
+		$sellers = $this->gen_m->all("v_tercer_ojo_prices_seller", [], "", "", false);
+		foreach($sellers as $item){
+			$index = $item->product."_".$item->updated;
+			
+			if ($item->price){
+				$summary[$index]["seller"] = $item->seller;
+				$summary[$index]["seller_retail"] = $item->retail;
+				$summary[$index]["seller_price"] = $item->price;
+				$summary[$index]["seller_url"] = $item->url;
+			}
+		}
+		
+		$cards = $this->gen_m->all("v_tercer_ojo_prices_card", [], "", "", false);
+		foreach($cards as $item){
+			$index = $item->product."_".$item->updated;
+			
+			if ($item->price){
+				$summary[$index]["card_retail"] = $item->retail;
+				$summary[$index]["card_seller"] = $item->seller;
+				$summary[$index]["card_price"] = $item->price;
+				$summary[$index]["card_url"] = $item->url;
+			}
+		}
+		
+		foreach($summary as $i => $item){
+			$aux = [];
+			if ($item["retail_price"]) $aux[] = $item["retail_price"];
+			if ($item["seller_price"]) $aux[] = $item["seller_price"];
+			if ($item["card_price"]) $aux[] = $item["card_price"];
+			
+			if ($aux) $summary[$i]["minimun"] = min($aux);
+			else unset($summary[$i]);
+			
+			
+			//print_r($summary[$i]); echo "<br/><br/>";
+		}
+		
+		header('Content-Type: application/json');
+		echo json_encode($summary);
+	}
+	
+	public function get_retail_price(){
+		//llamasys/api/obs/get_retail_price?brand=LG
+		
+		echo "<table style='width: 100%'>
+			<tr>
+				<td>category</td>
+				<td>retail</td>
+				<td>brand</td>
+				<td>product</td>
+				<td>seller</td>
+				<td>card</td>
+				<td>minimum</td>
+				<td>extra</td>
+				<td>offer</td>
+				<td>list</td>
+				<td>features</td>
+				<td>updated</td>
+				<td>url</td>
+		</tr>";
+		
+		$w = $this->input->get();
+		$w_in = [];
+		$o = [
+			["category", "asc"],
+			["retail", "asc"],
+			["brand", "asc"],
+			["seller", "asc"],
+			["minimum", "asc"],
+		];
+		
+		$prices = $this->gen_m->filter("tercer_ojo_market_price", false, $w, null, $w_in, $o);
+		foreach($prices as $item){
+			/*
+			unset($item->price_id);
+			//unset($item->url);
+			print_r($item);
+			echo "<br/><br/>";
+			*/
+			
+			echo "<tr>
+					<td>".$item->category."</td>
+					<td>".$item->retail."</td>
+					<td>".$item->brand."</td>
+					<td>".$item->product."</td>
+					<td>".$item->seller."</td>
+					<td>".($item->card ? "Yes" : "No")."</td>
+					<td>".$item->minimum."</td>
+					<td>".$item->extra."</td>
+					<td>".$item->offer."</td>
+					<td>".$item->list."</td>
+					<td>".$item->features."</td>
+					<td>".$item->updated."</td>
+					<td><a href='".$item->url."' target='_blank'>Go</a></td>
+			</tr>";
+		}
+		
+		echo "</table>";
+	}
+	
 	/* tercer ojo API start */
     private function to_get_access_token(){
         $url = $this->to_base_url."api/auth/generate-api-access-token";
@@ -290,144 +461,7 @@ class Obs extends CI_Controller {
 	/* retails is ommited (no necessary to be filtered) */
 	/* tercer ojo API end */
 	
-	public function get_market_summary(){
-		$this->to_get_daily_price();
-		
-		$summary = [];
-		
-		$data = $this->gen_m->all("v_tercer_ojo_prices_data", [], "", "", false);
-		foreach($data as $item){
-			$index = $item->product."_".$item->updated;
-			
-			$summary[$index]["date"] = $item->updated;
-			$summary[$index]["category"] = $item->category;
-			$summary[$index]["product"] = $item->product;
-			
-			$summary[$index]["retail"] = null;
-			$summary[$index]["retail_price"] = null;
-			$summary[$index]["retail_url"] = null;
-			
-			$summary[$index]["seller"] = null;
-			$summary[$index]["seller_retail"] = null;
-			$summary[$index]["seller_price"] = null;
-			$summary[$index]["seller_url"] = null;
-			
-			$summary[$index]["card_retail"] = null;
-			$summary[$index]["card_seller"] = null;
-			$summary[$index]["card_price"] = null;
-			$summary[$index]["card_url"] = null;
-		}
-		
-		$retails = $this->gen_m->all("v_tercer_ojo_prices_retail", [], "", "", false);
-		foreach($retails as $item){
-			$index = $item->product."_".$item->updated;
-			
-			if ($item->price){
-				$summary[$index]["retail"] = $item->retail;
-				$summary[$index]["retail_price"] = $item->price;
-				$summary[$index]["retail_url"] = $item->url;
-			}
-		}
-		
-		$sellers = $this->gen_m->all("v_tercer_ojo_prices_seller", [], "", "", false);
-		foreach($sellers as $item){
-			$index = $item->product."_".$item->updated;
-			
-			if ($item->price){
-				$summary[$index]["seller"] = $item->seller;
-				$summary[$index]["seller_retail"] = $item->retail;
-				$summary[$index]["seller_price"] = $item->price;
-				$summary[$index]["seller_url"] = $item->url;
-			}
-		}
-		
-		$cards = $this->gen_m->all("v_tercer_ojo_prices_card", [], "", "", false);
-		foreach($cards as $item){
-			$index = $item->product."_".$item->updated;
-			
-			if ($item->price){
-				$summary[$index]["card_retail"] = $item->retail;
-				$summary[$index]["card_seller"] = $item->seller;
-				$summary[$index]["card_price"] = $item->price;
-				$summary[$index]["card_url"] = $item->url;
-			}
-		}
-		
-		foreach($summary as $i => $item){
-			$aux = [];
-			if ($item["retail_price"]) $aux[] = $item["retail_price"];
-			if ($item["seller_price"]) $aux[] = $item["seller_price"];
-			if ($item["card_price"]) $aux[] = $item["card_price"];
-			
-			if ($aux) $summary[$i]["minimun"] = min($aux);
-			else unset($summary[$i]);
-			
-			
-			//print_r($summary[$i]); echo "<br/><br/>";
-		}
-		
-		header('Content-Type: application/json');
-		echo json_encode($summary);
-	}
-	
-	public function get_retail_price(){
-		//llamasys/api/obs/get_retail_price?brand=LG
-		
-		echo "<table style='width: 100%'>
-			<tr>
-				<td>category</td>
-				<td>retail</td>
-				<td>brand</td>
-				<td>product</td>
-				<td>seller</td>
-				<td>card</td>
-				<td>minimum</td>
-				<td>extra</td>
-				<td>offer</td>
-				<td>list</td>
-				<td>features</td>
-				<td>updated</td>
-				<td>url</td>
-		</tr>";
-		
-		$w = $this->input->get();
-		$w_in = [];
-		$o = [
-			["category", "asc"],
-			["retail", "asc"],
-			["brand", "asc"],
-			["seller", "asc"],
-			["minimum", "asc"],
-		];
-		
-		$prices = $this->gen_m->filter("tercer_ojo_market_price", false, $w, null, $w_in, $o);
-		foreach($prices as $item){
-			/*
-			unset($item->price_id);
-			//unset($item->url);
-			print_r($item);
-			echo "<br/><br/>";
-			*/
-			
-			echo "<tr>
-					<td>".$item->category."</td>
-					<td>".$item->retail."</td>
-					<td>".$item->brand."</td>
-					<td>".$item->product."</td>
-					<td>".$item->seller."</td>
-					<td>".($item->card ? "Yes" : "No")."</td>
-					<td>".$item->minimum."</td>
-					<td>".$item->extra."</td>
-					<td>".$item->offer."</td>
-					<td>".$item->list."</td>
-					<td>".$item->features."</td>
-					<td>".$item->updated."</td>
-					<td><a href='".$item->url."' target='_blank'>Go</a></td>
-			</tr>";
-		}
-		
-		echo "</table>";
-	}
+	/************************************************************************************** Old dashboard API */
 	
 	public function view_maker_obs_sales(){
 		/* 
@@ -1022,6 +1056,8 @@ class Obs extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode($sales);
 	}
+	
+	
 	
 	public function nsp_n(){
 		//llamasys/api/obs/nsp?key=lgepr
