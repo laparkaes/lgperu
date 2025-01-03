@@ -47,18 +47,6 @@
 							<label class="form-label">EP Mail</label>
 							<input class="form-control" type="text" name="ep_mail" value="<?= $emp->ep_mail ?>">
 						</div>
-						<div class="col-md-8">
-							<label class="form-label">Work Schedule</label>
-							<select class="form-select" name="work_schedule">
-								<?php foreach($schs as $item){ ?>
-								<option value="<?= $item ?>" <?= ($item === $emp->work_sch) ? "selected" : "" ?>><?= $item ?></option>
-								<?php } ?>
-							</select>
-						</div>
-						<div class="col-md-4">
-							<label class="form-label">Schedule Apply From (Just in case)</label>
-							<input class="form-control" type="date" name="date_from">
-						</div>
 						<div class="col-md-12 pt-3">
 							<div class="row">
 								<div class="col-md-4">
@@ -83,16 +71,38 @@
 						</div>
 						<div class="pt-3 text-center">
 							<input type="hidden" name="employee_id" value="<?= $emp->employee_id ?>">
-							<button type="submit" class="btn btn-primary">Update</button>
-							<a href="<?= base_url() ?>module/hr_employee" type="button" class="btn btn-secondary">
-								Cancel
-							</a>
+							<button type="submit" class="btn btn-primary">Submit</button>
 						</div>
 					</form>
 				</div>
 			</div>
 		</div>
 		<div class="col-md-4">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Worktime</h5>
+					<form class="row g-3" id="form_save_worktime">
+						<div class="col-12">
+							<label class="form-label">Schedule</label>
+							<select class="form-select" name="work_schedule">
+								<?php foreach($schs as $item){ ?>
+								<option value="<?= $item ?>" <?= ($item === $emp->work_sch) ? "selected" : "" ?>><?= $item ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-12">
+							<label class="form-label">Apply From</label>
+							<input class="form-control" type="date" name="date_from">
+						</div>
+						<div class="pt-3 text-center">
+							<input type="hidden" name="employee_id" value="<?= $emp->employee_id ?>">
+							<input type="hidden" name="employee_number" value="<?= $emp->employee_number ?>">
+							<input type="hidden" name="name" value="<?= $emp->name ?>">
+							<button type="submit" class="btn btn-primary">Submit</button>
+						</div>
+					</form>
+				</div>
+			</div>
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Worktime History</h5>
@@ -127,6 +137,14 @@ document.addEventListener("DOMContentLoaded", () => {
 		e.preventDefault();
 		$("#form_save_data .sys_msg").html("");
 		ajax_form_warning(this, "module/hr_employee/save_data", "Do you want to save data?").done(function(res) {
+			swal_redirection(res.type, res.msg, res.url);
+		});
+	});
+	
+	$("#form_save_worktime").submit(function(e) {
+		e.preventDefault();
+		$("#form_save_worktime .sys_msg").html("");
+		ajax_form_warning(this, "module/hr_employee/save_worktime", "Do you want to save worktime?").done(function(res) {
 			swal_redirection(res.type, res.msg, res.url);
 		});
 	});

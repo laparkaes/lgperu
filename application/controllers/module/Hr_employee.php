@@ -114,6 +114,34 @@ class Hr_employee extends CI_Controller {
 		}
 		
 		if ($to_updated){
+			
+			//department separating
+			$aux = explode(" > ", $data["dpt"]);
+			$data["subsidiary"] = array_key_exists(0, $aux) ? $aux[0] : "";
+			$data["organization"] = array_key_exists(1, $aux) ? $aux[1] : "";
+			$data["department"] = array_key_exists(2, $aux) ? $aux[2] : "";
+			unset($data["dpt"]);
+			
+			//update employee data
+			$this->gen_m->update("hr_employee", ["employee_id" => $data["employee_id"]], $data);
+			
+			$type = "success";
+			$msg = "Employee updated.";
+		}else $msg = "PR duplicated.";
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg, "url" => "module/hr_employee/edit/".$data["employee_id"]]);
+	}
+	
+	public function save_worktime(){
+		$type = "error"; $msg = "";
+		$data = $this->input->post(); 
+		
+		//validation
+		if (!$data["work_schedule"]) $msg = "Select a schedule option.";
+		elseif (!$data["date_from"]) $msg = "Select a date to apply new schedule.";
+		
+		if (!$msg){
 			//work schedule update using $data["work_schedule"];
 			$work_schedule_now = null;
 			$work_schedule = $this->gen_m->filter("hr_schedule", false, ["pr" => $data["employee_number"]], null, null, [["date_from", "desc"]]);
@@ -147,8 +175,11 @@ class Hr_employee extends CI_Controller {
 					$data_sch["work_start"] = $aux_sch[0];
 					$data_sch["work_end"] = $aux_sch[1];
 					
-					$this->gen_m->insert("hr_schedule", $data_sch);
-				}
+					if ($this->gen_m->insert("hr_schedule", $data_sch)){
+						$type = "success";
+						$msg = "worktime has been created.";
+					}else $msg = "Error inserting schedule.";
+				}else $msg = "Actual schedule is same to selected option.";
 			}elseif ($data["date_from"]){//without cleansing work
 				$aux_sch = explode(" ~ ", $data["work_schedule"]);
 				
@@ -163,29 +194,14 @@ class Hr_employee extends CI_Controller {
 				$data_sch["work_start"] = $aux_sch[0];
 				$data_sch["work_end"] = $aux_sch[1];
 				
-				$this->gen_m->insert("hr_schedule", $data_sch);
+				if ($this->gen_m->insert("hr_schedule", $data_sch)){
+					$type = "success";
+					$msg = "worktime has been created.";
+				}else $msg = "Error inserting schedule.";
 			}
-			
-			unset($data["work_schedule"]);
-			unset($data["date_from"]);
-			
-			//department separating
-			
-			$aux = explode(" > ", $data["dpt"]);
-			$data["subsidiary"] = array_key_exists(0, $aux) ? $aux[0] : "";
-			$data["organization"] = array_key_exists(1, $aux) ? $aux[1] : "";
-			$data["department"] = array_key_exists(2, $aux) ? $aux[2] : "";
-			unset($data["dpt"]);
-			
-			//update employee data
-			$this->gen_m->update("hr_employee", ["employee_id" => $data["employee_id"]], $data);
-			
-			$type = "success";
-			$msg = "Employee updated.";
-		}else $msg = "PR duplicated.";
+		}
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg, "url" => "module/hr_employee/edit/".$data["employee_id"]]);
 	}
-	
 }
