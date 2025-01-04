@@ -24,6 +24,15 @@ class Obs_most_likely extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
+	public function update_division(){
+		$this->gen_m->delete("obs_most_likely", ["division" => null]);
+		
+		$data = $this->gen_m->filter("obs_most_likely", false, ["year" => 2024, "month" => 5]);
+		foreach($data as $item){
+			print_r($item); echo "<br/>";
+		}
+	}
+	
 	private function process($filename = "obs_ml.xls"){
 		set_time_limit(0);
 		

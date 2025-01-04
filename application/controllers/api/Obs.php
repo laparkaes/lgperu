@@ -38,10 +38,10 @@ class Obs extends CI_Controller {
 		
 		if ($this->input->get("key") === "lgepr"){
 			$res = [
-				["company" => "HS",	"division" => "REF",		"seq" => "a"],
-				["company" => "HS",	"division" => "Cooking",	"seq" => "b"],
-				["company" => "HS",	"division" => "Dishwasher",	"seq" => "c"],
-				["company" => "HS",	"division" => "W/M",		"seq" => "d"],
+				["company" => "HS",	"division" => "REF",			"seq" => "a"],
+				["company" => "HS",	"division" => "Cooking",		"seq" => "b"],
+				["company" => "HS",	"division" => "Dishwasher",		"seq" => "c"],
+				["company" => "HS",	"division" => "W/M",			"seq" => "d"],
 				
 				["company" => "MS",	"division" => "LTV",			"seq" => "e"],
 				["company" => "MS",	"division" => "Audio",			"seq" => "f"],
@@ -64,13 +64,16 @@ class Obs extends CI_Controller {
 	public function get_most_likely(){
 		//llamasys/local_api/get_most_likely?key=lgepr
 		
-		if ($this->input->get("key") === "lgepr"){
-			$res = $this->gen_m->filter("obs_most_likely", false, ["year" => date("Y"), "month" => date("m"), "division !=" => null]);
-		}else $res = ["Key error"];
+		if ($this->input->get("key") === "lgepr") $res = $this->gen_m->filter("obs_most_likely", false, ["year" => date("Y"), "month" => date("m"), "division !=" => null]);
+		else $res = ["Key error"];
 		
 		header('Content-Type: application/json');
 		echo json_encode($res);
 	}
+	
+	
+	
+	
 	
 	public function get_market_summary(){
 		$this->to_get_daily_price();
