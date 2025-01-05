@@ -71,8 +71,8 @@ class Lgepr extends CI_Controller {
 		//llamasys/api/lgepr/get_closed_order?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
-			$w = ["closed_date >=" => date("2024-12-01")];
-			//$w = ["closed_date >=" => date("Y-m-01")];
+			//$w = ["closed_date >=" => date("2024-12-01")];
+			$w = ["closed_date >=" => date("Y-m-01")];
 			$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			
 			$res = $this->gen_m->filter("lgepr_closed_order", false, $w, null, null, $o);
@@ -93,6 +93,10 @@ class Lgepr extends CI_Controller {
 		
 		header('Content-Type: application/json');
 		echo json_encode($res);
+	}
+	
+	public function get_monthly_closed_order(){
+		//use v_lgepr_monthly_closed_order
 	}
 	
 }

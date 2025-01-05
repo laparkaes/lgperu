@@ -104,6 +104,9 @@ class Obs extends CI_Controller {
 		echo json_encode($res);
 	}
 	
+	public function get_monthly_closed_order(){
+		//use v_obs_monthly_closed_order
+	}
 	
 	
 	
