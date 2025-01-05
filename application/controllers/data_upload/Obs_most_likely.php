@@ -14,10 +14,91 @@ class Obs_most_likely extends CI_Controller {
 	}
 	
 	public function index(){
+		$month = $this->input->get("m");
+		if (!$month){
+			$last = $this->gen_m->filter("obs_most_likely", false, ["subsidiary !=" => null], null, null, [["year", "desc"], ["month", "desc"]], 1, 0)[0];
+			$month = $last->year."-".$last->month;
+		}
+		
+		$subs = $this->gen_m->only("obs_most_likely", "subsidiary");
+		$coms = ["HS", "MS", "ES"];
+		$divs = [
+			"HS" => ["REF", "Cooking", "Dishwasher", "W/M"],
+			"MS" => ["LTV", "Audio", "MNT", "DS", "MTN Signage", "Commercial TV", "PC"],
+			"ES" => ["RAC", "SAC", "Chiller"],
+			"MC" => ["MC"],
+		];
+		
+		$rows = [];
+		foreach($subs as $sub){
+			//subsidiary ml timeline set
+			$rows[$sub->subsidiary] = [
+				"desc" => $sub->subsidiary,
+				"bp" => 0,
+				"target" => 0,
+				"monthly_report" => 0,
+				"ml" => 0,
+				"ml_actual" => 0,
+			];
+			
+			//company ml timeline set
+			foreach($coms as $com){
+				$rows[$sub->subsidiary."_".$com] = [
+					"desc" => $sub->subsidiary."_".$com,
+					"bp" => 0,
+					"target" => 0,
+					"monthly_report" => 0,
+					"ml" => 0,
+					"ml_actual" => 0,
+				];
+				
+				//division ml timeline set
+				$com_divs = $divs[$com];
+				foreach($com_divs as $div){
+					$rows[$sub->subsidiary."_".$com."_".$div] = [
+						"desc" => $sub->subsidiary."_".$com."_".$div,
+						"bp" => 0,
+						"target" => 0,
+						"monthly_report" => 0,
+						"ml" => 0,
+						"ml_actual" => 0,
+					];
+				}
+			}
+		}
+		
+		//ml values
+		$filter = explode("-", $month);
+		$mls = $this->gen_m->filter("obs_most_likely", false, ["year" => $filter[0], "month" => $filter[1]]);
+		foreach($mls as $item){
+			$k = $item->subsidiary;
+			$rows[$k]["bp"] += $item->bp;
+			$rows[$k]["target"] += $item->target;
+			$rows[$k]["monthly_report"] += $item->monthly_report;
+			$rows[$k]["ml"] += $item->ml;
+			$rows[$k]["ml_actual"] += $item->ml_actual;
+			
+			$k = $item->subsidiary."_".$item->company;
+			$rows[$k]["bp"] += $item->bp;
+			$rows[$k]["target"] += $item->target;
+			$rows[$k]["monthly_report"] += $item->monthly_report;
+			$rows[$k]["ml"] += $item->ml;
+			$rows[$k]["ml_actual"] += $item->ml_actual;
+			
+			$k = $item->subsidiary."_".$item->company."_".$item->division;
+			$rows[$k]["bp"] += $item->bp;
+			$rows[$k]["target"] += $item->target;
+			$rows[$k]["monthly_report"] += $item->monthly_report;
+			$rows[$k]["ml"] += $item->ml;
+			$rows[$k]["ml_actual"] += $item->ml_actual;
+		}
+		
+		//remove if division doesn't has ml
+		//foreach($rows as $key => $item) if (!$item["ml"]) unset($rows[$key]);
 		
 		$data = [
-			"ml_first"	=> $this->gen_m->filter("obs_most_likely", false, ["subsidiary !=" => null], null, null, [["year", "asc"], ["month", "asc"]], 1, 0)[0],
-			"ml_last" 	=> $this->gen_m->filter("obs_most_likely", false, ["subsidiary !=" => null], null, null, [["year", "desc"], ["month", "desc"]], 1, 0)[0],
+			"month"		=> $month,
+			"rows"		=> $rows,
 			"main" 		=> "data_upload/obs_most_likely/index",
 		];
 		
@@ -25,15 +106,34 @@ class Obs_most_likely extends CI_Controller {
 	}
 	
 	public function update_division(){
+		$mapping = [
+			"REF" 	=> ["company" => "HS", "division" => "REF"],
+			"COOK" 	=> ["company" => "HS", "division" => "Cooking"],
+			"CDT" 	=> ["company" => "HS", "division" => "Dishwasher"],
+			"W/M" 	=> ["company" => "HS", "division" => "W/M"],
+			
+			"TV" 	=> ["company" => "MS", "division" => "LTV"],
+			"AV" 	=> ["company" => "MS", "division" => "Audio"],
+			"MNT" 	=> ["company" => "MS", "division" => "MNT"],
+			"DS" 	=> ["company" => "MS", "division" => "DS"],
+			"SGN" 	=> ["company" => "MS", "division" => "MTN Signage"],
+			"CTV" 	=> ["company" => "MS", "division" => "Commercial TV"],
+			"PC" 	=> ["company" => "MS", "division" => "PC"],
+			
+			"RAC" 	=> ["company" => "ES", "division" => "RAC"],
+			"SAC" 	=> ["company" => "ES", "division" => "SAC"],
+			"A/C" 	=> ["company" => "ES", "division" => "Chiller"],
+			
+			"MC" 	=> ["company" => "MC", "division" => "MC"],
+		];
+		
 		$this->gen_m->delete("obs_most_likely", ["division" => null]);
 		
-		$data = $this->gen_m->filter("obs_most_likely", false, ["year" => 2024, "month" => 5]);
-		foreach($data as $item){
-			print_r($item); echo "<br/>";
-		}
+		$data = $this->gen_m->only("obs_most_likely", "division");
+		foreach($data as $item) $this->gen_m->update("obs_most_likely", ["division" => $item->division], $mapping[$item->division]);
 	}
 	
-	private function process($filename = "obs_ml.xls"){
+	public function process($filename = "obs_ml.xls"){
 		set_time_limit(0);
 		
 		//load excel file
@@ -67,6 +167,13 @@ class Obs_most_likely extends CI_Controller {
 		foreach($h as $i => $h_i) if ($h_i !== $h_validate[$i]) $is_ok = false;
 		
 		$result = [];
+		
+		
+		
+		$is_ok = false;
+		
+		
+		
 		
 		if ($is_ok){
 			
@@ -164,8 +271,15 @@ class Obs_most_likely extends CI_Controller {
 			if ($qty_fail > 0) $result[] = number_format($qty_fail)." failed";
 		}
 		
-		return $result ? "OBS Most Likely process result:<br/><br/>".implode(",", $result) : null;
+		//return $result ? "OBS Most Likely process result:<br/><br/>".implode(",", $result) : null;
 		//echo $result ? "OBS GERP Sales orders process result:<br/><br/>".implode(",", $result) : null;
+		
+		
+		$msg = $result ? "OBS GERP Sales orders process result:<br/><br/>".implode(",", $result) : null;
+		
+		echo $msg;
+		echo "<br/><br/>";
+		echo 'You can close this tab now.<br/><br/><button onclick="window.close();">Close This Tab</button>';
 		
 	}
 	
@@ -189,9 +303,8 @@ class Obs_most_likely extends CI_Controller {
 			$this->load->library('upload', $config);
 
 			if ($this->upload->do_upload('attach')){
-				$msg = $this->process();
-				if ($msg) $type = "success";
-				else $msg = "Wrong file.";
+				$msg = "File upload completed successfully.<br/>A new tab will open to process the DB operations.<br/><br/>Please do not close new tab.";
+				$type = "success";
 			}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
 		}else $msg = "Your session is finished.";
 		

@@ -30,20 +30,34 @@
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-md-5 mx-auto">
+		<div class="col">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">ML Datas</h5>
-					<div class="row g-3">
-						<div class="col-md-6">
-							<label class="form-label">First Record</label>
-							<input class="form-control" type="text" value="<?= $ml_first->year."-".$ml_first->month ?>" readonly>
-						</div>
-						<div class="col-md-6">
-							<label class="form-label">Last Record</label>
-							<input class="form-control" type="text" value="<?= $ml_last->year."-".$ml_last->month ?>" readonly>
-						</div>
-					</div>
+					<h5 class="card-title">Last Record</h5>
+					<table class="table">
+						<thead>
+							<tr>
+								<th scope="col"><?= $month ?></th>
+								<th scope="col" class="text-center">BP</th>
+								<th scope="col" class="text-center">Target</th>
+								<th scope="col" class="text-center">Monthly Report</th>
+								<th scope="col" class="text-center">ML</th>
+								<th scope="col" class="text-center">ML Actual</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach($rows as $item){ $desc = explode("_", $item["desc"]); ?>
+							<tr class="table-<?= count($desc) == 1 ? "dark" : (count($desc) == 2 ? "success" : "") ?>">
+								<td><div class="ms-<?= 2 * (count($desc)-1) ?>"><?= $desc[count($desc)-1] ?></div></td>
+								<td class="text-end"><?= number_format($item["bp"], 2) ?></td>
+								<td class="text-end"><?= number_format($item["target"], 2) ?></td>
+								<td class="text-end"><?= number_format($item["monthly_report"], 2) ?></td>
+								<td class="text-end"><?= number_format($item["ml"], 2) ?></td>
+								<td class="text-end"><?= number_format($item["ml_actual"], 2) ?></td>
+							</tr>
+							<?php } ?>
+						</tbody>
+					</table>
 				</div>
 			</div>
 		</div>
@@ -56,7 +70,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		e.preventDefault();
 		$("#form_upload_ml .sys_msg").html("");
 		ajax_form_warning(this, "data_upload/obs_most_likely/upload", "Do you upload data?").done(function(res) {
-			swal_redirection(res.type, res.msg, "data_upload/obs_most_likely");
+			//swal_redirection(res.type, res.msg, "data_upload/obs_most_likely");
+			swal_open_tab(res.type, res.msg, "obs_most_likely/process");
 		});
 	});
 });
