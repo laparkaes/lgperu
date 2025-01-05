@@ -33,11 +33,11 @@
 		<div class="col">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Last Record</h5>
+					<h5 class="card-title">Last Record: <?= $month ?></h5>
 					<table class="table">
 						<thead>
 							<tr>
-								<th scope="col"><?= $month ?></th>
+								<th scope="col"></th>
 								<th scope="col" class="text-center">BP</th>
 								<th scope="col" class="text-center">Target</th>
 								<th scope="col" class="text-center">Monthly Report</th>

@@ -20,7 +20,7 @@ class Obs_most_likely extends CI_Controller {
 			$month = $last->year."-".$last->month;
 		}
 		
-		$subs = $this->gen_m->only("obs_most_likely", "subsidiary");
+		$subs = ["LGEPR", "Branch"];
 		$coms = ["HS", "MS", "ES"];
 		$divs = [
 			"HS" => ["REF", "Cooking", "Dishwasher", "W/M"],
@@ -32,8 +32,8 @@ class Obs_most_likely extends CI_Controller {
 		$rows = [];
 		foreach($subs as $sub){
 			//subsidiary ml timeline set
-			$rows[$sub->subsidiary] = [
-				"desc" => $sub->subsidiary,
+			$rows[$sub] = [
+				"desc" => $sub,
 				"bp" => 0,
 				"target" => 0,
 				"monthly_report" => 0,
@@ -43,8 +43,8 @@ class Obs_most_likely extends CI_Controller {
 			
 			//company ml timeline set
 			foreach($coms as $com){
-				$rows[$sub->subsidiary."_".$com] = [
-					"desc" => $sub->subsidiary."_".$com,
+				$rows[$sub."_".$com] = [
+					"desc" => $sub."_".$com,
 					"bp" => 0,
 					"target" => 0,
 					"monthly_report" => 0,
@@ -55,8 +55,8 @@ class Obs_most_likely extends CI_Controller {
 				//division ml timeline set
 				$com_divs = $divs[$com];
 				foreach($com_divs as $div){
-					$rows[$sub->subsidiary."_".$com."_".$div] = [
-						"desc" => $sub->subsidiary."_".$com."_".$div,
+					$rows[$sub."_".$com."_".$div] = [
+						"desc" => $sub."_".$com."_".$div,
 						"bp" => 0,
 						"target" => 0,
 						"monthly_report" => 0,
@@ -160,124 +160,59 @@ class Obs_most_likely extends CI_Controller {
 		//magento report header
 		$h_validate = ["DIVISION", "YYYY", "MM", "Y-2", "Y-1", "BP", "Target", "MP", "Monthly Report", "ML", "ML Actual", "M-1", "M-2",];
 		
-		
-		
 		//header validation
 		$is_ok = true;
 		foreach($h as $i => $h_i) if ($h_i !== $h_validate[$i]) $is_ok = false;
 		
 		$result = [];
 		
-		
-		
-		$is_ok = false;
-		
-		
-		
-		
 		if ($is_ok){
+			$this->gen_m->delete("obs_most_likely", ["year" => trim($sheet->getCell("B2")->getValue()), "month" => trim($sheet->getCell("C2")->getValue())]);
 			
-			$max_row = $sheet->getHighestRow();
+			$coms = ["HS", "MS", "ES"];
+			$divs = ["REF", "Cooking", "Dishwasher", "W/M", "LTV", "Audio", "MNT", "DS", "MTN Signage", "Commercial TV", "PC", "RAC", "SAC", "Chiller", "MC"];
 			
-			//result types
-			$qty_insert = $qty_update = $qty_fail = 0;
-			
-			//mapping arrays
-			$field_map = [
-				"Total" => "subsidiary",
-				"H&A" => "division",
-				"HE" => "division",
-				"BS" => "division",
-				"REF" => "category",
-				"Cooking" => "category",
-				"W/M" => "category",
-				"RAC DIVISION" => "category",
-				"CAC DIVISION" => "category",
-				"Chiller AC" => "category",
-				"LTV" => "category",
-				"AV" => "category",
-				"MNT" => "category",
-				"PC" => "category",
-				"Data Storage" => "category",
-				"Signage" => "category",
-				"Commercial TV" => "category",
-				"" => "",
-			];
-
-			$term_map = [
-				"Total" => "LGEPR",//fixed to LGEPR
-				"H&A" => "HA",
-				"HE" => "HE",
-				"BS" => "BS",
-				"REF" => "REF",
-				"Cooking" => "COOK",
-				"W/M" => "W/M",
-				"RAC DIVISION" => "RAC",
-				"CAC DIVISION" => "SAC",
-				"Chiller AC" => "A/C",
-				"LTV" => "TV",
-				"AV" => "AV",
-				"MNT" => "MNT",
-				"PC" => "PC",
-				"Data Storage" => "DS",
-				"Signage" => "SGN",
-				"Commercial TV" => "CTV",
-				"" => "",
-			];
-			
-			//div mapping
-			
-			$sub = $div = $cat = null;
-			for($i = 2; $i < $max_row; $i++){
-				$first = trim($sheet->getCellByColumnAndRow(1, $i)->getValue());
-				if ($first){
-					//$row = ["subsidiary" => null, "division" => null, "category" => null];
-					//$row[$field_map[$first]] = $term_map[$first];
-					
-					switch($field_map[$first]){
-						case "subsidiary": $sub = $term_map[$first]; $div = $cat = null; break;
-						case "division": $div = $term_map[$first]; $cat = null; break;
-						case "category": $cat = $term_map[$first]; break;
-					}
+			$sheet_names = ["PR", "PY"];
+			foreach($sheet_names as $sheet_name){
+				$sheet = $spreadsheet->getSheetByName($sheet_name);
 				
-					$row = [
-						"subsidiary" 	=> $sub, 
-						"division" 		=> $div, 
-						"category" 		=> $cat,
-						"year" 			=> trim($sheet->getCellByColumnAndRow(2, $i)->getValue()), 
-						"month" 		=> trim($sheet->getCellByColumnAndRow(3, $i)->getValue()), 
-						"bp" 			=> trim($sheet->getCellByColumnAndRow(6, $i)->getValue()), 
-						"target" 		=> trim($sheet->getCellByColumnAndRow(7, $i)->getValue()), 
-						"monthly_report"=> trim($sheet->getCellByColumnAndRow(9, $i)->getValue()), 
-						"ml" 			=> trim($sheet->getCellByColumnAndRow(10, $i)->getValue()), 
-						"ml_actual" 	=> trim($sheet->getCellByColumnAndRow(11, $i)->getValue()),
-					];
+				switch($sheet_name){
+					case "PY": $sub = "Branch"; break;
+					default: $sub = "LGEPR";
+				}
+				
+				$rows = [];
+				$max_row = $sheet->getHighestRow();
+				for($i = 2; $i < $max_row; $i++){
+					$div = trim($sheet->getCell("A".$i)->getValue());
 					
-					//$row = array_merge($row, $row_);
+					//asign to company in case of company ML
+					if (in_array($div, $coms)) $com = $div;
 					
-					$ml = $this->gen_m->filter("obs_most_likely", false, ["subsidiary" => $row["subsidiary"], "division" => $row["division"], "category" => $row["category"], "year" => $row["year"], "month" => $row["month"],]);
-					if ($ml){
-						if ($this->gen_m->update("obs_most_likely", ["most_likely_id" => $ml[0]->most_likely_id], $row)) $qty_update++;
-						else $qty_fail++;
-					}else{
-						if ($this->gen_m->insert("obs_most_likely", $row)) $qty_insert++;
-						else $qty_fail++;
+					if (in_array($div, $divs)){
+						$row = [ 
+							"subsidiary"		=> $sub,
+							"company" 			=> $com,
+							"division" 			=> $div, 
+							"year" 				=> trim($sheet->getCell("B".$i)->getValue()), 
+							"month" 			=> trim($sheet->getCell("C".$i)->getValue()), 
+							"bp" 				=> trim($sheet->getCell("F".$i)->getValue()), 
+							"target" 			=> trim($sheet->getCell("G".$i)->getValue()), 
+							"monthly_report"	=> trim($sheet->getCell("I".$i)->getValue()), 
+							"ml" 				=> trim($sheet->getCell("J".$i)->getValue()), 
+							"ml_actual" 		=> trim($sheet->getCell("K".$i)->getValue()), 
+						];
+						
+						$rows[] = $row;
+						//print_r($row); echo "<br/>";
 					}
 				}
+				
+				$this->gen_m->insert_m("obs_most_likely", $rows);
 			}
-
-			if ($qty_insert > 0) $result[] = number_format($qty_insert)." inserted";
-			if ($qty_update > 0) $result[] = number_format($qty_update)." updated";
-			if ($qty_fail > 0) $result[] = number_format($qty_fail)." failed";
 		}
 		
-		//return $result ? "OBS Most Likely process result:<br/><br/>".implode(",", $result) : null;
-		//echo $result ? "OBS GERP Sales orders process result:<br/><br/>".implode(",", $result) : null;
-		
-		
-		$msg = $result ? "OBS GERP Sales orders process result:<br/><br/>".implode(",", $result) : null;
-		
-		echo $msg;
+		echo "ML has been inserted to DB.";
 		echo "<br/><br/>";
 		echo 'You can close this tab now.<br/><br/><button onclick="window.close();">Close This Tab</button>';
 		
