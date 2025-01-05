@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-class Obs_most_likely extends CI_Controller {
+class Lgepr_most_likely extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
@@ -17,7 +17,7 @@ class Obs_most_likely extends CI_Controller {
 		$month = $this->input->get("m");
 		if (!$month){
 			$month = "0000-00";
-			$last = $this->gen_m->filter("obs_most_likely", false, ["subsidiary !=" => null], null, null, [["year", "desc"], ["month", "desc"]], 1, 0);
+			$last = $this->gen_m->filter("lgepr_most_likely", false, ["subsidiary !=" => null], null, null, [["year", "desc"], ["month", "desc"]], 1, 0);
 			if ($last){
 				$last = $last[0];
 				$month = $last->year."-".$last->month;
@@ -73,7 +73,7 @@ class Obs_most_likely extends CI_Controller {
 		
 		//ml values
 		$filter = explode("-", $month);
-		$mls = $this->gen_m->filter("obs_most_likely", false, ["year" => $filter[0], "month" => $filter[1]]);
+		$mls = $this->gen_m->filter("lgepr_most_likely", false, ["year" => $filter[0], "month" => $filter[1]]);
 		foreach($mls as $item){
 			$k = $item->subsidiary;
 			$rows[$k]["bp"] += $item->bp;
@@ -103,7 +103,7 @@ class Obs_most_likely extends CI_Controller {
 		$data = [
 			"month"		=> $month,
 			"rows"		=> $rows,
-			"main" 		=> "data_upload/obs_most_likely/index",
+			"main" 		=> "data_upload/lgepr_most_likely/index",
 		];
 		
 		$this->load->view('layout', $data);
@@ -131,13 +131,13 @@ class Obs_most_likely extends CI_Controller {
 			"MC" 	=> ["company" => "MC", "division" => "MC"],
 		];
 		
-		$this->gen_m->delete("obs_most_likely", ["division" => null]);
+		$this->gen_m->delete("lgepr_most_likely", ["division" => null]);
 		
-		$data = $this->gen_m->only("obs_most_likely", "division");
-		foreach($data as $item) $this->gen_m->update("obs_most_likely", ["division" => $item->division], $mapping[$item->division]);
+		$data = $this->gen_m->only("lgepr_most_likely", "division");
+		foreach($data as $item) $this->gen_m->update("lgepr_most_likely", ["division" => $item->division], $mapping[$item->division]);
 	}
 	
-	public function process($filename = "obs_ml.xls"){
+	public function process($filename = "lgepr_ml.xls"){
 		set_time_limit(0);
 		
 		//load excel file
@@ -171,7 +171,7 @@ class Obs_most_likely extends CI_Controller {
 		$result = [];
 		
 		if ($is_ok){
-			$this->gen_m->delete("obs_most_likely", ["year" => trim($sheet->getCell("B2")->getValue()), "month" => trim($sheet->getCell("C2")->getValue())]);
+			$this->gen_m->delete("lgepr_most_likely", ["year" => trim($sheet->getCell("B2")->getValue()), "month" => trim($sheet->getCell("C2")->getValue())]);
 			
 			$coms = ["HS", "MS", "ES"];
 			$divs = ["REF", "Cooking", "Dishwasher", "W/M", "LTV", "Audio", "MNT", "DS", "MTN Signage", "Commercial TV", "PC", "RAC", "SAC", "Chiller", "MC"];
@@ -212,7 +212,7 @@ class Obs_most_likely extends CI_Controller {
 					}
 				}
 				
-				$this->gen_m->insert_m("obs_most_likely", $rows);
+				$this->gen_m->insert_m("lgepr_most_likely", $rows);
 			}
 		}
 		
@@ -237,7 +237,7 @@ class Obs_most_likely extends CI_Controller {
 				'allowed_types'	=> '*',
 				'max_size'		=> 90000,
 				'overwrite'		=> TRUE,
-				'file_name'		=> 'obs_ml.xls',
+				'file_name'		=> 'lgepr_ml.xls',
 			];
 			$this->load->library('upload', $config);
 

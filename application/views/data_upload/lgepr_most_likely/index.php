@@ -3,11 +3,11 @@
 		<div class="col-md-5 mx-auto">
 			<div class="d-flex justify-content-between align-items-start">
 				<div class="pagetitle">
-					<h1>OBS Most Likely (ML)</h1>
+					<h1>LGEPR Most Likely (ML)</h1>
 					<nav>
 						<ol class="breadcrumb">
 							<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-							<li class="breadcrumb-item active">OBS Most Likely (ML)</li>
+							<li class="breadcrumb-item active">LGEPR Most Likely (ML)</li>
 						</ol>
 					</nav>
 				</div>
@@ -69,9 +69,9 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_upload_ml").submit(function(e) {
 		e.preventDefault();
 		$("#form_upload_ml .sys_msg").html("");
-		ajax_form_warning(this, "data_upload/obs_most_likely/upload", "Do you upload data?").done(function(res) {
-			//swal_redirection(res.type, res.msg, "data_upload/obs_most_likely");
-			swal_open_tab(res.type, res.msg, "obs_most_likely/process");
+		ajax_form_warning(this, "data_upload/lgepr_most_likely/upload", "Do you upload data?").done(function(res) {
+			//swal_redirection(res.type, res.msg, "data_upload/lgepr_most_likely");
+			swal_open_tab(res.type, res.msg, "lgepr_most_likely/process");
 		});
 	});
 });
