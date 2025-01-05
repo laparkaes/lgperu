@@ -66,8 +66,8 @@
 								<td><?= number_format($item->order_amount_usd, 2) ?></td>
 								<td><?= $item->order_qty ?></td>
 								<td><?= $item->model ?></td>
+								<td><?= $item->dash_company ?></td>
 								<td><?= $item->dash_division ?></td>
-								<td><?= $item->dash_category ?></td>
 								<td><?= $item->product_level1_name ?></td>
 								<td><?= $item->product_level2_name ?></td>
 								<td><?= $item->product_level3_name ?></td>

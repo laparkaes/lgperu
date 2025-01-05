@@ -19,7 +19,7 @@ class Obs extends CI_Controller {
 	}
 	
 	public function get_company(){
-		//llamasys/local_api/get_company?key=lgepr
+		//llamasys/api/obs/get_company?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
 			$res = [
@@ -62,10 +62,43 @@ class Obs extends CI_Controller {
 	}
 
 	public function get_most_likely(){
-		//llamasys/local_api/get_most_likely?key=lgepr
+		//llamasys/api/obs/get_most_likely?key=lgepr
 		
-		if ($this->input->get("key") === "lgepr") $res = $this->gen_m->filter("obs_most_likely", false, ["year" => date("Y"), "month" => date("m"), "division !=" => null]);
+		$last = $this->gen_m->filter("obs_most_likely", false, ["subsidiary !=" => null], null, null, [["year", "desc"], ["month", "desc"]], 1, 0)[0];
+		
+		if ($this->input->get("key") === "lgepr") $res = $this->gen_m->filter("obs_most_likely", false, ["year" => $last->year, "month" => $last->month]);
 		else $res = ["Key error"];
+		
+		if (!$res) $res = ["No this month ML data in database."];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+	
+	public function get_closed_order(){
+		//llamasys/api/obs/get_closed_order?key=lgepr
+		
+		if ($this->input->get("key") === "lgepr"){
+			//$w = ["closed_date >=" => date("2024-12-01"), "inventory_org" => "N4E"];
+			$w = ["closed_date >=" => date("Y-m-01"), "inventory_org" => "N4E"];
+			$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
+			
+			$res = $this->gen_m->filter("lgepr_closed_order", false, $w, null, null, $o);
+		}else $res = ["Key error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+	
+	public function get_sales_order(){
+		//llamasys/api/obs/get_closed_order?key=lgepr
+		
+		if ($this->input->get("key") === "lgepr"){
+			$w = ["inventory_org" => "N4E"];
+			$o = [["create_date", "desc"], ["req_arrival_date_to", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
+			
+			$res = $this->gen_m->filter("lgepr_sales_order", false, $w, null, null, $o);
+		}else $res = ["Key error"];
 		
 		header('Content-Type: application/json');
 		echo json_encode($res);

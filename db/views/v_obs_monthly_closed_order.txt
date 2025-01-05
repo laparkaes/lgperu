@@ -1,0 +1,25 @@
+CREATE VIEW v_obs_monthly_closed_order AS
+SELECT 
+    DATE_FORMAT(order_date, '%Y-%m') AS month,
+    customer_department,
+    dash_company,
+    dash_division,
+    category,
+    SUM(order_amount_usd) AS total_order_amount_usd
+FROM 
+    lgepr_closed_order
+WHERE 
+    order_date IS NOT NULL
+    AND inventory_org = 'N4E'
+GROUP BY 
+    DATE_FORMAT(order_date, '%Y-%m'),
+    customer_department,
+    dash_company,
+    dash_division,
+    category
+ORDER BY 
+    month DESC,
+    customer_department ASC,
+    dash_company ASC,
+    dash_division ASC,
+    category ASC;
