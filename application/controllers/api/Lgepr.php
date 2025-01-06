@@ -40,7 +40,7 @@ class Lgepr extends CI_Controller {
 				["company" => "MS",	"division" => "MNT",			"seq" => "g"],
 				["company" => "MS",	"division" => "DS",				"seq" => "h"],
 				["company" => "MS",	"division" => "PC",				"seq" => "i"],
-				["company" => "MS",	"division" => "MTN Signage",	"seq" => "j"],
+				["company" => "MS",	"division" => "MNT Signage",	"seq" => "j"],
 				["company" => "MS",	"division" => "Commercial TV",	"seq" => "k"],
 				
 				["company" => "ES",	"division" => "RAC",		"seq" => "l"],
@@ -110,7 +110,7 @@ class Lgepr extends CI_Controller {
 				"LGEPR_MS_MNT" 				=> ["seq" => "1g", "department" => "LGEPR", "company" => "MS", "division" => "MNT",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
 				"LGEPR_MS_DS" 				=> ["seq" => "1h", "department" => "LGEPR", "company" => "MS", "division" => "DS",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
 				"LGEPR_MS_PC" 				=> ["seq" => "1i", "department" => "LGEPR", "company" => "MS", "division" => "PC",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
-				"LGEPR_MS_MTN Signage" 		=> ["seq" => "1j", "department" => "LGEPR", "company" => "MS", "division" => "MTN Signage",		"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"LGEPR_MS_MNT Signage" 		=> ["seq" => "1j", "department" => "LGEPR", "company" => "MS", "division" => "MNT Signage",		"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
 				"LGEPR_MS_Commercial TV" 	=> ["seq" => "1k", "department" => "LGEPR", "company" => "MS", "division" => "Commercial TV",	"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
 				
 				"LGEPR_ES_RAC" 				=> ["seq" => "1l", "department" => "LGEPR", "company" => "ES", "division" => "RAC",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
@@ -127,7 +127,7 @@ class Lgepr extends CI_Controller {
 				"Branch_MS_MNT" 			=> ["seq" => "2g", "department" => "Branch", "company" => "MS", "division" => "MNT",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
 				"Branch_MS_DS" 				=> ["seq" => "2h", "department" => "Branch", "company" => "MS", "division" => "DS",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
 				"Branch_MS_PC" 				=> ["seq" => "2i", "department" => "Branch", "company" => "MS", "division" => "PC",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
-				"Branch_MS_MTN Signage" 	=> ["seq" => "2j", "department" => "Branch", "company" => "MS", "division" => "MTN Signage",	"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"Branch_MS_MNT Signage" 	=> ["seq" => "2j", "department" => "Branch", "company" => "MS", "division" => "MNT Signage",	"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
 				"Branch_MS_Commercial TV" 	=> ["seq" => "2k", "department" => "Branch", "company" => "MS", "division" => "Commercial TV",	"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
 				
 				"Branch_ES_RAC" 			=> ["seq" => "2l", "department" => "Branch", "company" => "ES", "division" => "RAC",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],

@@ -48,7 +48,7 @@ class Obs extends CI_Controller {
 				["company" => "MS",	"division" => "MNT",			"seq" => "g"],
 				["company" => "MS",	"division" => "DS",				"seq" => "h"],
 				["company" => "MS",	"division" => "PC",				"seq" => "i"],
-				["company" => "MS",	"division" => "MTN Signage",	"seq" => "j"],
+				["company" => "MS",	"division" => "MNT Signage",	"seq" => "j"],
 				["company" => "MS",	"division" => "Commercial TV",	"seq" => "k"],
 				
 				["company" => "ES",	"division" => "RAC",		"seq" => "l"],
@@ -119,7 +119,7 @@ class Obs extends CI_Controller {
 				"LGEPR_MS_MNT" 				=> ["seq" => "g", "department" => "LGEPR", "company" => "MS", "division" => "MNT",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
 				"LGEPR_MS_DS" 				=> ["seq" => "h", "department" => "LGEPR", "company" => "MS", "division" => "DS",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
 				"LGEPR_MS_PC" 				=> ["seq" => "i", "department" => "LGEPR", "company" => "MS", "division" => "PC",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
-				"LGEPR_MS_MTN Signage" 		=> ["seq" => "j", "department" => "LGEPR", "company" => "MS", "division" => "MTN Signage",		"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"LGEPR_MS_MNT Signage" 		=> ["seq" => "j", "department" => "LGEPR", "company" => "MS", "division" => "MNT Signage",		"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
 				"LGEPR_MS_Commercial TV" 	=> ["seq" => "k", "department" => "LGEPR", "company" => "MS", "division" => "Commercial TV",	"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
 				
 				"LGEPR_ES_RAC" 				=> ["seq" => "l", "department" => "LGEPR", "company" => "ES", "division" => "RAC",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
@@ -754,7 +754,7 @@ class Obs extends CI_Controller {
 			"RAC" => "RAC",
 			"REF" => "REF",
 			"SAC" => "SAC",
-			"SGN" => "MTN Signage",
+			"SGN" => "MNT Signage",
 			"W/M" => "W/M",
 		];
 		
@@ -771,7 +771,7 @@ class Obs extends CI_Controller {
 			"MNT" => "BS",
 			"PC" => "BS",
 			"DS" => "BS",
-			"MTN Signage" => "BS",
+			"MNT Signage" => "BS",
 			"Commercial TV" => "BS",
 		];
 		
@@ -870,7 +870,7 @@ class Obs extends CI_Controller {
 			["order" => 3, "company" => "BS"],
 		];
 		
-		//Array ( [1] => Chilller [2] => Audio [4] => Commercial TV [5] => Cooking [6] => LTV [8] => MNT [11] => PC [12] => RAC [13] => REF [14] => SAC [15] => MTN Signage [16] => W/M ) 
+		//Array ( [1] => Chilller [2] => Audio [4] => Commercial TV [5] => Cooking [6] => LTV [8] => MNT [11] => PC [12] => RAC [13] => REF [14] => SAC [15] => MNT Signage [16] => W/M ) 
 		$v_divisions = [
 			["order" => 1, "company" => "H&A", "division" => "REF"],
 			["order" => 2, "company" => "H&A", "division" => "Cooking"],
@@ -883,7 +883,7 @@ class Obs extends CI_Controller {
 			["order" => 9, "company" => "BS", "division" => "MNT"],
 			["order" => 10, "company" => "BS", "division" => "PC"],
 			["order" => 11, "company" => "BS", "division" => "DS"],
-			["order" => 12, "company" => "BS", "division" => "MTN Signage"],
+			["order" => 12, "company" => "BS", "division" => "MNT Signage"],
 			["order" => 13, "company" => "BS", "division" => "Commercial TV"],
 		];
 		
@@ -934,7 +934,7 @@ class Obs extends CI_Controller {
 			"RAC" => "RAC",
 			"REF" => "REF",
 			"SAC" => "SAC",
-			"SGN" => "MTN Signage",
+			"SGN" => "MNT Signage",
 			"W/M" => "W/M",
 		];
 		
@@ -951,7 +951,7 @@ class Obs extends CI_Controller {
 			"MNT" => "BS",
 			"PC" => "BS",
 			"DS" => "BS",
-			"MTN Signage" => "BS",
+			"MNT Signage" => "BS",
 			"Commercial TV" => "BS",
 		];
 		
@@ -1184,7 +1184,7 @@ class Obs extends CI_Controller {
 			"RAC" => "RAC",
 			"REF" => "REF",
 			"SAC" => "SAC",
-			"SGN" => "MTN Signage",
+			"SGN" => "MNT Signage",
 			"W/M" => "W/M",
 		];
 		
@@ -1201,7 +1201,7 @@ class Obs extends CI_Controller {
 			"MNT" => "BS",
 			"PC" => "BS",
 			"DS" => "BS",
-			"MTN Signage" => "BS",
+			"MNT Signage" => "BS",
 			"Commercial TV" => "BS",
 		];
 		
@@ -1251,7 +1251,7 @@ class Obs extends CI_Controller {
 			["order" => 3, "company" => "BS"],
 		];
 		
-		//Array ( [1] => Chilller [2] => Audio [4] => Commercial TV [5] => Cooking [6] => LTV [8] => MNT [11] => PC [12] => RAC [13] => REF [14] => SAC [15] => MTN Signage [16] => W/M ) 
+		//Array ( [1] => Chilller [2] => Audio [4] => Commercial TV [5] => Cooking [6] => LTV [8] => MNT [11] => PC [12] => RAC [13] => REF [14] => SAC [15] => MNT Signage [16] => W/M ) 
 		$v_divisions = [
 			["order" => 1, "company" => "H&A", "division" => "REF"],
 			["order" => 2, "company" => "H&A", "division" => "Cooking"],
@@ -1264,7 +1264,7 @@ class Obs extends CI_Controller {
 			["order" => 9, "company" => "BS", "division" => "MNT"],
 			["order" => 10, "company" => "BS", "division" => "PC"],
 			["order" => 11, "company" => "BS", "division" => "DS"],
-			["order" => 12, "company" => "BS", "division" => "MTN Signage"],
+			["order" => 12, "company" => "BS", "division" => "MNT Signage"],
 			["order" => 13, "company" => "BS", "division" => "Commercial TV"],
 		];
 		
@@ -1418,7 +1418,7 @@ class Obs extends CI_Controller {
 			["order" => 3, "company" => "BS"],
 		];
 		
-		//Array ( [1] => Chilller [2] => Audio [4] => Commercial TV [5] => Cooking [6] => LTV [8] => MNT [11] => PC [12] => RAC [13] => REF [14] => SAC [15] => MTN Signage [16] => W/M ) 
+		//Array ( [1] => Chilller [2] => Audio [4] => Commercial TV [5] => Cooking [6] => LTV [8] => MNT [11] => PC [12] => RAC [13] => REF [14] => SAC [15] => MNT Signage [16] => W/M ) 
 		$v_divisions = [
 			["order" => 1, "company" => "H&A", "division" => "REF"],
 			["order" => 2, "company" => "H&A", "division" => "Cooking"],
@@ -1431,7 +1431,7 @@ class Obs extends CI_Controller {
 			["order" => 9, "company" => "BS", "division" => "MNT"],
 			["order" => 10, "company" => "BS", "division" => "PC"],
 			["order" => 11, "company" => "BS", "division" => "DS"],
-			["order" => 12, "company" => "BS", "division" => "MTN Signage"],
+			["order" => 12, "company" => "BS", "division" => "MNT Signage"],
 			["order" => 13, "company" => "BS", "division" => "Commercial TV"],
 		];
 		
@@ -1459,7 +1459,7 @@ class Obs extends CI_Controller {
 			"RAC" => "RAC",
 			"REF" => "REF",
 			"SAC" => "SAC",
-			"SGN" => "MTN Signage",
+			"SGN" => "MNT Signage",
 			"W/M" => "W/M",
 		];
 		
@@ -1476,7 +1476,7 @@ class Obs extends CI_Controller {
 			"MNT" => "BS",
 			"PC" => "BS",
 			"DS" => "BS",
-			"MTN Signage" => "BS",
+			"MNT Signage" => "BS",
 			"Commercial TV" => "BS",
 		];
 		

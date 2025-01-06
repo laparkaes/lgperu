@@ -51,7 +51,7 @@ class Lgepr_closed_order extends CI_Controller {
 			"CAV" 	=> ["dash_company" => "MS"	, "dash_division" => "Audio"],
 			"MNT" 	=> ["dash_company" => "MS"	, "dash_division" => "MNT"],
 			"DS" 	=> ["dash_company" => "MS"	, "dash_division" => "DS"],
-			"SGN" 	=> ["dash_company" => "MS"	, "dash_division" => "MTN Signage"],
+			"SGN" 	=> ["dash_company" => "MS"	, "dash_division" => "MNT Signage"],
 			"CTV" 	=> ["dash_company" => "MS"	, "dash_division" => "Commercial TV"],
 			"PC" 	=> ["dash_company" => "MS"	, "dash_division" => "PC"],
 			
