@@ -40,7 +40,7 @@ class Lgepr extends CI_Controller {
 				["company" => "MS",	"division" => "MNT",			"seq" => "g"],
 				["company" => "MS",	"division" => "DS",				"seq" => "h"],
 				["company" => "MS",	"division" => "PC",				"seq" => "i"],
-				["company" => "MS",	"division" => "MNT Signage",	"seq" => "j"],
+				["company" => "MS",	"division" => "MTN Signage",	"seq" => "j"],
 				["company" => "MS",	"division" => "Commercial TV",	"seq" => "k"],
 				
 				["company" => "ES",	"division" => "RAC",		"seq" => "l"],
@@ -96,7 +96,61 @@ class Lgepr extends CI_Controller {
 	}
 	
 	public function get_monthly_closed_order(){
-		//use v_lgepr_monthly_closed_order
+		if ($this->input->get("key") === "lgepr"){
+			$res = [
+				"LGEPR_HS_REF" 				=> ["seq" => "1a", "department" => "LGEPR", "company" => "HS", "division" => "REF",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"LGEPR_HS_Cooking" 			=> ["seq" => "1b", "department" => "LGEPR", "company" => "HS", "division" => "Cooking",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"LGEPR_HS_Dishwasher" 		=> ["seq" => "1c", "department" => "LGEPR", "company" => "HS", "division" => "Dishwasher",		"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"LGEPR_HS_W/M" 				=> ["seq" => "1d", "department" => "LGEPR", "company" => "HS", "division" => "W/M",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				
+				"LGEPR_MS_LTV" 				=> ["seq" => "1e", "department" => "LGEPR", "company" => "MS", "division" => "LTV",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"LGEPR_MS_Audio" 			=> ["seq" => "1f", "department" => "LGEPR", "company" => "MS", "division" => "Audio",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"LGEPR_MS_MNT" 				=> ["seq" => "1g", "department" => "LGEPR", "company" => "MS", "division" => "MNT",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"LGEPR_MS_DS" 				=> ["seq" => "1h", "department" => "LGEPR", "company" => "MS", "division" => "DS",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"LGEPR_MS_PC" 				=> ["seq" => "1i", "department" => "LGEPR", "company" => "MS", "division" => "PC",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"LGEPR_MS_MTN Signage" 		=> ["seq" => "1j", "department" => "LGEPR", "company" => "MS", "division" => "MTN Signage",		"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"LGEPR_MS_Commercial TV" 	=> ["seq" => "1k", "department" => "LGEPR", "company" => "MS", "division" => "Commercial TV",	"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				
+				"LGEPR_ES_RAC" 				=> ["seq" => "1l", "department" => "LGEPR", "company" => "ES", "division" => "RAC",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"LGEPR_ES_SAC" 				=> ["seq" => "1m", "department" => "LGEPR", "company" => "ES", "division" => "SAC",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"LGEPR_ES_Chiller" 			=> ["seq" => "1n", "department" => "LGEPR", "company" => "ES", "division" => "Chiller",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				
+				"Branch_HS_REF" 			=> ["seq" => "2a", "department" => "Branch", "company" => "HS", "division" => "REF",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"Branch_HS_Cooking" 		=> ["seq" => "2b", "department" => "Branch", "company" => "HS", "division" => "Cooking",		"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"Branch_HS_Dishwasher" 		=> ["seq" => "2c", "department" => "Branch", "company" => "HS", "division" => "Dishwasher",		"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"Branch_HS_W/M" 			=> ["seq" => "2d", "department" => "Branch", "company" => "HS", "division" => "W/M",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				
+				"Branch_MS_LTV" 			=> ["seq" => "2e", "department" => "Branch", "company" => "MS", "division" => "LTV",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"Branch_MS_Audio" 			=> ["seq" => "2f", "department" => "Branch", "company" => "MS", "division" => "Audio",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"Branch_MS_MNT" 			=> ["seq" => "2g", "department" => "Branch", "company" => "MS", "division" => "MNT",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"Branch_MS_DS" 				=> ["seq" => "2h", "department" => "Branch", "company" => "MS", "division" => "DS",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"Branch_MS_PC" 				=> ["seq" => "2i", "department" => "Branch", "company" => "MS", "division" => "PC",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"Branch_MS_MTN Signage" 	=> ["seq" => "2j", "department" => "Branch", "company" => "MS", "division" => "MTN Signage",	"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"Branch_MS_Commercial TV" 	=> ["seq" => "2k", "department" => "Branch", "company" => "MS", "division" => "Commercial TV",	"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				
+				"Branch_ES_RAC" 			=> ["seq" => "2l", "department" => "Branch", "company" => "ES", "division" => "RAC",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"Branch_ES_SAC" 			=> ["seq" => "2m", "department" => "Branch", "company" => "ES", "division" => "SAC",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				"Branch_ES_Chiller" 		=> ["seq" => "2n", "department" => "Branch", "company" => "ES", "division" => "Chiller",		"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+			];
+			
+			//$w = ["month" => date("2024-11")];
+			$w = ["month" => date("Y-m")];
+			
+			$monthly = $this->gen_m->filter("v_lgepr_monthly_closed_order", false, $w);
+			foreach($monthly as $item){
+				$res[$item->customer_department."_".$item->dash_company."_".$item->dash_division][$item->category] += round($item->total_order_amount_usd, 2);
+			}
+		}else $res = ["Key error"];
+		
+		foreach($res as $key => $item){
+			$res[$key]["Total"] = $res[$key]["Sales"] + $res[$key]["Return"];
+			//print_r($item); echo "<br/>";
+		}
+		
+		//foreach($res as $key => $item){print_r($item); echo "<br/>";}
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
 	}
 	
 }
