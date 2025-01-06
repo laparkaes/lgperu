@@ -176,7 +176,7 @@ class Obs_most_likely extends CI_Controller {
 			$coms = ["HS", "MS", "ES"];
 			$divs = ["REF", "Cooking", "Dishwasher", "W/M", "LTV", "Audio", "MNT", "DS", "MTN Signage", "Commercial TV", "PC", "RAC", "SAC", "Chiller", "MC"];
 			
-			$sheet_names = ["PR", "PY"];
+			$sheet_names = ["PR"];
 			foreach($sheet_names as $sheet_name){
 				$sheet = $spreadsheet->getSheetByName($sheet_name);
 				
