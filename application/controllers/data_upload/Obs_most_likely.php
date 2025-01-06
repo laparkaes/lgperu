@@ -28,7 +28,7 @@ class Obs_most_likely extends CI_Controller {
 		$coms = ["HS", "MS", "ES"];
 		$divs = [
 			"HS" => ["REF", "Cooking", "Dishwasher", "W/M"],
-			"MS" => ["LTV", "Audio", "MNT", "DS", "MTN Signage", "Commercial TV", "PC"],
+			"MS" => ["LTV", "Audio", "MNT", "DS", "MNT Signage", "Commercial TV", "PC"],
 			"ES" => ["RAC", "SAC", "Chiller"],
 			"MC" => ["MC"],
 		];
@@ -120,7 +120,7 @@ class Obs_most_likely extends CI_Controller {
 			"AV" 	=> ["company" => "MS", "division" => "Audio"],
 			"MNT" 	=> ["company" => "MS", "division" => "MNT"],
 			"DS" 	=> ["company" => "MS", "division" => "DS"],
-			"SGN" 	=> ["company" => "MS", "division" => "MTN Signage"],
+			"SGN" 	=> ["company" => "MS", "division" => "MNT Signage"],
 			"CTV" 	=> ["company" => "MS", "division" => "Commercial TV"],
 			"PC" 	=> ["company" => "MS", "division" => "PC"],
 			
@@ -174,7 +174,7 @@ class Obs_most_likely extends CI_Controller {
 			$this->gen_m->delete("obs_most_likely", ["year" => trim($sheet->getCell("B2")->getValue()), "month" => trim($sheet->getCell("C2")->getValue())]);
 			
 			$coms = ["HS", "MS", "ES"];
-			$divs = ["REF", "Cooking", "Dishwasher", "W/M", "LTV", "Audio", "MNT", "DS", "MTN Signage", "Commercial TV", "PC", "RAC", "SAC", "Chiller", "MC"];
+			$divs = ["REF", "Cooking", "Dishwasher", "W/M", "LTV", "Audio", "MNT", "DS", "MNT Signage", "Commercial TV", "PC", "RAC", "SAC", "Chiller", "MC"];
 			
 			$sheet_names = ["PR"];
 			foreach($sheet_names as $sheet_name){
