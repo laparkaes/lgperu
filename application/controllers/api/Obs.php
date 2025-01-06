@@ -80,10 +80,11 @@ class Obs extends CI_Controller {
 		
 		if ($this->input->get("key") === "lgepr"){
 			//$w = ["closed_date >=" => date("2024-12-01"), "inventory_org" => "N4E"];
-			$w = ["closed_date >=" => date("Y-m-01"), "inventory_org" => "N4E"];
+			//$w = ["closed_date >=" => date("Y-m-01"), "inventory_org" => "N4E"];
+			$w = ["closed_date >=" => date("Y-m-01")];
 			$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			
-			$res = $this->gen_m->filter("v_obs_closed_order_magento", false, null, null, null, $o);
+			$res = $this->gen_m->filter("v_obs_closed_order_magento", false, $w, null, null, $o);
 		}else $res = ["Key error"];
 		
 		header('Content-Type: application/json');
