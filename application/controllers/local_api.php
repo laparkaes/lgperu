@@ -162,7 +162,7 @@ class Local_api extends CI_Controller {
 		if ($this->input->get("key") === "lgepr"){
 			$d = date("Y-m-d");
 			
-			$mls = $this->gen_m->filter("obs_most_likely", false, ["year" => date("Y", strtotime($d)), "month" => date("m", strtotime($d)), "category !=" => null]);
+			$mls = $this->gen_m->filter("obs_most_likely", false, ["year" => date("Y", strtotime($d)), "month" => date("m", strtotime($d)), "division !=" => null]);
 			
 			$res = ["mls" => $mls];
 		}else $res = ["msg" => "Error"];
