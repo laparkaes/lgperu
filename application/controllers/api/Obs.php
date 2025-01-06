@@ -105,6 +105,8 @@ class Obs extends CI_Controller {
 	}
 	
 	public function get_monthly_closed_order(){
+		//llamasys/api/obs/get_monthly_closed_order?key=lgepr
+		
 		if ($this->input->get("key") === "lgepr"){
 			$res = [
 				"LGEPR_HS_REF" 				=> ["seq" => "a", "department" => "LGEPR", "company" => "HS", "division" => "REF",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
