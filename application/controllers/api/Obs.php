@@ -95,10 +95,15 @@ class Obs extends CI_Controller {
 		//llamasys/api/obs/get_sales_order?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
+			$today = strtotime(date("Y-m-d"));
+			
 			$w = ["req_arrival_date_to <=" => date("Y-m-t")];
 			$o = [["create_date", "desc"], ["req_arrival_date_to", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			
 			$res = $this->gen_m->filter("v_obs_sales_order_magento", false, $w, null, null, $o);
+			foreach($res as $item){
+				if (strtotime($item->req_arrival_date_to) < $today) $item->req_arrival_date_to = date("Y-m-t");
+			}
 		}else $res = ["Key error"];
 		
 		header('Content-Type: application/json');

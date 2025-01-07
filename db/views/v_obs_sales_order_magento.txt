@@ -1,10 +1,11 @@
-CREATE VIEW v_obs_closed_order_magento AS
+CREATE VIEW v_obs_sales_order_magento AS
 SELECT
     lgepr.dash_company,
     lgepr.dash_division,
-    lgepr.order_date,
-    lgepr.closed_date,
-    lgepr.category,
+    lgepr.line_status,
+    lgepr.create_date,
+    lgepr.req_arrival_date_to,
+    lgepr.order_category,
     lgepr.order_no,
     lgepr.line_no,
     lgepr.model_category,
@@ -13,8 +14,8 @@ SELECT
     lgepr.product_level2_name,
     lgepr.product_level3_name,
     lgepr.product_level4_name,
-    lgepr.order_qty,
-    lgepr.order_amount_usd,
+    lgepr.ordered_qty,
+    lgepr.sales_amount_usd,
     lgepr.bill_to_name,
     obs.local_time,
     obs.customer_name,
@@ -33,7 +34,7 @@ SELECT
     obs.department,
     obs.province
 FROM
-    lgepr_closed_order AS lgepr
+    lgepr_sales_order AS lgepr
 JOIN
     obs_magento AS obs
 ON
