@@ -114,8 +114,8 @@ class Obs extends CI_Controller {
 		//llamasys/api/obs/get_sales_order_carry_over?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
-			$w = ["req_arrival_date_to >" => date("Y-m-t")];
-			$w = ["req_arrival_date_to >" => "2024-12-31"];
+			$w = ["create_date <" => date("Y-m-t"), "req_arrival_date_to >" => date("Y-m-t")];
+			$w = ["create_date <" => "2024-12-31", "req_arrival_date_to >" => "2024-12-31"];
 			$o = [["create_date", "desc"], ["req_arrival_date_to", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			
 			$res = $this->gen_m->filter("v_obs_sales_order_magento", false, $w, null, null, $o);
