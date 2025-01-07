@@ -1,0 +1,42 @@
+CREATE VIEW v_obs_closed_order_magento AS
+SELECT
+    lgepr.dash_company,
+    lgepr.dash_division,
+    lgepr.order_date,
+    lgepr.closed_date,
+    lgepr.category,
+    lgepr.order_no,
+    lgepr.line_no,
+    lgepr.model_category,
+    lgepr.model,
+    lgepr.product_level1_name,
+    lgepr.product_level2_name,
+    lgepr.product_level3_name,
+    lgepr.product_level4_name,
+    lgepr.order_qty,
+    lgepr.order_amount_usd,
+    lgepr.bill_to_name,
+    obs.local_time,
+    obs.customer_name,
+    obs.company_name_through_vipkey,
+    obs.vipkey,
+    obs.coupon_code,
+    obs.coupon_rule,
+    obs.discount_amount,
+    obs.devices,
+    obs.knout_status,
+    obs.customer_group,
+    obs.payment_method,
+    obs.purchase_date,
+    obs.ip_address,
+    obs.zipcode,
+    obs.department,
+    obs.province
+FROM
+    lgepr_closed_order AS lgepr
+JOIN
+    obs_magento AS obs
+ON
+    lgepr.order_no = obs.gerp_order_no
+WHERE
+    lgepr.inventory_org = 'N4E';
