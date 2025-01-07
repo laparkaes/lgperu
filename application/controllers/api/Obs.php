@@ -110,6 +110,22 @@ class Obs extends CI_Controller {
 		echo json_encode($res);
 	}
 	
+	public function get_sales_order_carry_over(){
+		//llamasys/api/obs/get_sales_order_carry_over?key=lgepr
+		
+		if ($this->input->get("key") === "lgepr"){
+			$today = strtotime(date("Y-m-d"));
+			
+			$w = ["req_arrival_date_to >" => date("Y-m-t")];
+			$o = [["create_date", "desc"], ["req_arrival_date_to", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
+			
+			$res = $this->gen_m->filter("v_obs_sales_order_magento", false, $w, null, null, $o);
+		}else $res = ["Key error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+	
 	public function get_monthly_closed_order(){
 		//llamasys/api/obs/get_monthly_closed_order?key=lgepr
 		
