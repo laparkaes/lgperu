@@ -92,7 +92,7 @@ class Obs extends CI_Controller {
 	}
 	
 	public function get_sales_order(){
-		//llamasys/api/obs/get_closed_order?key=lgepr
+		//llamasys/api/obs/get_sales_order?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
 			$w = ["inventory_org" => "N4E"];
