@@ -130,7 +130,7 @@ class Obs extends CI_Controller {
 		
 		if ($this->input->get("key") === "lgepr"){
 			$res = $months = [];
-			$pivot = date("Y-01");
+			$pivot = date("2024-01");
 			$now = date("Y-m");
 			while(strtotime($pivot) <= strtotime($now)){
 				$months[] = $pivot;
