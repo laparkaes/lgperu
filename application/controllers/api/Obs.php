@@ -129,38 +129,47 @@ class Obs extends CI_Controller {
 		//llamasys/api/obs/get_monthly_closed_order?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
-			$res = [
-				"LGEPR_HS_REF" 				=> ["seq" => "a", "department" => "LGEPR", "company" => "HS", "division" => "REF",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
-				"LGEPR_HS_Cooking" 			=> ["seq" => "b", "department" => "LGEPR", "company" => "HS", "division" => "Cooking",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
-				"LGEPR_HS_Dishwasher" 		=> ["seq" => "c", "department" => "LGEPR", "company" => "HS", "division" => "Dishwasher",		"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
-				"LGEPR_HS_W/M" 				=> ["seq" => "d", "department" => "LGEPR", "company" => "HS", "division" => "W/M",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+			$res = $months = [];
+			$pivot = date("Y-01");
+			$now = date("Y-m");
+			while(strtotime($pivot) <= strtotime($now)){
+				$months[] = $pivot;
 				
-				"LGEPR_MS_LTV" 				=> ["seq" => "e", "department" => "LGEPR", "company" => "MS", "division" => "LTV",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
-				"LGEPR_MS_Audio" 			=> ["seq" => "f", "department" => "LGEPR", "company" => "MS", "division" => "Audio",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
-				"LGEPR_MS_MNT" 				=> ["seq" => "g", "department" => "LGEPR", "company" => "MS", "division" => "MNT",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
-				"LGEPR_MS_DS" 				=> ["seq" => "h", "department" => "LGEPR", "company" => "MS", "division" => "DS",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
-				"LGEPR_MS_PC" 				=> ["seq" => "i", "department" => "LGEPR", "company" => "MS", "division" => "PC",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
-				"LGEPR_MS_MNT Signage" 		=> ["seq" => "j", "department" => "LGEPR", "company" => "MS", "division" => "MNT Signage",		"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
-				"LGEPR_MS_Commercial TV" 	=> ["seq" => "k", "department" => "LGEPR", "company" => "MS", "division" => "Commercial TV",	"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				$pivot = date("Y-m", strtotime("+1 month", strtotime($pivot)));
+			}
+			
+			foreach($months as $month){
+				$structure = [
+					"LGEPR_HS_REF" 				=> ["month" => $month, "seq" => "a", "department" => "LGEPR", "company" => "HS", "division" => "REF",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+					"LGEPR_HS_Cooking" 			=> ["month" => $month, "seq" => "b", "department" => "LGEPR", "company" => "HS", "division" => "Cooking",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+					"LGEPR_HS_Dishwasher" 		=> ["month" => $month, "seq" => "c", "department" => "LGEPR", "company" => "HS", "division" => "Dishwasher",		"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+					"LGEPR_HS_W/M" 				=> ["month" => $month, "seq" => "d", "department" => "LGEPR", "company" => "HS", "division" => "W/M",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+					
+					"LGEPR_MS_LTV" 				=> ["month" => $month, "seq" => "e", "department" => "LGEPR", "company" => "MS", "division" => "LTV",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+					"LGEPR_MS_Audio" 			=> ["month" => $month, "seq" => "f", "department" => "LGEPR", "company" => "MS", "division" => "Audio",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+					"LGEPR_MS_MNT" 				=> ["month" => $month, "seq" => "g", "department" => "LGEPR", "company" => "MS", "division" => "MNT",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+					"LGEPR_MS_DS" 				=> ["month" => $month, "seq" => "h", "department" => "LGEPR", "company" => "MS", "division" => "DS",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+					"LGEPR_MS_PC" 				=> ["month" => $month, "seq" => "i", "department" => "LGEPR", "company" => "MS", "division" => "PC",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+					"LGEPR_MS_MNT Signage" 		=> ["month" => $month, "seq" => "j", "department" => "LGEPR", "company" => "MS", "division" => "MNT Signage",		"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+					"LGEPR_MS_Commercial TV" 	=> ["month" => $month, "seq" => "k", "department" => "LGEPR", "company" => "MS", "division" => "Commercial TV",	"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+					
+					"LGEPR_ES_RAC" 				=> ["month" => $month, "seq" => "l", "department" => "LGEPR", "company" => "ES", "division" => "RAC",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+					"LGEPR_ES_SAC" 				=> ["month" => $month, "seq" => "m", "department" => "LGEPR", "company" => "ES", "division" => "SAC",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+					"LGEPR_ES_Chiller" 			=> ["month" => $month, "seq" => "n", "department" => "LGEPR", "company" => "ES", "division" => "Chiller",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
+				];
 				
-				"LGEPR_ES_RAC" 				=> ["seq" => "l", "department" => "LGEPR", "company" => "ES", "division" => "RAC",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
-				"LGEPR_ES_SAC" 				=> ["seq" => "m", "department" => "LGEPR", "company" => "ES", "division" => "SAC",				"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
-				"LGEPR_ES_Chiller" 			=> ["seq" => "n", "department" => "LGEPR", "company" => "ES", "division" => "Chiller",			"Total" => 0, "Sales" => 0, "Return" => 0, "Reinvoice" => 0],
-			];
-			
-			$w = ["month" => date("2024-12")];
-			//$w = ["month" => date("Y-m")];
-			
-			$monthly = $this->gen_m->filter("v_obs_monthly_closed_order", false, $w);
-			foreach($monthly as $item){
-				$res[$item->customer_department."_".$item->dash_company."_".$item->dash_division][$item->category] += round($item->total_order_amount_usd, 2);
+				$monthly = $this->gen_m->filter("v_obs_monthly_closed_order", false, ["month" => $month]);
+				foreach($monthly as $item){
+					$structure[$item->customer_department."_".$item->dash_company."_".$item->dash_division][$item->category] += round($item->total_order_amount_usd, 2);
+				}
+				
+				foreach($structure as $key => $item){
+					$structure[$key]["Total"] = $structure[$key]["Sales"] + $structure[$key]["Return"];
+					
+					$res[] = $structure[$key];
+				}
 			}
 		}else $res = ["Key error"];
-		
-		foreach($res as $key => $item){
-			$res[$key]["Total"] = $res[$key]["Sales"] + $res[$key]["Return"];
-			//print_r($item); echo "<br/>";
-		}
 		
 		header('Content-Type: application/json');
 		echo json_encode($res);
