@@ -164,7 +164,7 @@ class Obs extends CI_Controller {
 				}
 				
 				foreach($structure as $key => $item){
-					$structure[$key]["Total"] = $structure[$key]["Sales"] + $structure[$key]["Return"];
+					$structure[$key]["Total"] = round($structure[$key]["Sales"] + $structure[$key]["Return"], 2);
 					
 					$res[] = $structure[$key];
 				}
