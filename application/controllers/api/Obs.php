@@ -179,6 +179,10 @@ class Obs extends CI_Controller {
 	
 	
 	public function get_market_summary(){
+		
+		echo "Hola";
+		
+		return;
 		$this->to_get_daily_price();
 		
 		$summary = [];
@@ -430,35 +434,13 @@ class Obs extends CI_Controller {
 				"features" 	=> str_replace("''", '"', implode(", ", $item["features"])),
 				"updated" 	=> $updated,
 			];
-			
-			/*
-			$filter = [
-				"category" 	=> $item["category"],
-				"retail" 	=> $item["retail"],
-				"brand" 	=> $item["brand"],
-				"product" 	=> $item["product"],
-				"seller" 	=> array_key_exists("seller", $item) ? $item["seller"] : null,
-				"features" 	=> $item["features"],
-			];
-			
-			$price = $this->gen_m->filter("tercer_ojo_market_price", false, $filter);
-			if ($price){
-				$this->gen_m->update("tercer_ojo_market_price", ["price_id" => $price[0]->price_id], $item);
-				$qty_update++;
-			}else{
-				$this->gen_m->insert("tercer_ojo_market_price", $item);
-				$qty_insert++;
-			}
-			*/
 		}
 		
 		$this->gen_m->truncate("tercer_ojo_market_price");
-		//$this->gen_m->delete("tercer_ojo_market_price", ["updated" => $updated]);
 		$record_qty = $this->gen_m->insert_m("tercer_ojo_market_price", $prices);
 		
 		if ($debug){
 			echo number_format($record_qty)." records created. (".number_Format(microtime(true) - $start_time, 2)." secs)<br/><br/>";
-			
 			print_r($prices);
 		}
 		
