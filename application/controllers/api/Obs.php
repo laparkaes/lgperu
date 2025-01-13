@@ -179,15 +179,13 @@ class Obs extends CI_Controller {
 	
 	
 	public function get_market_summary(){
-		
-		echo "Hola";
-		
-		return;
-		$this->to_get_daily_price();
+		//$this->to_get_daily_price();
 		
 		$summary = [];
 		
 		$data = $this->gen_m->all("v_tercer_ojo_prices_data", [], "", "", false);
+		
+		print_r($data);
 		foreach($data as $item){
 			$index = $item->product."_".$item->updated;
 			
@@ -258,8 +256,10 @@ class Obs extends CI_Controller {
 			//print_r($summary[$i]); echo "<br/><br/>";
 		}
 		
-		header('Content-Type: application/json');
-		echo json_encode($summary);
+		print_r($summary);
+		
+		//header('Content-Type: application/json');
+		//echo json_encode($summary);
 	}
 	
 	public function get_retail_price(){
@@ -436,8 +436,10 @@ class Obs extends CI_Controller {
 			];
 		}
 		
-		$this->gen_m->truncate("tercer_ojo_market_price");
-		$record_qty = $this->gen_m->insert_m("tercer_ojo_market_price", $prices);
+		if ($prices){
+			$this->gen_m->truncate("tercer_ojo_market_price");
+			$record_qty = $this->gen_m->insert_m("tercer_ojo_market_price", $prices);
+		}else $record_qty = 0;
 		
 		if ($debug){
 			echo number_format($record_qty)." records created. (".number_Format(microtime(true) - $start_time, 2)." secs)<br/><br/>";
