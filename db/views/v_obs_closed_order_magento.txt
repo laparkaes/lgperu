@@ -34,7 +34,7 @@ SELECT
     obs.province
 FROM
     lgepr_closed_order AS lgepr
-JOIN
+LEFT JOIN
     obs_magento AS obs
 ON
     lgepr.order_no = obs.gerp_order_no
