@@ -104,6 +104,8 @@ class Obs extends CI_Controller {
 			$res = $this->gen_m->filter("v_obs_sales_order_magento", false, $w, null, null, $o);
 			foreach($res as $item){
 				if (strtotime($item->req_arrival_date_to) < $today) $item->req_arrival_date_to = date("Y-m-t");
+				
+				if (!$item->customer_group) $item->customer_group = $item->bill_to_name;
 			}
 		}else $res = ["Key error"];
 		
