@@ -85,6 +85,14 @@ class Obs extends CI_Controller {
 			$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			
 			$res = $this->gen_m->filter("v_obs_closed_order_magento", false, $w, null, null, $o);
+			foreach($res as $item){
+				if (!$item->customer_group){
+					switch($item->bill_to_name){
+						case "B2C" : $item->customer_group = "D2C"; break;
+						case "B2B2C" : $item->customer_group = "D2B2C"; break;
+					}
+				}
+			}
 		}else $res = ["Key error"];
 		
 		header('Content-Type: application/json');
