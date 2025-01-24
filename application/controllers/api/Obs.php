@@ -222,16 +222,12 @@ class Obs extends CI_Controller {
 		echo json_encode($res);
 	}
 
-	
-	
 	public function get_market_summary(){
-		//$this->to_get_daily_price();
+		$this->to_get_daily_price();
 		
 		$summary = [];
 		
 		$data = $this->gen_m->all("v_tercer_ojo_prices_data", [], "", "", false);
-		
-		print_r($data);
 		foreach($data as $item){
 			$index = $item->product."_".$item->updated;
 			
@@ -289,82 +285,38 @@ class Obs extends CI_Controller {
 			}
 		}
 		
+		$dash_mapping = [
+			"MONITORES" 			=> ["com" => "MS", "div" => "MNT"],
+			"TV" 					=> ["com" => "MS", "div" => "LTV"],
+			"AIRE ACONDICIONADO" 	=> ["com" => "ES", "div" => "RAC"],
+			"PARLANTES" 			=> ["com" => "MS", "div" => "Audio"],
+			"LAVADORAS" 			=> ["com" => "HS", "div" => "W/M"],
+			"REFRIGERADORAS" 		=> ["com" => "HS", "div" => "REF"],
+			"SOUND BAR" 			=> ["com" => "MS", "div" => "Audio"],
+			"COCINA" 				=> ["com" => "HS", "div" => "Cooking"],
+			"HORNOS" 				=> ["com" => "HS", "div" => "Cooking"],
+			//"" => ["div" => "", "com" => ""],
+		];
+		
+		$summary_new = [];
 		foreach($summary as $i => $item){
 			$aux = [];
 			if ($item["retail_price"]) $aux[] = $item["retail_price"];
 			if ($item["seller_price"]) $aux[] = $item["seller_price"];
 			if ($item["card_price"]) $aux[] = $item["card_price"];
 			
-			if ($aux) $summary[$i]["minimun"] = min($aux);
-			else unset($summary[$i]);
-			
+			if ($aux){
+				$summary[$i]["minimun"] = min($aux);
+				$summary[$i]["dash_company"] = $dash_mapping[$summary[$i]["category"]]["com"];
+				$summary[$i]["dash_division"] = $dash_mapping[$summary[$i]["category"]]["div"];
+				$summary_new[] = $summary[$i];
+			}else unset($summary[$i]);
 			
 			//print_r($summary[$i]); echo "<br/><br/>";
 		}
 		
-		print_r($summary);
-		
-		//header('Content-Type: application/json');
-		//echo json_encode($summary);
-	}
-	
-	public function get_retail_price(){
-		//llamasys/api/obs/get_retail_price?brand=LG
-		
-		echo "<table style='width: 100%'>
-			<tr>
-				<td>category</td>
-				<td>retail</td>
-				<td>brand</td>
-				<td>product</td>
-				<td>seller</td>
-				<td>card</td>
-				<td>minimum</td>
-				<td>extra</td>
-				<td>offer</td>
-				<td>list</td>
-				<td>features</td>
-				<td>updated</td>
-				<td>url</td>
-		</tr>";
-		
-		$w = $this->input->get();
-		$w_in = [];
-		$o = [
-			["category", "asc"],
-			["retail", "asc"],
-			["brand", "asc"],
-			["seller", "asc"],
-			["minimum", "asc"],
-		];
-		
-		$prices = $this->gen_m->filter("tercer_ojo_market_price", false, $w, null, $w_in, $o);
-		foreach($prices as $item){
-			/*
-			unset($item->price_id);
-			//unset($item->url);
-			print_r($item);
-			echo "<br/><br/>";
-			*/
-			
-			echo "<tr>
-					<td>".$item->category."</td>
-					<td>".$item->retail."</td>
-					<td>".$item->brand."</td>
-					<td>".$item->product."</td>
-					<td>".$item->seller."</td>
-					<td>".($item->card ? "Yes" : "No")."</td>
-					<td>".$item->minimum."</td>
-					<td>".$item->extra."</td>
-					<td>".$item->offer."</td>
-					<td>".$item->list."</td>
-					<td>".$item->features."</td>
-					<td>".$item->updated."</td>
-					<td><a href='".$item->url."' target='_blank'>Go</a></td>
-			</tr>";
-		}
-		
-		echo "</table>";
+		header('Content-Type: application/json');
+		echo json_encode($summary_new);
 	}
 	
 	/* tercer ojo API start */
