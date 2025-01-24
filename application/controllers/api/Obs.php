@@ -190,6 +190,7 @@ class Obs extends CI_Controller {
 				$item->type = "Closed";
 				$item->ref_date = $item->order_date;
 				$item->amount_usd = $item->order_amount_usd;
+				$item->qty = $item->order_qty;
 				
 				$res[] = clone $item;
 			}
@@ -199,6 +200,7 @@ class Obs extends CI_Controller {
 				$item->type = "Sales";
 				$item->ref_date = $item->create_date;
 				$item->amount_usd = $item->sales_amount_usd;
+				$item->qty = $item->ordered_qty;
 				
 				$res[] = clone $item;
 			}
