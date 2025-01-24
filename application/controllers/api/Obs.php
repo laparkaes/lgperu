@@ -212,6 +212,15 @@ class Obs extends CI_Controller {
 		echo json_encode($res);
 	}
 	
+	public function get_stock(){
+		//llamasys/api/obs/get_stock?key=lgepr
+		
+		if ($this->input->get("key") === "lgepr") $res = $this->gen_m->filter("v_obs_stock", false);
+		else $res = ["Key error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
 
 	
 	

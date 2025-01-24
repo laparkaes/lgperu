@@ -16,7 +16,8 @@
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
 						<h5 class="card-title">Last 5,000 records</h5>
-						<form id="form_stock_update">
+						<form id="form_stock_update" 																																																
+						>
 							<div class="input-group">
 								<a class="btn btn-success" href="<?= base_url() ?>template/lgepr_stock_template.xlsx" download="lgepr_stock_template"><i class="bi bi-file-earmark-spreadsheet"></i></a>
 								<input class="form-control" type="file" name="attach">
@@ -35,6 +36,12 @@
 								<th scope="col">Description</th>
 								<th scope="col">Qty</th>
 								<th scope="col">Status</th>
+								<th scope="col">Sea stock total</th>
+								<th scope="col">Sea stock W1</th>
+								<th scope="col">Sea stock W2</th>
+								<th scope="col">Sea stock W3</th>
+								<th scope="col">Sea stock W4</th>
+								<th scope="col">Sea stock W5</th>
 								<th scope="col">Updated</th>
 							</tr>
 						</thead>
@@ -49,6 +56,12 @@
 								<td><?= $item->model_description ?></td>
 								<td><?= $item->available_qty ?></td>
 								<td><?= $item->model_status ?></td>
+								<td><?= $item->seaStockTotal ?></td>
+								<td><?= $item->seaStockW1 ?></td>
+								<td><?= $item->seaStockW2 ?></td>
+								<td><?= $item->seaStockW3 ?></td>
+								<td><?= $item->seaStockW4 ?></td>
+								<td><?= $item->seaStockW5 ?></td>
 								<td><?= $item->updated ?></td>
 							</tr>
 							<?php } ?>
@@ -69,4 +82,33 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	});
 });
+</script>
+
+<script> document.addEventListener("DOMContentLoaded", () => {
+	$("#form_upload_ml").submit(function(e) {
+		e.preventDefault(); const form = this;
+		const formData = new FormData(form);
+		
+		$.ajax({
+			url: "<?= base_url() ?>Lgepr_tax/upload",
+			type: "POST",
+			data: formData,
+			processData: false,
+			contentType: false,
+			success: function(response) {
+				const blob = new Blob([response], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+				const url = window.URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.href = url;
+				a.download = "archivo_modificado.xlsx";
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				},
+				error: function() {
+					swal("Error", "Hubo un problema al procesar el archivo.", "error");
+				}
+			});
+		});
+	});
 </script>
