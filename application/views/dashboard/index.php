@@ -5,26 +5,9 @@
 				<div class="col-md-12">
 					<div class="card">
 						<div class="card-body">
-							<div class="d-flex justify-content-between">
-								<h5 class="card-title">Team Board</h5>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="card">
-						<div class="card-body">
-							<div class="d-flex justify-content-between">
-								<h5 class="card-title">To You</h5>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="card">
-						<div class="card-body">
-							<div class="d-flex justify-content-between">
-								<h5 class="card-title">From You</h5>
+							<div class="d-flex justify-content-between align-items-center">
+								<h5 class="card-title">My Projects</h5>
+								<button type="button" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i></button>
 							</div>
 						</div>
 					</div>
