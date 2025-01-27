@@ -25,4 +25,24 @@ class Dashboard extends CI_Controller {
 		
 		$this->load->view('layout', $data);
 	}
+	
+	public function new_project(){
+		if (!$this->session->userdata('logged_in')) redirect("/auth/login");
+		
+		$o_emp = [
+			["subsidiary", "asc"], 
+			["organization", "asc"], 
+			["department", "asc"],
+			["name", "asc"],
+			["employee_number", "asc"],
+		];
+		
+		$data = [
+			"employees"	=> $this->gen_m->filter("hr_employee", false, ["name !=" => "", "active" => true], null, null, $o_emp),
+			"main"		=> "dashboard/new_project",
+		];
+		
+		$this->load->view('layout', $data);
+	}
+	
 }
