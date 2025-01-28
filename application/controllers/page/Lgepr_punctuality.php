@@ -379,18 +379,36 @@ class Lgepr_punctuality extends CI_Controller {
 		if ($pr == null){ echo "PR is NULL."; return; }
 		if ($period == null){ echo "Period is NULL."; return; }
 		
-		$from = date("Y-m-01", strtotime($period));
-		$to = date("Y-m-t", strtotime($period));
+		$from = $pivot = strtotime(date("Y-m-01", strtotime($period)));
+		$to = strtotime(date("Y-m-t", strtotime($period)));
+		
+		$dates = [];
+		while($pivot <= $to){
+			$dates[date("Y-m-d", $pivot)] = [];
+			$pivot = strtotime("+1 day", $pivot);
+		}
 		
 		$w = [
 			"pr" => $pr,
-			"access >=" => $from,
-			"access <=" => $to,
+			"access >=" => date("Y-m-d", $from),
+			"access <=" => date("Y-m-d", $to),
 		];
 		
 		$data = $this->gen_m->filter("hr_attendance", false, $w, null, null, [["access", "asc"]]);
-		print_r($data);
+		foreach($data as $item){
+			$t = strtotime($item->access);
+			$dates[date("Y-m-d", $t)][] = date("H:i", $t);
+		}
 		
+		$data = [
+			"period" => $period,
+			"employee" => $this->gen_m->unique("hr_employee", "employee_number", $pr, false),
+			"dates" => $dates,
+			"overflow" => "scroll",
+			"main" => "page/lgepr_punctuality/daily",
+		];
+		
+		$this->load->view('layout_dashboard', $data);
 	}
 	
 	public function add_exception(){
