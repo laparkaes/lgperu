@@ -374,130 +374,23 @@ class Lgepr_punctuality extends CI_Controller {
 		
 		$this->load->view('layout_dashboard', $data);
 	}
-	
-	private function make_excel($data){
-		$spreadsheet = new Spreadsheet();
-		$sheet = $spreadsheet->getActiveSheet();
-		
-		//col, row in number
-		$sheet->setCellValueByColumnAndRow(1, 1, "Punctuality Report ".$data["period"]);
-		
-		$sheet->getColumnDimension('A')->setWidth(40);
-		$sheet->getColumnDimension('B')->setWidth(30);
-		$sheet->getStyle('A:Z')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-		$sheet->getStyle('C:AZ')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-		
-		//header
-		$sheet->setCellValueByColumnAndRow(1, 3, "Employee");
-		$sheet->setCellValueByColumnAndRow(2, 3, "Department");
-		$sheet->setCellValueByColumnAndRow(3, 3, "PR");
-		$sheet->setCellValueByColumnAndRow(4, 3, "Days");
-		$sheet->setCellValueByColumnAndRow(5, 3, "Tardness\nEarly-out");
-		$sheet->setCellValueByColumnAndRow(6, 3, "Worktime");
-		
-		$sheet->getStyleByColumnAndRow(5, 3)->getAlignment()->setWrapText(true);
-		
-		$j = 7;
-		foreach($data["days"] as $item){
-			$sheet->setCellValueByColumnAndRow($j, 3, $item["day"]."\n".substr($data["days_week"][$item["day"]], 0, 3));
-			$sheet->getStyleByColumnAndRow($j, 3)->getAlignment()->setWrapText(true);
-			
-			//setting color
-			if (in_array($item["day"], $data["free_days"])) $sheet->getStyleByColumnAndRow($j, 3)->getFont()->getColor()->setARGB('RED');
-			
-			$j++;
-		}
-		
-		$fill_color = "ffffff";
-		$fill_type = \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID;
-		$i = 0;
-		foreach($data["employees"] as $item){
-			$row_1 = ($i * 2) + 4;
-			$row_2 = $row_1 + 1;
-			
-			//employee datas
-			$sheet->setCellValueByColumnAndRow(1, $row_1, $item["data"]->name);
-			$sheet->setCellValueByColumnAndRow(2, $row_1, $item["data"]->subsidiary." > ".$item["data"]->organization);
-			$sheet->setCellValueByColumnAndRow(2, $row_2, $item["data"]->department);
-			$sheet->setCellValueByColumnAndRow(3, $row_1, $item["data"]->employee_number);
-			$sheet->setCellValueByColumnAndRow(4, $row_1, $item["summary"]["check_days"]);
-			$sheet->setCellValueByColumnAndRow(5, $row_1, $item["summary"]["tardiness"]);
-			$sheet->setCellValueByColumnAndRow(5, $row_2, $item["summary"]["early_out"]);
-			$sheet->setCellValueByColumnAndRow(6, $row_1, date("H:i", strtotime($data["schedule_pr"][$item["data"]->employee_number][$data["to"]]["start"])));
-			$sheet->setCellValueByColumnAndRow(6, $row_2, date("H:i", strtotime($data["schedule_pr"][$item["data"]->employee_number][$data["to"]]["end"])));
-			
-			if ($item["summary"]["tardiness"] > 4) $sheet->getStyleByColumnAndRow(5, $row_1)->getFont()->getColor()->setARGB('RED');
-			if ($item["summary"]["early_out"] > 4) $sheet->getStyleByColumnAndRow(5, $row_2)->getFont()->getColor()->setARGB('RED');
-			
-			$j = 7;
-			foreach($item["access"] as $item_ac){
-				$sheet->setCellValueByColumnAndRow($j, $row_1, $item_ac["first_access"]["time"]);
-				$sheet->setCellValueByColumnAndRow($j, $row_2, $item_ac["last_access"]["time"]);
-				
-				if ($item_ac["first_access"]["remark"] === "T") $sheet->getStyleByColumnAndRow($j, $row_1)->getFont()->getColor()->setARGB('RED');
-				if ($item_ac["first_access"]["remark"] === "TT") $sheet->getStyleByColumnAndRow($j, $row_1)->getFont()->getColor()->setARGB('FFA500');//ORANGE
-				if ($item_ac["last_access"]["remark"] === "E") $sheet->getStyleByColumnAndRow($j, $row_2)->getFont()->getColor()->setARGB('RED');
-				
-				$j++;
-			}
-			
-			$sheet->getStyle("A".$row_1.":AZ".$row_1)->getFill()->setFillType($fill_type)->getStartColor()->setARGB($fill_color);
-			$sheet->getStyle("A".$row_2.":AZ".$row_2)->getFill()->setFillType($fill_type)->getStartColor()->setARGB($fill_color);
-			
-			$fill_color = ("ffffff" === $fill_color) ? "efefef" : "ffffff";
-			
-			$i++;
-		}
-		
-		$sheet->getStyle("A1:AZ1")->getFill()->setFillType($fill_type)->getStartColor()->setARGB("ffffff");
-		$sheet->getStyle("A2:AZ2")->getFill()->setFillType($fill_type)->getStartColor()->setARGB("ffffff");
-		$sheet->getStyle("A3:AZ3")->getFill()->setFillType($fill_type)->getStartColor()->setARGB("efefef");
 
-		$sheet->getStyle("A1:AZ1")->getFont()->setBold(true);
-		$sheet->getStyle("A3:AZ3")->getFont()->setBold(true);
+	public function daily($pr = null, $period = null){
+		if ($pr == null){ echo "PR is NULL."; return; }
+		if ($period == null){ echo "Period is NULL."; return; }
 		
-		//save excel file to a temporary directory
-		$filename = "hr_attendance_report.xlsx";
-		$writer = new Xlsx($spreadsheet);
-		$writer->save('./upload/'.$filename);
-		
-		//file url
-		$url = base_url()."upload/".$filename;
-		
-		//echo '<br/><a href="'.$url.'" download="Attendance '.$data["period"].'.xlsx">파일 다운로드</a><br/><br/><br/>';
-		//foreach($data as $key => $item){ echo $key."================="; print_r($item); echo "<br/><br/><br/><br/>"; }
-		
-		return $url;
-		
-	}
-	
-	public function export(){
-		$period = $this->input->get("p");
-		if (!$period) $period = $this->input->post("p");
-		if (!$period) $period = date("Y-m");
-		
-		//first & last date
 		$from = date("Y-m-01", strtotime($period));
 		$to = date("Y-m-t", strtotime($period));
 		
-		//access records load
-		$w = ["work_date >=" => $from, "work_date <=" => $to];
-		$l = [["field" => "pr", "values" => ["PR"]]];
-		$prs = [];//used to load valid emmployee's schedules
+		$w = [
+			"pr" => $pr,
+			"access >=" => $from,
+			"access <=" => $to,
+		];
 		
-		//load attendance records and 
-		$records = $this->gen_m->filter("v_hr_attendance_summary", false, $w, $l);
-		foreach($records as $item) $prs[] = $item->pr;
+		$data = $this->gen_m->filter("hr_attendance", false, $w, null, null, [["access", "asc"]]);
+		print_r($data);
 		
-		sort($prs);
-		$prs = array_unique($prs);
-		$prs = array_values($prs);
-		
-		$data = $this->set_attandance($period, $prs);
-		$url = $this->make_excel($data);
-		
-		header('Content-Type: application/json');
-		echo json_encode(["url" => $url, "period" => $period]);
 	}
 	
 	public function add_exception(){

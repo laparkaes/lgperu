@@ -16,9 +16,6 @@
 					<?php } ?>
 				</select>
 				<input type="text" class="form-control me-1" id="ip_search" placeholder="Search [Type 'enter' to apply filter]" style="width: 300px;">
-				<a href="" class="btn btn-success d-none me-1" id="btn_export" download="Punctuality <?= $period ?>">
-					<i class="bi bi-file-earmark-spreadsheet"></i> Export
-				</a>
 			</div>
 		</div>
 		<table class="table align-middle" style="font-size: 0.8rem;">
@@ -51,7 +48,7 @@
 							if ($item["data"]->name) $aux[] = $item["data"]->name;
 							if ($item["data"]->employee_number) $aux[] = $item["data"]->employee_number;
 							?>
-							<?= implode(", ", $aux) ?>
+							<a href="<?= base_url() ?>page/lgepr_punctuality/daily/<?= $item["data"]->employee_number ?>/<?= $period ?>" target="_blank"><?= implode(", ", $aux) ?></a>
 							<br/><small><?= $item["data"]->dept ?></small>
 						</div>
 					</td>
