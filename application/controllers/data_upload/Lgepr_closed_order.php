@@ -64,7 +64,7 @@ class Lgepr_closed_order extends CI_Controller {
 		
 		foreach($dash_mapping as $key => $item) $this->gen_m->update("lgepr_closed_order", ["model_category" => $key], $item);
 		
-		$this->gen_m->update("lgepr_sales_order", ["product_level2_name" => "SRAC"], $dash_mapping["RAC"]);
+		$this->gen_m->update("lgepr_closed_order", ["product_level2_name" => "SRAC"], $dash_mapping["RAC"]);
 	}
 	
 	private function update_model_category(){
