@@ -53,6 +53,8 @@ class Lgepr_sales_order extends CI_Controller {
 		];
 		
 		foreach($dash_mapping as $key => $item) $this->gen_m->update("lgepr_sales_order", ["model_category" => $key], $item);
+		
+		$this->gen_m->update("lgepr_sales_order", ["product_level2_name" => "SRAC"], $dash_mapping["RAC"]);
 	}
 	
 	private function update_model_category(){
