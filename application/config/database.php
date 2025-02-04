@@ -76,7 +76,6 @@ $query_builder = TRUE;
 $db['default'] = array(
 	'dsn'	=> '',
 	'hostname' => 'localhost',
-	//'hostname' => '136.166.13.9:3306',
 	'username' => 'root',
 	'password' => '',
 	'database' => 'llamasys',
