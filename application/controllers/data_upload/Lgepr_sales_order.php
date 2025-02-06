@@ -223,8 +223,9 @@ class Lgepr_sales_order extends CI_Controller {
 				if ($row["close_date"] === "1969-12-31") $row["close_date"] = null;
 				if ($row["create_date"] === "1969-12-31") $row["create_date"] = null;
 				
+				//print_r($row); echo"<br/><br/>";
+				
 				//usd calculation
-				print_r($row); echo"<br/><br/>";
 				$er = $row['currency'] === "USD" ? 1 : $this->gen_m->filter("exchange_rate", false, ["currency" => $row['currency'], "date <=" => $row["create_date"]], null, null, [["date", "desc"]], 1)[0]->sell;
 				$row["sales_amount_usd"] =  round($row["sales_amount"] / $er, 2);
 				
