@@ -191,7 +191,6 @@ class Lgepr_sales_order extends CI_Controller {
 					'inventory_org' 		=> trim($sheet->getCell('AW'.$i)->getValue()),
 					'sub_inventory' 		=> trim($sheet->getCell('AX'.$i)->getValue()),
 				];
-				
 				//apply trim
 				$row["order_no"] = trim($row["order_no"]);
 				$row["line_no"] = trim($row["line_no"]);
@@ -211,8 +210,23 @@ class Lgepr_sales_order extends CI_Controller {
 				$row["close_date"] = $this->my_func->date_convert_4($row["close_date"]);
 				$row["create_date"] = $this->my_func->date_convert_4($row["create_date"]);
 				
+				//date format changed to number from 2025-02-06
+				if (!$row["booked_date"]) $row["booked_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('Y'.$i)->getFormattedValue())));
+				if (!$row["req_arrival_date_to"]) $row["req_arrival_date_to"] = date("Y-m-d", strtotime(trim($sheet->getCell('AC'.$i)->getFormattedValue())));
+				if (!$row["shipment_date"]) $row["shipment_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('AE'.$i)->getFormattedValue())));
+				if (!$row["close_date"]) $row["close_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('AF'.$i)->getFormattedValue())));
+				if (!$row["create_date"]) $row["create_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('DK'.$i)->getFormattedValue())));
+				
+				if ($row["booked_date"] === "1969-12-31") $row["booked_date"] = null;
+				if ($row["req_arrival_date_to"] === "1969-12-31") $row["req_arrival_date_to"] = null;
+				if ($row["shipment_date"] === "1969-12-31") $row["shipment_date"] = null;
+				if ($row["close_date"] === "1969-12-31") $row["close_date"] = null;
+				if ($row["create_date"] === "1969-12-31") $row["create_date"] = null;
+				
 				//usd calculation
-				$row["sales_amount_usd"] =  round($row["sales_amount"] / $this->gen_m->filter("exchange_rate", false, ["currency" => "PEN", "date <=" => $row["create_date"]], null, null, [["date", "desc"]], 1)[0]->sell, 2);
+				print_r($row); echo"<br/><br/>";
+				$er = $row['currency'] === "USD" ? 1 : $this->gen_m->filter("exchange_rate", false, ["currency" => $row['currency'], "date <=" => $row["create_date"]], null, null, [["date", "desc"]], 1)[0]->sell;
+				$row["sales_amount_usd"] =  round($row["sales_amount"] / $er, 2);
 				
 				if (count($rows) > 5000){
 					$records += $this->gen_m->insert_m("lgepr_sales_order", $rows);
