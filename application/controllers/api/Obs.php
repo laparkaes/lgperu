@@ -213,11 +213,61 @@ class Obs extends CI_Controller {
 	}
 	
 	public function get_stock(){
-		//llamasys/api/obs/get_stock?key=lgepr
-		
-		if ($this->input->get("key") === "lgepr") $res = $this->gen_m->filter("v_obs_stock", false);
-		else $res = ["Key error"];
-		
+    // llamasys/api/obs/get_stock?key=lgepr
+
+		if ($this->input->get("key") === "lgepr") {
+			$stock_data = $this->gen_m->filter("v_obs_stock", false);
+			$from = !date("Y-m-1"); // Quité el "!" porque generaba un valor incorrecto
+			$res = [];
+
+			foreach ($stock_data as $item) {
+				$dates = [];
+				$dates_s = [];
+
+				// Buscar la última fecha de compra en la tabla lgepr_closed_order
+				$order = $this->gen_m->filter("lgepr_closed_order", false, [
+					"model" => $item->model,
+					"inventory_org" => "N4E",
+					"order_date >=" => $from
+				], null, null, [["order_date", "DESC"]]);
+
+				foreach ($order as $or_item) {
+					$dates[] = $or_item->order_date;
+				}
+				$last_order_date = !empty($dates) ? $dates[0] : "";
+				// Buscar la última fecha de creación en la tabla lgepr_sales_order
+				$sales = $this->gen_m->filter("lgepr_sales_order", false, [
+					"model" => $item->model,
+					"inventory_org" => "N4E",
+					"create_date >=" => $from
+				], null, null, [["create_date", "DESC"]]);
+
+				foreach ($sales as $s_item) {
+					$dates_s[] = $s_item->create_date;
+				}
+				$last_create_date = !empty($dates_s) ? $dates_s[0] : "";
+
+				// Obtener la fecha más reciente entre last_order_date y last_create_date
+				if ($last_order_date >= $last_create_date) {
+					$item->last_purchase_date = $last_order_date;
+				} elseif($last_order_date <= $last_create_date){
+					$item->last_purchase_date = $last_create_date;
+				} elseif ($last_order_date === "" && $last_create_date !== "") {
+					$item->last_purchase_date = $last_create_date;
+				} elseif ($last_create_date === "" && $last_order_date !== "") {
+					$item->last_purchase_date = $last_order_date;
+				} elseif ($last_create_date === "" && $last_order_date === ""){
+					$item->last_purchase_date = "";
+				}
+
+				$res[] = clone $item;
+			}
+
+		} else {
+			$res = ["Key error"];
+		}
+
+		// Devuelve la respuesta en formato JSON
 		header('Content-Type: application/json');
 		echo json_encode($res);
 	}

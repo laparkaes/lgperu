@@ -1,0 +1,25 @@
+CREATE VIEW v_obs_stock AS
+SELECT
+    model_description,
+    dash_company,
+    dash_division,
+    model,
+    SUM(CASE WHEN org = 'N4M' THEN available_qty ELSE 0 END) AS N4M_qty,
+    SUM(CASE WHEN org = 'N4E' THEN available_qty ELSE 0 END) AS N4E_qty,
+    SUM(seaStockTotal) AS seaStockTotal,
+    SUM(seaStockW1) AS seaStockW1,
+    SUM(seaStockW2) AS seaStockW2,
+    SUM(seaStockW3) AS seaStockW3,
+    SUM(seaStockW4) AS seaStockW4,
+    SUM(seaStockW5) AS seaStockW5
+FROM
+    lgepr_stock
+WHERE
+    org IN ('N4M', 'N4E') AND
+    model_status = 'Active'
+GROUP BY
+    `model_description`, `model`
+HAVING
+    NOT (N4M_qty = 0 AND N4E_qty = 0 AND seaStockTotal = 0) AND
+    dash_company IS NOT NULL AND
+    dash_division IS NOT NULL;
