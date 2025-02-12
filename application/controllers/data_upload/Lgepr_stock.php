@@ -155,13 +155,13 @@ class Lgepr_stock extends CI_Controller {
 					"model_description" 	=> trim($sheet->getCell('H'.$i)->getValue()),
 					"model_status" 			=> trim($sheet->getCell('J'.$i)->getValue()),
 					"available_qty"			=> trim($sheet->getCell('N'.$i)->getValue()),
-					"seaStockTotal"			=> trim($sheet->getCell('BM'.$i)->getValue()),
-					"seaStockW1"			=> trim($sheet->getCell('BN'.$i)->getValue()),
-					"seaStockW2"			=> trim($sheet->getCell('BO'.$i)->getValue()),
-					"seaStockW3"			=> trim($sheet->getCell('BP'.$i)->getValue()),
-					"seaStockW4"			=> trim($sheet->getCell('BQ'.$i)->getValue()),
-					"seaStockW5"			=> trim($sheet->getCell('BR'.$i)->getValue()),
-					"product_level4"		=> trim($sheet->getCell('BX'.$i)->getValue()),					
+					"seaStockTotal"			=> trim($sheet->getCell('BN'.$i)->getValue()),
+					"seaStockW1"			=> trim($sheet->getCell('BO'.$i)->getValue()),
+					"seaStockW2"			=> trim($sheet->getCell('BP'.$i)->getValue()),
+					"seaStockW3"			=> trim($sheet->getCell('BQ'.$i)->getValue()),
+					"seaStockW4"			=> trim($sheet->getCell('BR'.$i)->getValue()),
+					"seaStockW5"			=> trim($sheet->getCell('BS'.$i)->getValue()),
+					"product_level4"		=> trim($sheet->getCell('BY'.$i)->getValue()),					
 					"updated"				=> $updated,
 				];
 				
@@ -200,7 +200,7 @@ class Lgepr_stock extends CI_Controller {
 				'allowed_types'	=> '*',
 				'max_size'		=> 90000,
 				'overwrite'		=> TRUE,
-				'file_name'		=> 'lgepr_stock_report.xlsx',
+				'file_name'		=> 'lgepr_stock_report.xls',
 			];
 			$this->load->library('upload', $config);
 
