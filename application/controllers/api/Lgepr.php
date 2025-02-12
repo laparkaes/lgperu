@@ -95,6 +95,44 @@ class Lgepr extends CI_Controller {
 		echo json_encode($res);
 	}
 	
+	
+	public function get_sales_projection(){
+		//llamasys/api/lgepr/get_sales_projection?key=lgepr
+		
+		if ($this->input->get("key") === "lgepr"){
+			$from = date("Y-m-1");
+			$res = [];
+			
+			$c_orders = $this->gen_m->filter("lgepr_closed_order", false, ["inventory_org" => "N4M", "order_date >=" => $from]);
+			foreach($c_orders as $item){
+				//print_r($item);
+				$item->type = "Closed";
+				$item->last_purchase_date = $item->order_date;
+				$item->amount_usd = $item->order_amount_usd;
+				$item->qty = $item->order_qty;
+				
+				$res[] = clone $item;
+			}
+			
+			$s_orders = $this->gen_m->filter("lgepr_sales_order", false, ["inventory_org" => "N4M", "create_date >=" => $from]);
+			foreach($s_orders as $item){
+				$item->type = "Sales";
+				$item->ref_date = $item->create_date;
+				$item->amount_usd = $item->sales_amount_usd;
+				$item->qty = $item->ordered_qty;
+				
+				$res[] = clone $item;
+			}
+		}else $res = ["Key error"];
+		
+		//foreach($res as $item){ print_r($item); echo "<br/><br/>"; }
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+	
+	
+	
 	public function get_monthly_closed_order(){
 		//llamasys/api/lgepr/get_monthly_closed_order?key=lgepr
 		
