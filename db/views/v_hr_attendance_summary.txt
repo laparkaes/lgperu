@@ -1,18 +1,17 @@
-============================================
-Create =======================================
-
-CREATE VIEW v_hr_attendance_summary
-AS
-	SELECT `pr`, `name`, DATE(`access`) AS work_date, MIN(`access`) AS first_access, MAX(`access`) AS last_access FROM `hr_attendance` GROUP BY `pr`, DATE(`access`) ORDER BY `access` desc; 
-
-============================================
-Update =======================================
-
-ALTER VIEW v_hr_attendance_summary
-AS
-	SELECT `pr`, `name`, DATE(`access`) AS work_date, MIN(`access`) AS first_access, MAX(`access`) AS last_access FROM `hr_attendance` GROUP BY `pr`, DATE(`access`) ORDER BY `access` desc; 
-
-============================================
-Delete =======================================
-
-DROP VIEW v_hr_attendance_summary
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_hr_attendance_summary` AS 
+SELECT 
+    `hr_attendance`.`pr` AS `pr`,
+    `hr_attendance`.`name` AS `name`,
+    CAST(`hr_attendance`.`access` AS DATE) AS `work_date`,
+    MIN(CASE 
+            WHEN TIME(`hr_attendance`.`access`) >= '04:00:00' 
+            THEN `hr_attendance`.`access`
+        END) AS `first_access`,
+    MAX(`hr_attendance`.`access`) AS `last_access`
+FROM 
+    `hr_attendance`
+GROUP BY 
+    `hr_attendance`.`pr`,
+    CAST(`hr_attendance`.`access` AS DATE)
+ORDER BY 
+    `hr_attendance`.`access` DESC;
