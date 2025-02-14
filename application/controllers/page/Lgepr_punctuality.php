@@ -191,17 +191,23 @@ class Lgepr_punctuality extends CI_Controller {
 						$employees[$pr]["summary"]["check_days"]++;
 						
 						$start = in_array($access["day"], $early_friday_days) ? strtotime("08:30:00") : strtotime($schedule_pr[$pr][$day_pivot]["start"]);
+						/* use this if need to apply tolerance time
 						$start_tolerance = in_array($access["day"], $early_friday_days) ? strtotime("08:34:00") : strtotime('+4 minutes', strtotime($schedule_pr[$pr][$day_pivot]["start"]));
+						*/
 						
 						$first = strtotime($access["first_access"]["time"]);
 						
 						if ($start < $first){
+							$employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "T";//Tardeness Toleranced
+							
+							/* use this if need to apply tolerance time
 							if ($start_tolerance < $first){
 								$employees[$pr]["summary"]["tardiness"]++;
 								$employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "T";
 							}else{
 								$employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "TT";//Tardeness Toleranced
 							}
+							*/
 						}
 					}
 					
