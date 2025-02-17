@@ -211,6 +211,7 @@ class Lgepr_punctuality extends CI_Controller {
 						$first = strtotime($access["first_access"]["time"]);
 						
 						if ($start < $first){
+							$employees[$pr]["summary"]["tardiness"]++;
 							$employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "T";//Tardeness Toleranced
 							
 							/* use this if need to apply tolerance time
