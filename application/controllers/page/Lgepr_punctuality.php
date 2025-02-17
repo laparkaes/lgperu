@@ -178,6 +178,10 @@ class Lgepr_punctuality extends CI_Controller {
 			$early_friday_days[] = date("d", strtotime($item->exc_date));
 		}
 		
+		/* load 00:00 ~ 03:59:59 check datas */
+		echo "hola";
+		
+		
 		$no_attn_days = ["Sat", "Sun"];
 		foreach($employees as $pr => $item){
 			foreach($item["access"] as $aux => $access){
@@ -378,7 +382,7 @@ class Lgepr_punctuality extends CI_Controller {
 		$data["overflow"] = "scroll";
 		$data["main"] = "page/lgepr_punctuality/index";
 		
-		$this->load->view('layout_dashboard', $data);
+		//$this->load->view('layout_dashboard', $data);
 	}
 
 	public function daily($pr = null, $period = null){
