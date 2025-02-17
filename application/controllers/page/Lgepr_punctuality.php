@@ -92,8 +92,8 @@ class Lgepr_punctuality extends CI_Controller {
 		foreach($records as $item){
 			if ($item->pr){
 				$day = date("d", strtotime($item->work_date));
-				$first_time = date("H:i", strtotime($item->first_access));
-				$last_time = date("H:i", strtotime($item->last_access));
+				$first_time = date("H:i:s", strtotime($item->first_access));
+				$last_time = date("H:i:s", strtotime($item->last_access));
 				
 				if (!array_key_exists($item->pr, $employees)){
 					
@@ -223,6 +223,8 @@ class Lgepr_punctuality extends CI_Controller {
 							}
 							*/
 						}
+						
+						$employees[$pr]["access"][$access["day"]]["first_access"]["time"] = date("H:i", strtotime($employees[$pr]["access"][$access["day"]]["first_access"]["time"]));
 					}
 					
 					if ($access["last_access"]["time"]){
@@ -236,11 +238,12 @@ class Lgepr_punctuality extends CI_Controller {
 								$employees[$pr]["access"][$access["day"]]["last_access"]["remark"] = "(+1D)";
 							}else{
 								$employees[$pr]["summary"]["early_out"]++;
-								$employees[$pr]["access"][$access["day"]]["last_access"]["remark"] = "E";	
+								$employees[$pr]["access"][$access["day"]]["last_access"]["time"] = date("H:i", strtotime($employees[$pr]["access"][$access["day"]]["last_access"]["time"]));
+								$employees[$pr]["access"][$access["day"]]["last_access"]["remark"] = "E";
 							}
 							
 							//print_r($employees[$pr]["access"][$access["day"]]["last_access"]); echo "<br/>"; echo "<br/>";
-						}
+						}else $employees[$pr]["access"][$access["day"]]["last_access"]["time"] = date("H:i", strtotime($employees[$pr]["access"][$access["day"]]["last_access"]["time"]));
 					}
 				}
 			}
