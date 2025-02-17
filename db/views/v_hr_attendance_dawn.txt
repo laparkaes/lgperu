@@ -1,23 +1,15 @@
 CREATE VIEW v_hr_attendance_dawn AS
 SELECT 
-    attendance_id,
     pr,
-    name,
-    access
+    access,
+    MAX(attendance_id) AS attendance_id,
+    MAX(name) AS name
 FROM 
-    (
-        SELECT 
-            attendance_id,
-            pr,
-            name,
-            access,
-            ROW_NUMBER() OVER (PARTITION BY pr ORDER BY access DESC) AS rn
-        FROM 
-            hr_attendance
-        WHERE 
-            TIME(access) BETWEEN '00:00:01' AND '03:59:59'
-    ) AS subquery
+    hr_attendance
 WHERE 
-    rn = 1
+    TIME(access) BETWEEN '00:00:01' AND '03:59:59'
+GROUP BY 
+    pr, 
+    DATE(access)
 ORDER BY 
     access DESC;
