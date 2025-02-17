@@ -439,7 +439,7 @@ class Lgepr_punctuality extends CI_Controller {
 		$data = $this->gen_m->filter("hr_attendance", false, $w, null, null, [["access", "asc"]]);
 		foreach($data as $item){
 			$t = strtotime($item->access);
-			$dates[date("Y-m-d", $t)][] = date("H:i", $t);
+			$dates[date("Y-m-d", $t)][] = date("H:i:s", $t);
 		}
 		
 		$data = [
