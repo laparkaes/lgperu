@@ -95,6 +95,8 @@ class Lgepr_punctuality extends CI_Controller {
 				$first_time = date("H:i:s", strtotime($item->first_access));
 				$last_time = date("H:i:s", strtotime($item->last_access));
 				
+				if ($first_time === $last_time) $last_time = date("H:i:s", strtotime("+1 second", strtotime($last_time)));
+				
 				if (!array_key_exists($item->pr, $employees)){
 					
 					//create employee records
@@ -191,6 +193,7 @@ class Lgepr_punctuality extends CI_Controller {
 		
 		//echo "<br/>";echo "<br/>"; print_r($dawn_checks_arr); echo "<br/>";echo "<br/>";echo "<br/>";
 		
+		$today = date("Y-m-d");
 		$no_attn_days = ["Sat", "Sun"];
 		foreach($employees as $pr => $item){
 			foreach($item["access"] as $aux => $access){
@@ -231,19 +234,21 @@ class Lgepr_punctuality extends CI_Controller {
 						$end = in_array($access["day"], $early_friday_days) ? strtotime("12:30:00") : strtotime($schedule_pr[$pr][$day_pivot]["end"]);
 						$last = strtotime($access["last_access"]["time"]);
 						
-						if ($last < $end){
-							$key_dawn = $pr."_".$employees[$pr]["access"][$access["day"]]["date"];
-							if (array_key_exists($key_dawn, $dawn_checks_arr)){
-								$employees[$pr]["access"][$access["day"]]["last_access"]["time"] = date("H:i", strtotime($dawn_checks_arr[$key_dawn]->access))."<br/>(+1D)";
-								$employees[$pr]["access"][$access["day"]]["last_access"]["remark"] = "(+1D)";
-							}else{
-								$employees[$pr]["summary"]["early_out"]++;
-								$employees[$pr]["access"][$access["day"]]["last_access"]["time"] = date("H:i", strtotime($employees[$pr]["access"][$access["day"]]["last_access"]["time"]));
-								$employees[$pr]["access"][$access["day"]]["last_access"]["remark"] = "E";
-							}
-							
-							//print_r($employees[$pr]["access"][$access["day"]]["last_access"]); echo "<br/>"; echo "<br/>";
-						}else $employees[$pr]["access"][$access["day"]]["last_access"]["time"] = date("H:i", strtotime($employees[$pr]["access"][$access["day"]]["last_access"]["time"]));
+						if ($access["date"] !== $today){
+							if ($last < $end){
+								$key_dawn = $pr."_".$employees[$pr]["access"][$access["day"]]["date"];
+								if (array_key_exists($key_dawn, $dawn_checks_arr)){
+									$employees[$pr]["access"][$access["day"]]["last_access"]["time"] = date("H:i", strtotime($dawn_checks_arr[$key_dawn]->access))."<br/>(+1D)";
+									$employees[$pr]["access"][$access["day"]]["last_access"]["remark"] = "(+1D)";
+								}else{
+									$employees[$pr]["summary"]["early_out"]++;
+									$employees[$pr]["access"][$access["day"]]["last_access"]["time"] = date("H:i", strtotime($employees[$pr]["access"][$access["day"]]["last_access"]["time"]));
+									$employees[$pr]["access"][$access["day"]]["last_access"]["remark"] = "E";
+								}
+								
+								//print_r($employees[$pr]["access"][$access["day"]]["last_access"]); echo "<br/>"; echo "<br/>";
+							}else $employees[$pr]["access"][$access["day"]]["last_access"]["time"] = date("H:i", strtotime($employees[$pr]["access"][$access["day"]]["last_access"]["time"]));	
+						}else $employees[$pr]["access"][$access["day"]]["last_access"]["time"] = date("H:i", strtotime($employees[$pr]["access"][$access["day"]]["last_access"]["time"]));	
 					}
 				}
 			}
