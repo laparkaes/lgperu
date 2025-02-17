@@ -250,6 +250,9 @@ class Lgepr_punctuality extends CI_Controller {
 							}else $employees[$pr]["access"][$access["day"]]["last_access"]["time"] = date("H:i", strtotime($employees[$pr]["access"][$access["day"]]["last_access"]["time"]));	
 						}else $employees[$pr]["access"][$access["day"]]["last_access"]["time"] = date("H:i", strtotime($employees[$pr]["access"][$access["day"]]["last_access"]["time"]));	
 					}
+				}else{
+					$employees[$pr]["access"][$access["day"]]["first_access"]["time"] = date("H:i", strtotime($employees[$pr]["access"][$access["day"]]["first_access"]["time"]));
+					$employees[$pr]["access"][$access["day"]]["last_access"]["time"] = date("H:i", strtotime($employees[$pr]["access"][$access["day"]]["last_access"]["time"]));
 				}
 			}
 		}
