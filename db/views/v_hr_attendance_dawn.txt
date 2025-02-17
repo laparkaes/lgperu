@@ -1,0 +1,23 @@
+CREATE VIEW v_hr_attendance_dawn AS
+SELECT 
+    attendance_id,
+    pr,
+    name,
+    access
+FROM 
+    (
+        SELECT 
+            attendance_id,
+            pr,
+            name,
+            access,
+            ROW_NUMBER() OVER (PARTITION BY pr ORDER BY access DESC) AS rn
+        FROM 
+            hr_attendance
+        WHERE 
+            TIME(access) BETWEEN '00:00:01' AND '03:59:59'
+    ) AS subquery
+WHERE 
+    rn = 1
+ORDER BY 
+    access DESC;

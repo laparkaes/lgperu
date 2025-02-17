@@ -178,9 +178,18 @@ class Lgepr_punctuality extends CI_Controller {
 			$early_friday_days[] = date("d", strtotime($item->exc_date));
 		}
 		
-		/* load 00:00 ~ 03:59:59 check datas */
-		echo "hola";
+		/* load 00:00:00 ~ 03:59:59 check datas (< from and <= (to + 1) */
+		$w_dch = ["access >" => $from, "access <=" => date("Y-m-d", strtotime("+1 day", strtotime($to)))];
+		$l_dch = [["field" => "pr", "values" => ["PR"]]];
+		$dawn_checks = $this->gen_m->filter("v_hr_attendance_dawn", false, $w_dch, $l_dch);
 		
+		$dawn_checks_arr = [];
+		foreach($dawn_checks as $item){
+			$dawn_checks_arr[$item->pr."_".date("Y-m-d", strtotime("-1 day", strtotime($item->access)))] = $item;
+			//print_r($item); echo "<br/>";
+		}
+		
+		//echo "<br/>";echo "<br/>"; print_r($dawn_checks_arr); echo "<br/>";echo "<br/>";echo "<br/>";
 		
 		$no_attn_days = ["Sat", "Sun"];
 		foreach($employees as $pr => $item){
@@ -220,8 +229,16 @@ class Lgepr_punctuality extends CI_Controller {
 						$last = strtotime($access["last_access"]["time"]);
 						
 						if ($last < $end){
-							$employees[$pr]["summary"]["early_out"]++;
-							$employees[$pr]["access"][$access["day"]]["last_access"]["remark"] = "E";
+							$key_dawn = $pr."_".$employees[$pr]["access"][$access["day"]]["date"];
+							if (array_key_exists($key_dawn, $dawn_checks_arr)){
+								$employees[$pr]["access"][$access["day"]]["last_access"]["time"] = date("H:i", strtotime($dawn_checks_arr[$key_dawn]->access))."<br/>(+1D)";
+								$employees[$pr]["access"][$access["day"]]["last_access"]["remark"] = "(+1D)";
+							}else{
+								$employees[$pr]["summary"]["early_out"]++;
+								$employees[$pr]["access"][$access["day"]]["last_access"]["remark"] = "E";	
+							}
+							
+							//print_r($employees[$pr]["access"][$access["day"]]["last_access"]); echo "<br/>"; echo "<br/>";
 						}
 					}
 				}
@@ -382,7 +399,7 @@ class Lgepr_punctuality extends CI_Controller {
 		$data["overflow"] = "scroll";
 		$data["main"] = "page/lgepr_punctuality/index";
 		
-		//$this->load->view('layout_dashboard', $data);
+		$this->load->view('layout_dashboard', $data);
 	}
 
 	public function daily($pr = null, $period = null){
