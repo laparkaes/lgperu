@@ -238,7 +238,7 @@ class Obs extends CI_Controller {
 		$c_orders = $this->gen_m->filter("lgepr_closed_order", false, ["inventory_org" => "N4E", "order_date >=" => $from]);
 		foreach ($c_orders as $item) {
 			$item->type = "Closed";
-			$item->last_purchase_date = $item->order_date;
+			$item->ref_date = $item->order_date;
 			$item->amount_usd = $item->order_amount_usd;
 			$item->qty = $item->order_qty;
 
