@@ -181,36 +181,114 @@ class Obs extends CI_Controller {
 	public function get_daily_purchase(){
 		//llamasys/api/obs/get_daily_purchase?key=lgepr
 		
-		if ($this->input->get("key") === "lgepr"){
-			$from = date("Y-m-1");
-			$res = [];
+		// if ($this->input->get("key") === "lgepr"){
+			// $from = date("Y-m-1");
+			// $res = [];
 			
-			$c_orders = $this->gen_m->filter("lgepr_closed_order", false, ["inventory_org" => "N4E", "order_date >=" => $from]);
-			foreach($c_orders as $item){
-				$item->type = "Closed";
-				$item->ref_date = $item->order_date;
-				$item->amount_usd = $item->order_amount_usd;
-				$item->qty = $item->order_qty;
+			// $c_orders = $this->gen_m->filter("lgepr_closed_order", false, ["inventory_org" => "N4E", "order_date >=" => $from]);
+			// foreach($c_orders as $item){
+				// $item->type = "Closed";
+				// $item->ref_date = $item->order_date;
+				// $item->amount_usd = $item->order_amount_usd;
+				// $item->qty = $item->order_qty;
 				
-				$res[] = clone $item;
-			}
+				// $res[] = clone $item;
+			// }
 			
-			$s_orders = $this->gen_m->filter("lgepr_sales_order", false, ["inventory_org" => "N4E", "create_date >=" => $from]);
-			foreach($s_orders as $item){
-				$item->type = "Sales";
-				$item->ref_date = $item->create_date;
-				$item->amount_usd = $item->sales_amount_usd;
-				$item->qty = $item->ordered_qty;
+			// $s_orders = $this->gen_m->filter("lgepr_sales_order", false, ["inventory_org" => "N4E", "create_date >=" => $from]);
+			// foreach($s_orders as $item){
+				// $item->type = "Sales";
+				// $item->ref_date = $item->create_date;
+				// $item->amount_usd = $item->sales_amount_usd;
+				// $item->qty = $item->ordered_qty;
 				
-				$res[] = clone $item;
+				// $res[] = clone $item;
+			// }
+		// }else $res = ["Key error"];
+		
+		// //foreach($res as $item){ print_r($item); echo "<br/><br/>"; }
+		
+		// header('Content-Type: application/json');
+		// echo json_encode($res);
+		
+
+
+// Verifica clave de acceso
+		if ($this->input->get("key") !== "lgepr") {
+			header('Content-Type: application/json');
+			echo json_encode(["Key error"]);
+			return;
+		}
+
+		$from = date("Y-m-1"); // Primer día del mes actual
+		$res = [];
+
+		// Obtiene todas las órdenes cerradas y de ventas de Magento en una sola consulta
+		$all_magento_orders = $this->gen_m->filter("v_obs_closed_order_magento", false,["order_date >=" => $from]);
+		//print_r($all_magento_orders); return;
+		$all_magento_sales = $this->gen_m->filter("v_obs_sales_order_magento", false,["create_date >=" => $from]);
+
+		// Combina ambas consultas en un solo mapa para reducir búsquedas
+		$magento_map = [];
+		foreach (array_merge($all_magento_orders, $all_magento_sales) as $m_order) {
+			$magento_map[$m_order->order_no] = $m_order;
+		}
+
+		// Procesa órdenes cerradas
+		$c_orders = $this->gen_m->filter("lgepr_closed_order", false, ["inventory_org" => "N4E", "order_date >=" => $from]);
+		foreach ($c_orders as $item) {
+			$item->type = "Closed";
+			$item->last_purchase_date = $item->order_date;
+			$item->amount_usd = $item->order_amount_usd;
+			$item->qty = $item->order_qty;
+
+			// Asigna datos de Magento si existen
+			if (isset($magento_map[$item->order_no])) {
+				$magento = $magento_map[$item->order_no];
+				$item->company_name_through_vipkey = $magento->company_name_through_vipkey ?? "";
+				$item->vipkey = $magento->vipkey ?? "";
+				$item->coupon_code = $magento->coupon_code ?? "";
+				$item->coupon_rule = $magento->coupon_rule ?? "";
 			}
-		}else $res = ["Key error"];
-		
-		//foreach($res as $item){ print_r($item); echo "<br/><br/>"; }
-		
+			else{
+				$item->company_name_through_vipkey = "";
+				$item->vipkey = "";
+				$item->coupon_code = "";
+				$item->coupon_rule = "";
+			}
+
+			$res[] = clone $item;
+		}
+
+		// Procesa órdenes de ventas
+		$s_orders = $this->gen_m->filter("lgepr_sales_order", false, ["inventory_org" => "N4E", "create_date >=" => $from]);
+		foreach ($s_orders as $item) {
+			$item->type = "Sales";
+			$item->ref_date = $item->create_date;
+			$item->amount_usd = $item->sales_amount_usd;
+			$item->qty = $item->ordered_qty;
+
+			// Asigna datos de Magento si existen
+			if (isset($magento_map[$item->order_no])) {
+				$magento_s = $magento_map[$item->order_no];
+				$item->company_name_through_vipkey = $magento_s->company_name_through_vipkey ?? "";
+				$item->vipkey = $magento_s->vipkey ?? "";
+				$item->coupon_code = $magento_s->coupon_code ?? "";
+				$item->coupon_rule = $magento_s->coupon_rule ?? "";
+			}
+			else{
+				$item->company_name_through_vipkey = "";
+				$item->vipkey = "";
+				$item->coupon_code = "";
+				$item->coupon_rule = "";
+			}
+			$res[] = clone $item;
+		}
+
+		// Retorna los datos en formato JSON
 		header('Content-Type: application/json');
 		echo json_encode($res);
-		
+
 
 		
 
