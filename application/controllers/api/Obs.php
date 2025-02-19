@@ -211,6 +211,7 @@ class Obs extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode($res);
 		
+
 		
 
 		
@@ -278,11 +279,110 @@ class Obs extends CI_Controller {
 	}
 
 	public function get_market_summary(){
-		$this->to_get_daily_price();
+		// $this->to_get_daily_price();
 		
+		// $summary = [];
+		
+		// $data = $this->gen_m->all("v_tercer_ojo_prices_data", [], "", "", false);
+		// foreach($data as $item){
+			// $index = $item->product."_".$item->updated;
+			
+			// $summary[$index]["date"] = $item->updated;
+			// $summary[$index]["category"] = $item->category;
+			// $summary[$index]["product"] = $item->product;
+			
+			// $summary[$index]["retail"] = null;
+			// $summary[$index]["retail_price"] = null;
+			// $summary[$index]["retail_url"] = null;
+			
+			// $summary[$index]["seller"] = null;
+			// $summary[$index]["seller_retail"] = null;
+			// $summary[$index]["seller_price"] = null;
+			// $summary[$index]["seller_url"] = null;
+			
+			// $summary[$index]["card_retail"] = null;
+			// $summary[$index]["card_seller"] = null;
+			// $summary[$index]["card_price"] = null;
+			// $summary[$index]["card_url"] = null;
+		// }
+		
+		// $retails = $this->gen_m->all("v_tercer_ojo_prices_retail", [], "", "", false);
+		// foreach($retails as $item){
+			// $index = $item->product."_".$item->updated;
+			
+			// if ($item->price){
+				// $summary[$index]["retail"] = $item->retail;
+				// $summary[$index]["retail_price"] = $item->price;
+				// $summary[$index]["retail_url"] = $item->url;
+			// }
+		// }
+		
+		// $sellers = $this->gen_m->all("v_tercer_ojo_prices_seller", [], "", "", false);
+		// foreach($sellers as $item){
+			// $index = $item->product."_".$item->updated;
+			
+			// if ($item->price){
+				// $summary[$index]["seller"] = $item->seller;
+				// $summary[$index]["seller_retail"] = $item->retail;
+				// $summary[$index]["seller_price"] = $item->price;
+				// $summary[$index]["seller_url"] = $item->url;
+			// }
+		// }
+		
+		// $cards = $this->gen_m->all("v_tercer_ojo_prices_card", [], "", "", false);
+		// foreach($cards as $item){
+			// $index = $item->product."_".$item->updated;
+			
+			// if ($item->price){
+				// $summary[$index]["card_retail"] = $item->retail;
+				// $summary[$index]["card_seller"] = $item->seller;
+				// $summary[$index]["card_price"] = $item->price;
+				// $summary[$index]["card_url"] = $item->url;
+			// }
+		// }
+		
+		// $dash_mapping = [
+			// "MONITORES" 			=> ["com" => "MS", "div" => "MNT"],
+			// "TV" 					=> ["com" => "MS", "div" => "LTV"],
+			// "AIRE ACONDICIONADO" 	=> ["com" => "ES", "div" => "RAC"],
+			// "PARLANTES" 			=> ["com" => "MS", "div" => "Audio"],
+			// "LAVADORAS" 			=> ["com" => "HS", "div" => "W/M"],
+			// "REFRIGERADORAS" 		=> ["com" => "HS", "div" => "REF"],
+			// "SOUND BAR" 			=> ["com" => "MS", "div" => "Audio"],
+			// "COCINA" 				=> ["com" => "HS", "div" => "Cooking"],
+			// "HORNOS" 				=> ["com" => "HS", "div" => "Cooking"],
+			// //"" => ["div" => "", "com" => ""],
+		// ];
+		
+		// $summary_new = [];
+		// foreach($summary as $i => $item){
+			// $aux = [];
+			// if ($item["retail_price"]) $aux[] = $item["retail_price"];
+			// if ($item["seller_price"]) $aux[] = $item["seller_price"];
+			// if ($item["card_price"]) $aux[] = $item["card_price"];
+			
+			// if ($aux){
+				// $summary[$i]["minimun"] = min($aux);
+				// $summary[$i]["dash_company"] = $dash_mapping[$summary[$i]["category"]]["com"];
+				// $summary[$i]["dash_division"] = $dash_mapping[$summary[$i]["category"]]["div"];
+				// $summary_new[] = $summary[$i];
+			// }else unset($summary[$i]);
+			
+			// //print_r($summary[$i]); echo "<br/><br/>";
+		// }
+		
+		// header('Content-Type: application/json');
+		// echo json_encode($summary_new);
+		
+		
+		
+				//$this->to_get_daily_price();
+		//llamasys/api/obs/get_market_summary?key=lgepr
 		$summary = [];
 		
 		$data = $this->gen_m->all("v_tercer_ojo_prices_data", [], "", "", false);
+		
+		//print_r($data);
 		foreach($data as $item){
 			$index = $item->product."_".$item->updated;
 			
@@ -340,38 +440,74 @@ class Obs extends CI_Controller {
 			}
 		}
 		
-		$dash_mapping = [
-			"MONITORES" 			=> ["com" => "MS", "div" => "MNT"],
-			"TV" 					=> ["com" => "MS", "div" => "LTV"],
-			"AIRE ACONDICIONADO" 	=> ["com" => "ES", "div" => "RAC"],
-			"PARLANTES" 			=> ["com" => "MS", "div" => "Audio"],
-			"LAVADORAS" 			=> ["com" => "HS", "div" => "W/M"],
-			"REFRIGERADORAS" 		=> ["com" => "HS", "div" => "REF"],
-			"SOUND BAR" 			=> ["com" => "MS", "div" => "Audio"],
-			"COCINA" 				=> ["com" => "HS", "div" => "Cooking"],
-			"HORNOS" 				=> ["com" => "HS", "div" => "Cooking"],
-			//"" => ["div" => "", "com" => ""],
-		];
-		
-		$summary_new = [];
 		foreach($summary as $i => $item){
 			$aux = [];
 			if ($item["retail_price"]) $aux[] = $item["retail_price"];
 			if ($item["seller_price"]) $aux[] = $item["seller_price"];
 			if ($item["card_price"]) $aux[] = $item["card_price"];
 			
-			if ($aux){
-				$summary[$i]["minimun"] = min($aux);
-				$summary[$i]["dash_company"] = $dash_mapping[$summary[$i]["category"]]["com"];
-				$summary[$i]["dash_division"] = $dash_mapping[$summary[$i]["category"]]["div"];
-				$summary_new[] = $summary[$i];
-			}else unset($summary[$i]);
+			if ($aux) $summary[$i]["minimun"] = min($aux);
+			else unset($summary[$i]);
+			
 			
 			//print_r($summary[$i]); echo "<br/><br/>";
 		}
 		
+
+		$prices = $this->gen_m->all("lgepr_price", [], "", "", false);
+		foreach ($summary as $index => $data) {
+			// Inicializar precios como vacíos por defecto
+			$summary[$index]["d2c_price"] = "";
+			$summary[$index]["d2b2c_price"] = "";
+			$summary[$index]["d2p_price"] = "";
+			$summary[$index]["d2e_price"] = "";
+		}
+
+		foreach ($prices as $item) {
+			// Recortar el model_code si tiene un punto
+			$pos = strpos($item->model_code, '.');
+			if ($pos === false) {
+				$model_code_reduce = $item->model_code;
+			} else {
+				$model_code_reduce = substr($item->model_code, 0, $pos);
+			}
+
+			// Obtener el sufijo del customer
+			$customer_sufijo = substr($item->customer, -2);
+
+			// Iterar sobre el array $summary para encontrar el modelo correspondiente
+			foreach ($summary as $index => $data) {
+				// Verificar si el product en summary coincide con model_code_reduce
+				if ($data['product'] === $model_code_reduce) {
+					// Obtener la fecha actual y la request_date del item
+					$current_date = new DateTime(); // Fecha actual
+					$price_date = new DateTime($item->request_date); // Fecha de la base de datos
+
+					// Calcular la diferencia de días entre la fecha actual y request_date
+					$interval = $current_date->diff($price_date);
+					$days_difference = $interval->days;
+
+					// Si es el primer precio o la fecha de este precio es más cercana para este sufijo
+					if (!isset($summary[$index]["last_request_date_" . $customer_sufijo]) || $days_difference < $summary[$index]["last_request_date_" . $customer_sufijo]) {
+						// Actualizar el precio dependiendo del sufijo del customer
+						if ($customer_sufijo === '1B') {
+							$summary[$index]["d2c_price"] = $item->unit_price * 1.18;
+						} elseif ($customer_sufijo === '2B') {
+							$summary[$index]["d2b2c_price"] = $item->unit_price * 1.18;
+						} elseif ($customer_sufijo === '3B') {
+							$summary[$index]["d2p_price"] = $item->unit_price * 1.18;
+						} elseif ($customer_sufijo === '4B') {
+							$summary[$index]["d2e_price"] = $item->unit_price * 1.18;
+						}
+					}
+				}			
+			}
+		}
+		
 		header('Content-Type: application/json');
-		echo json_encode($summary_new);
+		echo json_encode($summary);
+		
+		
 	}
 	
 	/* tercer ojo API start */
