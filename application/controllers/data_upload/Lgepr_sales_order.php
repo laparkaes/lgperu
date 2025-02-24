@@ -226,14 +226,16 @@ class Lgepr_sales_order extends CI_Controller {
 				//print_r($row); echo"<br/><br/>";
 				
 				//usd calculation
-				$er = $row['currency'] === "USD" ? 1 : $this->gen_m->filter("exchange_rate", false, ["currency" => $row['currency'], "date <=" => $row["create_date"]], null, null, [["date", "desc"]], 1)[0]->sell;
+				if ($row['currency'] === "BRL"){
+					if ($row["booked_date"] === "2025-02-21") $er = 3.25;
+				}else $er = $row['currency'] === "USD" ? 1 : $this->gen_m->filter("exchange_rate", false, ["currency" => $row['currency'], "date <=" => $row["create_date"]], null, null, [["date", "desc"]], 1)[0]->sell;
 				$row["sales_amount_usd"] =  round($row["sales_amount"] / $er, 2);
 				
 				if (count($rows) > 5000){
 					$records += $this->gen_m->insert_m("lgepr_sales_order", $rows);
 					$rows = [];
 				}
-				
+				print_r($row); echo "<br/><br/>";
 				$rows[] = $row;
 				$order_lines[] = $row["order_line"];
 			}
