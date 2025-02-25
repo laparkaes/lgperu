@@ -211,9 +211,7 @@ class Obs extends CI_Controller {
 		// header('Content-Type: application/json');
 		// echo json_encode($res);
 		
-
-
-// Verifica clave de acceso
+		// Verifica clave de acceso
 		if ($this->input->get("key") !== "lgepr") {
 			header('Content-Type: application/json');
 			echo json_encode(["Key error"]);
@@ -288,12 +286,6 @@ class Obs extends CI_Controller {
 		// Retorna los datos en formato JSON
 		header('Content-Type: application/json');
 		echo json_encode($res);
-
-
-		
-
-		
-		
 	}
 	
 	public function get_stock(){
@@ -659,7 +651,7 @@ class Obs extends CI_Controller {
 		
 	}
 	
-	/* tercer ojo API start */
+	/* tercer ojo API - start */
     private function to_get_access_token(){
         $url = $this->to_base_url."api/auth/generate-api-access-token";
         $data = array(
@@ -909,7 +901,70 @@ class Obs extends CI_Controller {
 		*/
 	}
 	/* retails is ommited (no necessary to be filtered) */
-	/* tercer ojo API end */
+	/* tercer ojo API - end */
+	
+	/* data from Y-1 to now - start */
+	public function get_yearly_dates(){
+		if ($this->input->get("key") === "lgepr"){
+			$res = [];
+			$now = strtotime(date("Y-m"));
+			$pivot = strtotime(date(date("Y", strtotime("-1 year"))."-01"));
+			while($pivot <= $now){
+				//echo date("Y-m", $pivot)."<br/>";
+				$res[] = date("Y-m", $pivot);
+				$pivot = strtotime("+1 month", $pivot);
+			}
+		}else $res = ["Key error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+	
+	public function get_most_likely_year(){
+		//llamasys/api/obs/get_most_likely_year?key=lgepr
+		
+		if ($this->input->get("key") === "lgepr"){
+			$w = ["year >=" => date("Y", strtotime("-1 year")), "month >=" => 1];
+			
+			$mls = $this->gen_m->filter("obs_most_likely", false, $w, null, null, [["year", "desc"], ["month", "desc"]]);
+			foreach($mls as $item) $item->d = date("Y-m", strtotime($item->year."-".$item->month));
+			
+			if ($mls) $res = $mls;
+			else $res = ["No ML in database."];
+		}else $res = ["Key error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+	
+	public function get_closed_order_year(){
+		//llamasys/api/obs/get_closed_order_year?key=lgepr
+		
+		if ($this->input->get("key") === "lgepr"){
+			//$w = ["closed_date >=" => date("2024-12-01"), "inventory_org" => "N4E"];
+			//$w = ["closed_date >=" => date("Y-m-01"), "inventory_org" => "N4E"];
+			$w = ["closed_date >=" => date(date("Y", strtotime("-1 year"))."-01-01")];
+			$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
+			
+			$res = $this->gen_m->filter("v_obs_closed_order_magento", false, $w, null, null, $o);
+			foreach($res as $item) if (!$item->customer_group) $item->customer_group = $item->bill_to_name;
+			
+			//foreach($res as $item){ echo $item->closed_date."<br/>"; }
+		}else $res = ["Key error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+	
+	
+	
+	/* data from Y-1 to now - end */
+	
+	
+	
+	
+	
+	
 	
 	/************************************************************************************** Old dashboard API */
 	
