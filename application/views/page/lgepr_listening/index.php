@@ -1,8 +1,11 @@
 <!DOCTYPE html>
+
+			
 <html lang="es">
 
+
 <div class="pagetitle">
-  <h1>PI - Listening to you</h1>
+  <h1><br>PI - Listening to you</h1>
   <nav>
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
@@ -11,15 +14,26 @@
   </nav>
 </div>
 
+<div class="card overflow-scroll" style="height: 97vh;">
 <section class="section">
+
   <div class="row">
+  
     <div class="col-12">
+		
       <div class="card">
         <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-				<h5 class="card-title mb-0 me-2">Voices</h5>
+          <!-- <h5 class="card-title">Voices</h5> -->	
+			<div class="d-flex justify-content-between align-items-center">
+				<div class="d-flex align-items-center">
+					<h5 class="card-title mb-0 me-2">Voices</h5>
+							<button type="button" class="btn btn-outline-primary mb-0 me-2" style="width: 150px;" onclick="location.href='<?= base_url("page/pi_listening_request") ?>'">
+								Add new issue
+							</button>
+				</div>
 				<div class="d-flex justify-content-end">
-				 
+				  
+					
 					
 					<!-- Campos de fecha para filtrar -->
 
@@ -63,20 +77,18 @@
 					</select>
 					
 					<input type="text" id="searchInput" class="form-control w-auto" style="max-width: 300px;" placeholder="Search..."> <br>
-				    		   
+				
+			    
+		   
 				</div>
 			</div>
-		  
-		  
-		  
-		  
           <table class="table align-middle" id="dataTable" style="table-layout: fixed;">
 			
             <thead>
               <tr>
-                <th scope="col" style="width: 40px;">Num</th>
-                <th scope="col" style="width: 85px;">Updated</th>
-                <th scope="col" style="width: 60px;">For</th>
+                <th scope="col" style="width: 30px;">Num</th>
+                <th scope="col" style="width: 50px;">Updated</th>
+                <th scope="col" style="width: 50px;">For</th>
                 <th scope="col" style="width: 400px;">Issue</th>
                 <th scope="col" style="width: 300px;">Progress</th>
 
@@ -86,8 +98,8 @@
               <!-- Los datos se generarán dinámicamente con JavaScript -->
 				<?php foreach($records as $i => $item){ ?>
 					<tr>
-						<th  scope="row"><?= $i + 1 ?></th>
-							<td  id="date-<?= $item->listening_id ?>">
+						<th scope="row"><?= $i + 1 ?></th>
+							<td id="date-<?= $item->listening_id ?>">
 								<?php
 									// Mostrar la fecha registrada del problema (por defecto)
 									$displayDate = $item->registered;
@@ -110,33 +122,64 @@
 									// Formatear la fecha para mostrarla sin los segundos (YYYY-MM-DD HH:MM)
 									$displayHour = date('H:i', strtotime($displayDate));
 									$displayDate = date('Y-m-d', strtotime($displayDate));
-									//$displayDate = date('Y-m-d H:i', strtotime($displayDate));
+									
 									// Imprimir la fecha a mostrar
 									echo $displayDate; echo '<br>'; echo $displayHour;
-									?>							
-								<!-- <br> -->
-								<!-- <label class="text-muted">Status:</label> -->
-								<select class="form-select status-select" data-listening-id="<?= $item->listening_id ?>">
-									<option value="Registered" <?= $item->status == "Registered" ? "selected" : "" ?>>Registered</option>
-									<option value="Finished" <?= $item->status == "Finished" ? "selected" : "" ?>>Finished</option>
-									<option value="Refused" <?= $item->status == "Refused" ? "selected" : "" ?>>Refused</option>
-									<option value="In progress" <?= $item->status == "In progress" ? "selected" : "" ?>>In progress</option>
-								</select>
+									?>
+									
+								<div class="d-flex justify-content-start align-items-center mt-1">
+									
+										<?php
+											if ($item->status === 'In progress'){?>
+												<span class="badge bg-success">
+												<i class="bi bi-check-circle me-1"></i>
+												<?= $item->status ?>
+												</span> 
+										<?php	} ?>
+										
+										<?php
+											if ($item->status === 'Refused'){?>
+												<span class="badge bg-danger">
+												<i class="bi bi-exclamation-octagon me-1"></i>
+												<?= $item->status ?>
+												</span> 
+										<?php	} ?>
+
+										<?php
+											if ($item->status === 'Registered'){?>
+												<span class="badge rounded-pill bg-dark">
+												<i class="bi bi-shield-check"></i>
+												<?= $item->status ?>
+												</span> 
+										<?php	} ?>
+										
+										<?php
+											if ($item->status === 'Finished'){?>
+												<span class="badge bg-primary">
+												<i class="bi bi-check2-all"></i>
+												<?= $item->status ?>
+												</span> 
+										<?php	} ?>
+										<!-- Success -->
+									
+									<!-- <div class="border rounded p-1 bg-light" style="width: 100px; height: 40px;">
+										<?= $item->status ?>
+									</div>  -->
+								</div>
 							</td>
-						<td ><?= $item->dptTo ?></td>
+						<td><?= $item->dptTo ?></td>
 						<td>
-							<div class="border rounded p-2 bg-light"><?= $item->issue ?> </div>
 							
-							<br>
+							<div class="border rounded p-2 bg-light"><?= $item->issue ?> </div>
+
 								<strong>Proposal </strong>
-								<div class="border rounded p-2 mt-1"><?= $item->solution ?>
+								<div class="border rounded p-2  mt-1"><?= $item->solution ?>
 						</td>
 						<!-- <td><?= $item->status?></td> -->
 						<td class="align-top">
 							<!--<a href="#" class="add-comment" data-id="<?= $item->listening_id ?>">Add comment</a>  -->
 						<div class="text-start">
-							
-							<a href="#" class="btn btn-link p-0 m-0 add-comment" data-id="<?= $item->listening_id ?>">Add Comment</a>
+						
 							<div id="latest-comment-<?= $item->listening_id ?>">
 								
 									
@@ -145,7 +188,6 @@
 									$latestComment = "";
 									$latestCommentDate = "";
 									$latestCommentUser = "";
-									$latestCommentId = null; 
 									if (!empty($commentsForListening)) {
 										usort($commentsForListening, function($a, $b) {
 											return strtotime($b->updated) - strtotime($a->updated);
@@ -153,27 +195,16 @@
 										$latestComment = $commentsForListening[0]->comment;
 										$latestCommentDate = $commentsForListening[0]->updated;
 										$latestCommentUser = $commentsForListening[0]->pr_user;
-										$latestCommentId = $commentsForListening[0]->comment_id;
 									}?>
 									<a class="list-group-item list-group-item-action border  p-2 mt-1 bg-light"> 
 										<div class="d-flex w-100 justify-content-between">
 											<h5 class="mb-1">												
 												<strong><?= $latestCommentUser ?: "No user" ?>: </strong>
-												<button class="btn btn-outline-primary btn-sm edit-comment" 
-													data-comment-id='<?= $latestCommentId ?>'
-													data-listening-id='<?= $item->listening_id ?>'
-													data-comment='<?= htmlspecialchars($latestComment, ENT_QUOTES) ?>'>
-													Edit
-												</button>
 											</h5>
 											<small class="text-muted"><?= $latestCommentDate ?></small>
 										</div>
 								
 										<p class="mb-1"><?=$latestComment ?: "No comment" ?></p>
-										
-										<?php if (!empty($latestComment)) : ?>
-											
-										<?php endif; ?>
 									</a>
 							</div>
 						
@@ -196,18 +227,10 @@
 							foreach ($commentsForViewing as $comment) {
 								echo "<a href='#' class='list-group-item list-group-item-action border p-2 mt-1'>
 										<div class='d-flex w-100 justify-content-between'>
-											<h5 class='mb-1'>{$comment->pr_user}:
-												<button class='btn btn-outline-primary btn-sm edit-comment' 
-												data-comment-id='{$comment->comment_id}'
-												data-listening-id='{$item->listening_id}'
-												data-comment='" . htmlspecialchars($comment->comment, ENT_QUOTES) . "'>
-													Edit
-												</button>
-											</h5>
+											<h5 class='mb-1'>{$comment->pr_user}:</h5>
 											<small class='text-muted'>" . $comment->updated . "</small>
 										</div>
-										<p class='mb-1'>{$comment->comment}</p>
-										
+										<p class='mb-1'>{$comment->comment}</p>										
 									  </a>";
 							}
 							?>
@@ -218,66 +241,24 @@
 						
 					</tr>
 				<?php } ?>
-				
+
             </tbody>
           </table>
-		  <div class="d-flex justify-content-center mt-3">
+			<div class="d-flex justify-content-center mt-3">
 				<nav aria-label="Page navigation example">
 					<ul class="pagination" id="pagination"></ul>
 				</nav>
 			</div>
-			<!--
-		  <div class="d-flex justify-content-center mt-3">
-			<div id="pagination"></div>	
-		  </div> -->
-
         </div>
       </div>
     </div>
   </div>
 
-	<!-- Modal para agregar comentarios -->
-	<div id="commentModal" class="modal fade" tabindex="-1" role="dialog">
-	  <div class="modal-dialog" role="document">
-		<div class="modal-content">
-		  <div class="modal-header">
-			<h5 class="modal-title">Agregar Comentario</h5>
-			<button type="button" class="close" data-bs-dismiss="modal">&times;</button>
-		  </div>
-		  <div class="modal-body">
-			<textarea id="commentText" class="form-control" rows="4" placeholder="Escribe tu comentario aquí..."></textarea>
-			<input type="hidden" id="currentListeningId">
-		  </div>
-		  <div class="modal-footer">
-			<button type="button" class="btn btn-primary" id="submitComment">Submit</button>
-			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-		  </div>
-		</div>
-	  </div>
-	</div>
+
 	
-	<!-- Modal para editar comentario -->
-	<div id="editCommentModal" class="modal fade" tabindex="-1" role="dialog">
-	  <div class="modal-dialog" role="document">
-		<div class="modal-content">
-		  <div class="modal-header">
-			<h5 class="modal-title">Editar Comentario</h5>
-			<button type="button" class="close" data-bs-dismiss="modal">&times;</button>
-		  </div>
-		  <div class="modal-body">
-			<textarea id="editCommentText" class="form-control" rows="4"></textarea>
-			<input type="hidden" id="editCommentId">
-			<input type="hidden" id="editListeningId">
-		  </div>
-		  <div class="modal-footer">
-			<button type="button" class="btn btn-primary" id="submitEditComment">Save</button>
-			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-		  </div>
-		</div>
-	  </div>
-	</div>
 
 </section>
+
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -285,19 +266,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const tableBody = document.getElementById("tableBody");
     const rows = Array.from(tableBody.getElementsByTagName("tr"));
     const paginationContainer = document.getElementById("pagination");
-    
-    // let currentPage = 1;
-    // const totalPages = Math.ceil(rows.length / rowsPerPage);
-	
+    let filteredRows = rows; // Filas filtradas
 
     let currentPage = 1;
-    const totalPages = Math.ceil(rows.length / rowsPerPage);
-	
+    let totalPages = Math.ceil(filteredRows.length / rowsPerPage); // Inicializar el número de páginas
+
     function showPage(page) {
         const start = (page - 1) * rowsPerPage;
         const end = start + rowsPerPage;
-        
-        rows.forEach((row, index) => {
+
+        filteredRows.forEach((row, index) => {
             row.style.display = (index >= start && index < end) ? "" : "none";
         });
 
@@ -310,7 +288,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Botón de "Anterior"
         const prevBtn = document.createElement("li");
         prevBtn.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
-        prevBtn.innerHTML = `
+        prevBtn.innerHTML = ` 
             <a class="page-link" href="#" aria-label="Previous">
                 <span aria-hidden="true">&laquo;</span>
             </a>
@@ -342,7 +320,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Botón de "Siguiente"
         const nextBtn = document.createElement("li");
         nextBtn.className = `page-item ${currentPage === totalPages ? "disabled" : ""}`;
-        nextBtn.innerHTML = `
+        nextBtn.innerHTML = ` 
             <a class="page-link" href="#" aria-label="Next">
                 <span aria-hidden="true">&raquo;</span>
             </a>
@@ -357,64 +335,18 @@ document.addEventListener("DOMContentLoaded", function () {
         paginationContainer.appendChild(nextBtn);
     }
 
+	
     // Inicializar la paginación
     if (rows.length > 0) {
-        showPage(1);
+        showPage(currentPage);
     }
 });
+
 </script>
 
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // Abrir el modal al hacer clic en "Agregar comentarios"
-    document.querySelectorAll(".add-comment").forEach(btn => {
-        btn.addEventListener("click", function () {
-            let listeningId = this.getAttribute("data-id");
-            document.getElementById("currentListeningId").value = listeningId;
-            let modal = new bootstrap.Modal(document.getElementById("commentModal"));
-            modal.show();
-        });
-    });
-
-    // Enviar comentario
-    document.getElementById("submitComment").addEventListener("click", function () {
-        let listeningId = document.getElementById("currentListeningId").value;
-        let commentText = document.getElementById("commentText").value;
-
-        if (commentText.trim() === "") {
-            alert("El comentario no puede estar vacío.");
-            return;
-        }
-
-		 
-		
-        fetch("<?= base_url('module/pi_listening/add') ?>", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: `listening_id=${listeningId}&comment=${encodeURIComponent(commentText)}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById(`latest-comment-${listeningId}`).textContent = commentText;
-				document.getElementById(`date-${listeningId}`).textContent = data.updated;
-
-				// Mover la fila al inicio
-				let row = document.querySelector(`[data-id="${listeningId}"]`).closest("tr");
-				let tableBody = document.getElementById("tableBody");
-				tableBody.prepend(row); // Mueve la fila al inicio de la tabla
-				
-				
-                document.getElementById("commentText").value = "";
-				
-                bootstrap.Modal.getInstance(document.getElementById("commentModal")).hide();
-                location.reload(); // Refresca la página para ver el nuevo comentario en la lista completa
-            } else {
-                alert("Error al agregar comentario.");
-            }
-        });
-    });
 
     // Mostrar u ocultar comentarios
     document.querySelectorAll(".view-more").forEach(btn => {
@@ -424,92 +356,11 @@ document.addEventListener("DOMContentLoaded", function () {
             this.textContent = commentList.classList.contains("d-none") ? "View more" : "View less";
         });
     });
-});
-</script>
-
-
-<script>
-// Cambio de combo en updated
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".status-select").forEach(select => {
-        select.addEventListener("change", function () {
-            let listeningId = this.getAttribute("data-listening-id");
-            let newStatus = this.value;
-
-            fetch("<?= base_url('./module/pi_listening/update_status') ?>", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: `listening_id=${listeningId}&status=${newStatus}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert("Estado actualizado correctamente.");
-                } else {
-                    alert("Error al actualizar el estado.");
-                }
-            })
-			.catch(error => console.error("Error en la solicitud:", error));
-        });
-    });
-});
-</script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    // Abrir el modal con el comentario seleccionado
-    document.querySelectorAll(".edit-comment").forEach(btn => {
-        btn.addEventListener("click", function () {
-            let commentId = this.getAttribute("data-comment-id");
-            let listeningId = this.getAttribute("data-listening-id");
-            let commentText = this.getAttribute("data-comment");
-
-            document.getElementById("editCommentId").value = commentId;
-            document.getElementById("editListeningId").value = listeningId;
-            document.getElementById("editCommentText").value = commentText;
-
-            let modal = new bootstrap.Modal(document.getElementById("editCommentModal"));
-            modal.show();
-        });
-    });
-
-    // Guardar cambios del comentario editado
-    document.getElementById("submitEditComment").addEventListener("click", function () {
-        let commentId = document.getElementById("editCommentId").value;
-        let listeningId = document.getElementById("editListeningId").value;
-        let newComment = document.getElementById("editCommentText").value;
-									
-        if (newComment.trim() === "") {
-            alert("El comentario no puede estar vacío.");
-            return;
-        }
-
-        fetch("<?= base_url('module/pi_listening/update_comment') ?>", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: `comment_id=${commentId}&listening_id=${listeningId}&comment=${encodeURIComponent(newComment)}`
-        })
-		
-		
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Actualizar el comentario en la UI sin recargar la página
-                document.querySelector(`[data-comment-id="${commentId}"]`).setAttribute("data-comment", newComment);
-                document.getElementById(`latest-comment-${listeningId}`).textContent = newComment;
-                
-                // Cerrar modal
-                bootstrap.Modal.getInstance(document.getElementById("editCommentModal")).hide();
-				location.reload();
-            } else {
-                alert("Error al actualizar el comentario.");
-            }
-        })
-        .catch(error => console.error("Error en la solicitud:", error));
-    });
+	
 	
 });
 </script>
+
 
 <script>
 document.getElementById("searchInput").addEventListener("keyup", function() {
@@ -521,131 +372,6 @@ document.getElementById("searchInput").addEventListener("keyup", function() {
         row.style.display = text.includes(input) ? "" : "none";
     });
 });
-</script>
-
-
-
-<script>
-// document.addEventListener("DOMContentLoaded", function () {
-
-    // // Filtrar cuando se cambien los valores de las fechas
-    // document.getElementById('fromDate').addEventListener('change', function () {
-        // let fromDate = document.getElementById('fromDate').value;
-        // let toDate = document.getElementById('toDate').value;
-
-        // // Verificamos que ambas fechas estén definidas
-        // if (fromDate && toDate) {
-            // filterByDate(fromDate, toDate);
-        // }
-    // });
-
-    // document.getElementById('toDate').addEventListener('change', function () {
-        // let fromDate = document.getElementById('fromDate').value;
-        // let toDate = document.getElementById('toDate').value;
-
-        // // Verificamos que ambas fechas estén definidas
-        // if (fromDate && toDate) {
-            // filterByDate(fromDate, toDate);
-        // }
-    // });
-
-	
-    // function filterByDate(fromDate, toDate) {
-        // let rows = document.querySelectorAll("#dataTable tbody tr");
-
-        // // Convertir las fechas "fromDate" y "toDate" de formato mm/dd/yyyy a yyyy-mm-dd
-        // fromDate = convertDateToISO(fromDate);
-        // toDate = convertDateToISO(toDate);
-
-        // rows.forEach(row => {
-            // let updatedDateCell = row.querySelector("td[id^='date-']");
-            // let updatedDate = updatedDateCell ? updatedDateCell.innerText.trim() : ""; // Fecha 'updated' en formato mm/dd/yyyy
-
-            // // Convertir la fecha 'updated' de la fila a formato yyyy-mm-dd
-            // updatedDate = convertDateToISO(updatedDate);
-
-            // // Comparar las fechas
-            // if (updatedDate >= fromDate && updatedDate <= toDate) {
-                // row.style.display = ""; // Mostrar la fila
-            // } else {
-                // row.style.display = "none"; // Ocultar la fila
-            // }
-        // });
-    // }
-	
-    // // Función para convertir una fecha en formato 'mm/dd/yyyy' a 'yyyy-mm-dd'
-    // function convertDateToISO(dateString) {
-        // let parts = dateString.split('/');  // [mm, dd, yyyy]
-        // return `${parts[2]}-${parts[0]}-${parts[1]}`; // Convertimos a yyyy-mm-dd
-    // }
-	
-	
-// });
-
-</script>
-
-<script>
-// document.addEventListener("DOMContentLoaded", function () {
-    // const deptSelect = document.getElementById('sl_dept');
-    // const statusSelect = document.getElementById('sl_status');
-    
-    // deptSelect.addEventListener('change', function () {
-        // applyFilters();
-    // });
-
-    // statusSelect.addEventListener('change', function () {
-        // applyFilters();
-    // });
-
-    // function applyFilters() {
-        // const selectedDept = deptSelect.value;
-        // const selectedStatus = statusSelect.value;
-
-        // // Hacer la petición AJAX al servidor
-        // fetch(`your_controller/get_filtered_list?dept=${selectedDept}&status=${selectedStatus}`)
-            // .then(response => response.json())
-            // .then(data => {
-                // const tbody = document.querySelector('#dataTable tbody');
-                // tbody.innerHTML = ''; // Limpiar la tabla antes de actualizarla
-
-                // // Añadir las filas filtradas
-                // data.records.forEach(item => {
-                    // const row = document.createElement('tr');
-                    // row.innerHTML = `<td>${item.dept}</td><td>${item.status}</td>`;
-                    // tbody.appendChild(row);
-                // });
-            // });
-    // }
-// });
-
-// // En tu controlador de CodeIgniter
-// public function get_filtered_list() {
-    // // Recoger los filtros seleccionados
-    // $selectedDept = $this->input->get('deptTo') ?: '';  // Recoge el filtro de departamento
-    // $selectedStatus = $this->input->get('status') ?: '';  // Recoge el filtro de status
-
-    // // Construir la consulta con los filtros
-    // $this->db->select('*')->from('pi_listening');
-
-    // if ($selectedDept !== '') {
-        // $this->db->where('deptTo', $selectedDept);
-    // }
-    
-    // if ($selectedStatus !== '') {
-        // $this->db->where('status', $selectedStatus);
-    // }
-
-    // $query = $this->db->get();
-    // $result = $query->result();
-
-    // // Pasar los resultados a la vista
-    // $data['records'] = $result;
-    // $this->load->view('pi_listening', $data);
-// }
-
-
-
-
 </script>
 
 <script>
@@ -670,22 +396,23 @@ document.addEventListener("DOMContentLoaded", function () {
         // Filtrar filas según los criterios seleccionados
         const filteredRows = Array.from(rows).filter(row => {
             const deptCell = row.querySelector('td:nth-child(3)'); // Suponiendo que el depto está en la tercera columna
-            const statusCell = row.querySelector('td:nth-child(2) select'); // Suponiendo que el status está en la segunda columna
+            const statusCell = row.querySelector('td:nth-child(2)'); // Suponiendo que el status está en la segunda columna
             const dateCell = row.querySelector("td[id^='date-']"); // Suponiendo que la fecha está en la cuarta columna
 
             const deptText = deptCell ? deptCell.innerText.toLowerCase() : '';
-            const statusText = statusCell ? statusCell.value.toLowerCase() : '';
+            const statusText = statusCell ? statusCell.innerText.toLowerCase() : '';
             //const rowDate = dateCell ? new Date(dateCell.innerText) : new Date(0);
 			const rowDateText  = dateCell ? dateCell.innerText.trim() : '';
 			
 			// Convertir la fecha de la fila a Date
             let rowDate = rowDateText ? convertDateToISO(rowDateText) : null;
-			
+		
             // Aplicar filtros: dept, status, búsqueda y fecha
             const matchesDept = selectedDept === '' || deptText.includes(selectedDept);
             const matchesStatus = selectedStatus === '' || statusText.includes(selectedStatus);
             const matchesSearch = searchTerm === '' || deptText.includes(searchTerm) || statusText.includes(searchTerm);
-            const matchesDate = (!rowDate || (!startDate || rowDate >= startDate) && (!endDate || rowDate <= endDate));
+			const matchesDate = (!rowDate || (!startDate || rowDate >= startDate) && (!endDate || rowDate <= endDate));
+            //const matchesDate = (!startDateInput.value || rowDate >= startDate) && (!endDateInput.value || rowDate <= endDate);
 
             return matchesDept && matchesStatus && matchesSearch && matchesDate;
         });
@@ -694,7 +421,8 @@ document.addEventListener("DOMContentLoaded", function () {
         updatePagination(filteredRows);
     }
 	
-	function convertDateToISO(dateString) {
+	 // Función para convertir una fecha en formato 'mm/dd/yyyy' a 'yyyy-mm-dd'
+    function convertDateToISO(dateString) {
         let parts = dateString.split('/'); // [mm, dd, yyyy]
         if (parts.length === 3) {
             return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;

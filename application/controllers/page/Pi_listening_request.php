@@ -51,7 +51,9 @@ class Pi_listening_request extends CI_Controller {
 		
 		$this->load->view('layout_dashboard', $data);
 	}
-	
+	// public function load_add_problem(){
+		// $this->load->view('page/pi_listening_request/index'); // Carga la vista sin layout
+	// }
 	public function cpilistening(){
 		/* 
 		1. capturar cada dato
@@ -66,28 +68,7 @@ class Pi_listening_request extends CI_Controller {
 		
 		//1. capturar y guardar cada dato
 		$data = $this->input->post();
-		
-		/* with dpt from validation
-		if (array_key_exists($data["dptFrom"], $dpts)){
-			$data["dptFrom"] = $dpts[$data["dptFrom"]];
-			$data["dptTo"] = $dpts[$data["dptTo"]];
-			
-			if (!$this->gen_m->filter("pi_listening", false, $data)){
-				$data["status"] = "Registered";
-				$data["registered"] = date('Y-m-d H:i:s', time());
-				$this->gen_m->insert("pi_listening", $data);
-			}
-			
-			$this->session->set_flashdata('success_msg', 'Your voice has been registered as '.$data["dptFrom"].".");
-		}else{
-			$this->session->set_flashdata('dptFrom', $data["dptFrom"]);
-			$this->session->set_flashdata('dptTo', $data["dptTo"]);
-			$this->session->set_flashdata('issue', $data["issue"]);
-			$this->session->set_flashdata('solution', $data["solution"]);
-			
-			$this->session->set_flashdata('error_msg', 'Insert your department code correctly.');
-		}
-		*/
+
 		
 		/* without dpt from validation */
 		$data["dptTo"] = $dpts[$data["dptTo"]];
