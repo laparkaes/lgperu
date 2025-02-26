@@ -7,7 +7,7 @@ class Utility_func extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
-		if (!$this->session->userdata('logged_in')) redirect("/auth/login");
+		//if (!$this->session->userdata('logged_in')) redirect("/auth/login");
 		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
@@ -85,5 +85,10 @@ class Utility_func extends CI_Controller {
 		$content = $this->load->view('email/cloud_pc_shutdown_email', null, true);
 		
 		echo $this->my_func->send_email("comunicacionpi@lge.com", $to, $subject, $content);
+	}
+	
+	public function xml_reader(){
+		
+		echo "hola";
 	}
 }

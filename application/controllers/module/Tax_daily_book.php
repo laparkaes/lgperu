@@ -135,8 +135,8 @@ class Tax_daily_book extends CI_Controller {
 				$this->print_zero($row);
 			}
 			
-			// Si el dato inicio por IBT|PP|CN|EV
-			elseif (is_string($cleanedCode) && preg_match('/^(IBT|PP|CN|EV)/', $cleanedCode)) {
+			// Si el dato inicio por IBT|PP|EV
+			elseif (is_string($cleanedCode) && preg_match('/^(IBT|PP|EV)/', $cleanedCode)) {
 				$this->print_zero($row);
 			}
 			elseif($parts[0] === '20002'){
@@ -223,9 +223,19 @@ class Tax_daily_book extends CI_Controller {
 						$row["number_voucher"] = $parts[1].$parts[2];
 					}
 					elseif (strpos($parts[1], 'F') === 0 || strpos($parts[1], 'E') === 0){
-						$row["type_voucher"] = '01';
-						$row["serie_voucher"] = $parts[1];
-						$row["number_voucher"] = $parts[2];
+						if(strlen($parts[1]) < 4){
+							$firstChar = $parts[1][0];  // Obtiene el primer carácter
+							$rest = substr($parts[1], 1);  // Obtiene el resto de la cadena sin el primer carácter
+							$parts[1] = $firstChar . '0' . $rest;  // Une el primer carácter, el '0' y el resto
+							$row["type_voucher"] = '01';
+							$row["serie_voucher"] = $parts[1];
+							$row["number_voucher"] = $parts[2];
+						}
+						else{
+							$row["type_voucher"] = '01';
+							$row["serie_voucher"] = $parts[1];
+							$row["number_voucher"] = $parts[2];
+						}
 					}
 					else{
 						$row["type_voucher"] = '00';
@@ -258,7 +268,7 @@ class Tax_daily_book extends CI_Controller {
 			}				
 		
 			//Si el valor original comienza por HQ, SPG, KR, CORE, CS
-			elseif (preg_match('/^(HQ|SPG|KR|CORE|CS|SVC|EMI)/', $cleanedCode)) {
+			elseif (preg_match('/^(HQ|SPG|KR|CORE|CS|SVC|EMI|CN)/', $cleanedCode)) {
 				$row["type_voucher"] = '91';         // Primera columna nueva
 				$row["serie_voucher"] = '0000';       // Segunda columna nueva
 				$row["number_voucher"] = strval($cleanedCode); // Tercera columna nueva (valor original tal cual)
@@ -266,7 +276,7 @@ class Tax_daily_book extends CI_Controller {
 			}
 			
 			// Si el valor original comienza por 5000011
-			elseif (strpos($cleanedCode, '5000011') === 0) {
+			elseif (strpos($cleanedCode, '50000') === 0) {
 				$row["type_voucher"] = '91';         // Primera columna nueva
 				$row["serie_voucher"] = '0000';       // Segunda columna nueva
 				$row["number_voucher"] = strval($cleanedCode); // Tercera columna nueva (valor original tal cual)
@@ -309,6 +319,12 @@ class Tax_daily_book extends CI_Controller {
 				elseif($parts[3]==='28'){
 					$parts[0] = $this->type_verify($parts[0]);
 					$row["type_voucher"] = '53';    // Primera columna nueva
+					$row["serie_voucher"] = $parts[1];       // Segunda columna nueva
+					$row["number_voucher"] = strval($parts[4] ?? '');    // Tercera columna nueva
+				}
+				else{
+					$parts[0] = $this->type_verify($parts[0]);
+					$row["type_voucher"] = '50';    // Primera columna nueva
 					$row["serie_voucher"] = $parts[1];       // Segunda columna nueva
 					$row["number_voucher"] = strval($parts[4] ?? '');    // Tercera columna nueva
 				}
@@ -381,9 +397,17 @@ class Tax_daily_book extends CI_Controller {
 				}
 				else{
 					 // $this->save_var($parts);
-					$row["type_voucher"] = $parts[0] ?? ''; // Nueva columna 1
-					$row["serie_voucher"] = $parts[1] ?? ''; // Nueva columna 2
-					$row["number_voucher"] = $parts[2] ?? ''; // Nueva columna 3
+					if (strlen($parts[1]) > 4 && $parts[1][1] === '0') {
+						$parts[1] = $parts[1][0].$parts[1][1].$parts[1][3].$parts[1][4];
+						$row["type_voucher"] = $parts[0] ?? ''; // Nueva columna 1
+						$row["serie_voucher"] =  $parts[1] ?? ''; // Nueva columna 2
+						$row["number_voucher"] = $parts[2] ?? ''; // Nueva columna 3		 
+					}
+					else{
+						$row["type_voucher"] = $parts[0] ?? ''; // Nueva columna 1
+						$row["serie_voucher"] =$parts[1] ?? ''; // Nueva columna 2
+						$row["number_voucher"] = $parts[2] ?? ''; // Nueva columna 3
+					}
 				}
 			}
 			elseif (strpos($parts[0], '001')===0){
@@ -404,7 +428,17 @@ class Tax_daily_book extends CI_Controller {
 				}
 				//print_r($parts); echo '<br>'; echo '<br>'; echo '<br>';
 			}
-			
+			elseif($parts[0]==='03'){
+				$row["type_voucher"] = $parts[0];    // Primera columna nueva
+				$row["serie_voucher"] = $parts[1];       // Segunda columna nueva
+				$row["number_voucher"] = $parts[2];
+			}
+			elseif($parts[0]==='03' || $parts[0]==='05' || $parts[0]==='07' || $parts[0]==='08' || $parts[0]==='42' || $parts[0]==='30' || $parts[0]==='14'){
+				$row["type_voucher"] = $parts[0];    // Primera columna nueva
+				$row["serie_voucher"] = $parts[1];       // Segunda columna nueva
+				$row["number_voucher"] = $parts[2];
+			}
+
 			else{
 				$this->print_zero($row);
 				// $parts[0] = $this->type_verify($parts[0]);
@@ -880,7 +914,7 @@ class Tax_daily_book extends CI_Controller {
 		$banks_account = ['PEN' =>['SCOTIA'=>'000-0099058', 'BCP'=>'193-1705267-0-18', 'CITI'=>'000-2898004', 'INTER'=>'200-3006258334', 'BBVA'=>'0011-0910-0100073657-77', 'NACION'=>'00-005-177405'], 
 		'USD'=>['SCOTIA'=>'01-283-103-0288-25', 'BCP'=>'193-1020580-1-98', 'CITI'=>'000-2898136', 'INTER'=>'200-3006258376', 'BBVA'=>'0011-0910-0100060709-71']];
 		
-		$banks_account_code = ['SCOTIA'=>'09', 'BCP'=>'02', 'CITI'=>'07', 'INTER'=>'Pendiente', 'BBVA'=>'02', 'NACION'=>'18'];
+		$banks_account_code = ['SCOTIA'=>'09', 'BCP'=>'02', 'CITI'=>'07', 'INTER'=>'03', 'BBVA'=>'02', 'NACION'=>'18'];
 		// Obtener los valores de number_document (solo una vez)
 		$biz_map = [];
 
@@ -961,20 +995,27 @@ class Tax_daily_book extends CI_Controller {
 				$batchSpecialData[] = ["CA" . $row_num, str_replace('-', '', $row->period_name) . '00'];
 
 				// Valores para CUO - columna CB
-				$batchSpecialData[] = ["CB" . $row_num, $row->je_header_id ?? "-"];
+				$formulaData_cb = "=BW$row_num";
+				$batchSpecialData[] = ["CB" . $row_num, $formulaData_cb ?? "-"];
 				
 				// Numero correlativo del asiento contable indentificado "CC"
-				$correlative_count = $this->correlative_count($row->je_line_number);
-				$batchSpecialData[] = ["CC" . $row_num, $correlative_count ?? "-"];
+				
+				$formulaData_cc = "=IF(LEN(BX$row_num)=1,CONCATENATE(\"M0000\",BX$row_num),IF(LEN(BX$row_num)=2,CONCATENATE(\"M000\",BX$row_num),IF(LEN(BX$row_num)=3,CONCATENATE(\"M00\",BX$row_num),IF(LEN(BX$row_num)=4,CONCATENATE(\"M0\",BX$row_num),CONCATENATE(\"M\",BX$row_num)))))";
+				
+				//$correlative_count = $this->correlative_count($row->je_line_number);
+				//$batchSpecialData[] = ["CC" . $row_num, $correlative_count ?? "-"];
+				$batchSpecialData[] = ["CC" . $row_num, $formulaData_cc ?? "-"];
 				
 				// Llenado de columna CD: codigo de la cuenta contable
-				$batchSpecialData[] = ["CD" . $row_num, $batchSpecialData_pcge ?? "-"];
+				$formulaData_cd = "=C$row_num";
+				$batchSpecialData[] = ["CD" . $row_num, $formulaData_cd ?? "-"];
 				
 				// Se agrega valores para la columna "CG" tipo de moneda de origen
 				$batchSpecialData[] = ["CG" . $row_num, $row->currency ?? "-"];
 				
 				// Se agrega fecha effective_date a columna CO
-				$batchSpecialData[] = ["CO" . $row_num, $row->effective_date ?? "-"];
+				$formulaData_co = "=G$row_num";
+				$batchSpecialData[] = ["CO" . $row_num, $formulaData_co ?? "-"];
 				
 				// Se agrega valores para la columna "CP" basado en los valores de Description/AR Comments
 				$batchSpecialData[] = ["CP" . $row_num, !empty($row->description_ar_comments) ? substr($row->description_ar_comments, 0, 200) : substr($batchSpecialData_pcge_decripcion, 0, 200)];
@@ -994,6 +1035,7 @@ class Tax_daily_book extends CI_Controller {
 				
 				// Columnas CW y CX
 				if (strpos($batchSpecialData_pcge, '10') === 0){
+					
 					if(!empty($row->bank_name)){
 						$parts = explode('_', $row->bank_name, 3);
 						$bank_name = isset($parts[1]) ? $parts[1] : '';
@@ -1008,9 +1050,34 @@ class Tax_daily_book extends CI_Controller {
 							$batchSpecialData[] = ["CX" . $row_num, $banks_account['USD'][$bank_name] ?? ""];
 							// Rellenado de columna CW código de la entidad financiera
 							$batchSpecialData[] = ["CW" . $row_num, $banks_account_code[$bank_name] ?? ""];
-						}						
+						}
+					}
+					// Rellenado de columna CZ
+					if($row->dff_context === 'AR_COMMON'){
+						$batchSpecialData[] = ["CZ" . $row_num, "LG ELECTRONICS PERU S.A." ?? ""];
+					}
+					elseif($row->dff_context !== 'AR_COMMON'){
+						if(empty($row->vendor_customer)){
+							$razon_social = ['SCOTIA'=>'SCOTIABANK PERU SAA', 'BCP'=>'BANCO DE CREDITO DEL PERU', 'CITI'=>'CITIBANK DEL PERU S.A.', 'INTER'=>'BANCO INTERNACIONAL DEL PERU-INTERBANK', 'BBVA'=>'BANCO BBVA PERU', 'NACION'=>'VARIOS'];
+							$batchSpecialData[] = ["CZ" . $row_num, $razon_social[$bank_name] ?? ""];
+						}
+						else{
+							if (strpos($row->vendor_customer, 'GCC') !== 0){
+								if (preg_match(	'/ESPR_([^\/]+\/)(.*?)_PE/', $row->vendor_customer, $matches)) {
+									//return trim($matches[1]); // Retorna la parte deseada
+									$batchSpecialData[] = ["CZ" . $row_num, trim($matches[2]) ?? ""];
+								}
+								elseif (preg_match(	'/ESPR_([^_]+)_PE/', $row->vendor_customer, $matches)) {
+									$batchSpecialData[] = ["CZ" . $row_num, trim($matches[1]) ?? ""];
+								}
+							}
+						}
 					}
 				}
+				
+				
+				// if(strpos($batchSpecialData_pcge, '10') === 0){
+				// }
 				
 				// Rellenado columna DC												
 				 $formulaData = "=CONCATENATE(CA$row_num,\"|\",CB$row_num,\"|\",CC$row_num,\"|\",CD$row_num,\"|\",CE$row_num,\"|\",CF$row_num,\"|\",CG$row_num,\"|\",CH$row_num,\"|\",LEFT(CI$row_num,15),\"|\",CJ$row_num,\"|\",CK$row_num,\"|\",CL$row_num,\"|\",CM$row_num,\"|\",CN$row_num,\"|\",TEXT(CO$row_num,\"DD/MM/YYYY\"),\"|\",CP$row_num,\"|\",CQ$row_num,\"|\",IF(CR$row_num>0,CR$row_num,\"0.00\"),\"|\",IF(CS$row_num>0,CS$row_num,\"0.00\"),\"|\",CT$row_num,\"|\",CU$row_num,\"|\",CV$row_num,\"|\",CW$row_num,\"|\",CX$row_num,\"|\",CY$row_num,\"|\",CZ$row_num,\"|\",DA$row_num)";
