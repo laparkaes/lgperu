@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<html lang="es">
 
 <div class="pagetitle">
   <h1>PI - Listening to you</h1>
@@ -137,6 +136,16 @@
 						<div class="text-start">
 							
 							<a href="#" class="btn btn-link p-0 m-0 add-comment" data-id="<?= $item->listening_id ?>">Add Comment</a>
+							 <!-- Filtro de idioma -->
+						    <div class="d-flex justify-content-start align-items-center mb-2">
+								<label for="languageSelect" class="me-2">Language:</label>
+								<select id="languageSelect-<?= $item->listening_id ?>" class="form-select" style="width: auto; max-width: 150px;">
+								  <option value="es">ES</option>
+								  <option value="en">EN</option>
+								  <option value="kr">KR</option>
+								</select>
+						    </div>
+						  
 							<div id="latest-comment-<?= $item->listening_id ?>">
 								
 									
@@ -150,7 +159,7 @@
 										usort($commentsForListening, function($a, $b) {
 											return strtotime($b->updated) - strtotime($a->updated);
 										});
-										$latestComment = $commentsForListening[0]->comment;
+										$latestComment = $commentsForListening[0]->comment_es;
 										$latestCommentDate = $commentsForListening[0]->updated;
 										$latestCommentUser = $commentsForListening[0]->pr_user;
 										$latestCommentId = $commentsForListening[0]->comment_id;
@@ -159,11 +168,12 @@
 										<div class="d-flex w-100 justify-content-between">
 											<h5 class="mb-1">												
 												<strong><?= $latestCommentUser ?: "No user" ?>: </strong>
-												<button class="btn btn-outline-primary btn-sm edit-comment" 
+												<button type="button" class="btn btn-outline-primary edit-comment btn-sm" 
+													
 													data-comment-id='<?= $latestCommentId ?>'
 													data-listening-id='<?= $item->listening_id ?>'
 													data-comment='<?= htmlspecialchars($latestComment, ENT_QUOTES) ?>'>
-													Edit
+													EDIT													
 												</button>
 											</h5>
 											<small class="text-muted"><?= $latestCommentDate ?></small>
@@ -185,7 +195,7 @@
 							<?php
 							// Excluir el comentario más reciente del "last comment"
 							$commentsForViewing = array_filter($commentsForListening, function($comment) use ($latestComment) {
-								return $comment->comment !== $latestComment;
+								return $comment->comment_es !== $latestComment;
 							});
 
 							// Ordenar los comentarios restantes de más reciente a más antiguo
@@ -200,13 +210,13 @@
 												<button class='btn btn-outline-primary btn-sm edit-comment' 
 												data-comment-id='{$comment->comment_id}'
 												data-listening-id='{$item->listening_id}'
-												data-comment='" . htmlspecialchars($comment->comment, ENT_QUOTES) . "'>
+												data-comment='" . htmlspecialchars($comment->comment_es, ENT_QUOTES) . "'>
 													Edit
 												</button>
 											</h5>
 											<small class='text-muted'>" . $comment->updated . "</small>
 										</div>
-										<p class='mb-1'>{$comment->comment}</p>
+										<p class='mb-1'>{$comment->comment_es}</p>
 										
 									  </a>";
 							}
@@ -235,8 +245,8 @@
       </div>
     </div>
   </div>
-
-	<!-- Modal para agregar comentarios -->
+	
+	<!-- Modal agregar comentarios -->
 	<div id="commentModal" class="modal fade" tabindex="-1" role="dialog">
 	  <div class="modal-dialog" role="document">
 		<div class="modal-content">
@@ -245,6 +255,16 @@
 			<button type="button" class="close" data-bs-dismiss="modal">&times;</button>
 		  </div>
 		  <div class="modal-body">
+			<!-- Selección de idioma -->
+			<div class="mb-3">
+			  <label for="languageSelect" class="form-label">Seleccionar idioma:</label>
+			  <select id="languageSelect" class="form-control">
+				<option value="es">es Español</option>
+				<option value="ko">kr Coreano</option>
+				<option value="en">en Inglés</option>
+			  </select>
+			</div>
+			<!-- Cuadro de texto para comentario -->
 			<textarea id="commentText" class="form-control" rows="4" placeholder="Escribe tu comentario aquí..."></textarea>
 			<input type="hidden" id="currentListeningId">
 		  </div>
@@ -255,7 +275,8 @@
 		</div>
 	  </div>
 	</div>
-	
+
+
 	<!-- Modal para editar comentario -->
 	<div id="editCommentModal" class="modal fade" tabindex="-1" role="dialog">
 	  <div class="modal-dialog" role="document">
@@ -265,18 +286,29 @@
 			<button type="button" class="close" data-bs-dismiss="modal">&times;</button>
 		  </div>
 		  <div class="modal-body">
+			<!-- Select para idioma -->
+			<div class="mb-3">
+			  <label for="editLanguageSelect" class="form-label">Selecciona el idioma</label>
+			  <select id="editLanguageSelect" class="form-select">
+				<option value="es">Español</option>
+				<option value="ko">Coreano</option>
+				<option value="en">Inglés</option>
+			  </select>
+			</div>
+
+			<!-- Campo de texto para el comentario -->
 			<textarea id="editCommentText" class="form-control" rows="4"></textarea>
 			<input type="hidden" id="editCommentId">
 			<input type="hidden" id="editListeningId">
 		  </div>
 		  <div class="modal-footer">
-			<button type="button" class="btn btn-primary" id="submitEditComment">Save</button>
-			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			<button type="button" class="btn btn-primary" id="submitEditComment">Guardar</button>
+			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
 		  </div>
 		</div>
 	  </div>
 	</div>
-
+	
 </section>
 
 <script>
@@ -372,6 +404,9 @@ document.addEventListener("DOMContentLoaded", function () {
         btn.addEventListener("click", function () {
             let listeningId = this.getAttribute("data-id");
             document.getElementById("currentListeningId").value = listeningId;
+            // Opcional: limpiar el contenido previo y resetear el idioma
+            document.getElementById("commentText").value = "";
+            document.getElementById("languageSelect").value = "es";
             let modal = new bootstrap.Modal(document.getElementById("commentModal"));
             modal.show();
         });
@@ -381,35 +416,40 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("submitComment").addEventListener("click", function () {
         let listeningId = document.getElementById("currentListeningId").value;
         let commentText = document.getElementById("commentText").value;
+        let selectedLanguage = document.getElementById("languageSelect").value;
 
         if (commentText.trim() === "") {
             alert("El comentario no puede estar vacío.");
             return;
         }
+        
+        // Determinar el nombre del parámetro según el idioma seleccionado
+        let commentField = selectedLanguage === "ko" ? "comment_kr" 
+                          : selectedLanguage === "en" ? "comment_en" 
+                          : "comment_es";
 
-		 
-		
+        // Realizar la petición enviando el comentario en el campo correspondiente
         fetch("<?= base_url('module/pi_listening/add') ?>", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: `listening_id=${listeningId}&comment=${encodeURIComponent(commentText)}`
+            body: `listening_id=${listeningId}&${commentField}=${encodeURIComponent(commentText)}`
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // Actualizar el comentario y la fecha en la tabla
                 document.getElementById(`latest-comment-${listeningId}`).textContent = commentText;
-				document.getElementById(`date-${listeningId}`).textContent = data.updated;
+                document.getElementById(`date-${listeningId}`).textContent = data.updated;
 
-				// Mover la fila al inicio
-				let row = document.querySelector(`[data-id="${listeningId}"]`).closest("tr");
-				let tableBody = document.getElementById("tableBody");
-				tableBody.prepend(row); // Mueve la fila al inicio de la tabla
-				
-				
+                // Mover la fila al inicio de la tabla
+                let row = document.querySelector(`[data-id="${listeningId}"]`).closest("tr");
+                let tableBody = document.getElementById("tableBody");
+                tableBody.prepend(row);
+
+                // Limpiar y cerrar el modal
                 document.getElementById("commentText").value = "";
-				
                 bootstrap.Modal.getInstance(document.getElementById("commentModal")).hide();
-                location.reload(); // Refresca la página para ver el nuevo comentario en la lista completa
+                location.reload(); // Recargar la página para ver el nuevo comentario en la lista completa
             } else {
                 alert("Error al agregar comentario.");
             }
@@ -426,6 +466,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
+
 
 
 <script>
@@ -456,60 +497,107 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    // Abrir el modal con el comentario seleccionado
-    document.querySelectorAll(".edit-comment").forEach(btn => {
-        btn.addEventListener("click", function () {
-            let commentId = this.getAttribute("data-comment-id");
-            let listeningId = this.getAttribute("data-listening-id");
-            let commentText = this.getAttribute("data-comment");
+document.addEventListener("DOMContentLoaded", function() {
 
-            document.getElementById("editCommentId").value = commentId;
-            document.getElementById("editListeningId").value = listeningId;
-            document.getElementById("editCommentText").value = commentText;
+  // Abrir modal de edición de comentario
+  $(document).on('click', '.edit-comment', function(e) {
+    e.preventDefault();
 
-            let modal = new bootstrap.Modal(document.getElementById("editCommentModal"));
-            modal.show();
-        });
+    let commentId = $(this).data('comment-id');
+    let listeningId = $(this).data('listening-id');
+    let comment = $(this).data('comment');
+
+    // Mostrar modal de edición
+    $('#editCommentModal').modal('show');
+    
+    // Asignar valores al formulario
+    $('#editCommentId').val(commentId);
+    $('#editListeningId').val(listeningId);
+    $('#editCommentText').val(comment); // Asignar el comentario en español por defecto
+
+    // Establecer idioma por defecto a español
+    $('#editLanguageSelect').val('es');
+  });
+
+  // Mostrar comentario según el idioma seleccionado
+  $('#editLanguageSelect').change(function() {
+    let selectedLanguage = $(this).val();  // Idioma seleccionado
+    let commentId = $('#editCommentId').val();  // ID del comentario
+    let listeningId = $('#editListeningId').val();  // ID del listening
+
+    // Buscar el comentario correspondiente según el idioma seleccionado
+    let comment = null;
+    
+    // Aquí generamos un array con los comentarios
+    let comments = <?php echo json_encode($records_comment); ?>;
+
+    // Filtrar los comentarios para el listening_id actual
+    let filteredComments = comments.filter(function(c) {
+      return c.comment_id == commentId;
     });
 
-    // Guardar cambios del comentario editado
-    document.getElementById("submitEditComment").addEventListener("click", function () {
-        let commentId = document.getElementById("editCommentId").value;
-        let listeningId = document.getElementById("editListeningId").value;
-        let newComment = document.getElementById("editCommentText").value;
-									
-        if (newComment.trim() === "") {
-            alert("El comentario no puede estar vacío.");
-            return;
-        }
+    // Obtener el comentario del idioma seleccionado
+    for (let i = 0; i < filteredComments.length; i++) {
+      if (selectedLanguage === 'es') {
+        comment = filteredComments[i].comment_es;
+      } else if (selectedLanguage === 'en') {
+        comment = filteredComments[i].comment_en;
+      } else if (selectedLanguage === 'ko') {
+        comment = filteredComments[i].comment_kr;
+      }
+    }
 
-        fetch("<?= base_url('module/pi_listening/update_comment') ?>", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: `comment_id=${commentId}&listening_id=${listeningId}&comment=${encodeURIComponent(newComment)}`
-        })
-		
-		
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Actualizar el comentario en la UI sin recargar la página
-                document.querySelector(`[data-comment-id="${commentId}"]`).setAttribute("data-comment", newComment);
-                document.getElementById(`latest-comment-${listeningId}`).textContent = newComment;
-                
-                // Cerrar modal
-                bootstrap.Modal.getInstance(document.getElementById("editCommentModal")).hide();
-				location.reload();
-            } else {
-                alert("Error al actualizar el comentario.");
-            }
-        })
-        .catch(error => console.error("Error en la solicitud:", error));
+    // Actualizar el texto del textarea con el comentario en el idioma seleccionado
+    $('#editCommentText').val(comment || '');  // Si no existe comentario, dejamos el campo vacío
+  });
+
+  // Enviar el comentario editado
+  $('#submitEditComment').click(function() {
+    let commentId = $('#editCommentId').val();
+    let listeningId = $('#editListeningId').val();
+    let commentText = $('#editCommentText').val();
+    let language = $('#editLanguageSelect').val();
+
+    // Lógica para actualizar el comentario en el backend
+    $.ajax({
+      url: '<?= base_url() ?>module/pi_listening/update_comment', // Ajusta la URL a la ruta de tu controlador
+      method: 'POST',
+      data: {
+        comment_id: commentId,
+        listening_id: listeningId,
+        comment: commentText,
+        language: language // Enviar el idioma seleccionado
+      },
+	 
+		success: function(response) {
+			console.log(response);  // Verifica la respuesta completa en la consola
+
+			// Intentar convertir la respuesta en un objeto
+			try {
+				response = JSON.parse(response);
+			} catch (e) {
+				console.error("Error al parsear JSON:", e);
+			}
+
+			if (response && response.success) {
+				// Cerrar el modal y mostrar un mensaje de éxito
+				$('#editCommentModal').modal('hide');
+				alert('Comentario actualizado correctamente.');
+						// Refrescar la página después de un segundo
+				setTimeout(function() {
+					location.reload();
+				}, 500);  // Espera 1 segundo antes de recargar la página
+			} else {
+				alert('Hubo un error al actualizar el comentario.');
+			}
+		},
+
     });
-	
+  });
+
 });
 </script>
+
 
 <script>
 document.getElementById("searchInput").addEventListener("keyup", function() {
@@ -523,130 +611,6 @@ document.getElementById("searchInput").addEventListener("keyup", function() {
 });
 </script>
 
-
-
-<script>
-// document.addEventListener("DOMContentLoaded", function () {
-
-    // // Filtrar cuando se cambien los valores de las fechas
-    // document.getElementById('fromDate').addEventListener('change', function () {
-        // let fromDate = document.getElementById('fromDate').value;
-        // let toDate = document.getElementById('toDate').value;
-
-        // // Verificamos que ambas fechas estén definidas
-        // if (fromDate && toDate) {
-            // filterByDate(fromDate, toDate);
-        // }
-    // });
-
-    // document.getElementById('toDate').addEventListener('change', function () {
-        // let fromDate = document.getElementById('fromDate').value;
-        // let toDate = document.getElementById('toDate').value;
-
-        // // Verificamos que ambas fechas estén definidas
-        // if (fromDate && toDate) {
-            // filterByDate(fromDate, toDate);
-        // }
-    // });
-
-	
-    // function filterByDate(fromDate, toDate) {
-        // let rows = document.querySelectorAll("#dataTable tbody tr");
-
-        // // Convertir las fechas "fromDate" y "toDate" de formato mm/dd/yyyy a yyyy-mm-dd
-        // fromDate = convertDateToISO(fromDate);
-        // toDate = convertDateToISO(toDate);
-
-        // rows.forEach(row => {
-            // let updatedDateCell = row.querySelector("td[id^='date-']");
-            // let updatedDate = updatedDateCell ? updatedDateCell.innerText.trim() : ""; // Fecha 'updated' en formato mm/dd/yyyy
-
-            // // Convertir la fecha 'updated' de la fila a formato yyyy-mm-dd
-            // updatedDate = convertDateToISO(updatedDate);
-
-            // // Comparar las fechas
-            // if (updatedDate >= fromDate && updatedDate <= toDate) {
-                // row.style.display = ""; // Mostrar la fila
-            // } else {
-                // row.style.display = "none"; // Ocultar la fila
-            // }
-        // });
-    // }
-	
-    // // Función para convertir una fecha en formato 'mm/dd/yyyy' a 'yyyy-mm-dd'
-    // function convertDateToISO(dateString) {
-        // let parts = dateString.split('/');  // [mm, dd, yyyy]
-        // return `${parts[2]}-${parts[0]}-${parts[1]}`; // Convertimos a yyyy-mm-dd
-    // }
-	
-	
-// });
-
-</script>
-
-<script>
-// document.addEventListener("DOMContentLoaded", function () {
-    // const deptSelect = document.getElementById('sl_dept');
-    // const statusSelect = document.getElementById('sl_status');
-    
-    // deptSelect.addEventListener('change', function () {
-        // applyFilters();
-    // });
-
-    // statusSelect.addEventListener('change', function () {
-        // applyFilters();
-    // });
-
-    // function applyFilters() {
-        // const selectedDept = deptSelect.value;
-        // const selectedStatus = statusSelect.value;
-
-        // // Hacer la petición AJAX al servidor
-        // fetch(`your_controller/get_filtered_list?dept=${selectedDept}&status=${selectedStatus}`)
-            // .then(response => response.json())
-            // .then(data => {
-                // const tbody = document.querySelector('#dataTable tbody');
-                // tbody.innerHTML = ''; // Limpiar la tabla antes de actualizarla
-
-                // // Añadir las filas filtradas
-                // data.records.forEach(item => {
-                    // const row = document.createElement('tr');
-                    // row.innerHTML = `<td>${item.dept}</td><td>${item.status}</td>`;
-                    // tbody.appendChild(row);
-                // });
-            // });
-    // }
-// });
-
-// // En tu controlador de CodeIgniter
-// public function get_filtered_list() {
-    // // Recoger los filtros seleccionados
-    // $selectedDept = $this->input->get('deptTo') ?: '';  // Recoge el filtro de departamento
-    // $selectedStatus = $this->input->get('status') ?: '';  // Recoge el filtro de status
-
-    // // Construir la consulta con los filtros
-    // $this->db->select('*')->from('pi_listening');
-
-    // if ($selectedDept !== '') {
-        // $this->db->where('deptTo', $selectedDept);
-    // }
-    
-    // if ($selectedStatus !== '') {
-        // $this->db->where('status', $selectedStatus);
-    // }
-
-    // $query = $this->db->get();
-    // $result = $query->result();
-
-    // // Pasar los resultados a la vista
-    // $data['records'] = $result;
-    // $this->load->view('pi_listening', $data);
-// }
-
-
-
-
-</script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -810,5 +774,68 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Inicializar con los filtros aplicados
     applyFilters();
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("[id^='languageSelect-']").forEach(select => {
+        select.addEventListener("change", function () {
+            const listeningId = this.id.split("-")[1]; // Extrae el ID del listening
+            const selectedLang = this.value; // Obtiene el idioma seleccionado
+            const commentBox = document.querySelector(`#latest-comment-${listeningId} p`); // Caja del comentario
+            const commentUser = document.querySelector(`#latest-comment-${listeningId} h5 strong`); // Usuario del último comentario
+            const commentList = document.querySelector(`#comment-list-${listeningId}`); // Lista de comentarios
+            const commentItems = commentList.querySelectorAll(".list-group-item p"); // Elementos de la lista
+
+            // Buscar los datos dentro de la tabla
+            const commentsForListening = <?= json_encode($records_comment) ?>;
+            const filteredComments = commentsForListening.filter(comment => comment.listening_id == listeningId);
+
+            if (filteredComments.length > 0) {
+                // Ordenar los comentarios por fecha
+                filteredComments.sort((a, b) => new Date(b.updated) - new Date(a.updated));
+
+                let latestComment = "";
+                let latestUser = filteredComments[0].pr_user || "No user";
+
+                // Seleccionar el comentario según el idioma
+                switch (selectedLang) {
+                    case "es":
+                        latestComment = filteredComments[0].comment_es;
+                        break;
+                    case "en":
+                        latestComment = filteredComments[0].comment_en;
+                        break;
+                    case "kr":
+                        latestComment = filteredComments[0].comment_kr;
+                        break;
+                }
+
+                // Actualizar el comentario principal
+                commentBox.textContent = latestComment ? latestComment : "No comment";
+                commentUser.textContent = `${latestUser}:`;
+
+                // Actualizar los comentarios en "View more"
+                commentItems.forEach((commentElement, index) => {
+                    if (filteredComments[index + 1]) { // Evitamos repetir el primer comentario
+                        let translatedComment = "";
+                        switch (selectedLang) {
+                            case "es":
+                                translatedComment = filteredComments[index + 1].comment_es;
+                                break;
+                            case "en":
+                                translatedComment = filteredComments[index + 1].comment_en;
+                                break;
+                            case "kr":
+                                translatedComment = filteredComments[index + 1].comment_kr;
+                                break;
+                        }
+                        commentElement.textContent = translatedComment ? translatedComment : "No comment";
+                    }
+                });
+            }
+        });
+    });
 });
 </script>

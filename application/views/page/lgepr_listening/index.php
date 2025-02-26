@@ -1,8 +1,5 @@
 <!DOCTYPE html>
-
-			
 <html lang="es">
-
 
 <div class="pagetitle">
   <h1><br>PI - Listening to you</h1>
@@ -177,6 +174,17 @@
 						</td>
 						<!-- <td><?= $item->status?></td> -->
 						<td class="align-top">
+						
+						 <!-- Filtro de idioma -->
+						  <div class="d-flex justify-content-start align-items-center mb-2">
+							<label for="languageSelect" class="me-2">Language:</label>
+							<select id="languageSelect-<?= $item->listening_id ?>" class="form-select" style="width: auto; max-width: 150px;">
+							  <option value="es">ES</option>
+							  <option value="en">EN</option>
+							  <option value="kr">KR</option>
+							</select>
+						  </div>
+						  
 							<!--<a href="#" class="add-comment" data-id="<?= $item->listening_id ?>">Add comment</a>  -->
 						<div class="text-start">
 						
@@ -192,7 +200,7 @@
 										usort($commentsForListening, function($a, $b) {
 											return strtotime($b->updated) - strtotime($a->updated);
 										});
-										$latestComment = $commentsForListening[0]->comment;
+										$latestComment = $commentsForListening[0]->comment_es;
 										$latestCommentDate = $commentsForListening[0]->updated;
 										$latestCommentUser = $commentsForListening[0]->pr_user;
 									}?>
@@ -216,7 +224,7 @@
 							<?php
 							// Excluir el comentario más reciente del "last comment"
 							$commentsForViewing = array_filter($commentsForListening, function($comment) use ($latestComment) {
-								return $comment->comment !== $latestComment;
+								return $comment->comment_es !== $latestComment;
 							});
 
 							// Ordenar los comentarios restantes de más reciente a más antiguo
@@ -230,7 +238,7 @@
 											<h5 class='mb-1'>{$comment->pr_user}:</h5>
 											<small class='text-muted'>" . $comment->updated . "</small>
 										</div>
-										<p class='mb-1'>{$comment->comment}</p>										
+										<p class='mb-1'>{$comment->comment_es}</p>										
 									  </a>";
 							}
 							?>
@@ -241,7 +249,6 @@
 						
 					</tr>
 				<?php } ?>
-
             </tbody>
           </table>
 			<div class="d-flex justify-content-center mt-3">
@@ -252,10 +259,7 @@
         </div>
       </div>
     </div>
-  </div>
-
-
-	
+  </div>	
 
 </section>
 
@@ -539,4 +543,68 @@ document.addEventListener("DOMContentLoaded", function () {
     // Inicializar con los filtros aplicados
     applyFilters();
 });
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("[id^='languageSelect-']").forEach(select => {
+        select.addEventListener("change", function () {
+            const listeningId = this.id.split("-")[1]; // Extrae el ID del listening
+            const selectedLang = this.value; // Obtiene el idioma seleccionado
+            const commentBox = document.querySelector(`#latest-comment-${listeningId} p`); // Caja del comentario
+            const commentUser = document.querySelector(`#latest-comment-${listeningId} h5 strong`); // Usuario del último comentario
+            const commentList = document.querySelector(`#comment-list-${listeningId}`); // Lista de comentarios
+            const commentItems = commentList.querySelectorAll(".list-group-item p"); // Elementos de la lista
+
+            // Buscar los datos dentro de la tabla
+            const commentsForListening = <?= json_encode($records_comment) ?>;
+            const filteredComments = commentsForListening.filter(comment => comment.listening_id == listeningId);
+
+            if (filteredComments.length > 0) {
+                // Ordenar los comentarios por fecha
+                filteredComments.sort((a, b) => new Date(b.updated) - new Date(a.updated));
+
+                let latestComment = "";
+                let latestUser = filteredComments[0].pr_user || "No user";
+
+                // Seleccionar el comentario según el idioma
+                switch (selectedLang) {
+                    case "es":
+                        latestComment = filteredComments[0].comment_es;
+                        break;
+                    case "en":
+                        latestComment = filteredComments[0].comment_en;
+                        break;
+                    case "kr":
+                        latestComment = filteredComments[0].comment_kr;
+                        break;
+                }
+
+                // Actualizar el comentario principal
+                commentBox.textContent = latestComment ? latestComment : "No comment";
+                commentUser.textContent = `${latestUser}:`;
+
+                // Actualizar los comentarios en "View more"
+                commentItems.forEach((commentElement, index) => {
+                    if (filteredComments[index + 1]) { // Evitamos repetir el primer comentario
+                        let translatedComment = "";
+                        switch (selectedLang) {
+                            case "es":
+                                translatedComment = filteredComments[index + 1].comment_es;
+                                break;
+                            case "en":
+                                translatedComment = filteredComments[index + 1].comment_en;
+                                break;
+                            case "kr":
+                                translatedComment = filteredComments[index + 1].comment_kr;
+                                break;
+                        }
+                        commentElement.textContent = translatedComment ? translatedComment : "No comment";
+                    }
+                });
+            }
+        });
+    });
+});
+
 </script>
