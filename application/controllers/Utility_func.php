@@ -87,8 +87,4 @@ class Utility_func extends CI_Controller {
 		echo $this->my_func->send_email("comunicacionpi@lge.com", $to, $subject, $content);
 	}
 	
-	public function xml_reader(){
-		
-		echo "hola";
-	}
 }
