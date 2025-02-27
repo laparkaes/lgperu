@@ -43,13 +43,19 @@
 							<hr class="dropdown-divider">
 						</li>
 						<li>
-							<a class="dropdown-item d-flex align-items-center" href="<?= base_url() ?>auth/change_password">
-								<i class="bi bi-lock"></i>
-								<span>Change Password</span>
+							<a class="dropdown-item d-flex align-items-center" href="<?= base_url() ?>my_lg/vacation">
+								<i class="bi bi-cup-straw"></i>
+								<span>Vacation</span>
 							</a>
 						</li>
 						<li>
 							<hr class="dropdown-divider">
+						</li>
+						<li>
+							<a class="dropdown-item d-flex align-items-center" href="<?= base_url() ?>auth/change_password">
+								<i class="bi bi-lock"></i>
+								<span>Change Password</span>
+							</a>
 						</li>
 						<li>
 							<a class="dropdown-item d-flex align-items-center" id="btn_logout" href="#">
