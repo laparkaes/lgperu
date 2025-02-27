@@ -134,7 +134,7 @@
 									
 										<?php
 											if ($item->status === 'In progress'){?>
-												<span class="badge bg-success">
+												<span class="badge bg-warning text-dark">
 												<i class="bi bi-check-circle me-1"></i>
 												<?= $item->status ?>
 												</span> 
@@ -150,7 +150,7 @@
 
 										<?php
 											if ($item->status === 'Registered'){?>
-												<span class="badge rounded-pill bg-dark">
+												<span class="badge rounded-pill bg-secondary">
 												<i class="bi bi-shield-check"></i>
 												<?= $item->status ?>
 												</span> 
@@ -158,7 +158,7 @@
 										
 										<?php
 											if ($item->status === 'Finished'){?>
-												<span class="badge bg-primary">
+												<span class="badge bg-success">
 												<i class="bi bi-check2-all"></i>
 												<?= $item->status ?>
 												</span> 
