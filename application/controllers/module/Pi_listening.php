@@ -105,10 +105,11 @@ class Pi_listening extends CI_Controller {
 		$comment_es = $this->input->post('comment_es');
 		$comment_en = $this->input->post('comment_en');
 		$comment_kr = $this->input->post('comment_kr');
+
 		$pr_user_name = $this->session->userdata('name');
 		$pr_user = $this->gen_m->filter("hr_employee", false, ['name' => $pr_user_name]);
 
-		if (!$listening_id || (!$comment_es && !$comment_en && !$comment_kr)) {
+		if (empty($listening_id) || (empty($comment_es) && empty($comment_en) && empty($comment_kr))) {
 			echo json_encode(["success" => false]);
 			return;
 		}
