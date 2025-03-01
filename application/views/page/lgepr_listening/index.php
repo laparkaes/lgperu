@@ -24,7 +24,7 @@
 			<div class="d-flex justify-content-between align-items-center">
 				<div class="d-flex align-items-center">
 					<h5 class="card-title mb-0 me-2">Voices</h5>
-							<button type="button" class="btn btn-outline-primary mb-0 me-2" style="width: 150px;" onclick="location.href='<?= base_url("page/pi_listening_request") ?>'">
+							<button type="button" class="btn btn-sm btn-outline-primary mb-0 me-2" style="width: 150px;" onclick="location.href='<?= base_url("page/pi_listening_request") ?>'">
 								Add new issue
 							</button>
 				</div>
@@ -74,7 +74,12 @@
 					</select>
 					
 					<input type="text" id="searchInput" class="form-control w-auto" style="max-width: 300px;" placeholder="Search..."> <br>
-				
+					
+					<select class="form-select ms-1" style="width: auto; max-width: 150px;" id="global-language-selector">
+					  <option value="es">ES</option>
+					  <option value="en">EN</option>
+					  <option value="kr">KR</option>
+					</select>	
 			    
 		   
 				</div>
@@ -83,11 +88,11 @@
 			
             <thead>
               <tr>
-                <th scope="col" style="width: 30px;">Num</th>
+                <!--<th scope="col" style="width: 30px;">Num</th>-->
                 <th scope="col" style="width: 50px;">Updated</th>
-                <th scope="col" style="width: 50px;">For</th>
-                <th scope="col" style="width: 400px;">Issue</th>
-                <th scope="col" style="width: 300px;">Progress</th>
+                <th scope="col" style="width: 50px;">Department</th>
+                <th scope="col" style="width: 300px;">Issue</th>
+                <th scope="col" style="width: 200px;">Progress</th>
 
               </tr>
             </thead>
@@ -95,7 +100,7 @@
               <!-- Los datos se generarán dinámicamente con JavaScript -->
 				<?php foreach($records as $i => $item){ ?>
 					<tr>
-						<th scope="row"><?= $i + 1 ?></th>
+						<!--<th scope="row"><?= $i + 1 ?></th>-->
 							<td id="date-<?= $item->listening_id ?>">
 								<?php
 									// Mostrar la fecha registrada del problema (por defecto)
@@ -117,18 +122,19 @@
 										$displayDate = $commentsForListening[0]->updated;
 									}
 									// Formatear la fecha para mostrarla sin los segundos (YYYY-MM-DD HH:MM)
-									$displayHour = date('H:i', strtotime($displayDate));
+									//$displayHour = date('H:i', strtotime($displayDate));
 									$displayDate = date('Y-m-d', strtotime($displayDate));
 									
 									// Imprimir la fecha a mostrar
-									echo $displayDate; echo '<br>'; echo $displayHour;
+									echo $displayDate; echo '<br>'; 
+									//echo $displayHour;
 									?>
 									
 								<div class="d-flex justify-content-start align-items-center mt-1">
 									
 										<?php
 											if ($item->status === 'In progress'){?>
-												<span class="badge bg-success">
+												<span class="badge bg-warning text-dark">
 												<i class="bi bi-check-circle me-1"></i>
 												<?= $item->status ?>
 												</span> 
@@ -144,7 +150,7 @@
 
 										<?php
 											if ($item->status === 'Registered'){?>
-												<span class="badge rounded-pill bg-dark">
+												<span class="badge rounded-pill bg-secondary">
 												<i class="bi bi-shield-check"></i>
 												<?= $item->status ?>
 												</span> 
@@ -152,7 +158,7 @@
 										
 										<?php
 											if ($item->status === 'Finished'){?>
-												<span class="badge bg-primary">
+												<span class="badge bg-success">
 												<i class="bi bi-check2-all"></i>
 												<?= $item->status ?>
 												</span> 
@@ -176,14 +182,14 @@
 						<td class="align-top">
 						
 						 <!-- Filtro de idioma -->
-						  <div class="d-flex justify-content-start align-items-center mb-2">
+						  <!--<div class="d-flex justify-content-start align-items-center mb-2">
 							<label for="languageSelect" class="me-2">Language:</label>
 							<select id="languageSelect-<?= $item->listening_id ?>" class="form-select" style="width: auto; max-width: 150px;">
 							  <option value="es">ES</option>
 							  <option value="en">EN</option>
 							  <option value="kr">KR</option>
 							</select>
-						  </div>
+						  </div>-->
 						  
 							<!--<a href="#" class="add-comment" data-id="<?= $item->listening_id ?>">Add comment</a>  -->
 						<div class="text-start">
@@ -204,7 +210,7 @@
 										$latestCommentDate = $commentsForListening[0]->updated;
 										$latestCommentUser = $commentsForListening[0]->pr_user;
 									}?>
-									<a class="list-group-item list-group-item-action border  p-2 mt-1 bg-light"> 
+									<a class="list-group-item list-group-item-action border rounded p-2 bg-light"> 
 										<div class="d-flex w-100 justify-content-between">
 											<h5 class="mb-1">												
 												<strong><?= $latestCommentUser ?: "No user" ?>: </strong>
@@ -233,7 +239,7 @@
 							});
 
 							foreach ($commentsForViewing as $comment) {
-								echo "<a href='#' class='list-group-item list-group-item-action border p-2 mt-1'>
+								echo "<a href='#' class='list-group-item list-group-item-action border rounded p-2 mt-1'>
 										<div class='d-flex w-100 justify-content-between'>
 											<h5 class='mb-1'>{$comment->pr_user}:</h5>
 											<small class='text-muted'>" . $comment->updated . "</small>
@@ -399,8 +405,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Filtrar filas según los criterios seleccionados
         const filteredRows = Array.from(rows).filter(row => {
-            const deptCell = row.querySelector('td:nth-child(3)'); // Suponiendo que el depto está en la tercera columna
-            const statusCell = row.querySelector('td:nth-child(2)'); // Suponiendo que el status está en la segunda columna
+            const deptCell = row.querySelector('td:nth-child(2)'); // Suponiendo que el depto está en la segunda columna
+            const statusCell = row.querySelector('td:nth-child(1)'); // Suponiendo que el status está en la segunda columna
             const dateCell = row.querySelector("td[id^='date-']"); // Suponiendo que la fecha está en la cuarta columna
 
             const deptText = deptCell ? deptCell.innerText.toLowerCase() : '';
@@ -545,14 +551,81 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
+// <script>
+// document.addEventListener("DOMContentLoaded", function () {
+    // document.querySelectorAll("[id^='languageSelect-']").forEach(select => {
+        // select.addEventListener("change", function () {
+            // const listeningId = this.id.split("-")[1]; // Extrae el ID del listening
+            // const selectedLang = this.value; // Obtiene el idioma seleccionado
+            // const commentBox = document.querySelector(`#latest-comment-${listeningId} p`); // Caja del comentario
+            // const commentUser = document.querySelector(`#latest-comment-${listeningId} h5 strong`); // Usuario del último comentario
+            // const commentList = document.querySelector(`#comment-list-${listeningId}`); // Lista de comentarios
+            // const commentItems = commentList.querySelectorAll(".list-group-item p"); // Elementos de la lista
+
+            // // Buscar los datos dentro de la tabla
+            // const commentsForListening = <?= json_encode($records_comment) ?>;
+            // const filteredComments = commentsForListening.filter(comment => comment.listening_id == listeningId);
+
+            // if (filteredComments.length > 0) {
+                // // Ordenar los comentarios por fecha
+                // filteredComments.sort((a, b) => new Date(b.updated) - new Date(a.updated));
+
+                // let latestComment = "";
+                // let latestUser = filteredComments[0].pr_user || "No user";
+
+                // // Seleccionar el comentario según el idioma
+                // switch (selectedLang) {
+                    // case "es":
+                        // latestComment = filteredComments[0].comment_es;
+                        // break;
+                    // case "en":
+                        // latestComment = filteredComments[0].comment_en;
+                        // break;
+                    // case "kr":
+                        // latestComment = filteredComments[0].comment_kr;
+                        // break;
+                // }
+
+                // // Actualizar el comentario principal
+                // commentBox.textContent = latestComment ? latestComment : "No comment";
+                // commentUser.textContent = `${latestUser}:`;
+
+                // // Actualizar los comentarios en "View more"
+                // commentItems.forEach((commentElement, index) => {
+                    // if (filteredComments[index + 1]) { // Evitamos repetir el primer comentario
+                        // let translatedComment = "";
+                        // switch (selectedLang) {
+                            // case "es":
+                                // translatedComment = filteredComments[index + 1].comment_es;
+                                // break;
+                            // case "en":
+                                // translatedComment = filteredComments[index + 1].comment_en;
+                                // break;
+                            // case "kr":
+                                // translatedComment = filteredComments[index + 1].comment_kr;
+                                // break;
+                        // }
+                        // commentElement.textContent = translatedComment ? translatedComment : "No comment";
+                    // }
+                // });
+            // }
+        // });
+    // });
+// });
+
+// </script>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll("[id^='languageSelect-']").forEach(select => {
-        select.addEventListener("change", function () {
-            const listeningId = this.id.split("-")[1]; // Extrae el ID del listening
-            const selectedLang = this.value; // Obtiene el idioma seleccionado
-            const commentBox = document.querySelector(`#latest-comment-${listeningId} p`); // Caja del comentario
-            const commentUser = document.querySelector(`#latest-comment-${listeningId} h5 strong`); // Usuario del último comentario
+    // Seleccionamos el selector de idioma global
+    const languageSelector = document.getElementById('global-language-selector');
+
+    languageSelector.addEventListener("change", function () {
+        const selectedLang = this.value; // Idioma seleccionado
+
+        // Obtener todos los listening_id presentes en la página
+        document.querySelectorAll("[id^='latest-comment-']").forEach(commentBox => {
+            const listeningId = commentBox.id.split("-")[2]; // Extrae el listening_id de la caja de comentario
             const commentList = document.querySelector(`#comment-list-${listeningId}`); // Lista de comentarios
             const commentItems = commentList.querySelectorAll(".list-group-item p"); // Elementos de la lista
 
@@ -560,9 +633,14 @@ document.addEventListener("DOMContentLoaded", function () {
             const commentsForListening = <?= json_encode($records_comment) ?>;
             const filteredComments = commentsForListening.filter(comment => comment.listening_id == listeningId);
 
+            // Si hay comentarios para este listening_id
             if (filteredComments.length > 0) {
                 // Ordenar los comentarios por fecha
                 filteredComments.sort((a, b) => new Date(b.updated) - new Date(a.updated));
+
+                // Actualizamos el comentario más reciente para el listening_id
+                const commentBox = document.querySelector(`#latest-comment-${listeningId} p`); // Caja del comentario
+                const commentUser = document.querySelector(`#latest-comment-${listeningId} h5 strong`); // Usuario del último comentario
 
                 let latestComment = "";
                 let latestUser = filteredComments[0].pr_user || "No user";
@@ -606,5 +684,4 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
-
 </script>

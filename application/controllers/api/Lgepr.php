@@ -8,6 +8,7 @@ class Lgepr extends CI_Controller {
 		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
+		$this->load->model('general_espr_model', 'gen_e');
 	}
 	
 	public function get_company(){
@@ -95,7 +96,6 @@ class Lgepr extends CI_Controller {
 		echo json_encode($res);
 	}
 	
-	
 	public function get_sales_projection(){
 		//llamasys/api/lgepr/get_sales_projection?key=lgepr
 		
@@ -130,8 +130,6 @@ class Lgepr extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode($res);
 	}
-	
-	
 	
 	public function get_monthly_closed_order(){
 		//llamasys/api/lgepr/get_monthly_closed_order?key=lgepr
@@ -193,4 +191,14 @@ class Lgepr extends CI_Controller {
 		echo json_encode($res);
 	}
 	
+	
+	
+	
+	public function test(){
+		
+		$users = $this->gen_e->filter("user", false, ["ep_mail" => "roberto.kawano"]); //, $w = null, $l = null, $w_in = null, $orders = [], $limit = "", $offset = "")
+		
+		print_r($users);
+		echo "hola";
+	}
 }
