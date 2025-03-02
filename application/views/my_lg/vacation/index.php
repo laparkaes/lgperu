@@ -40,7 +40,7 @@
 								<option value="">Choose...</option>
 								<?php foreach($approvers as $item){ ?>
 								<option value="<?= $item->ep_mail ?>" <?= ($item->ep_mail === $last_rec->approver_1 ? "selected" : "") ?>>
-									[<?= $item->ep_mail ?>] <?= $item->name ?> (<?= $item->department ?>)
+									<?= $item->ep_mail ?> | <?= $item->name ?> (<?= $item->department ?>)
 								</option>
 								<?php } ?>
 								
@@ -52,7 +52,7 @@
 								<option value="">Choose...</option>
 								<?php foreach($approvers as $item){ ?>
 								<option value="<?= $item->ep_mail ?>" <?= ($item->ep_mail === $last_rec->approver_2 ? "selected" : "") ?>>
-									[<?= $item->ep_mail ?>] <?= $item->name ?> (<?= $item->department ?>)
+									<?= $item->ep_mail ?> | <?= $item->name ?> (<?= $item->department ?>)
 								</option>
 								<?php } ?>
 							</select>
@@ -63,7 +63,7 @@
 								<option value="">Choose...</option>
 								<?php foreach($approvers as $item){ ?>
 								<option value="<?= $item->ep_mail ?>" <?= ($item->ep_mail === $last_rec->approver_3 ? "selected" : "") ?>>
-									[<?= $item->ep_mail ?>] <?= $item->name ?> (<?= $item->department ?>)
+									<?= $item->ep_mail ?> | <?= $item->name ?> (<?= $item->department ?>)
 								</option>
 								<?php } ?>
 							</select>
@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 	
 	$(".btn_resend").click(function(){
-		ajax_simple_warning({"request_id" : $(this).val()}, "my_lg/vacation/resend", "Do you want to request again to actual approver?").done(function(res) {
+		ajax_simple_warning({"request_id" : $(this).val()}, "my_lg/vacation/resend", "Do you want to request again to actual approver? Wait around 5 seconds please.").done(function(res) {
 			swal_redirection(res.type, res.msg, "my_lg/vacation");
 		});
 	});

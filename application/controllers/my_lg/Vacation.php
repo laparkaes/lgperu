@@ -73,7 +73,10 @@ class Vacation extends CI_Controller {
 			$data["registed_at"] = date('Y-m-d H:i:s');
 			
 			//set 0.5 day in case of half day off
-			if ($data["type"] !== "Vacation") $data["qty_day"] = 0.5;
+			if ($data["type"] !== "Vacation"){
+				$data["qty_day"] = 0.5;
+				$data["d_to"] = $data["d_from"];
+			}
 			
 			//set approver key
 			$this->load->helper('string');
@@ -95,9 +98,16 @@ class Vacation extends CI_Controller {
 	}
 	
 	public function send_approval_notify($req_id){
+		$req = $this->gen_m->unique("hr_vacation_request", "request_id", $req_id, false);
+		//print_R($req);
 		
+		$from = $req->emp_ep."@lge.com";
+		//$to = $req->approver_now."@lge.com";
+		$to = "georgio.park@lge.com";
+		//$content = $this->load->view('email/vacation_approval_request', null, true);
+		$content = "Apruebameeeeee";
 		
-		return $this->my_func->send_email("georgio.park@lge.com", "georgio.park@lge.com", "[Llamasys] New vacation requeste is waiting your approval.", "Apruebameeeeee");
+		return $this->my_func->send_email($from, $to, "[Llamasys] New vacation requeste is waiting your approval.", $content);
 	}
 	
 	public function resend(){
