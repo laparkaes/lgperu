@@ -677,6 +677,7 @@ class Obs extends CI_Controller {
 			];
         }else{
 			$data = json_decode($response, true);
+			//print_r($data);
 			$result = [
 				"type" => "success",
 				"token" => $data["access_token"],
