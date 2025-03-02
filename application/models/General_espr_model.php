@@ -4,7 +4,7 @@ class General_espr_model extends CI_Model{
 
 	public function __construct() {
 		parent::__construct();
-		$this->espr = $this->load->database('espr', TRUE);
+		$this->db = $this->load->database('espr_8', TRUE);
 	}
 
 	function filter($tablename, $valid = true, $w = null, $l = null, $w_in = null, $orders = [], $limit = "", $offset = ""){
@@ -28,6 +28,30 @@ class General_espr_model extends CI_Model{
 		if ($orders) foreach($orders as $o) $this->db->order_by($o[0], $o[1]);
 		$query = $this->db->get($tablename, $limit, $offset);
 		$result = $query->result();
+		return $result;
+	}
+	
+	function filter_array($tablename, $valid = true, $w = null, $l = null, $w_in = null, $orders = [], $limit = "", $offset = ""){
+		if ($valid) $this->db->where("valid", true);
+		if ($w){ $this->db->group_start(); $this->db->where($w); $this->db->group_end(); }
+		if ($l){
+			$this->db->group_start();
+			foreach($l as $item){
+				$this->db->group_start();
+				$values = $item["values"];
+				foreach($values as $v) $this->db->like($item["field"], $v);
+				$this->db->group_end();
+			}
+			$this->db->group_end();
+		}
+		if ($w_in){
+			$this->db->group_start();
+			foreach($w_in as $item) $this->db->where_in($item["field"], $item["values"]);
+			$this->db->group_end();
+		}
+		if ($orders) foreach($orders as $o) $this->db->order_by($o[0], $o[1]);
+		$query = $this->db->get($tablename, $limit, $offset);
+		$result = $query->result_array();
 		return $result;
 	}
 	
@@ -194,13 +218,18 @@ class General_espr_model extends CI_Model{
 		return $sql;
 	}
 	
-	
-	
 	function get_delete_query($tablename, $field = null, $values = null){//related to delete_in
 		if ($field and $values){
 			$this->db->where_in($field, $values);
 			return $this->db->get_compiled_delete($tablename);
 		}else return "";
+	}
+	
+	function get_tables(){
+		$tables = $this->db->list_tables();
+		foreach ($tables as $table) {
+			echo $table . '<br>';
+		}
 	}
 }
 ?>

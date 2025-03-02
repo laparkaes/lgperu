@@ -38,7 +38,7 @@ class My_func{
 		$date2 = new DateTime($end);
 
 		$interval = $date1->diff($date2);
-		return $interval->days;
+		return $interval->days + 1;
 	}
 	
 	public function header_compare($h1, $h2){

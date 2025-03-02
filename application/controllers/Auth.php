@@ -40,6 +40,7 @@ class Auth extends CI_Controller {
 					$session_data = array(
 						"employee_id" => $employee->employee_id,
 						"employee_number" => $employee->employee_number,
+						"ep_mail" => $employee->ep_mail,
 						"name" => $employee->name,
 						"department" => $employee->department,
 						"nav" => $nav,

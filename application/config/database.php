@@ -95,11 +95,33 @@ $db['default'] = array(
 	'save_queries' => TRUE
 );
 
-$db['espr'] = array(
+$db['llamasys_9'] = array(
 	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => 'lgepr_pi',
-	'password' => 'El3ctronics1',
+	'hostname' => '136.166.13.9', 
+	'username' => 'lgepr_pi', 
+	'password' => 'El3ctronics1', 
+	'database' => 'llamasys',
+	'dbdriver' => 'sqlsrv',
+	'dbprefix' => '',
+	'pconnect' => FALSE,
+	'db_debug' => (ENVIRONMENT !== 'production'),
+	'cache_on' => FALSE,
+	'cachedir' => '',
+	'char_set' => 'utf8',
+	'dbcollat' => 'utf8_general_ci',
+	'swap_pre' => '',
+	'encrypt' => FALSE,
+	'compress' => FALSE,
+	'stricton' => FALSE,
+	'failover' => array(),
+	'save_queries' => TRUE
+);
+
+$db['espr_9'] = array(
+	'dsn'	=> '',
+	'hostname' => '136.166.13.9', 
+	'username' => 'lgepr_pi', 
+	'password' => 'El3ctronics1', 
 	'database' => 'espr',
 	'dbdriver' => 'sqlsrv',
 	'dbprefix' => '',
@@ -116,3 +138,26 @@ $db['espr'] = array(
 	'failover' => array(),
 	'save_queries' => TRUE
 );
+
+$db['espr_8'] = array(
+	'dsn'	=> '',
+	'hostname' => '136.166.13.8', 
+	'username' => 'db_espr', 
+	'password' => 'LgEpR2019', 
+	'database' => 'SOM',
+	'dbdriver' => 'sqlsrv',
+	'dbprefix' => '',
+	'pconnect' => FALSE,
+	'db_debug' => (ENVIRONMENT !== 'production'),
+	'cache_on' => FALSE,
+	'cachedir' => '',
+	'char_set' => 'utf8',
+	'dbcollat' => 'utf8_general_ci',
+	'swap_pre' => '',
+	'encrypt' => FALSE,
+	'compress' => FALSE,
+	'stricton' => FALSE,
+	'failover' => array(),
+	'save_queries' => TRUE
+);
+

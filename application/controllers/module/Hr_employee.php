@@ -98,8 +98,9 @@ class Hr_employee extends CI_Controller {
 		
 		$data = $this->input->post();
 		$data["active"] = $this->input->post("active") ? true : false;
-		$data["is_supervised"] = $this->input->post("is_supervised") ? true : false;
-		$data["access"] = $this->input->post("access") ? true : false;
+		$data["is_leader"] = $this->input->post("is_leader") ? true : false;
+		//$data["is_supervised"] = $this->input->post("is_supervised") ? true : false;
+		//$data["access"] = $this->input->post("access") ? true : false;
 		
 		$to_updated = true;
 		

@@ -51,11 +51,17 @@
 							<div class="row">
 								<div class="col-md-4">
 									<div class="form-check form-switch">
+										<input class="form-check-input me-3" type="checkbox" name="is_leader" id="is_leader" <?= $emp->is_leader ? "checked" : "" ?>>
+										<label class="form-check-label" for="is_leader">Leader</label>
+									</div>
+								</div>
+								<div class="col-md-4">
+									<div class="form-check form-switch">
 										<input class="form-check-input me-3" type="checkbox" name="active" id="active" <?= $emp->active ? "checked" : "" ?>>
 										<label class="form-check-label" for="active">Active</label>
 									</div>
 								</div>
-								<div class="col-md-4">
+								<!-- div class="col-md-4">
 									<div class="form-check form-switch">
 										<input class="form-check-input me-3" type="checkbox" name="is_supervised" id="is_supervised" <?= $emp->is_supervised ? "checked" : "" ?>>
 										<label class="form-check-label" for="is_supervised">Supervised</label>
@@ -66,7 +72,7 @@
 										<input class="form-check-input me-3" type="checkbox" name="access" id="access" <?= $emp->access ? "checked" : "" ?>>
 										<label class="form-check-label" for="access">Access</label>
 									</div>
-								</div>
+								</div -->
 							</div>
 						</div>
 						<div class="pt-3 text-center">

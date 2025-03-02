@@ -191,14 +191,96 @@ class Lgepr extends CI_Controller {
 		echo json_encode($res);
 	}
 	
-	
-	
-	
 	public function test(){
+		//show all tables of DB
+		//$tables = $this->gen_e->get_tables(); echo "<br/><br/><br/>";
 		
-		$users = $this->gen_e->filter("user", false, ["ep_mail" => "roberto.kawano"]); //, $w = null, $l = null, $w_in = null, $orders = [], $limit = "", $offset = "")
+		//$data = $this->gen_e->filter_array("BI2_TARGET_V", false, [], null, null, [], 1000, 0);
 		
-		print_r($users);
-		echo "hola";
+		$w = [
+			//"YYYY" => 2025,
+			//"Subsidiary !=" => "Branch",
+		];
+		
+		$w_in = [
+			//["field" => "DATA_TYPE", "values" => ["Sales", "Sales Deduction", "SD Rate"]],
+			//["field" => "DATA_TYPE", "values" => ["SD Rate"]],
+		];
+		
+		$o = [
+			["YYYY", "desc"],
+			["Subsidiary", "asc"],
+			["Country", "asc"],
+			["DIVISION", "asc"],
+			["DATA_TYPE", "asc"],
+		];
+		
+		$data = $this->gen_e->filter_array("M_PLAN_TTL", false, $w, null, $w_in, $o, 1000, 0);
+		
+		$arr = [
+			"LGEPR" => [
+				"Peru" => [],
+			],
+			"Branch" => [
+				"Paraguay" => [],
+				"Uruguay" => [],
+				"Bolivia" => [],
+			],
+		];
+		
+		echo "<table>";
+		echo "<tr>";
+		foreach($data[0] as $key => $item) echo "<td>".$key."</td>";
+		echo "</tr>";
+		
+		$stru = $this->gen_m->structure("lgepr_most_likely");
+		unset($stru->most_likely_id);
+		
+		foreach($data as $item){
+			echo "<tr>";
+			foreach($item as $key => $d) echo "<td>".$d."</td>";
+			echo "</tr>";
+			
+			if (!array_key_exists($item["DIVISION"], $arr[$item["Subsidiary"]][$item["Country"]])) $arr[$item["Subsidiary"]][$item["Country"]][$item["DIVISION"]] = [];
+			if (!array_key_exists($item["YYYY"], $arr[$item["Subsidiary"]][$item["Country"]][$item["DIVISION"]])){
+				$arr[$item["Subsidiary"]][$item["Country"]][$item["DIVISION"]][$item["YYYY"]] = [];
+				for($i = 1; $i <= 12; $i++){
+					$arr[$item["Subsidiary"]][$item["Country"]][$item["DIVISION"]][$item["YYYY"]][$i] = clone $stru;
+				
+					$arr[$item["Subsidiary"]][$item["Country"]][$item["DIVISION"]][$item["YYYY"]][$i]->country = $item["Country"];
+					$arr[$item["Subsidiary"]][$item["Country"]][$item["DIVISION"]][$item["YYYY"]][$i]->subsidiary = $item["Subsidiary"];
+					//$arr[$item["Subsidiary"]][$item["Country"]][$item["DIVISION"]][$item["YYYY"]][$i]->company = ;
+					$arr[$item["Subsidiary"]][$item["Country"]][$item["DIVISION"]][$item["YYYY"]][$i]->division = $item["DIVISION"];
+					$arr[$item["Subsidiary"]][$item["Country"]][$item["DIVISION"]][$item["YYYY"]][$i]->year = $item["YYYY"];
+					$arr[$item["Subsidiary"]][$item["Country"]][$item["DIVISION"]][$item["YYYY"]][$i]->month = $i;	
+				}
+			}
+			
+			if ($item["DATA_TYPE"] === "BP"){
+				
+				
+				$arr[$item["Subsidiary"]][$item["Country"]][$item["DIVISION"]][$item["YYYY"]][$m]->bp = $val;
+			}
+		}
+		
+		
+		echo "</table>";
+		
+		echo "<br/><br/>";
+		
+		print_r($arr);
+		
+		
+		/*
+		foreach($data as $item){
+			//foreach($item as $key => $d) echo $key." ============> ".$d."<br/>";
+			print_R($item);
+			echo "<br/><br/>";
+		}
+		*/
+		
+		//T_CLOSED_ORDER
+		//T_OPEN_ORDER
+
 	}
 }

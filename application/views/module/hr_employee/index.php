@@ -21,14 +21,15 @@
 				<div class="card-body">
 					<h5 class="card-title">List</h5>
 					<div class="table-responsive">
-						<table class="table datatable align-middle">
+						<table class="table align-middle">
 							<thead>
 								<tr>
 									<th scope="col" style="width: 80px;">#</th>
 									<th scope="col">Department</th>
 									<th scope="col">PR</th>
 									<th scope="col">Name</th>
-									<th scope="col">Status</th>
+									<th scope="col" class="text-center">Leader</th>
+									<th scope="col" class="text-center">Status</th>
 									<th scope="col"></th>
 								</tr>
 							</thead>
@@ -48,7 +49,8 @@
 									</td>
 									<td><?= $emp->employee_number  ?></td>
 									<td><?= $emp->name  ?></td>
-									<td><?= $emp->active ? "Activate" : "Disabled" ?></td>
+									<td class="text-center"><?= $emp->is_leader ? '<i class="bi bi-circle-fill text-success"></i>' : '' ?></td>
+									<td class="text-center"><i class="bi bi-circle-fill text-<?= $emp->active ? "success" : "danger" ?>"></i></td>
 									<td>
 										<div class="text-end">
 											<a href="<?= base_url() ?>module/hr_employee/edit/<?= $emp->employee_id ?>" class="btn btn-link">
