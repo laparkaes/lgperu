@@ -1,3 +1,20 @@
+<head>
+    <title>Mi Página</title>
+    <style>
+        .fixed-bottom-right {
+			position: fixed;
+			bottom: 20px; /* Aumenta el espacio desde la parte inferior */
+			right: 20px; /* Aumenta el espacio desde la derecha */
+			z-index: 1000;
+			width: 40px; /* Aumenta el ancho del botón */
+			height: 40px; /* Aumenta la altura del botón */
+			font-size: 24px; /* Aumenta el tamaño de la fuente del signo de interrogación */
+			display: flex; /* Centra el contenido vertical y horizontalmente */
+			align-items: center;
+			justify-content: center;
+		}
+    </style>
+</head>
 <div class="card mt-3">
 	<div class="card-body">
 		<div class="d-flex justify-content-between align-items-center">
@@ -67,8 +84,28 @@
 						$now = $item["access"][$item_day["day"]];
 						$aux = [];
 						
+						// if ($now["first_access"]["time"]){
+							// if ($now["first_access"]["remark"] === "MV") $aux[] = $now["first_access"]["remark"];
+							
+							// switch($now["first_access"]["remark"]){
+								// case "T": $color = "danger"; break;
+								// case "TT": $color = "success"; break;
+								// default: $color = "";
+							// }
+							
+							// $aux[] = '<span class="text-'.$color.'">'.$now["first_access"]["time"].'</span>';
+						// }else $aux[] = $now["first_access"]["remark"];
+						
+						// if ($now["last_access"]["time"]){
+							// $aux[] = '<span class="text-'.($now["last_access"]["remark"] === "E" ? "danger" : "").'">'.$now["last_access"]["time"].'</span>';
+							// if ($now["last_access"]["remark"] === "AV") $aux[] = $now["last_access"]["remark"];
+						// }else $aux[] = $now["last_access"]["remark"];
+						
+						
+						$mRemarks = ["MV", "MB", "MBT", "MCO", "MCMP", "MHO", "MT"];
+						$aRemarks = ["AV", "AB", "ABT", "ACO", "ACMP", "AHO", "AT"];
 						if ($now["first_access"]["time"]){
-							if ($now["first_access"]["remark"] === "MV") $aux[] = $now["first_access"]["remark"];
+							if (in_array($now["first_access"]["remark"], $mRemarks)) $aux[] = $now["first_access"]["remark"];
 							
 							switch($now["first_access"]["remark"]){
 								case "T": $color = "danger"; break;
@@ -80,10 +117,18 @@
 						}else $aux[] = $now["first_access"]["remark"];
 						
 						if ($now["last_access"]["time"]){
-							$aux[] = '<span class="text-'.($now["last_access"]["remark"] === "E" ? "danger" : "").'">'.$now["last_access"]["time"].'</span>';
-							if ($now["last_access"]["remark"] === "AV") $aux[] = $now["last_access"]["remark"];
+																
+							switch($now["last_access"]["remark"]){
+								case "E": $color = "danger"; break;
+								//case "TT": $color = "success"; break;
+								default: $color = "";
+							}
+							
+							$aux[] = '<span class="text-'.$color.'">'.$now["last_access"]["time"].'</span>';
+							
+							if (in_array($now["last_access"]["remark"], $aRemarks)) $aux[] = $now["last_access"]["remark"];
 						}else $aux[] = $now["last_access"]["remark"];
-						
+									
 						if ($aux) echo implode("<br/>", array_unique($aux));
 						?>
 					</td>
@@ -93,6 +138,57 @@
 			</tbody>
 		</table>
 	</div>
+</div>
+
+<button type="button" class="btn btn-primary btn-xl rounded-circle fixed-bottom-right" data-bs-toggle="modal" data-bs-target="#legendModal">
+    ?
+</button>
+
+<div class="modal fade" id="legendModal" tabindex="-1" aria-labelledby="legendModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="legendModalLabel">Types Exception List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table id="legendTable" class="table datatable" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Type Exception</th>
+                            <th>Incidence</th>
+                        </tr>
+                    </thead>
+					<tbody>
+						<tr><td>H</td><td>Holiday</td></tr>
+							<tr><td>EF</td><td>Early Friday</td></tr>
+							<tr><td>BT</td><td>Biz Trip</td></tr>
+							<tr><td>CE</td><td>Ceased</td></tr>
+							<tr><td>CO</td><td>Commission</td></tr>
+							<tr><td>CMP</td><td>Compensation</td></tr>
+							<tr><td>HO</td><td>Home Office</td></tr>
+							<tr><td>L</td><td>License</td></tr>
+							<tr><td>MV</td><td>Morning Vacation</td></tr>
+							<tr><td>AV</td><td>Afternoon Vacation</td></tr>
+							<tr><td>V</td><td>Vacation</td></tr>
+							<tr><td>MED</td><td>Medical Vacation</td></tr>
+							<tr><td>MB</td><td>Morning Birthday</td></tr>
+							<tr><td>AB</td><td>Afternoon Birthday</td></tr>
+							<tr><td>MBT</td><td>Morning Biz Trip</td></tr>
+							<tr><td>ABT</td><td>Afternoon Biz Trip</td></tr>
+							<tr><td>MCO</td><td>Morning Commission</td></tr>
+							<tr><td>ACO</td><td>Afternoon Commission</td></tr>
+							<tr><td>MCMP</td><td>Morning Compensation</td></tr>
+							<tr><td>ACMP</td><td>Afternoon Compensation</td></tr>
+							<tr><td>MHO</td><td>Morning Home Office</td></tr>
+							<tr><td>AHO</td><td>Afternoon Home Office</td></tr>
+							<tr><td>MT</td><td>Morning Topic</td></tr>
+							<tr><td>AT</td><td>Afternoon Topic</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 			
 <div class="d-none" id="bl_export_result"></div>

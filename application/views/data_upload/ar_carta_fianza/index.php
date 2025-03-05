@@ -1,10 +1,10 @@
 <div class="d-flex justify-content-between align-items-start">
 	<div class="pagetitle">
-		<h1>LGEPR TAX PCGE</h1>
+		<h1>AR Carta Fianza</h1>
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item active">LGEPR TAX PCGE</li>
+				<li class="breadcrumb-item active">AR Carta Fianza</li>
 			</ol>
 		</nav>
 	</div>
@@ -15,7 +15,7 @@
 			<div class="card">
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
-						<h5 class="card-title">Last 1,000 records</h5>
+						<h5 class="card-title">Last 100 records</h5>
 						<form id="form_mdms_update">
 							<div class="input-group">							
 								<input class="form-control" type="file" name="attach">
@@ -26,26 +26,25 @@
 					<table class="table datatable">
 						<thead>
 							<tr>
-								<th scope="col">Legal Entity Name</th>
-								<th scope="col">Account</th>
-								<th scope="col">Account Desc</th>
-								<th scope="col">PCGE</th>
-								<th scope="col">PCGE Decripción</th>
-								<th scope="col">PCGE 2024</th>	
-								<th scope="col">PCGE Decripción 2024</th>									
+								<th scope="col">Customer Code</th>
+								<th scope="col">Customer Name</th>
+								<th scope="col">Start Date</th>
+								<th scope="col">End Date</th>
+								<th scope="col">Collateral Name</th>
+								<th scope="col">Providor</th>
 								<th scope="col">Updated</th>
 							</tr>
 						</thead>
 						<tbody>
 							<?php foreach($stocks as $item){ ?>
 							<tr>
-								<td><?= $item->legal_entity_name ?></td>
-								<td><?= $item->account ?></td>
-								<td><?= $item->account_desc ?></td>
-								<td><?= $item->pcge ?></td>
-								<td><?= $item->pcge_decripcion ?></td>
-								<td><?= $item->pcge_2024 ?></td>
-								<td><?= $item->pcge_decripcion_2024 ?></td>
+								<td><?= $item->customer_code ?></td>
+								<td><?= $item->customer_name ?></td>
+								<td><?= $item->start_date ?></td>
+								<td><?= $item->end_date ?></td>
+								<td><?= $item->collateral_name ?></td>
+								<td><?= $item->providor ?></td>
+
 								<td><?= $item->updated ?></td>
 							</tr>
 							<?php } ?>
@@ -61,8 +60,8 @@
 document.addEventListener("DOMContentLoaded", () => {
 	$("#form_mdms_update").submit(function(e) {
 		e.preventDefault();
-		ajax_form_warning(this, "data_upload/lgepr_tax_pcge/update", "Do you want to upload stock data?").done(function(res) {
-			swal_redirection(res.type, res.msg, "data_upload/lgepr_tax_pcge");
+		ajax_form_warning(this, "data_upload/ar_carta_fianza/update", "Do you want to upload stock data?").done(function(res) {
+			swal_redirection(res.type, res.msg, "data_upload/ar_carta_fianza");
 		});
 	});
 });
@@ -74,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		const formData = new FormData(form);
 		
 		$.ajax({
-			url: "<?= base_url() ?>lgepr_tax_pcge/upload",
+			url: "<?= base_url() ?>ar_carta_fianza/upload",
 			type: "POST",
 			data: formData,
 			processData: false,

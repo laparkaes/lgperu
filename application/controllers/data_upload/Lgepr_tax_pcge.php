@@ -63,22 +63,25 @@ class Lgepr_tax_pcge extends CI_Controller {
 			$batch_size = 200;
 
 			// Iniciar transacción para mejorar rendimiento
-			$this->db->trans_start();
+			//$this->db->trans_start();
 			for($i = 4; $i <= $max_row; $i++){
 				$row = [
 					"legal_entity_name" 				=> trim($sheet->getCell('B'.$i)->getValue()),
 					"account" 							=> trim($sheet->getCell('C'.$i)->getValue()),
 					"account_desc" 						=> trim($sheet->getCell('D'.$i)->getValue()),
-					"pcge" 								=> trim($sheet->getCell('E'.$i)->getValue()),
-					"pcge_depricion" 					=> trim($sheet->getCell('F'.$i)->getValue()),
+					"pcge" 								=> preg_replace('/^\s+/u', '', $sheet->getCell('E'.$i)->getValue()),
+					"pcge_decripcion" 					=> trim($sheet->getCell('F'.$i)->getValue()),
 					"pcge_2024"							=> trim($sheet->getCell('I'.$i)->getValue()),
-					"pcge_depricion_2024" 				=> trim($sheet->getCell('J'.$i)->getValue()),
+					"pcge_decripcion_2024" 				=> trim($sheet->getCell('J'.$i)->getValue()),
 					"validacion_l" 						=> trim($sheet->getCell('L'.$i)->getValue()),
 					"validacion_m"						=> trim($sheet->getCell('M'.$i)->getValue()),
 					"comentario_tax"					=> trim($sheet->getCell('N'.$i)->getValue()),
 					"updated"							=> $updated,
 				];
-				// Manejo de valores vacios end_date_ative					
+				// Manejo de valores vacios end_date_ative	
+				
+			//$row["pcge"] = 
+			//print_r($row["pcge"]); echo '<br>';
 				$batch_data[]=$row;
 				if(count($batch_data)>=$batch_size){
 					$this->gen_m->insert_m("lgepr_tax_pcge", $batch_data);
@@ -94,7 +97,7 @@ class Lgepr_tax_pcge extends CI_Controller {
 			}
 
 			$msg = " record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";;
-			$this->db->trans_complete();
+			//$this->db->trans_complete();
 			return $msg;			
 		}else return "";
 	}

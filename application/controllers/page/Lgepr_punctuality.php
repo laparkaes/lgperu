@@ -310,6 +310,125 @@ class Lgepr_punctuality extends CI_Controller {
 						$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
 						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
 						break;
+					
+					// Edicion Morning
+					case "MB":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+					
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						break;
+					case "MBT":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+					
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						break;
+					case "MCO":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+					
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						break;
+					case "MCMP":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+					
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						break;
+					case "MT":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+					
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						break;
+					// Edicion Afternoon
+					case "AB":
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+					
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "ABT":
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+					
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "ACO":
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+					
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "ACMP":
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+					
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "AHO":
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+					
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "AT":
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+					
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					// Edit other cases
+					case "BT":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+						
+						$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "CE":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+						
+						$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "CO":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+						
+						$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "CMP":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+						
+						$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "HO":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+						
+						$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "L":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+						
+						$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
 				}
 			}
 		}
@@ -398,6 +517,25 @@ class Lgepr_punctuality extends CI_Controller {
 			["MV", "Half Vacation (Morning)"],
 			["AV", "Half Vacation (Afternoon)"],
 			["MED", "Medical Vacation"],
+			["MB", "Birthday (Morning)"], //Edicion
+			["AB", "Birthday (Afternoon)"],
+			["BT", "Biz Trip"],
+			["MBT", "Biz Trip (Morning)"],
+			["ABT", "Biz Trip (Afternoon)"],
+			["CE", "Ceased"],
+			["CO", "Commission"],
+			["MCO", "Commission (Morning)"],
+			["ACO", "Commission (Afternoon)"],
+			["CMP", "Compensation"],
+			["MCMP", "Compensation (Morning)"],
+			["ACMP", "Compensation (Afternoon)"],
+			["HO", "Home Office"],
+			["MHO", "Home Office (Morning)"],
+			["AHO", "Home Office (Afternoon)"],
+			["L", "License"],
+			["MT", "Topic (Morning)"],
+			["AT", "Topic (Afternoon)"],
+			
 		];
 		
 		//options to select in exception list for company

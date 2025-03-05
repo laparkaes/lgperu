@@ -19,10 +19,7 @@ class Tax_daily_book extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 	}
 	
-	public function index(){
-		// $w = ["updated >=" => date("Y-m-d", strtotime("-3 months"))];
-		// $o = [["updated", "desc"], ["model_description", "asc"], ["model", "asc"]];
-		
+	public function index(){		
 		$data = [
 			"tax"	=> $this->gen_m->filter("tax_daily_book", false, null, null, null, null, 1000),
 			"main" 		=> "module/tax_daily_book/index",
@@ -61,7 +58,7 @@ class Tax_daily_book extends CI_Controller {
 		$suffixes = ['_CM', '_PEN', '_PEN_CM', '_1_CM', '_IGVND', '-R', '-I', '_Reversa1', '_FSE', '_IRNODOM']; // Sufijos a eliminar al final
 		
 		if (is_array($code)) {
-			// Si $code es un array, convertirlo en una cadena (opcional, según lo que quieras hacer)
+			// Si $code es un array, convertirlo en una cadena
 			$code = implode(',', $code);
 		}
 
@@ -111,9 +108,7 @@ class Tax_daily_book extends CI_Controller {
 		//load excel file
 		$spreadsheet = IOFactory::load("./upload/tax_daily_book.xlsx");
 		//$spreadsheet = IOFactory::createReader('Xlsx')->setReadDataOnly(true)->load("./upload/tax_daily_book.xlsx");
-		$sheet = $spreadsheet->getActiveSheet();
-		
-		
+		$sheet = $spreadsheet->getActiveSheet();		
 	}
 	
 	// Realizar cálculos sobre los datos del Excel
@@ -162,7 +157,7 @@ class Tax_daily_book extends CI_Controller {
 						$row["number_voucher"] = $parts[1];
 					}
 				}
-				elseif(count($parts) == 4 || count($parts) == 6){
+				elseif(count($parts) == 4 || count($parts) == 6 || count($parts) == 7){
 					$flag = 0;
 					foreach ($parts as $part) {
 						if (strpos($part, '/') !== false) {
@@ -187,6 +182,12 @@ class Tax_daily_book extends CI_Controller {
 					}
 					elseif($parts[1] === 'PR2019010013' && $flag != 1){
 						$this->print_zero($row);
+					}
+					elseif(count($parts) == 4 && strpos($parts[2], '/') !== false) {
+						//$part1_explode = explode('/', $parts[1]);
+						$row["type_voucher"] = '00';
+						$row["serie_voucher"] = '0000';
+						$row["number_voucher"] = $parts[1];
 					}
 				}
 				elseif($parts[1] === 'CRTR002'){
@@ -217,7 +218,13 @@ class Tax_daily_book extends CI_Controller {
 					$row["number_voucher"] = $parts[2];
 				}
 				elseif(count($parts) == 3){
-					if ($parts[1] === 'RM213'){
+					if(strpos($parts[1], '/') !== false) {
+						$part1_explode = explode('/', $parts[1]);
+						$row["type_voucher"] = '00';
+						$row["serie_voucher"] = '0000';
+						$row["number_voucher"] = $part1_explode[0];
+					}
+					elseif ($parts[1] === 'RM213'){
 						$row["type_voucher"] = '00';
 						$row["serie_voucher"] = '0000';
 						$row["number_voucher"] = $parts[1].$parts[2];
@@ -242,7 +249,12 @@ class Tax_daily_book extends CI_Controller {
 						$row["serie_voucher"] = $parts[1];
 						$row["number_voucher"] = $parts[2];
 					}
-				}				
+				}
+				elseif(strpos($parts[1], 'PMV') === 0 || strpos($parts[1], '4') === 0){
+					$row["type_voucher"] = '00';
+					$row["serie_voucher"] = '0000';
+					$row["number_voucher"] = implode('', array_slice($parts, 1));
+				}
 				else{
 					$this->print_zero($row);
 					//continue;
@@ -354,6 +366,11 @@ class Tax_daily_book extends CI_Controller {
 							$row["serie_voucher"] = '0000';                        // Segunda columna nueva
 							$row["number_voucher"] = $parts[1]; // Concatenar los demás grupos como tercer valor
 						}
+						elseif(strpos($parts[2], "L") === 0){
+							$row["type_voucher"] = '91';                          // Primera columna nueva
+							$row["serie_voucher"] = '0000';                        // Segunda columna nueva
+							$row["number_voucher"] = $parts[1].$parts[2]; // Concatenar los demás grupos como tercer valor
+						}
 						else{
 							$row["type_voucher"] = '91';                          // Primera columna nueva
 							$row["serie_voucher"] = '0000';                        // Segunda columna nueva
@@ -433,10 +450,25 @@ class Tax_daily_book extends CI_Controller {
 				$row["serie_voucher"] = $parts[1];       // Segunda columna nueva
 				$row["number_voucher"] = $parts[2];
 			}
-			elseif($parts[0]==='03' || $parts[0]==='05' || $parts[0]==='07' || $parts[0]==='08' || $parts[0]==='42' || $parts[0]==='30' || $parts[0]==='14'){
-				$row["type_voucher"] = $parts[0];    // Primera columna nueva
-				$row["serie_voucher"] = $parts[1];       // Segunda columna nueva
-				$row["number_voucher"] = $parts[2];
+			elseif($parts[0]==='03' || $parts[0]==='05' || $parts[0]==='07' || $parts[0]==='08' || $parts[0]==='42' || $parts[0]==='30' || $parts[0]==='14'|| $parts[0]==='10'){
+				if($parts[0]==='05'){
+					if(strpos($parts[1], '/') !== false) {
+						$part1_explode = explode('/', $parts[1]);
+						$row["type_voucher"] = '00';
+						$row["serie_voucher"] = '0000';
+						$row["number_voucher"] = $part1_explode[0];
+					}
+					else{
+						$row["type_voucher"] = $parts[0];    // Primera columna nueva
+						$row["serie_voucher"] = $parts[1];       // Segunda columna nueva
+						$row["number_voucher"] = $parts[2];
+					}
+				}
+				else{
+					$row["type_voucher"] = $parts[0];    // Primera columna nueva
+					$row["serie_voucher"] = $parts[1];       // Segunda columna nueva
+					$row["number_voucher"] = $parts[2];
+				}
 			}
 
 			else{
@@ -642,7 +674,7 @@ class Tax_daily_book extends CI_Controller {
 		$batch_insert = [];
 		
 		// Obtener los je_id únicos de los datos entrantes
-		$existing_je_ids_result = $this->gen_m->filter_select('tax_daily_book', false, 'je_id');
+		$existing_je_ids_result = $this->gen_m->filter_select('tax_daily_book', false, 'je_id', ['period_name' => $batch_data[0]['period_name']]);
 		$existing_je_ids = array_column($existing_je_ids_result, 'je_id');
 		
 		//print_r($existing_je_ids); echo '<br>'; echo '<br>'; return;
@@ -665,9 +697,7 @@ class Tax_daily_book extends CI_Controller {
 				$row_modified["effective_date"] = $this->date_convert_9($row_modified["effective_date"]);
 				$row_modified["posted_date"] = $this->date_convert_9($row_modified["posted_date"]);
 				$row_modified["transaction_date"] = $this->date_convert_9($row_modified["transaction_date"]);
-				$row_modified["tax_date"] = $this->date_convert_9($row_modified["tax_date"]);
-				//print_r($row_modified); echo '<br>'; echo '<br>'; echo '<br>';
-				//$this->gen_m->insert("tax_daily_book", $row_modified);	
+				$row_modified["tax_date"] = $this->date_convert_9($row_modified["tax_date"]);	
 				$batch_insert[] = $row_modified;
 				//return $batch_insert;
 			}
@@ -782,8 +812,6 @@ class Tax_daily_book extends CI_Controller {
 			return [$vendor->je_id, $ci_value, $vendor_char];
 		}, $vendor_data);
 	}
-
-
 	
 	public function correlative_count($je_line_number) {
 		$length = strlen($je_line_number);
@@ -820,14 +848,15 @@ class Tax_daily_book extends CI_Controller {
 	public function print_ruc($sheet, $row, $row_num, $vendor_char_map, $invoice_map) {
 		
 		if (isset($row->vendor_customer) && preg_match('/^(PE|GCC|PR)/', $row->vendor_customer)) {
-			if (isset($invoice_map[$row->invoice_number])) {
+			if (isset($vendor_char_map[$row->je_id])) {
+			//if (isset($vendor_char_map[$row->invoice_number])) {
 				// Si el número de factura existe en la BD, usar el customer_vat_no
-				$batchSpecialData = ["CI" . $row_num, !empty($invoice_map[$row->invoice_number]) ?$invoice_map[$row->invoice_number] : "Pendiente"];
+				$batchSpecialData = ["CI" . $row_num, !empty($vendor_char_map[$row->je_id]) ?$vendor_char_map[$row->je_id] : "Pendiente"];
 			} 
 			else {
 				// Si no, usar el valor predeterminado o el del vendor_char_map
 				
-				$batchSpecialData = ["CI" . $row_num, $vendor_char_map[$row->je_id] ?? "Pendiente"];
+				$batchSpecialData = ["CI" . $row_num, !empty($invoice_map[$row->invoice_number]) ? $invoice_map[$row->invoice_number] : "Pendiente"];
 				// $batchSpecialData = ["CI" . $row_num, (strpos($vendor_char_map[$row->je_id], 'M') === 0)  ? 'Pendiente' : $vendor_char_map[$row->je_id]];
 			}
 		}
@@ -891,6 +920,8 @@ class Tax_daily_book extends CI_Controller {
 		
 		$dataEnd = microtime(true);
 		 
+		// **4. Extraer información adicional**
+		$bizStart = microtime(true);
 		
 		$numeric_columns = ["net_entered_debit", "entered_debit", "entered_credit", 
 							"net_accounted_debit", "accounted_debit", "accounted_credit"];
@@ -902,8 +933,7 @@ class Tax_daily_book extends CI_Controller {
 		$columnMap = ["type_voucher" => 'CJ', "serie_voucher" => 'CK', "number_voucher" => 'CL'];
 
 
-		// **4. Extraer información adicional**
-		$bizStart = microtime(true);
+		
 		
 		$vendor_char_map = [];
 		foreach ($this->number_document($from_date, $to_date) as $biz) {
@@ -918,7 +948,7 @@ class Tax_daily_book extends CI_Controller {
 		// Obtener los valores de number_document (solo una vez)
 		$biz_map = [];
 
-		$bizEnd = microtime(true);
+		
 		
 		$ruc_tax_register = $this->gen_m->filter_select("tax_purchase_register", false, ['invoice_number', 'customer_vat_no']);
 		$invoice_map = [];
@@ -932,6 +962,26 @@ class Tax_daily_book extends CI_Controller {
 			$pcge_map[$item_pcge->account] = [$item_pcge->pcge, $item_pcge->pcge_decripcion];			
 		}
 		
+		$bank_code_data = $this->gen_m->filter_select('ar_bank_code', false, ['bank_name', 'date_operation', 'number_operation', 'total_amount']);
+		$bank_code_map = [];
+
+		foreach ($bank_code_data as $item_bank_code) {
+			$date = $item_bank_code->date_operation;
+			
+			// Si la fecha aún no está en el array, inicialízala como un array vacío
+			if (!isset($bank_code_map[$date])) {
+				$bank_code_map[$date] = [];
+			}
+
+			// Agrega los datos al array correspondiente a la fecha
+			$bank_code_map[$date][] = [
+				'bank_name' => $item_bank_code->bank_name,
+				'number_operation' => $item_bank_code->number_operation,
+				'total_amount' => $item_bank_code->total_amount
+			];
+		}
+		//print_r($bank_code_map); return;
+		$bizEnd = microtime(true);
 		//print_r($pcge_map); echo '<br>'; return;
 		// **5. Obtener datos en lotes**
 		$fetchStart = microtime(true);
@@ -1018,17 +1068,26 @@ class Tax_daily_book extends CI_Controller {
 				$batchSpecialData[] = ["CO" . $row_num, $formulaData_co ?? "-"];
 				
 				// Se agrega valores para la columna "CP" basado en los valores de Description/AR Comments
-				$batchSpecialData[] = ["CP" . $row_num, !empty($row->description_ar_comments) ? substr($row->description_ar_comments, 0, 200) : substr($batchSpecialData_pcge_decripcion, 0, 200)];
+				$formulaData_cp = "=LEFT(IF(+Y$row_num=\"\",D$row_num,Y$row_num),200)";
+				$batchSpecialData[] = ["CP" . $row_num, $formulaData_cp ?? ""];
 				
-				// Movimientos del debe - columna "CR"				
-				$batchSpecialData[] = ["CR" . $row_num, ($row->net_accounted_debit > 0) ? (float)$row->net_accounted_debit : 0];
+				// $batchSpecialData[] = ["CP" . $row_num, !empty($row->description_ar_comments) ? substr($row->description_ar_comments, 0, 200) : substr($batchSpecialData_pcge_decripcion, 0, 200)];
+				
+				// Movimientos del debe - columna "CR"
+				$formulaData_cr = "=IF(V$row_num>=0,V$row_num,0)";
+				$batchSpecialData[] = ["CR" . $row_num, $formulaData_cr ?? 0];
+				// $batchSpecialData[] = ["CR" . $row_num, ($row->net_accounted_debit > 0) ? (float)$row->net_accounted_debit : 0];
 				
 				// Movimientos de haber - columna "CS"
-				$batchSpecialData[] = ["CS" . $row_num, ($row->net_accounted_debit < 0) ? (float)($row->net_accounted_debit*-1) : 0];	
+				$formulaData_cs = "=IF(V$row_num<=0,-(V$row_num),0)";
+				$batchSpecialData[] = ["CS" . $row_num, $formulaData_cs ?? 0];
+				// $batchSpecialData[] = ["CS" . $row_num, ($row->net_accounted_debit < 0) ? (float)($row->net_accounted_debit*-1) : 0];	
 				
 				//print_r($batchSpecialData[5][1]); echo '<br>'; echo '<br>'; echo '<br>';
-				$sum_net_accounted_debit_pos = $sum_net_accounted_debit_pos + (($row->net_accounted_debit > 0) ? $row->net_accounted_debit : 0);
-				$sum_net_accounted_debit_ne = $sum_net_accounted_debit_ne + (($row->net_accounted_debit < 0) ? ($row->net_accounted_debit*-1) : 0); 
+				//$formulaData_cs_sum_pos = "=SUM(CR$row_num:CR161262)"
+				
+				//$sum_net_accounted_debit_pos = $sum_net_accounted_debit_pos + (($row->net_accounted_debit > 0) ? $row->net_accounted_debit : 0);
+				//$sum_net_accounted_debit_ne = $sum_net_accounted_debit_ne + (($row->net_accounted_debit < 0) ? ($row->net_accounted_debit*-1) : 0); 
 				
 				// Rellenado de columna CU
 				$batchSpecialData[] = ["CU" . $row_num, 1];	
@@ -1057,7 +1116,7 @@ class Tax_daily_book extends CI_Controller {
 						$batchSpecialData[] = ["CZ" . $row_num, "LG ELECTRONICS PERU S.A." ?? ""];
 					}
 					elseif($row->dff_context !== 'AR_COMMON'){
-						if(empty($row->vendor_customer)){
+						if(empty($row->vendor_customer) && !empty($row->bank_name)){
 							$razon_social = ['SCOTIA'=>'SCOTIABANK PERU SAA', 'BCP'=>'BANCO DE CREDITO DEL PERU', 'CITI'=>'CITIBANK DEL PERU S.A.', 'INTER'=>'BANCO INTERNACIONAL DEL PERU-INTERBANK', 'BBVA'=>'BANCO BBVA PERU', 'NACION'=>'VARIOS'];
 							$batchSpecialData[] = ["CZ" . $row_num, $razon_social[$bank_name] ?? ""];
 						}
@@ -1073,11 +1132,23 @@ class Tax_daily_book extends CI_Controller {
 							}
 						}
 					}
+					
+					//Rellando de columna DA
+					if (isset($bank_code_map[$row->effective_date])) {
+						foreach($bank_code_map[$row->effective_date] as $item_date){
+							if($bank_name ===  $item_date['bank_name'] && $row->net_entered_debit == $item_date['total_amount']){
+								$batchSpecialData[] = ["DA" . $row_num, $item_date['number_operation'] ?? ""];
+								break;
+							}
+						}
+					}
+					
+					//Rellenado de columna DY
+					if(!empty($banks_account_code[$bank_name])){
+						$batchSpecialData[] = ["CY" . $row_num, '003' ?? ""];
+					}
 				}
 				
-				
-				// if(strpos($batchSpecialData_pcge, '10') === 0){
-				// }
 				
 				// Rellenado columna DC												
 				 $formulaData = "=CONCATENATE(CA$row_num,\"|\",CB$row_num,\"|\",CC$row_num,\"|\",CD$row_num,\"|\",CE$row_num,\"|\",CF$row_num,\"|\",CG$row_num,\"|\",CH$row_num,\"|\",LEFT(CI$row_num,15),\"|\",CJ$row_num,\"|\",CK$row_num,\"|\",CL$row_num,\"|\",CM$row_num,\"|\",CN$row_num,\"|\",TEXT(CO$row_num,\"DD/MM/YYYY\"),\"|\",CP$row_num,\"|\",CQ$row_num,\"|\",IF(CR$row_num>0,CR$row_num,\"0.00\"),\"|\",IF(CS$row_num>0,CS$row_num,\"0.00\"),\"|\",CT$row_num,\"|\",CU$row_num,\"|\",CV$row_num,\"|\",CW$row_num,\"|\",CX$row_num,\"|\",CY$row_num,\"|\",CZ$row_num,\"|\",DA$row_num)";
@@ -1107,8 +1178,11 @@ class Tax_daily_book extends CI_Controller {
 		}
 		
 		// Insertar las sumas acumuladas en la fila final + 1
-		$sheet->setCellValue("CR" . ($row_num+1), $sum_net_accounted_debit_pos);
-		$sheet->setCellValue("CS" . ($row_num+1), $sum_net_accounted_debit_ne);
+		$sheet->setCellValue("CR" . ($row_num+1), "=SUM(CR6:CR$row_num)");
+		$sheet->setCellValue("CS" . ($row_num+1), "=SUM(CS6:CS$row_num)");
+		
+		// $sheet->setCellValue("CR" . ($row_num+1), $sum_net_accounted_debit_pos);
+		// $sheet->setCellValue("CS" . ($row_num+1), $sum_net_accounted_debit_ne);
 
 		$writeEnd = microtime(true);
 		log_message('info', "Tiempo de carga de plantilla: " . ($loadEnd - $loadStart) . " segundos");
@@ -1119,7 +1193,10 @@ class Tax_daily_book extends CI_Controller {
 		log_message('info', "Tiempo de escritura en Excel: " . ($writeEnd - $writeStart) . " segundos");
 
 		// Guardar y descargar archivo
+		$saveStart = microtime(true);
 		$this->downloadSpreadsheet($spreadsheet, "tax_daily_book.xlsx");
+		$saveEnd = microtime(true);
+		log_message('info', "Tiempo de guardado y descarga: " . ($saveEnd - $saveStart) . " segundos");
 	}
 
 	
@@ -1144,28 +1221,34 @@ class Tax_daily_book extends CI_Controller {
 
 
 	
-	public function downloadSpreadsheet($spreadsheet, $filename) {
-		$saveStart = microtime(true);
+	public function downloadSpreadsheet($spreadsheet, $filename) {		
 
-		
-		// exit;
-		// Configurar cabeceras de respuesta
-		
+		// Configurar cabeceras de respuesta	
 		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 		header('Content-Disposition: attachment;filename="' . $filename . '"');
 		header('Cache-Control: max-age=0');
+		
+		
+		$tempFile = tempnam(sys_get_temp_dir(), 'excel');	
 		// Escribir directamente al output
-		$writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-		$saveEnd = microtime(true);
+		$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+		//$writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+		
 		$writer->setPreCalculateFormulas(false);
+		$writer->setUseDiskCaching(true); // Activa el uso de caché en disco
+
+		$writer->save($tempFile);
+		//$writer->save('php://output'); // Enviar directamente sin archivo temporal
+		readfile($tempFile);
 		
-		
-		$writer->save('php://output'); // Enviar directamente sin archivo temporal
-		log_message('info', "Tiempo de guardado y descarga: " . ($saveEnd - $saveStart) . " segundos");
-		
-		
-		
-		// exit; // Asegurar que PHP termine aquí
+		// Limpiar la memoria
+		$spreadsheet->disconnectWorksheets();
+		unset($spreadsheet);
+		// Recolectar ciclos de basura
+		gc_collect_cycles();
+	
+		ob_end_clean();
+
 	}
 
 	public function fetch_large_data($table, $where, $batchSize = 5000) {
@@ -1173,7 +1256,25 @@ class Tax_daily_book extends CI_Controller {
 		// $this->db->select('*')->from($table)->where($where);
 		// $query = $this->db->get();
 		$columns = ["legal_entity", "period_name","effective_date", "posted_date", "accounting_unit", "department", "department_name","account", "account_name","project", "affiliate", "temporary1", "temporary2", "currency", "net_entered_debit", "entered_debit", "entered_credit","net_accounted_debit","accounted_debit","accounted_credit","description_ar_comments","journal_source","journal_category","gl_batch_name","gl_journal_name","gl_document_seq_number","ap_ar_source","line_type","ap_ar_batch_name","invoice_number","transaction_number","transaction_date","check_number","receipt_number","vendor_customer","bank_name","bank_account_number","business_number","tax_payer_id","subledger_document_seq_number","tax_date","tax_code","tax_rate","created_by","create_user_name","dff_context","dff1","dff2","dff3","dff4","dff5","dff6","dff7","dff8","dff9","dff10","dff11","dff12","dff13","dff14","dff15","dff16","dff17","dff18","dff19","dff20","lease_no","asset_number","org_id","link_id","je_header_id","je_line_number","je_id","type_voucher","serie_voucher","number_voucher"];
-				
+		
+		// while (true) {
+			// $query = $this->db->select($columns)
+							  // ->from($table)
+							  // ->limit($batchSize, $offset)
+							  // ->where($where)
+							  // ->order_by('effective_date', 'ASC')
+							  // ->get();
+			
+			// if ($query->num_rows() === 0) {
+				// break;
+			// }
+
+			// yield from array_map(fn($row) => $row, $query->result());
+
+			// $offset += $batchSize;
+			// $query->free_result();
+		// }
+
 		while (true) {
 			$query = $this->db->select($columns)
 							  ->from($table)

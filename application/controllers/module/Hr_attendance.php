@@ -192,17 +192,21 @@ class Hr_attendance extends CI_Controller {
 						$employees[$pr]["summary"]["check_days"]++;
 						
 						$start = in_array($access["day"], $early_friday_days) ? strtotime("08:30:00") : strtotime($schedule_pr[$pr][$day_pivot]["start"]);
-						$start_tolerance = in_array($access["day"], $early_friday_days) ? strtotime("08:34:00") : strtotime('+4 minutes', strtotime($schedule_pr[$pr][$day_pivot]["start"]));
+						// use this if need to apply tolerance time
+						// $start_tolerance = in_array($access["day"], $early_friday_days) ? strtotime("08:34:00") : strtotime('+4 minutes', strtotime($schedule_pr[$pr][$day_pivot]["start"]));
 						
 						$first = strtotime($access["first_access"]["time"]);
 						
 						if ($start < $first){
-							if ($start_tolerance < $first){
-								$employees[$pr]["summary"]["tardiness"]++;
-								$employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "T";
-							}else{
-								$employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "TT";//Tardeness Toleranced
-							}
+							$employees[$pr]["summary"]["tardiness"]++;
+							$employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "T";
+							// if ($start_tolerance < $first){
+								// $employees[$pr]["summary"]["tardiness"]++;
+								// $employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "T";
+							// }
+							// else{
+								// $employees[$pr]["access"][$access["day"]]["first_access"]["remark"] = "TT";//Tardeness Toleranced
+							// }
 						}
 					}
 					
@@ -260,6 +264,124 @@ class Hr_attendance extends CI_Controller {
 						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
 						break;
 					case "MED":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+						
+						$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					// Edicion Morning
+					case "MB":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+					
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						break;
+					case "MBT":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+					
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						break;
+					case "MCO":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+					
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						break;
+					case "MCMP":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+					
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						break;
+					case "MT":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+					
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						break;
+					// Edicion Afternoon
+					case "AB":
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+					
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "ABT":
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+					
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "ACO":
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+					
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "ACMP":
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+					
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "AHO":
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+					
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "AT":
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+					
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					// Edit other cases
+					case "BT":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+						
+						$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "CE":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+						
+						$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "CO":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+						
+						$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "CMP":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+						
+						$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "HO":
+						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
+						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
+						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
+						
+						$employees[$item->pr]["access"][$day]["first_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["first_access"]["remark"] = $item->type;
+						$employees[$item->pr]["access"][$day]["last_access"]["time"] = null;
+						$employees[$item->pr]["access"][$day]["last_access"]["remark"] = $item->type;
+						break;
+					case "L":
 						if ($employees[$item->pr]["access"][$day]["first_access"]["time"]) $employees[$item->pr]["summary"]["check_days"]--;
 						if ($employees[$item->pr]["access"][$day]["first_access"]["remark"] === "T") $employees[$item->pr]["summary"]["tardiness"]--;
 						if ($employees[$item->pr]["access"][$day]["last_access"]["remark"] === "E") $employees[$item->pr]["summary"]["early_out"]--;
@@ -353,16 +475,34 @@ class Hr_attendance extends CI_Controller {
 		
 		//options to select in exception list for employee
 		$exceptions_emp = [
-			["V", "Vacation"],
-			["MV", "Half Vacation (Morning)"],
-			["AV", "Half Vacation (Afternoon)"],
-			["MED", "Medical Vacation"],
+			["V", "Vacation - V"],
+			["MV", "Half Vacation (Morning) - MV"],
+			["AV", "Half Vacation (Afternoon) - AV"],
+			["MED", "Medical Vacation - MED"],
+			["MB", "Birthday (Morning) - MB"], //Edicion
+			["AB", "Birthday (Afternoon) - AB"],
+			["BT", "Biz Trip - BT"],
+			["MBT", "Biz Trip (Morning) - MBT"],
+			["ABT", "Biz Trip (Afternoon) - ABT"],
+			["CE", "Ceased - CE"],
+			["CO", "Commission - CO"],
+			["MCO", "Commission (Morning) - MCO"],
+			["ACO", "Commission (Afternoon) - ACO"],
+			["CMP", "Compensation - CMP"],
+			["MCMP", "Compensation (Morning) - MCMP"],
+			["ACMP", "Compensation (Afternoon) - ACMP"],
+			["HO", "Home Office - HO"],
+			["MHO", "Home Office (Morning) - MHO"],
+			["AHO", "Home Office (Afternoon) - AHO"],
+			["L", "License - L"],
+			["MT", "Topic (Morning) - MT"],
+			["AT", "Topic (Afternoon) - AT"],
 		];
 		
 		//options to select in exception list for company
 		$exceptions_com = [
-			["H", "Holiday"],
-			["EF", "Early Friday"],
+			["H", "Holiday - H"],
+			["EF", "Early Friday - EF"],
 		];
 		
 		$data = $this->set_attandance($period, $prs);
@@ -550,4 +690,196 @@ class Hr_attendance extends CI_Controller {
 	public function remove_exception(){
 		$this->gen_m->delete("hr_attendance_exception", ["exception_id" => $this->input->post("exc_id")]);
 	}
+	
+	public function date_convert_mm_dd_yyyy($date) {
+    // Intentamos convertir con la lógica del valor numérico (excel date)
+		if (is_numeric($date)) {
+			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
+			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
+			return $date->format('Y-m-d');
+		}
+
+		// Si no es un número, intentamos convertir con la lógica de fecha en formato mm/dd/yyyy
+		$aux = explode("/", $date);
+		if (count($aux) == 3) {
+			// Verificamos que la fecha esté en formato mm/dd/yyyy
+			return $aux[2]."-".$aux[0]."-".$aux[1]; // yyyy-mm-dd
+		}
+		
+		// Si la fecha no está en un formato esperado, devolvemos null
+		return null;
+	}
+	
+	public function upload_absenteeism(){
+		set_time_limit(0);
+		ini_set("memory_limit", -1);
+		
+		$start_time = microtime(true);
+		
+		//delete all rows lgepr_stock 
+		//$this->gen_m->truncate("ar_carta_fianza");
+		
+		//load excel file
+		$spreadsheet = IOFactory::load("./upload/hr_absenteeism.xlsx");
+		$sheet = $spreadsheet->getActiveSheet(0);
+		//print_r($sheet); echo '<br>'; echo '<br>'; echo '<br>'; return;
+		//excel file header validation
+		$h = [
+			trim($sheet->getCell('A1')->getValue()),
+			trim($sheet->getCell('B1')->getValue()),
+			trim($sheet->getCell('C1')->getValue()),
+			trim($sheet->getCell('D1')->getValue()),
+			trim($sheet->getCell('E1')->getValue()),
+			trim($sheet->getCell('F1')->getValue()),
+			trim($sheet->getCell('G1')->getValue())
+		];
+		//print_r($h);
+		// //magento report header
+		$header = ["PR", "NOMBRES", "COD INCIDENCIA", "INCIDENCIA", "DIA", "FECHA INICIO", "FECHA FIN"];
+		
+		// //header validation
+		$is_ok = true;
+		foreach($h as $i => $h_i) if ($h_i !== $header[$i]) $is_ok = false;
+
+		
+		
+		if ($is_ok){
+			// Obtener datos desde la fila 6 en adelante en un solo paso
+			//$dataArray = $sheet->toArray(null, true, true, true);
+			$updated = date("Y-m-d");
+			$email_sent = 0;
+			$max_row = $sheet->getHighestRow();
+			$batch_data =[];
+			$batch_size = 10;
+			
+			$incidence_char =["AD001" =>"MB", "AD002" => "MA", "AD003" => "BT", "AD004" => "MBT", "AD005" => "ABT", 
+			"AD006" => "CE", "AD007" => "CO", "AD008" => "MCO", "AD009" => "ACO", "AD010" => "CMP", "AD011" => "MCMP", 
+			"AD012" => "ACMP", "AD013" => "EF", "AD014" => "V", "AD015" => "MV", "AD016" => "AV", "AD017" => "H", 
+			"AD018" => "HO", "AD019" => "MHO", "AD020" => "AHO", "AD021" => "MED", "AD022" => "L", "AD023" => "MT", "AD023" => "AT"];
+			
+			// Iniciar transacción para mejorar rendimiento
+			$this->db->trans_start();
+			for($i = 2; $i <= $max_row; $i++){
+				if(empty(trim($sheet->getCell('C'.$i)->getValue()))) break;
+				$row = [
+					"pr" 							=> trim($sheet->getCell('A'.$i)->getValue()),
+					"name" 							=> trim($sheet->getCell('B'.$i)->getValue()),
+					"incidence_code" 				=> trim($sheet->getCell('C'.$i)->getValue()),
+					"incidence"						=> trim($sheet->getCell('D'.$i)->getValue()),
+					"day" 							=> trim($sheet->getCell('E'.$i)->getValue()),
+					"start_day" 					=> trim($sheet->getCell('F'.$i)->getValue()),
+					"end_day"						=> trim($sheet->getCell('G'.$i)->getValue()),
+					"exception_type"				=> $incidence_char[trim($sheet->getCell('C'.$i)->getValue())],
+					//"updated"						=> $updated,
+				];
+				//if(empty($row["incidence_code"])) break;
+				
+				$row["start_day"] = $this->date_convert_mm_dd_yyyy($row["start_day"]);
+				$row["end_day"] = $this->date_convert_mm_dd_yyyy($row["end_day"]);
+				
+				$exc_date = null;
+				$batch_entries = [];
+	
+				if($row["day"] == 1 || $row["day"] == 0.5){
+					$exc_date = $row["start_day"];
+					
+					// Verificar si ya existe en la BD
+					$exists = $this->db->where("pr", $row["pr"])
+                           ->where("exc_date", $exc_date)
+                           ->count_all_results("hr_attendance_exception") > 0;
+					
+					if(!$exists){					
+						$batch_entries[] = [
+							"pr" => $row["pr"],
+							"exc_date" => $exc_date,
+							"type" => $row["exception_type"],
+							"remark" => $row["incidence"]
+						];
+					}
+				}
+
+				
+				elseif ($row["day"] > 1) {
+					$current_date = strtotime($row["start_day"]);
+					$end_date = strtotime($row["end_day"]);
+
+					while ($current_date <= $end_date) {
+						$exc_date = date("Y-m-d", $current_date);
+
+						// Verificar si ya existe en la BD
+						$exists = $this->db->where("pr", $row["pr"])
+										   ->where("exc_date", $exc_date)
+										   ->count_all_results("hr_attendance_exception") > 0;
+
+						if (!$exists) {
+							$batch_entries[] = [
+								"pr" => $row["pr"],
+								"exc_date" => $exc_date,
+								"type" => $row["exception_type"],
+								"remark" => $row["incidence"]
+							];
+						}
+						$current_date = strtotime("+1 day", $current_date);
+					}
+				}
+				//print_r($batch_entries); echo '<br>';
+				
+				
+				// Manejo de valores vacios end_date_ative
+				if (!empty($batch_entries)) {
+					$batch_data = array_merge($batch_data ?? [], $batch_entries);
+				}
+				//$batch_data[]=$batch_entries;
+				if(count($batch_data)>=$batch_size){
+					$this->gen_m->insert_m("hr_attendance_exception", $batch_data);
+					$batch_data = [];
+					unset($batch_data);
+				}
+;
+			}
+			// Insertar cualquier dato restante en el lote
+			if (!empty($batch_data)) {
+				//print_r($batch_data); echo '<br>'; echo '<br>'; echo '<br>';
+				$this->gen_m->insert_m("hr_attendance_exception", $batch_data);
+				$batch_data = [];
+				unset($batch_data);
+			}
+
+			$msg = " record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";;
+			//print_r($msg); return;
+			$this->db->trans_complete();
+			return $msg;
+			//$this->update_model_category();
+			//return "Stock update has been finished. (".$updated.")";
+			
+		}else return "";
+	}
+	
+	public function update(){
+		$type = "error"; $msg = "";
+		
+		if ($this->session->userdata('logged_in')){
+			set_time_limit(0);
+		
+			$config = [
+				'upload_path'	=> './upload/',
+				'allowed_types'	=> '*',
+				'max_size'		=> 90000,
+				'overwrite'		=> TRUE,
+				'file_name'		=> 'hr_absenteeism.xlsx',
+			];
+			$this->load->library('upload', $config);
+
+			if ($this->upload->do_upload('attach')){
+				$msg = $this->upload_absenteeism();
+				
+				if ($msg) $type = "success";
+				else $msg = "Wrong file.";
+			}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
+		}else $msg = "Your session is finished.";
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg]);
+	}
+	
 }
