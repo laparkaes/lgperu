@@ -42,14 +42,17 @@ class Scm_warehouse extends CI_Controller {
 		//print_r($this->input->post());
 
 		if ($this->upload->do_upload('attach')){
-			echo "Upload file is completed.<br/>";
-			
+			echo "Upload file is completed.<br/><br/>";
+			echo "Data process result: ";
+		
 			switch($this->input->post("type")) {
 				case "receiving": $this->receiving(); break;
+				case "picking": $this->picking(); break;
+				case "stock_klo": $this->stock_klo(); break;
 			}
 		}else echo str_replace("p>", "div>", $this->upload->display_errors())."<br/>";
 		
-		echo "<br/>========================================<br/>";
+		echo "<br/><br/>========================================<br/>";
 		echo 'You can close this tab now.<br/><br/><button onclick="window.close();">Close This Tab</button>';
 	}
 	
@@ -64,14 +67,17 @@ class Scm_warehouse extends CI_Controller {
 			trim($sheet->getCell('C1')->getValue()),
 			trim($sheet->getCell('D1')->getValue()),
 			trim($sheet->getCell('E1')->getValue()),
+			trim($sheet->getCell('F1')->getValue()),
+			trim($sheet->getCell('G1')->getValue()),
 		];
 		
-		$h_v = ["SOURCE_HEADER_NO", "SOURCE_LINE_NO", "TRANSACTION_DATE", "TRANSFER_DATE", "STEP_CODE"];
+		$h_v = ["SOURCE_HEADER_NO", "SOURCE_LINE_NO", "TRANSACTION_DATE", "TRANSFER_DATE", "STEP_CODE", "SOURCE_TYPE_CODE", "CONTAINER_NO"];
 		
 		$file_validation = true;
-		foreach($h as $i => $h_i) if ($h_i !== $h_v[$i]) $is_gerp = file_validation;
+		foreach($h as $i => $h_i) if ($h_i !== $h_v[$i]) $file_validation = false;
 		
 		if ($file_validation){
+			$qty_insert = $qty_update = 0;
 			$max_row = $sheet->getHighestRow();
 			
 			for($i = 2; $i <= $max_row; $i++){
@@ -104,106 +110,174 @@ class Scm_warehouse extends CI_Controller {
 				 $row["transfer_date"] 			= str_replace(".", "-", $row["transfer_date"]);
 				 $row["transaction_date_3pl"] 	= str_replace(".", "-", $row["transaction_date_3pl"]);
 				 
+				 //set no values as null
+				 $row["error_message_text"] 	= $row["error_message_text"] ? $row["error_message_text"] : null;
+				 $row["transaction_date_3pl"] 	= $row["transaction_date_3pl"] ? $row["transaction_date_3pl"] : null;
+				 $row["receipt_qty"] 			= $row["receipt_qty"] ? $row["receipt_qty"] : null;
+				 $row["shipping_qty"] 			= $row["shipping_qty"] ? $row["shipping_qty"] : null;
+				 $row["good_set_qty"] 			= $row["good_set_qty"] ? $row["good_set_qty"] : null;
+				 $row["unit_damage_qty"] 		= $row["unit_damage_qty"] ? $row["unit_damage_qty"] : null;
+				 $row["box_damage_qty"] 		= $row["box_damage_qty"] ? $row["box_damage_qty"] : null;
+				 $row["wrong_model_qty"] 		= $row["wrong_model_qty"] ? $row["wrong_model_qty"] : null;
 				 
-				 print_r($row);
-				 echo "<br/><br/>";
+				 //DB parameter setting
+				 $tablename = "scm_warehouse_receiving";
+				 $w = [
+					"source_header_no" 		=> $row["source_header_no"],
+					"source_line_no" 		=> $row["source_line_no"],
+				 ];
+				 
+				 $record = $this->gen_m->filter($tablename, false, $w);
+				 if ($record){
+					 $record = $record[0];
+					 if ((!$record->transaction_date_3pl) and ($row["transaction_date_3pl"])){
+						 $qty_update++;
+						 $this->gen_m->update($tablename, ["receiving_id" => $record->receiving_id], $row); 
+					 }
+				 }else{
+					 $qty_insert++;
+					 $this->gen_m->insert($tablename, $row);
+				 }
 			}
-		}
+			
+			echo number_format($qty_insert)." inserted, ".number_format($qty_update)." updated.<br/>";
+		}else echo "Wrong file.<br/>";
+	}
+	
+	private function picking(){
+		$spreadsheet = IOFactory::load("./upload/scm_warehouse.xls");
+		$sheet = $spreadsheet->getActiveSheet();
 		
+		//excel file header validation
+		$h = [
+			trim($sheet->getCell('A1')->getValue()),
+			trim($sheet->getCell('B1')->getValue()),
+			trim($sheet->getCell('C1')->getValue()),
+			trim($sheet->getCell('D1')->getValue()),
+			trim($sheet->getCell('E1')->getValue()),
+			trim($sheet->getCell('F1')->getValue()),
+			trim($sheet->getCell('G1')->getValue()),
+		];
 		
-		return;
+		$h_v = ["SOURCE_HEADER_NO", "SOURCE_LINE_NO", "TRANSACTION_DATE", "TRANSFER_DATE", "STEP_CODE", "SOURCE_TYPE_CODE", "PICK_ORDER_NO"];
 		
+		$file_validation = true;
+		foreach($h as $i => $h_i) if ($h_i !== $h_v[$i]) $file_validation = false;
 		
-		
-		//magento report header
-		
-		
-		
-		$h_gerp = ["scm_warehouse.xls", "Ship To Name", "Model", "Order No.", "Line No.", "Order Type", "Line Status", "Hold Flag", "Ready To Pick", "Pick Released", "Instock Flag", "Ordered Qty", "Unit Selling Price", ];
-		
-		//header validation
-		$is_gerp = true;
-		foreach($h as $i => $h_i) if ($h_i !== $h_gerp[$i]) $is_gerp = false;
-		
-		$result = [];
-		
-		if ($is_gerp){
+		if ($file_validation){
+			$qty_insert = $qty_update = 0;
 			$max_row = $sheet->getHighestRow();
 			
 			for($i = 2; $i <= $max_row; $i++){
-				$row = [];
-				foreach($vars as $var_i => $var){
-					$row[$var] = trim($sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue());
-					if (!$row[$var]) $row[$var] = null;
-				}
-				
-				//print_r($row); echo "<br/><br/>";
-				
-				//apply trim
-				$row["order_no"] = trim($row["order_no"]);
-				$row["line_no"] = trim($row["line_no"]);
-				
-				//float_convert
-				$row["unit_selling_price"] = str_replace(",", "", $row["unit_selling_price"]);
-				$row["sales_amount"] = str_replace(",", "", $row["sales_amount"]);
-				$row["tax_amount"] = str_replace(",", "", $row["tax_amount"]);
-				$row["charge_amount"] = str_replace(",", "", $row["charge_amount"]);
-				$row["line_total"] = str_replace(",", "", $row["line_total"]);
-				$row["list_price"] = str_replace(",", "", $row["list_price"]);
-				$row["original_list_price"] = str_replace(",", "", $row["original_list_price"]);
-				$row["item_weight"] = str_replace(",", "", $row["item_weight"]);
-				$row["item_cbm"] = str_replace(",", "", $row["item_cbm"]);
-				$row["sbp_tax_include"] = str_replace(",", "", $row["sbp_tax_include"]);
-				$row["sbp_tax_exclude"] = str_replace(",", "", $row["sbp_tax_exclude"]);
-				$row["rrp_tax_include"] = str_replace(",", "", $row["rrp_tax_include"]);
-				$row["rrp_tax_exclude"] = str_replace(",", "", $row["rrp_tax_exclude"]);
-				
-				//date convert: 28-OCT-21 > 2021-10-28
-				$row["booked_date"] = $this->my_func->date_convert($row["booked_date"]);
-				$row["scheduled_cancel_date"] = $this->my_func->date_convert($row["scheduled_cancel_date"]);
-				$row["expire_date"] = $this->my_func->date_convert($row["expire_date"]);
-				$row["req_arrival_date_from"] = $this->my_func->date_convert($row["req_arrival_date_from"]);
-				$row["req_arrival_date_to"] = $this->my_func->date_convert($row["req_arrival_date_to"]);
-				$row["req_ship_date"] = $this->my_func->date_convert($row["req_ship_date"]);
-				$row["shipment_date"] = $this->my_func->date_convert($row["shipment_date"]);
-				$row["close_date"] = $this->my_func->date_convert($row["close_date"]);
-				$row["invoice_date"] = $this->my_func->date_convert($row["invoice_date"]);
-				$row["create_date"] = $this->my_func->date_convert($row["create_date"]);
-				$row["customer_po_date"] = $this->my_func->date_convert($row["customer_po_date"]);
-				
-				//date convert: 2021/11/02 00:00:00 > 2021-11-02
-				//$row["customer_rad"] = $this->my_func->date_convert_2($row["customer_rad"]);
-				
-				//% > float
-				$row["dc_rate"] = str_replace("%", "", $row["dc_rate"])/100;
-				
-				//foreach($row as $key => $val){echo $key."===> ".$val."<br/>";} echo "<br/><br/>";
-				
-				$f = ["order_no" => $row["order_no"], "line_no" => $row["line_no"]];
-				$sales_order = $this->gen_m->filter("obs_gerp_sales_order", false, $f);
-				if ($sales_order){
-					//echo "Update<br/>".$row["create_date"]."<br/>";
-					if ($this->gen_m->update("obs_gerp_sales_order", ["sales_order_id" => $sales_order[0]->sales_order_id], $row)) $qty_update++;
-					else $qty_fail++;
-				}else{
-					//echo "Insert<br/>".$row["create_date"]."<br/>";
-					if ($this->gen_m->insert("obs_gerp_sales_order", $row)) $qty_insert++;
-					else $qty_fail++;
-				}
-				
-				//print_r($f); echo "<br/><br/>";
-				//if ($i > 100) break;
+				$row = [
+					"source_header_no" 		=> trim($sheet->getCell('A'.$i)->getValue()),
+					"source_line_no" 		=> trim($sheet->getCell('B'.$i)->getValue()),
+					"transaction_date" 		=> trim($sheet->getCell('C'.$i)->getValue()),
+					"transfer_date" 		=> trim($sheet->getCell('D'.$i)->getValue()),
+					"step_code" 			=> trim($sheet->getCell('E'.$i)->getValue()),
+					"source_type_code" 		=> trim($sheet->getCell('F'.$i)->getValue()),
+					"pick_order_no" 		=> trim($sheet->getCell('G'.$i)->getValue()),
+					"pick_seq_no" 			=> trim($sheet->getCell('H'.$i)->getValue()),
+					"organization_code" 	=> trim($sheet->getCell('I'.$i)->getValue()),
+					"subinventory_code" 	=> trim($sheet->getCell('J'.$i)->getValue()),
+					"item_code" 			=> trim($sheet->getCell('K'.$i)->getValue()),
+					"order_qty" 			=> trim($sheet->getCell('L'.$i)->getValue()),
+					"pick_qty" 				=> trim($sheet->getCell('M'.$i)->getValue()),
+					"transfer_flag" 		=> trim($sheet->getCell('N'.$i)->getValue()),
+					"error_message_text" 	=> trim($sheet->getCell('O'.$i)->getValue()),
+					"cancel_flag" 			=> trim($sheet->getCell('P'.$i)->getValue()),
+					"transaction_date_3pl" 	=> trim($sheet->getCell('Q'.$i)->getValue()),
+					"delivery_qty" 			=> trim($sheet->getCell('R'.$i)->getValue()),
+				 ];
+				 
+				 //date conversion
+				 $row["transaction_date"] 		= str_replace(".", "-", $row["transaction_date"]);
+				 $row["transfer_date"] 			= str_replace(".", "-", $row["transfer_date"]);
+				 $row["transaction_date_3pl"] 	= str_replace(".", "-", $row["transaction_date_3pl"]);
+				 
+				 //set no values as null
+				 $row["transfer_flag"] 			= $row["transfer_flag"] ? $row["transfer_flag"] : null;
+				 $row["error_message_text"] 	= $row["error_message_text"] ? $row["error_message_text"] : null;
+				 $row["cancel_flag"] 			= $row["cancel_flag"] ? $row["cancel_flag"] : null;
+				 $row["transaction_date_3pl"] 	= $row["transaction_date_3pl"] ? $row["transaction_date_3pl"] : null;
+				 $row["delivery_qty"] 			= $row["delivery_qty"] ? $row["delivery_qty"] : null;
+				 
+				 //DB parameter setting
+				 $tablename = "scm_warehouse_picking";
+				 $w = [
+					"source_header_no" 		=> $row["source_header_no"],
+					"source_line_no" 		=> $row["source_line_no"],
+				 ];
+				 
+				 $record = $this->gen_m->filter($tablename, false, $w);
+				 if ($record){
+					 $record = $record[0];
+					 if ((!$record->transaction_date_3pl) and ($row["transaction_date_3pl"])){
+						 $qty_update++;
+						 $this->gen_m->update($tablename, ["picking_id" => $record->picking_id], $row);
+					 }
+				 }else{
+					 $qty_insert++;
+					 $this->gen_m->insert($tablename, $row);
+				 }
 			}
 			
-			if ($qty_insert > 0) $result[] = number_format($qty_insert)." inserted";
-			if ($qty_update > 0) $result[] = number_format($qty_update)." updated";
-			if ($qty_fail > 0) $result[] = number_format($qty_fail)." failed";
-		}
+			echo number_format($qty_insert)." inserted, ".number_format($qty_update)." updated.<br/>";
+		}else echo "Wrong file.";
+	}
+	
+	private function stock_klo(){
+		$spreadsheet = IOFactory::load("./upload/scm_warehouse.xls");
+		$sheet = $spreadsheet->getActiveSheet();
 		
-		$this->update_model_category();
+		//excel file header validation
+		$h = [
+			trim($sheet->getCell('A1')->getValue()),
+			trim($sheet->getCell('B1')->getValue()),
+			trim($sheet->getCell('C1')->getValue()),
+			trim($sheet->getCell('D1')->getValue()),
+			trim($sheet->getCell('E1')->getValue()),
+			trim($sheet->getCell('F1')->getValue()),
+		];
+
+		$h_v = ["CIA", "PRODUCT_WMS", "PRODUCT_LG", "DESCRIPTION", "SUB-INVENTORY", "STOCK"];
 		
-		return $result ? "OBS GERP Sales orders process result:<br/><br/>".implode(", ", $result) : null;
-		//echo $result ? "OBS GERP Sales orders process result:<br/><br/>".implode(", ", $result) : null;
+		$file_validation = true;
+		foreach($h as $i => $h_i) if ($h_i !== $h_v[$i]) $file_validation = false;
+		
+		if ($file_validation){
+			$qty_insert = $qty_update = 0;
+			$max_row = $sheet->getHighestRow();
+			
+			//DB parameter setting
+			$tablename = "scm_warehouse_klo_stock";
+				 
+			$this->gen_m->truncate($tablename);
+			
+			for($i = 2; $i <= $max_row; $i++){
+				$row = [
+					"cia" 			=> trim($sheet->getCell('A'.$i)->getValue()),
+					"product_wms" 	=> trim($sheet->getCell('B'.$i)->getValue()),
+					"product_lg" 	=> trim($sheet->getCell('C'.$i)->getValue()),
+					"description" 	=> trim($sheet->getCell('D'.$i)->getValue()),
+					"sub_inventory" => trim($sheet->getCell('E'.$i)->getValue()),
+					"stock" 		=> trim($sheet->getCell('F'.$i)->getValue()),
+				 ];
+				 
+				 //set no values as null
+				 $row["cia"] 			= $row["cia"] ? $row["cia"] : null;
+				 $row["product_wms"] 	= $row["product_wms"] ? $row["product_wms"] : null;
+				 $row["product_lg"] 	= $row["product_lg"] ? $row["product_lg"] : null;
+				 $row["description"] 	= $row["description"] ? $row["description"] : null;
+				 $row["sub_inventory"]	= $row["sub_inventory"] ? $row["sub_inventory"] : null;
+				 $row["stock"] 			= $row["stock"] ? $row["stock"] : null;
+				 
+				 $qty_insert++;
+				 $this->gen_m->insert($tablename, $row);
+			}
+			
+			echo number_format($qty_insert)." inserted, ".number_format($qty_update)." updated.<br/>";
+		}else echo "Wrong file.";
 	}
 	
 	

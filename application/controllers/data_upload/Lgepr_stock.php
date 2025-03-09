@@ -200,7 +200,7 @@ class Lgepr_stock extends CI_Controller {
 				'allowed_types'	=> '*',
 				'max_size'		=> 90000,
 				'overwrite'		=> TRUE,
-				'file_name'		=> 'lgepr_stock_report.xls',
+				'file_name'		=> 'lgepr_stock_report.xlsx',
 			];
 			$this->load->library('upload', $config);
 

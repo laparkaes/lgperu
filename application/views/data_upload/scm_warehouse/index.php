@@ -18,9 +18,10 @@
 							<label class="form-label">Type</label>
 							<select class="form-select" name="type">
 								<option value="receiving">Receiving Instructions</option>
-								<option value="shipping">Picking Instructions</option>
+								<option value="picking">Picking Instructions</option>
 								<option value="iod">IOD</option>
 								<option value="sa_report">SA Report</option>
+								<option value="stock_klo">KLO Stock Report</option>
 							</select>
 						</div>
 						<div class="col-md-8">
@@ -39,7 +40,7 @@
 				<div class="card-body">
 					<h5 class="card-title">Instructions</h5>
 					<div>1. Receiving Instructions: I/F sent from LG to 3PL to receive products in warehouse.</div>
-					<div>2. Shipping Instructions: I/F sent from LG to 3PL to take out products from current warehouse.</div>
+					<div>2. Picking Instructions: I/F sent from LG to 3PL to take out products from current warehouse.</div>
 					<div>3. IOD: I/F received from 3PL about sales process finish confirmation.</div>
 					<div>4. SA Report: Upload container information. This will assign ETA to products.</div>
 				</div>
