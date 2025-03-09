@@ -49,6 +49,7 @@ class Scm_warehouse extends CI_Controller {
 				case "receiving": $this->receiving(); break;
 				case "picking": $this->picking(); break;
 				case "stock_klo": $this->stock_klo(); break;
+				case "sa_report": $this->sa_report(); break;
 			}
 		}else echo str_replace("p>", "div>", $this->upload->display_errors())."<br/>";
 		
