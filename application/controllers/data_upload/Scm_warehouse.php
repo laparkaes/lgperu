@@ -281,6 +281,88 @@ class Scm_warehouse extends CI_Controller {
 		}else echo "Wrong file.";
 	}
 	
+	private function sa_report(){
+		$spreadsheet = IOFactory::load("./upload/scm_warehouse.xls");
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		//excel file header validation
+		$h = [
+			trim($sheet->getCell('A1')->getValue()),
+			trim($sheet->getCell('B1')->getValue()),
+			trim($sheet->getCell('C1')->getValue()),
+			trim($sheet->getCell('D1')->getValue()),
+			trim($sheet->getCell('E1')->getValue()),
+			trim($sheet->getCell('F1')->getValue()),
+			trim($sheet->getCell('G1')->getValue()),
+		];
+		
+		$h_v = ["SOURCE_HEADER_NO", "SOURCE_LINE_NO", "TRANSACTION_DATE", "TRANSFER_DATE", "STEP_CODE", "SOURCE_TYPE_CODE", "PICK_ORDER_NO"];
+		
+		$file_validation = true;
+		foreach($h as $i => $h_i) if ($h_i !== $h_v[$i]) $file_validation = false;
+		
+		if ($file_validation){
+			$qty_insert = $qty_update = 0;
+			$max_row = $sheet->getHighestRow();
+			
+			for($i = 2; $i <= $max_row; $i++){
+				$row = [
+					"source_header_no" 		=> trim($sheet->getCell('A'.$i)->getValue()),
+					"source_line_no" 		=> trim($sheet->getCell('B'.$i)->getValue()),
+					"transaction_date" 		=> trim($sheet->getCell('C'.$i)->getValue()),
+					"transfer_date" 		=> trim($sheet->getCell('D'.$i)->getValue()),
+					"step_code" 			=> trim($sheet->getCell('E'.$i)->getValue()),
+					"source_type_code" 		=> trim($sheet->getCell('F'.$i)->getValue()),
+					"pick_order_no" 		=> trim($sheet->getCell('G'.$i)->getValue()),
+					"pick_seq_no" 			=> trim($sheet->getCell('H'.$i)->getValue()),
+					"organization_code" 	=> trim($sheet->getCell('I'.$i)->getValue()),
+					"subinventory_code" 	=> trim($sheet->getCell('J'.$i)->getValue()),
+					"item_code" 			=> trim($sheet->getCell('K'.$i)->getValue()),
+					"order_qty" 			=> trim($sheet->getCell('L'.$i)->getValue()),
+					"pick_qty" 				=> trim($sheet->getCell('M'.$i)->getValue()),
+					"transfer_flag" 		=> trim($sheet->getCell('N'.$i)->getValue()),
+					"error_message_text" 	=> trim($sheet->getCell('O'.$i)->getValue()),
+					"cancel_flag" 			=> trim($sheet->getCell('P'.$i)->getValue()),
+					"transaction_date_3pl" 	=> trim($sheet->getCell('Q'.$i)->getValue()),
+					"delivery_qty" 			=> trim($sheet->getCell('R'.$i)->getValue()),
+				 ];
+				 
+				 //date conversion
+				 $row["transaction_date"] 		= str_replace(".", "-", $row["transaction_date"]);
+				 $row["transfer_date"] 			= str_replace(".", "-", $row["transfer_date"]);
+				 $row["transaction_date_3pl"] 	= str_replace(".", "-", $row["transaction_date_3pl"]);
+				 
+				 //set no values as null
+				 $row["transfer_flag"] 			= $row["transfer_flag"] ? $row["transfer_flag"] : null;
+				 $row["error_message_text"] 	= $row["error_message_text"] ? $row["error_message_text"] : null;
+				 $row["cancel_flag"] 			= $row["cancel_flag"] ? $row["cancel_flag"] : null;
+				 $row["transaction_date_3pl"] 	= $row["transaction_date_3pl"] ? $row["transaction_date_3pl"] : null;
+				 $row["delivery_qty"] 			= $row["delivery_qty"] ? $row["delivery_qty"] : null;
+				 
+				 //DB parameter setting
+				 $tablename = "scm_warehouse_picking";
+				 $w = [
+					"source_header_no" 		=> $row["source_header_no"],
+					"source_line_no" 		=> $row["source_line_no"],
+				 ];
+				 
+				 $record = $this->gen_m->filter($tablename, false, $w);
+				 if ($record){
+					 $record = $record[0];
+					 if ((!$record->transaction_date_3pl) and ($row["transaction_date_3pl"])){
+						 $qty_update++;
+						 $this->gen_m->update($tablename, ["picking_id" => $record->picking_id], $row);
+					 }
+				 }else{
+					 $qty_insert++;
+					 $this->gen_m->insert($tablename, $row);
+				 }
+			}
+			
+			echo number_format($qty_insert)." inserted, ".number_format($qty_update)." updated.<br/>";
+		}else echo "Wrong file.";
+	}
+	
 	
 	
 	
