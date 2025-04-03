@@ -95,7 +95,7 @@
 									$now = $item["access"][$item_day["day"]];
 									//print_r($now); echo '<br>';
 									$aux = [];
-									$mRemarks = ["MV", "MB", "MBT", "MCO", "MCMP", "MHO", "MT"];
+									$mRemarks = ["MV", "MB", "MBT", "MCO", "MCMP", "MHO", "MT", "NEF"];
 									$aRemarks = ["AV", "AB", "ABT", "ACO", "ACMP", "AHO", "AT"];
 									if ($now["first_access"]["time"]){
 										if (in_array($now["first_access"]["remark"], $mRemarks)) $aux[] = $now["first_access"]["remark"];

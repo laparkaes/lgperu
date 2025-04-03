@@ -84,7 +84,8 @@ class Obs extends CI_Controller {
 			$w = ["closed_date >=" => date("Y-m-01")];
 			$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			
-			$res = $this->gen_m->filter("v_obs_closed_order_magento", false, $w, null, null, $o);
+			$res = $this->gen_m->filter("v_obs_closed_order_magento_v2", false, $w, null, null, $o);
+			//print_r($res);
 			foreach($res as $item) if (!$item->customer_group) $item->customer_group = $item->bill_to_name;
 		}else $res = ["Key error"];
 		
@@ -101,7 +102,7 @@ class Obs extends CI_Controller {
 			$w = ["req_arrival_date_to <=" => date("Y-m-t")];
 			$o = [["create_date", "desc"], ["req_arrival_date_to", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			
-			$res = $this->gen_m->filter("v_obs_sales_order_magento", false, $w, null, null, $o);
+			$res = $this->gen_m->filter("v_obs_sales_order_magento_v2", false, $w, null, null, $o);
 			foreach($res as $item){
 				if (strtotime($item->req_arrival_date_to) < $today) $item->req_arrival_date_to = date("Y-m-t");
 				
@@ -212,6 +213,7 @@ class Obs extends CI_Controller {
 		// echo json_encode($res);
 		
 		// Verifica clave de acceso
+		// Verifica clave de acceso
 		if ($this->input->get("key") !== "lgepr") {
 			header('Content-Type: application/json');
 			echo json_encode(["Key error"]);
@@ -220,10 +222,10 @@ class Obs extends CI_Controller {
 
 		$from = date("Y-m-1"); // Primer día del mes actual
 		$res = [];
-
+		$where_string_c = "(inventory_org = 'N4E' OR (inventory_org = 'N4S' AND sub_inventory = 'GOODSET-OB')) AND order_date >= '$from'";
+		$where_string_s = "(inventory_org = 'N4E' OR (inventory_org = 'N4S' AND sub_inventory = 'GOODSET-OB')) AND create_date >= '$from'";
 		// Obtiene todas las órdenes cerradas y de ventas de Magento en una sola consulta
 		$all_magento_orders = $this->gen_m->filter("v_obs_closed_order_magento", false,["order_date >=" => $from]);
-		//print_r($all_magento_orders); return;
 		$all_magento_sales = $this->gen_m->filter("v_obs_sales_order_magento", false,["create_date >=" => $from]);
 
 		// Combina ambas consultas en un solo mapa para reducir búsquedas
@@ -233,7 +235,8 @@ class Obs extends CI_Controller {
 		}
 
 		// Procesa órdenes cerradas
-		$c_orders = $this->gen_m->filter("lgepr_closed_order", false, ["inventory_org" => "N4E", "order_date >=" => $from]);
+		
+		$c_orders = $this->gen_m->filter("lgepr_closed_order", false, $where_string_c);
 		foreach ($c_orders as $item) {
 			$item->type = "Closed";
 			$item->ref_date = $item->order_date;
@@ -259,7 +262,7 @@ class Obs extends CI_Controller {
 		}
 
 		// Procesa órdenes de ventas
-		$s_orders = $this->gen_m->filter("lgepr_sales_order", false, ["inventory_org" => "N4E", "create_date >=" => $from]);
+		$s_orders = $this->gen_m->filter("lgepr_sales_order", false, $where_string_s);
 		foreach ($s_orders as $item) {
 			$item->type = "Sales";
 			$item->ref_date = $item->create_date;
@@ -283,17 +286,18 @@ class Obs extends CI_Controller {
 			$res[] = clone $item;
 		}
 
+
 		// Retorna los datos en formato JSON
 		header('Content-Type: application/json');
 		echo json_encode($res);
 	}
 	
 	public function get_stock(){
-    // llamasys/api/obs/get_stock?key=lgepr
+     // llamasys/api/obs/get_stock?key=lgepr
 
 		if ($this->input->get("key") === "lgepr") {
 			$stock_data = $this->gen_m->filter("v_obs_stock", false);
-			$from = !date("Y-m-1"); // Quité el "!" porque generaba un valor incorrecto
+			$from = date("Y-m-1"); // Quité el "!" porque generaba un valor incorrecto
 			$res = [];
 
 			foreach ($stock_data as $item) {
