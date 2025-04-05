@@ -22,3 +22,8 @@ ALTER TABLE `obs_most_likely` CHANGE `category` `division` VARCHAR(50) CHARACTER
 20250301
 
 ALTER TABLE `hr_employee` ADD `is_leader` BOOLEAN NOT NULL DEFAULT FALSE AFTER `name`;
+
+
+20250404
+
+ALTER TABLE `lgepr_sales_order` CHANGE `close_date` `appointment_date` DATE NULL DEFAULT NULL; 

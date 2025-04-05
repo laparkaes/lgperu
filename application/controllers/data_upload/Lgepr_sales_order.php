@@ -15,7 +15,7 @@ class Lgepr_sales_order extends CI_Controller {
 	
 	public function index(){
 		
-		$o = [["create_date", "asc"], ["order_no", "asc"], ["line_no", "asc"]];
+		$o = [["order_no", "asc"], ["line_no", "asc"], ["create_date", "asc"], ];
 		
 		$data = [
 			"sales_orders"	=> $this->gen_m->filter("lgepr_sales_order", false, null, null, null, $o),
@@ -136,7 +136,7 @@ class Lgepr_sales_order extends CI_Controller {
 		];
 		
 		//magento report header
-		$h_gerp = ["Bill To Name", "Ship To Name", "Model", "Order No.", "Line No.", "Order Type", "Line Status", "Hold Flag", "Ready To Pick", "Pick Released", "Instock Flag", "Ordered Qty", "Unit Selling Price", ];
+		$h_gerp = ["Bill To Name", "Ship To Name", "Model", "Order No.", "Line No.", "Order Type", "Line Status", "Hold Flag", "Ready To Pick", "Pick Released", "Instock Flag", "Order Qty", "Unit Selling Price", ];
 		
 		//header validation
 		$is_gerp = true;
@@ -164,7 +164,7 @@ class Lgepr_sales_order extends CI_Controller {
 					'line_no' 				=> trim($sheet->getCell('E'.$i)->getValue()),
 					'line_status' 			=> trim($sheet->getCell('G'.$i)->getValue()),
 					'order_status' 			=> trim($sheet->getCell('BB'.$i)->getValue()),
-					'order_category'		=> trim($sheet->getCell('BC'.$i)->getValue()),
+					'order_category'		=> trim($sheet->getCell('BF'.$i)->getValue()),
 					'model' 				=> trim($sheet->getCell('C'.$i)->getValue()),
 					'ordered_qty' 			=> trim($sheet->getCell('L'.$i)->getValue()),
 					'currency' 				=> trim($sheet->getCell('U'.$i)->getValue()),
@@ -173,24 +173,28 @@ class Lgepr_sales_order extends CI_Controller {
 					'tax_amount' 			=> trim($sheet->getCell('O'.$i)->getValue()),
 					'charge_amount'			=> trim($sheet->getCell('P'.$i)->getValue()),
 					'line_total' 			=> trim($sheet->getCell('Q'.$i)->getValue()),
-					'create_date' 			=> trim($sheet->getCell('DK'.$i)->getValue()),
+					'create_date' 			=> trim($sheet->getCell('DO'.$i)->getValue()),
 					'booked_date' 			=> trim($sheet->getCell('Y'.$i)->getValue()),
 					'req_arrival_date_to'	=> trim($sheet->getCell('AC'.$i)->getValue()),
 					'shipment_date'			=> trim($sheet->getCell('AE'.$i)->getValue()),
-					'close_date' 			=> trim($sheet->getCell('AF'.$i)->getValue()),
+					'appointment_date'		=> trim($sheet->getCell('EH'.$i)->getValue()),
+					//'close_date' 			=> trim($sheet->getCell('AF'.$i)->getValue()),
 					'receiver_city'			=> trim($sheet->getCell('BT'.$i)->getValue()),
 					'item_type_desctiption' => trim($sheet->getCell('CG'.$i)->getValue()),
 					'item_division' 		=> trim($sheet->getCell('BZ'.$i)->getValue()),
-					'model_category' 		=> trim($sheet->getCell('CF'.$i)->getValue()),
-					'product_level1_name'	=> trim($sheet->getCell('CA'.$i)->getValue()),
-					'product_level2_name' 	=> trim($sheet->getCell('CB'.$i)->getValue()),
-					'product_level3_name' 	=> trim($sheet->getCell('CC'.$i)->getValue()),
-					'product_level4_name' 	=> trim($sheet->getCell('CD'.$i)->getValue()),
-					'product_level4_code' 	=> trim($sheet->getCell('CE'.$i)->getValue()),
-					'customer_department'	=> trim($sheet->getCell('AJ'.$i)->getValue()),
-					'inventory_org' 		=> trim($sheet->getCell('AW'.$i)->getValue()),
-					'sub_inventory' 		=> trim($sheet->getCell('AX'.$i)->getValue()),
+					'model_category' 		=> trim($sheet->getCell('CJ'.$i)->getValue()),
+					'product_level1_name'	=> trim($sheet->getCell('CE'.$i)->getValue()),
+					'product_level2_name' 	=> trim($sheet->getCell('CF'.$i)->getValue()),
+					'product_level3_name' 	=> trim($sheet->getCell('CG'.$i)->getValue()),
+					'product_level4_name' 	=> trim($sheet->getCell('CH'.$i)->getValue()),
+					'product_level4_code' 	=> trim($sheet->getCell('CI'.$i)->getValue()),
+					'customer_department'	=> trim($sheet->getCell('AK'.$i)->getValue()),
+					'inventory_org' 		=> trim($sheet->getCell('AZ'.$i)->getValue()),
+					'sub_inventory' 		=> trim($sheet->getCell('BA'.$i)->getValue()),
 				];
+				
+				//print_r($row); echo "<br/><br/>";
+				
 				//apply trim
 				$row["order_no"] = trim($row["order_no"]);
 				$row["line_no"] = trim($row["line_no"]);
@@ -204,31 +208,43 @@ class Lgepr_sales_order extends CI_Controller {
 				$row["line_total"] = str_replace(",", "", $row["line_total"]);
 				
 				//date convert: 24/06/2021 > 2021-10-28
-				$row["booked_date"] = $this->my_func->date_convert_4($row["booked_date"]);
-				$row["req_arrival_date_to"] = $this->my_func->date_convert_4($row["req_arrival_date_to"]);
-				$row["shipment_date"] = $this->my_func->date_convert_4($row["shipment_date"]);
-				$row["close_date"] = $this->my_func->date_convert_4($row["close_date"]);
-				$row["create_date"] = $this->my_func->date_convert_4($row["create_date"]);
+				$row["booked_date"] = $this->my_func->date_convert($row["booked_date"]);
+				$row["req_arrival_date_to"] = $this->my_func->date_convert($row["req_arrival_date_to"]);
+				$row["shipment_date"] = $this->my_func->date_convert($row["shipment_date"]);
+				//$row["close_date"] = $this->my_func->date_convert($row["close_date"]);
+				$row["create_date"] = $this->my_func->date_convert($row["create_date"]);
+				
+				//date convert: 26-FEB-2025 > 2024-02-26
+				$row["appointment_date"] = $this->my_func->date_convert_5($row["appointment_date"]);
+				
+				//print_r($row); echo "<br/><br/>";
 				
 				//date format changed to number from 2025-02-06
-				if (!$row["booked_date"]) $row["booked_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('Y'.$i)->getFormattedValue())));
-				if (!$row["req_arrival_date_to"]) $row["req_arrival_date_to"] = date("Y-m-d", strtotime(trim($sheet->getCell('AC'.$i)->getFormattedValue())));
-				if (!$row["shipment_date"]) $row["shipment_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('AE'.$i)->getFormattedValue())));
-				if (!$row["close_date"]) $row["close_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('AF'.$i)->getFormattedValue())));
-				if (!$row["create_date"]) $row["create_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('DK'.$i)->getFormattedValue())));
+				//if (!$row["booked_date"]) $row["booked_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('Y'.$i)->getFormattedValue())));
+				//if (!$row["req_arrival_date_to"]) $row["req_arrival_date_to"] = date("Y-m-d", strtotime(trim($sheet->getCell('AC'.$i)->getFormattedValue())));
+				//if (!$row["shipment_date"]) $row["shipment_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('AE'.$i)->getFormattedValue())));
+				//if (!$row["close_date"]) $row["close_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('AF'.$i)->getFormattedValue())));
+				//if (!$row["create_date"]) $row["create_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('DK'.$i)->getFormattedValue())));
 				
-				if ($row["booked_date"] === "1969-12-31") $row["booked_date"] = null;
-				if ($row["req_arrival_date_to"] === "1969-12-31") $row["req_arrival_date_to"] = null;
-				if ($row["shipment_date"] === "1969-12-31") $row["shipment_date"] = null;
-				if ($row["close_date"] === "1969-12-31") $row["close_date"] = null;
-				if ($row["create_date"] === "1969-12-31") $row["create_date"] = null;
+				//if ($row["booked_date"] === "1969-12-31") $row["booked_date"] = null;
+				//if ($row["req_arrival_date_to"] === "1969-12-31") $row["req_arrival_date_to"] = null;
+				//if ($row["shipment_date"] === "1969-12-31") $row["shipment_date"] = null;
+				//if ($row["close_date"] === "1969-12-31") $row["close_date"] = null;
+				//if ($row["create_date"] === "1969-12-31") $row["create_date"] = null;
 				
 				//print_r($row); echo"<br/><br/>";
 				
 				//usd calculation
+				switch($row['currency']){
+					case "BRL": $er = 3.25; break;
+					case "USD": $er = 1; break;
+					default: $er = 3.65;
+				}
+				/*
 				if ($row['currency'] === "BRL"){//forced if currency is not USD or PEN
 					if ($row["booked_date"] === "2025-02-21") $er = 3.25;
 				}else $er = $row['currency'] === "USD" ? 1 : $this->gen_m->filter("exchange_rate", false, ["currency" => $row['currency'], "date <=" => $row["create_date"]], null, null, [["date", "desc"]], 1)[0]->sell;
+				*/
 				$row["sales_amount_usd"] =  round($row["sales_amount"] / $er, 2);
 				
 				if (count($rows) > 5000){
