@@ -131,6 +131,45 @@ class Lgepr extends CI_Controller {
 		echo json_encode($res);
 	}
 	
+	
+	public function get_NGSI(){
+		//llamasys/api/lgepr/get_NGSI?key=lgepr
+		
+		$data_ngsi = $this->gen_m->filter("ngsi_inventory", false);
+		
+		if ($this->input->get("key") === "lgepr") {
+			
+			foreach($data_ngsi as $item){
+				// Clona el objeto para evitar modificar el original
+				$cloned_item = clone $item;
+				
+				$exclude_columns = ['remark', 'updated'];
+
+				foreach ($cloned_item as $key => $value) {
+					if (in_array($key, $exclude_columns)) {
+						unset($cloned_item->$key);
+					} else {
+						if (is_numeric($value) && $value == 0) {
+							$cloned_item->$key = "";
+						}
+					}
+				}
+				//echo '<pre>'; print_r($item);
+				$res[] = clone $cloned_item;
+			}
+		}
+		
+		
+		
+		// $res = $this->gen_m->filter("obs_most_likely", false, ["year" => $last->year, "month" => $last->month]);
+		else $res = ["Key error"];
+		
+		//if (!$res) $res = ["No this month ML data in database."];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+	
 	public function get_monthly_closed_order(){
 		//llamasys/api/lgepr/get_monthly_closed_order?key=lgepr
 		

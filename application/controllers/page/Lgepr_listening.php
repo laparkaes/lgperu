@@ -90,7 +90,6 @@ class Lgepr_listening extends CI_Controller {
 		redirect("./page/lgepr_listening");
 	}
 
-
 	public function update(){
 		$type = "success"; $msg = "Voice updated.";
 		
@@ -100,7 +99,6 @@ class Lgepr_listening extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
-	
 	
 	public function load_add_problem(){
 		$this->load->view('page/pi_listening_request/index'); // Carga la vista sin layout
