@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
 
+<head>
+<style>
+    #dataTable td:hover {
+        background-color: #def4ff; /* Cambia el color de fondo */
+        color: #00008b; /* Cambia el color del texto */
+    }
+</style>
+</head>
 <div class="pagetitle">
   <h1><br>PI - Listening to you</h1>
   <nav>
@@ -11,27 +19,24 @@
   </nav>
 </div>
 
-<div class="card overflow-scroll" style="height: 97vh;">
+<div class="card overflow-scroll  w-75 mx-auto" style="height: 97vh;">
 <section class="section">
 
   <div class="row">
   
     <div class="col-12">
-		
+	
       <div class="card">
-        <div class="card-body">
-          <!-- <h5 class="card-title">Voices</h5> -->	
+        <div class="card-body">	
 			<div class="d-flex justify-content-between align-items-center">
 				<div class="d-flex align-items-center">
-					<h5 class="card-title mb-0 me-2">Voices</h5>
+					<h5 class="card-title mb-4 me-0"></h5>
 							<button type="button" class="btn btn-sm btn-outline-primary mb-0 me-2" style="width: 150px;" onclick="location.href='<?= base_url("page/pi_listening_request") ?>'">
 								Add new issue
 							</button>
 				</div>
 				<div class="d-flex justify-content-end">
-				  
-					
-					
+				  			
 					<!-- Campos de fecha para filtrar -->
 
 					<input class="form-select me-1" type="date" id="fromDate" name="fromDate" >
@@ -84,15 +89,16 @@
 		   
 				</div>
 			</div>
-          <table class="table align-middle" id="dataTable" style="table-layout: fixed;">
+			
+          <table class="table align-middle border table-striped table-hover" id="dataTable" style="table-layout: fixed;">
 			
             <thead>
-              <tr>
+              <tr class="table-dark">
                 <!--<th scope="col" style="width: 30px;">Num</th>-->
-                <th scope="col" style="width: 50px;">Updated</th>
-                <th scope="col" style="width: 50px;">Department</th>
-                <th scope="col" style="width: 300px;">Issue</th>
-                <th scope="col" style="width: 200px;">Progress</th>
+                <th scope="col" style="width: 10px; text-align: center;">Last Update</th>
+                <th scope="col" style="width: 10px; text-align: center;">Department</th>
+                <th scope="col" style="width: 50px; text-align: center;">Issue</th>
+                <th scope="col" style="width: 50px; text-align: center;">Progress</th>
 
               </tr>
             </thead>
@@ -101,7 +107,7 @@
 				<?php foreach($records as $i => $item){ ?>
 					<tr>
 						<!--<th scope="row"><?= $i + 1 ?></th>-->
-							<td id="date-<?= $item->listening_id ?>">
+							<td style="text-align: center;" id="date-<?= $item->listening_id ?>">
 								<?php
 									// Mostrar la fecha registrada del problema (por defecto)
 									$displayDate = $item->registered;
@@ -130,66 +136,76 @@
 									//echo $displayHour;
 									?>
 									
-								<div class="d-flex justify-content-start align-items-center mt-1">
-									
-										<?php
-											if ($item->status === 'In progress'){?>
-												<span class="badge bg-warning text-dark">
-												<i class="bi bi-check-circle me-1"></i>
-												<?= $item->status ?>
-												</span> 
-										<?php	} ?>
-										
-										<?php
-											if ($item->status === 'Refused'){?>
-												<span class="badge bg-danger">
-												<i class="bi bi-exclamation-octagon me-1"></i>
-												<?= $item->status ?>
-												</span> 
-										<?php	} ?>
-
-										<?php
-											if ($item->status === 'Registered'){?>
-												<span class="badge rounded-pill bg-secondary">
-												<i class="bi bi-shield-check"></i>
-												<?= $item->status ?>
-												</span> 
-										<?php	} ?>
-										
-										<?php
-											if ($item->status === 'Finished'){?>
-												<span class="badge bg-success">
-												<i class="bi bi-check2-all"></i>
-												<?= $item->status ?>
-												</span> 
-										<?php	} ?>
-										<!-- Success -->
-									
-									<!-- <div class="border rounded p-1 bg-light" style="width: 100px; height: 40px;">
-										<?= $item->status ?>
-									</div>  -->
-								</div>
+								
 							</td>
-						<td><?= $item->dptTo ?></td>
-						<td>
-							
-							<div class="border rounded p-2 bg-light"><?= $item->issue ?> </div>
-
-								<strong>Proposal </strong>
-								<div class="border rounded p-2  mt-1"><?= $item->solution ?>
+						<td style="text-align: center;"><?= $item->dptTo ?></td>
+						<td class="align-top">
+							<div class="d-flex align-items-start justify-content-between">
+								<?php
+								$maxLengthIssue = 100; // Longitud máxima para "issue"
+								$fullTextIssue = $item->issue;
+								$truncatedTextIssue = substr($fullTextIssue, 0, $maxLengthIssue);
+								if (strlen($fullTextIssue) > $maxLengthIssue) {
+									$truncatedTextIssue .= "...";
+								}
+								?>
+								<div class="border rounded p-2 bg-light" style="display: inline-block;" id="issue-box-<?= $item->listening_id ?>">
+									<span style="font-size: 15px;" id="truncated-issue-<?= $item->listening_id ?>"><?= $truncatedTextIssue ?></span>
+									<?php if (strlen($fullTextIssue) > $maxLengthIssue): ?>
+										<a href="#" class="read-more-issue" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read more</a>
+										<span id="full-issue-<?= $item->listening_id ?>" style="display: none; font-size: 15px;"><?= $fullTextIssue ?> <a href="#" class="read-less-issue" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read less</a></span>
+									<?php endif; ?>
+								</div>
+								<div class="d-flex justify-content-start align-items-center mt-1 p-2">
+									<?php
+									if ($item->status === 'In progress') { ?>
+										<span class="badge bg-warning text-dark">
+											<i class="bi bi-check-circle me-1"></i>
+											<?= $item->status ?>
+										</span>
+									<?php } ?>
+									<?php
+									if ($item->status === 'Refused') { ?>
+										<span class="badge bg-danger">
+											<i class="bi bi-exclamation-octagon me-1"></i>
+											<?= $item->status ?>
+										</span>
+									<?php } ?>
+									<?php
+									if ($item->status === 'Registered') { ?>
+										<span class="badge rounded-pill bg-secondary">
+											<i class="bi bi-shield-check"></i>
+											<?= $item->status ?>
+										</span>
+									<?php } ?>
+									<?php
+									if ($item->status === 'Finished') { ?>
+										<span class="badge bg-success">
+											<i class="bi bi-check2-all"></i>
+											<?= $item->status ?>
+										</span>
+									<?php } ?>
+								</div>
+							</div>
+							<strong style="text-align: left; display: block;">Proposal</strong>
+							<?php
+							$maxLengthProposal = 150; // Longitud máxima para "proposal"
+							$fullTextProposal = $item->solution;
+							$truncatedTextProposal = substr($fullTextProposal, 0, $maxLengthProposal);
+							if (strlen($fullTextProposal) > $maxLengthProposal) {
+								$truncatedTextProposal .= "...";
+							}
+							?>
+							<div class="border rounded p-2 mt-1 bg-light" style="display: inline-block;" id="proposal-box-<?= $item->listening_id ?>">
+								<span style="font-size: 15px;" id="truncated-proposal-<?= $item->listening_id ?>"><?= $truncatedTextProposal ?></span>
+								<?php if (strlen($fullTextProposal) > $maxLengthProposal): ?>
+									<a href="#" class="read-more-proposal" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read more</a>
+									<span id="full-proposal-<?= $item->listening_id ?>" style="display: none; font-size: 15px;"><?= $fullTextProposal ?> <a href="#" class="read-less-proposal" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read less</a></span>
+								<?php endif; ?>
+							</div>
 						</td>
 						<!-- <td><?= $item->status?></td> -->
 						<td class="align-top">
-						
-						 <!-- Filtro de idioma -->
-						  <!--<div class="d-flex justify-content-start align-items-center mb-2">
-							<label for="languageSelect" class="me-2">Language:</label>
-							<select id="languageSelect-<?= $item->listening_id ?>" class="form-select" style="width: auto; max-width: 150px;">
-							  <option value="es">ES</option>
-							  <option value="en">EN</option>
-							  <option value="kr">KR</option>
-							</select>
-						  </div>-->
 						  
 							<!--<a href="#" class="add-comment" data-id="<?= $item->listening_id ?>">Add comment</a>  -->
 						<div class="text-start">
@@ -213,12 +229,12 @@
 									<a class="list-group-item list-group-item-action border rounded p-2 bg-light"> 
 										<div class="d-flex w-100 justify-content-between">
 											<h5 class="mb-1">												
-												<strong><?= $latestCommentUser ?: "No user" ?>: </strong>
+												<strong style="font-size: 16px;"><?= $latestCommentUser ?: "No user" ?>: </strong>
 											</h5>
-											<small class="text-muted"><?= $latestCommentDate ?></small>
+											<small class="text-muted" style="font-size: 13px;"><?= $latestCommentDate?></small>
 										</div>
 								
-										<p class="mb-1"><?=$latestComment ?: "No comment" ?></p>
+										<p class="mb-1" style="font-size: 15px;"><?=nl2br(htmlspecialchars($latestComment)) ?: "No comment" ?></p>
 									</a>
 							</div>
 						
@@ -239,18 +255,18 @@
 							});
 
 							foreach ($commentsForViewing as $comment) {
-								echo "<a href='#' class='list-group-item list-group-item-action border rounded p-2 mt-1'>
+								echo "<a href='#' class='list-group-item list-group-item-action border rounded p-2 mt-1 bg-light'>
 										<div class='d-flex w-100 justify-content-between'>
 											<h5 class='mb-1'>{$comment->pr_user}:</h5>
 											<small class='text-muted'>" . $comment->updated . "</small>
 										</div>
-										<p class='mb-1'>{$comment->comment_es}</p>										
+										<p class='mb-1'>" . nl2br(htmlspecialchars($comment->comment_es)) . "</p>										
 									  </a>";
 							}
 							?>
 						</div>
 						
-							<a href="#" class="view-more" data-id="<?= $item->listening_id ?>">View more</a>
+							<a href="#" class="view-more" style="font-size: 15px;" data-id="<?= $item->listening_id ?>">View more</a>
 						</td>
 						
 					</tr>
@@ -271,86 +287,86 @@
 
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const rowsPerPage = 5; // Cantidad de filas por página
-    const tableBody = document.getElementById("tableBody");
-    const rows = Array.from(tableBody.getElementsByTagName("tr"));
-    const paginationContainer = document.getElementById("pagination");
-    let filteredRows = rows; // Filas filtradas
+// document.addEventListener("DOMContentLoaded", function () {
+    // const rowsPerPage = 5; // Cantidad de filas por página
+    // const tableBody = document.getElementById("tableBody");
+    // const rows = Array.from(tableBody.getElementsByTagName("tr"));
+    // const paginationContainer = document.getElementById("pagination");
+    // let filteredRows = rows; // Filas filtradas
 
-    let currentPage = 1;
-    let totalPages = Math.ceil(filteredRows.length / rowsPerPage); // Inicializar el número de páginas
+    // let currentPage = 1;
+    // let totalPages = Math.ceil(filteredRows.length / rowsPerPage); // Inicializar el número de páginas
 
-    function showPage(page) {
-        const start = (page - 1) * rowsPerPage;
-        const end = start + rowsPerPage;
+    // function showPage(page) {
+        // const start = (page - 1) * rowsPerPage;
+        // const end = start + rowsPerPage;
 
-        filteredRows.forEach((row, index) => {
-            row.style.display = (index >= start && index < end) ? "" : "none";
-        });
+        // filteredRows.forEach((row, index) => {
+            // row.style.display = (index >= start && index < end) ? "" : "none";
+        // });
 
-        updatePaginationButtons();
-    }
+        // updatePaginationButtons();
+    // }
 
-    function updatePaginationButtons() {
-        paginationContainer.innerHTML = "";
+    // function updatePaginationButtons() {
+        // paginationContainer.innerHTML = "";
 
-        // Botón de "Anterior"
-        const prevBtn = document.createElement("li");
-        prevBtn.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
-        prevBtn.innerHTML = ` 
-            <a class="page-link" href="#" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-            </a>
-        `;
-        prevBtn.onclick = function (e) {
-            e.preventDefault();
-            if (currentPage > 1) {
-                currentPage--;
-                showPage(currentPage);
-            }
-        };
-        paginationContainer.appendChild(prevBtn);
+        // // Botón de "Anterior"
+        // const prevBtn = document.createElement("li");
+        // prevBtn.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
+        // prevBtn.innerHTML = ` 
+            // <a class="page-link" href="#" aria-label="Previous">
+                // <span aria-hidden="true">&laquo;</span>
+            // </a>
+        // `;
+        // prevBtn.onclick = function (e) {
+            // e.preventDefault();
+            // if (currentPage > 1) {
+                // currentPage--;
+                // showPage(currentPage);
+            // }
+        // };
+        // paginationContainer.appendChild(prevBtn);
 
-        // Botones de Páginas
-        for (let i = 1; i <= totalPages; i++) {
-            const pageBtn = document.createElement("li");
-            pageBtn.className = `page-item ${i === currentPage ? "active" : ""}`;
-            pageBtn.innerHTML = `
-                <a class="page-link" href="#">${i}</a>
-            `;
-            pageBtn.onclick = function (e) {
-                e.preventDefault();
-                currentPage = i;
-                showPage(i);
-            };
-            paginationContainer.appendChild(pageBtn);
-        }
+        // // Botones de Páginas
+        // for (let i = 1; i <= totalPages; i++) {
+            // const pageBtn = document.createElement("li");
+            // pageBtn.className = `page-item ${i === currentPage ? "active" : ""}`;
+            // pageBtn.innerHTML = `
+                // <a class="page-link" href="#">${i}</a>
+            // `;
+            // pageBtn.onclick = function (e) {
+                // e.preventDefault();
+                // currentPage = i;
+                // showPage(i);
+            // };
+            // paginationContainer.appendChild(pageBtn);
+        // }
 
-        // Botón de "Siguiente"
-        const nextBtn = document.createElement("li");
-        nextBtn.className = `page-item ${currentPage === totalPages ? "disabled" : ""}`;
-        nextBtn.innerHTML = ` 
-            <a class="page-link" href="#" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-            </a>
-        `;
-        nextBtn.onclick = function (e) {
-            e.preventDefault();
-            if (currentPage < totalPages) {
-                currentPage++;
-                showPage(currentPage);
-            }
-        };
-        paginationContainer.appendChild(nextBtn);
-    }
+        // // Botón de "Siguiente"
+        // const nextBtn = document.createElement("li");
+        // nextBtn.className = `page-item ${currentPage === totalPages ? "disabled" : ""}`;
+        // nextBtn.innerHTML = ` 
+            // <a class="page-link" href="#" aria-label="Next">
+                // <span aria-hidden="true">&raquo;</span>
+            // </a>
+        // `;
+        // nextBtn.onclick = function (e) {
+            // e.preventDefault();
+            // if (currentPage < totalPages) {
+                // currentPage++;
+                // showPage(currentPage);
+            // }
+        // };
+        // paginationContainer.appendChild(nextBtn);
+    // }
 
 	
-    // Inicializar la paginación
-    if (rows.length > 0) {
-        showPage(currentPage);
-    }
-});
+    // // Inicializar la paginación
+    // if (rows.length > 0) {
+        // showPage(currentPage);
+    // }
+// });
 
 </script>
 
@@ -381,6 +397,7 @@ document.getElementById("searchInput").addEventListener("keyup", function() {
         let text = row.innerText.toLowerCase();
         row.style.display = text.includes(input) ? "" : "none";
     });
+    });
 });
 </script>
 
@@ -406,7 +423,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Filtrar filas según los criterios seleccionados
         const filteredRows = Array.from(rows).filter(row => {
             const deptCell = row.querySelector('td:nth-child(2)'); // Suponiendo que el depto está en la segunda columna
-            const statusCell = row.querySelector('td:nth-child(1)'); // Suponiendo que el status está en la segunda columna
+            const statusCell = row.querySelector('td:nth-child(3)'); // Suponiendo que el status está en la segunda columna
             const dateCell = row.querySelector("td[id^='date-']"); // Suponiendo que la fecha está en la cuarta columna
 
             const deptText = deptCell ? deptCell.innerText.toLowerCase() : '';
@@ -440,6 +457,19 @@ document.addEventListener("DOMContentLoaded", function () {
         return dateString; // Si no tiene el formato esperado, devolver la fecha sin cambios
     }
 	
+	function adjustProposalWidth(listeningId) {
+        const issueBox = document.getElementById('issue-box-' + listeningId);
+        const proposalBox = document.getElementById('proposal-box-' + listeningId);
+		
+		if (issueBox && proposalBox) {
+			// Establecer el ancho de issueBox al máximo disponible
+			issueBox.style.width = issueBox.parentElement.offsetWidth + 'px';
+
+			// Establecer el ancho de proposalBox para que coincida con issueBox
+			proposalBox.style.width = issueBox.offsetWidth + 'px';
+		}
+    }
+	
     // Función para actualizar la paginación
     function updatePagination(filteredRows) {
         // Limpiar filas visibles
@@ -450,7 +480,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const endIdx = currentPage * itemsPerPage;
 
         filteredRows.slice(startIdx, endIdx).forEach(row => row.style.display = "");
-
+		
+		// Llamar a adjustProposalWidth para cada fila visible
+        filteredRows.slice(startIdx, endIdx).forEach(row => {
+            const listeningId = row.querySelector("td[id^='date-']").id.replace('date-', '');
+            adjustProposalWidth(listeningId);
+        });
+		
         // Actualizar la paginación
         const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
         updatePageControls(totalPages);
@@ -551,69 +587,6 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-// <script>
-// document.addEventListener("DOMContentLoaded", function () {
-    // document.querySelectorAll("[id^='languageSelect-']").forEach(select => {
-        // select.addEventListener("change", function () {
-            // const listeningId = this.id.split("-")[1]; // Extrae el ID del listening
-            // const selectedLang = this.value; // Obtiene el idioma seleccionado
-            // const commentBox = document.querySelector(`#latest-comment-${listeningId} p`); // Caja del comentario
-            // const commentUser = document.querySelector(`#latest-comment-${listeningId} h5 strong`); // Usuario del último comentario
-            // const commentList = document.querySelector(`#comment-list-${listeningId}`); // Lista de comentarios
-            // const commentItems = commentList.querySelectorAll(".list-group-item p"); // Elementos de la lista
-
-            // // Buscar los datos dentro de la tabla
-            // const commentsForListening = <?= json_encode($records_comment) ?>;
-            // const filteredComments = commentsForListening.filter(comment => comment.listening_id == listeningId);
-
-            // if (filteredComments.length > 0) {
-                // // Ordenar los comentarios por fecha
-                // filteredComments.sort((a, b) => new Date(b.updated) - new Date(a.updated));
-
-                // let latestComment = "";
-                // let latestUser = filteredComments[0].pr_user || "No user";
-
-                // // Seleccionar el comentario según el idioma
-                // switch (selectedLang) {
-                    // case "es":
-                        // latestComment = filteredComments[0].comment_es;
-                        // break;
-                    // case "en":
-                        // latestComment = filteredComments[0].comment_en;
-                        // break;
-                    // case "kr":
-                        // latestComment = filteredComments[0].comment_kr;
-                        // break;
-                // }
-
-                // // Actualizar el comentario principal
-                // commentBox.textContent = latestComment ? latestComment : "No comment";
-                // commentUser.textContent = `${latestUser}:`;
-
-                // // Actualizar los comentarios en "View more"
-                // commentItems.forEach((commentElement, index) => {
-                    // if (filteredComments[index + 1]) { // Evitamos repetir el primer comentario
-                        // let translatedComment = "";
-                        // switch (selectedLang) {
-                            // case "es":
-                                // translatedComment = filteredComments[index + 1].comment_es;
-                                // break;
-                            // case "en":
-                                // translatedComment = filteredComments[index + 1].comment_en;
-                                // break;
-                            // case "kr":
-                                // translatedComment = filteredComments[index + 1].comment_kr;
-                                // break;
-                        // }
-                        // commentElement.textContent = translatedComment ? translatedComment : "No comment";
-                    // }
-                // });
-            // }
-        // });
-    // });
-// });
-
-// </script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -659,7 +632,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 // Actualizar el comentario principal
-                commentBox.textContent = latestComment ? latestComment : "No comment";
+                commentBox.innerHTML = latestComment ? latestComment.replace(/\n/g, '<br>') : "No comment";
                 commentUser.textContent = `${latestUser}:`;
 
                 // Actualizar los comentarios en "View more"
@@ -677,7 +650,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 translatedComment = filteredComments[index + 1].comment_kr;
                                 break;
                         }
-                        commentElement.textContent = translatedComment ? translatedComment : "No comment";
+                        commentElement.innerHTML = translatedComment ? translatedComment.replace(/\n/g, '<br>') : "No comment";
                     }
                 });
             }
@@ -685,3 +658,60 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
+
+<script>
+document.getElementById("fromDate").addEventListener("focus", function () {
+    this.showPicker(); // Abre el selector de fecha automáticamente
+});
+
+document.getElementById("toDate").addEventListener("focus", function () {
+    this.showPicker(); // Abre el selector de fecha automáticamente
+});
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Lógica para "issue"
+        document.querySelectorAll('.read-more-issue').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                const id = this.getAttribute('data-id');
+                document.getElementById('truncated-issue-' + id).style.display = 'none';
+                document.getElementById('full-issue-' + id).style.display = 'inline';
+                this.style.display = 'none';
+            });
+        });
+
+        document.querySelectorAll('.read-less-issue').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                const id = this.getAttribute('data-id');
+                document.getElementById('full-issue-' + id).style.display = 'none';
+                document.getElementById('truncated-issue-' + id).style.display = 'inline';
+                document.querySelector('.read-more-issue[data-id="' + id + '"]').style.display = 'inline';
+            });
+        });
+
+        // Lógica para "proposal"
+        document.querySelectorAll('.read-more-proposal').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                const id = this.getAttribute('data-id');
+                document.getElementById('truncated-proposal-' + id).style.display = 'none';
+                document.getElementById('full-proposal-' + id).style.display = 'inline';
+                this.style.display = 'none';
+            });
+        });
+
+        document.querySelectorAll('.read-less-proposal').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                const id = this.getAttribute('data-id');
+                document.getElementById('full-proposal-' + id).style.display = 'none';
+                document.getElementById('truncated-proposal-' + id).style.display = 'inline';
+                document.querySelector('.read-more-proposal[data-id="' + id + '"]').style.display = 'inline';
+            });
+        });
+    });
+</script>
+

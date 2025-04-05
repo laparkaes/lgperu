@@ -1,5 +1,18 @@
 <!DOCTYPE html>
-
+<head>
+<style>
+    .custom-select {
+		appearance: none; /* Quita la flecha predeterminada */
+		-webkit-appearance: none; /* Para navegadores basados en WebKit (Safari, Chrome) */
+		-moz-appearance: none; /* Para Firefox */
+		background-image: url('data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-caret-down' viewBox='0 0 16 16'%3E%3Cpath d='M3.204 5h9.592L8 10.481 3.204 5zm-.753.659 4.808 4.808a1 1 0 0 0 1.506 0l4.808-4.808A1 1 0 0 0 12.592 5H3.408a1 1 0 0 0-.753.659z'/%3E%3C/svg%3E'); /* Agrega una flecha personalizada */
+		background-repeat: no-repeat;
+		background-position: right 8px center; /* Ajusta la posición de la flecha */
+		background-size: 8px; /* Ajusta el tamaño de la flecha */
+		padding-right: 20px; /* Asegura espacio para la flecha */
+	}
+</style>
+</head>
 <div class="pagetitle">
   <h1>PI - Listening to you</h1>
   <nav>
@@ -17,9 +30,7 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center">
 				<h5 class="card-title mb-0 me-2">Voices</h5>
-				<div class="d-flex justify-content-end">
-				 
-					
+				<div class="d-flex justify-content-end">					
 					<!-- Campos de fecha para filtrar -->
 					
 					<input class="form-select me-1" type="date" id="fromDate" name="fromDate" >
@@ -71,25 +82,15 @@
 				</div>
 			</div>
 		  
-		  
-		  
-		  
-          <table class="table align-middle" id="dataTable" style="table-layout: fixed;">
+          <table class="table border table-striped align-middle" id="dataTable" style="table-layout: fixed;">
 			
             <thead>
-              <tr>
-                <th scope="col" style="width: 85px;">Updated</th>
-                <th scope="col" style="width: 70px;">Department</th>
-                <th scope="col" style="width: 400px;">Issue</th>
-                <th scope="col" style="width: 300px;">Progress</th>
-				<th scope="col" style="width: 45px;">
-					<!-- Filtro de idioma -->					
-								<!-- <select class="form-select" style="width: auto; max-width: 150px;" id="global-language-selector">
-								  <option value="es">ES</option>
-								  <option value="en">EN</option>
-								  <option value="kr">KR</option>
-								</select>-->
-				</th>
+              <tr class="table-dark">
+                <th scope="col" style="width: 20px;text-align: center;">Updated</th>
+                <th scope="col" style="width: 20px;text-align: center;">Department</th>
+                <th scope="col" style="width: 100px;text-align: center;">Issue</th>
+                <th scope="col" style="width: 100px;text-align: center;">Progress</th>
+				<th scope="col" style="width: 20px;text-align: center;"></th>
               </tr>
             </thead>
             <tbody id="tableBody">
@@ -97,7 +98,7 @@
 				<?php foreach($records as $i => $item){ ?>
 					<tr>
 						<!--<th  scope="row"><?= $i + 1 ?></th>-->
-							<td  id="date-<?= $item->listening_id ?>">
+							<td style="text-align: center;" id="date-<?= $item->listening_id ?>">
 								<?php
 									// Mostrar la fecha registrada del problema (por defecto)
 									$displayDate = $item->registered;
@@ -126,40 +127,56 @@
 									?>							
 								<!-- <br> -->
 								<!-- <label class="text-muted">Status:</label> -->
-								<select class="form-select status-select" data-listening-id="<?= $item->listening_id ?>">
-									<option value="Registered" <?= $item->status == "Registered" ? "selected" : "" ?>>Registered</option>
-									<option value="Finished" <?= $item->status == "Finished" ? "selected" : "" ?>>Finished</option>
-									<option value="Refused" <?= $item->status == "Refused" ? "selected" : "" ?>>Refused</option>
-									<option value="In progress" <?= $item->status == "In progress" ? "selected" : "" ?>>In progress</option>
-								</select>
+								<div class="text-center">
+									<select class="form-select status-select custom-select" style="width: 110px; font-size: 14px; margin: 0 auto; display: block;" data-listening-id="<?= $item->listening_id ?>">
+										<option value="Registered" <?= $item->status == "Registered" ? "selected" : "" ?>>Registered</option>
+										<option value="Finished" <?= $item->status == "Finished" ? "selected" : "" ?>>Finished</option>
+										<option value="Refused" <?= $item->status == "Refused" ? "selected" : "" ?>>Refused</option>
+										<option value="In progress" <?= $item->status == "In progress" ? "selected" : "" ?>>In progress</option>
+									</select>
+								</div>
 							</td>
-						<td ><?= $item->dptTo ?></td>
-						<td>
-							<div class="border rounded p-2 bg-light"><?= $item->issue ?> </div>
-							
-							<br>
-								<strong>Proposal </strong>
-								<div class="border rounded p-2 mt-1"><?= $item->solution ?>
+						<td style="text-align: center;"><?= $item->dptTo ?></td>
+						<td class="align-top">
+							<!-- <div class="border rounded p-2 bg-light"><?= $item->issue ?> </div> -->
+								<?php
+								$maxLengthIssue = 100; // Longitud máxima para "issue"
+								$fullTextIssue = $item->issue;
+								$truncatedTextIssue = substr($fullTextIssue, 0, $maxLengthIssue);
+								if (strlen($fullTextIssue) > $maxLengthIssue) {
+									$truncatedTextIssue .= "...";
+								}
+								?>
+								<div class="border rounded p-2 bg-light" style="display: inline-block;" id="issue-box-<?= $item->listening_id ?>">
+									<span style="font-size: 15px;" id="truncated-issue-<?= $item->listening_id ?>"><?= $truncatedTextIssue ?></span>
+									<?php if (strlen($fullTextIssue) > $maxLengthIssue): ?>
+										<a href="#" class="read-more-issue" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read more</a>
+										<span id="full-issue-<?= $item->listening_id ?>" style="display: none; font-size: 15px;"><?= $fullTextIssue ?> <a href="#" class="read-less-issue" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read less</a></span>
+									<?php endif; ?>
+								</div>
+								<br>
+								<strong>Proposal </strong><br>
+								<?php
+								$maxLengthProposal = 150; // Longitud máxima para "proposal"
+								$fullTextProposal = $item->solution;
+								$truncatedTextProposal = substr($fullTextProposal, 0, $maxLengthProposal);
+								if (strlen($fullTextProposal) > $maxLengthProposal) {
+									$truncatedTextProposal .= "...";
+								}
+								?>
+								<div class="border rounded p-2 mt-1 bg-light" style="display: inline-block;" id="proposal-box-<?= $item->listening_id ?>">
+									<span style="font-size: 15px;" id="truncated-proposal-<?= $item->listening_id ?>"><?= $truncatedTextProposal ?></span>
+									<?php if (strlen($fullTextProposal) > $maxLengthProposal): ?>
+										<a href="#" class="read-more-proposal" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read more</a>
+										<span id="full-proposal-<?= $item->listening_id ?>" style="display: none; font-size: 15px;"><?= $fullTextProposal ?> <a href="#" class="read-less-proposal" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read less</a></span>
+									<?php endif; ?>
+								</div>
 						</td>
 						<!-- <td><?= $item->status?></td> -->
 						<td class="align-top">
 							<!--<a href="#" class="add-comment" data-id="<?= $item->listening_id ?>">Add comment</a>  -->
-						<div class="text-start">
-							
-							<!--<a href="#" class="btn btn-link p-0 m-0 add-comment" data-id="<?= $item->listening_id ?>">Add Comment</a>-->
-							 <!-- Filtro de idioma -->
-						    <!--<div class="d-flex justify-content-start align-items-center mb-2">
-								<label for="languageSelect" class="me-2">Language:</label>
-								<select id="languageSelect-<?= $item->listening_id ?>" class="form-select" style="width: auto; max-width: 150px;">
-								  <option value="es">ES</option>
-								  <option value="en">EN</option>
-								  <option value="kr">KR</option>
-								</select>
-						    </div>-->
-						  
-							<div id="latest-comment-<?= $item->listening_id ?>">
-								
-									
+						<div class="text-start" style="padding-left: 10px;">					  
+							<div id="latest-comment-<?= $item->listening_id ?>">									
 									<?php
 									
 									$latestComment = "";
@@ -191,7 +208,7 @@
 											<small class="text-muted"><?= $latestCommentDate ?></small>
 										</div>
 								
-										<p class="mb-1"><?=$latestComment ?: "No comment" ?></p>
+										<p class="mb-1"><?=nl2br(htmlspecialchars($latestComment)) ?: "No comment" ?></p>
 										
 										<?php if (!empty($latestComment)) : ?>
 											
@@ -203,7 +220,7 @@
 						</div>
 						
 						 <!-- Lista de comentarios -->
-						<div id="comment-list-<?= $item->listening_id ?>" class="comment-list d-none">
+						<div id="comment-list-<?= $item->listening_id ?>" class="comment-list d-none" style='padding-left: 10px;'>
 							<?php
 							// Excluir el comentario más reciente del "last comment"
 							$commentsForViewing = array_filter($commentsForListening, function($comment) use ($latestComment) {
@@ -216,7 +233,7 @@
 							});
 
 							foreach ($commentsForViewing as $comment) {
-								echo "<a href='#' class='list-group-item list-group-item-action border rounded p-2 mt-1'>
+								echo "<a href='#' class='list-group-item list-group-item-action border rounded bg-light p-2 mt-1' >
 										<div class='d-flex w-100 justify-content-between'>
 											<h5 class='mb-1'>{$comment->pr_user}:
 												<button type='button' class='btn btn-outline-primary btn-sm edit-comment' 
@@ -230,14 +247,14 @@
 											</h5>
 											<small class='text-muted'>" . $comment->updated . "</small>
 										</div>
-										<p class='mb-1'>{$comment->comment_es}</p>
+										<p class='mb-1'>" . nl2br(htmlspecialchars($comment->comment_es)) . "</p>
 										
 									  </a>";
 							}
 							?>
 						</div>
 						
-							<a href="#" class="view-more" data-id="<?= $item->listening_id ?>">View more</a>
+							<a style='padding-left: 20px;' href="#" class="view-more" data-id="<?= $item->listening_id ?>">View more</a>
 						</td>
 						<td class="align-top text-center">
 							<button class='btn btn-sm btn-outline-primary add-comment' data-id="<?= $item->listening_id ?>"
@@ -255,11 +272,6 @@
 					<ul class="pagination" id="pagination"></ul>
 				</nav>
 			</div>
-			<!--
-		  <div class="d-flex justify-content-center mt-3">
-			<div id="pagination"></div>	
-		  </div> -->
-
         </div>
       </div>
     </div>
@@ -701,6 +713,19 @@ document.addEventListener("DOMContentLoaded", function () {
         return dateString; // Si no tiene el formato esperado, devolver la fecha sin cambios
     }
 	
+	function adjustProposalWidth(listeningId) {
+        const issueBox = document.getElementById('issue-box-' + listeningId);
+        const proposalBox = document.getElementById('proposal-box-' + listeningId);
+		
+		if (issueBox && proposalBox) {
+			// Establecer el ancho de issueBox al máximo disponible
+			issueBox.style.width = issueBox.parentElement.offsetWidth + 'px';
+
+			// Establecer el ancho de proposalBox para que coincida con issueBox
+			proposalBox.style.width = issueBox.offsetWidth + 'px';
+		}
+    }
+	
     // Función para actualizar la paginación
     function updatePagination(filteredRows) {
         // Limpiar filas visibles
@@ -711,7 +736,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const endIdx = currentPage * itemsPerPage;
 
         filteredRows.slice(startIdx, endIdx).forEach(row => row.style.display = "");
-
+		
+		// Llamar a adjustProposalWidth para cada fila visible
+        filteredRows.slice(startIdx, endIdx).forEach(row => {
+            const listeningId = row.querySelector("td[id^='date-']").id.replace('date-', '');
+            adjustProposalWidth(listeningId);
+        });
+		
         // Actualizar la paginación
         const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
         updatePageControls(totalPages);
@@ -812,7 +843,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-// <script>
+<script>
 // document.addEventListener("DOMContentLoaded", function () {
     // document.querySelectorAll("[id^='languageSelect-']").forEach(select => {
         // select.addEventListener("change", function () {
@@ -873,7 +904,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // });
     // });
 // });
-// </script>
+</script>
 
 
 <script>
@@ -920,7 +951,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 // Actualizar el comentario principal
-                commentBox.textContent = latestComment ? latestComment : "No comment";
+                commentBox.innerHTML = latestComment ? latestComment.replace(/\n/g, '<br>') : "No comment";
                 commentUser.textContent = `${latestUser}:`;
 
                 // Actualizar los comentarios en "View more"
@@ -938,7 +969,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 translatedComment = filteredComments[index + 1].comment_kr;
                                 break;
                         }
-                        commentElement.textContent = translatedComment ? translatedComment : "No comment";
+                        commentElement.innerHTML = translatedComment ? translatedComment.replace(/\n/g, '<br>') : "No comment";
                     }
                 });
             }
@@ -947,3 +978,58 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
+<script>
+document.getElementById("fromDate").addEventListener("focus", function () {
+    this.showPicker(); // Abre el selector de fecha automáticamente
+});
+
+document.getElementById("toDate").addEventListener("focus", function () {
+    this.showPicker(); // Abre el selector de fecha automáticamente
+});
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Lógica para "issue"
+        document.querySelectorAll('.read-more-issue').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                const id = this.getAttribute('data-id');
+                document.getElementById('truncated-issue-' + id).style.display = 'none';
+                document.getElementById('full-issue-' + id).style.display = 'inline';
+                this.style.display = 'none';
+            });
+        });
+
+        document.querySelectorAll('.read-less-issue').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                const id = this.getAttribute('data-id');
+                document.getElementById('full-issue-' + id).style.display = 'none';
+                document.getElementById('truncated-issue-' + id).style.display = 'inline';
+                document.querySelector('.read-more-issue[data-id="' + id + '"]').style.display = 'inline';
+            });
+        });
+
+        // Lógica para "proposal"
+        document.querySelectorAll('.read-more-proposal').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                const id = this.getAttribute('data-id');
+                document.getElementById('truncated-proposal-' + id).style.display = 'none';
+                document.getElementById('full-proposal-' + id).style.display = 'inline';
+                this.style.display = 'none';
+            });
+        });
+
+        document.querySelectorAll('.read-less-proposal').forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                const id = this.getAttribute('data-id');
+                document.getElementById('full-proposal-' + id).style.display = 'none';
+                document.getElementById('truncated-proposal-' + id).style.display = 'inline';
+                document.querySelector('.read-more-proposal[data-id="' + id + '"]').style.display = 'inline';
+            });
+        });
+    });
+</script>
