@@ -15,10 +15,11 @@ class Custom_container_manage extends CI_Controller {
 	
 	public function index(){
 		
-		//$o = [["order_no", "asc"], ["line_no", "asc"], ["create_date", "asc"], ];
+		$o = [["ata", "desc"], ["container", "asc"]];
+		$containers = $this->gen_m->filter("custom_container", false, null, null, null, $o);
 		
 		$data = [
-			//"sales_orders"	=> $this->gen_m->filter("lgepr_sales_order", false, null, null, null, $o),
+			"containers"	=> $containers,
 			"main" 			=> "data_upload/custom_container_manage/index",
 		];
 		

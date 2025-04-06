@@ -1,10 +1,11 @@
 <div class="d-flex justify-content-between align-items-start">
 	<div class="pagetitle">
-		<h1>LGEPR Sale Order</h1>
+		<h1>Container Management</h1>
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item active">LGEPR Sale Order</li>
+				<li class="breadcrumb-item">Custom</li>
+				<li class="breadcrumb-item active">Container Management</li>
 			</ol>
 		</nav>
 	</div>
@@ -15,7 +16,7 @@
 			<div class="card">
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
-						<h5 class="card-title">Sales Orders (<?= number_format(count($sales_orders)) ?> records)</h5>
+						<h5 class="card-title">Containers</h5>
 						<form id="form_sales_order_upload">
 							<div class="input-group">
 								<a class="btn btn-success" href="<?= base_url() ?>template/lgepr_sales_order_template.xls" download="lgepr_sales_order_template"><i class="bi bi-file-earmark-spreadsheet"></i></a>
@@ -53,7 +54,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach($sales_orders as $item){ ?>
+							<?php foreach($containers as $item){ ?>
 							<tr>
 								<td><?= $item->customer_department ?></td>
 								<td><?= $item->order_category ?></td>
