@@ -12,37 +12,56 @@
 </div>
 <section class="section">
 	<div class="row">
+		<div class="col-md-3">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Step 1. Upload Container List</h5>
+					<form id="form_dq_sa_report_upload">
+						<div class="input-group">
+							<input class="form-control" type="file" name="attach">
+							<button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Upload</button>
+						</div>
+					</form>
+					<div class="mt-3">
+						<a href="<?= base_url() ?>template/custom_dq_sa_report_template.xlsx" download="custom_dq_sa_report_template">
+							Download template (Dynamic query SA report)
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			hola
+		</div>
+		<div class="col-md-3">
+			hola
+		</div>
+		<div class="col-md-3">
+			hola
+		</div>
+	</div>
+	<div class="row">
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
 						<h5 class="card-title">Containers</h5>
-						<form id="form_sales_order_upload">
-							<div class="input-group">
-								<a class="btn btn-success" href="<?= base_url() ?>template/lgepr_sales_order_template.xls" download="lgepr_sales_order_template"><i class="bi bi-file-earmark-spreadsheet"></i></a>
-								<input class="form-control" type="file" name="attach">
-								<button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i></button>
-							</div>
-						</form>
 					</div>
-					<table class="table datatable">
+					<table class="table">
 						<thead>
 							<tr>
-								<th scope="col">Dept.</th>
-								<th scope="col">Type</th>
-								<th scope="col">Customer</th>
-								<th scope="col">Status</th>
-								<th scope="col">Division</th>
-								<th scope="col">Order</th>
-								<th scope="col">Line</th>
+								<th scope="col">SA</th>
+								<th scope="col">Container</th>
+								<th scope="col">Org.</th>
+								<th scope="col">Sub-Inv.</th>
 								<th scope="col">Model</th>
 								<th scope="col">Qty</th>
-								<th scope="col">Amount (USD)</th>
-								<th scope="col">Org</th>
-								<th scope="col">Created</th>
-								<th scope="col">Request</th>
-								<th scope="col">Appointment</th>
-								<th scope="col">Shipment</th>
+								<th scope="col">ETA</th>
+								<th scope="col">ATA</th>
+								<th scope="col">Picked Up</th>
+								<th scope="col">3PL Arrival</th>
+								<th scope="col">Returned</th>
+								<th scope="col">Updated</th>
 								
 								<!--
 								<th scope="col">PEN</th>
@@ -56,28 +75,19 @@
 						<tbody>
 							<?php foreach($containers as $item){ ?>
 							<tr>
-								<td><?= $item->customer_department ?></td>
-								<td><?= $item->order_category ?></td>
-								<td><?= $item->bill_to_name ?></td>
-								<td><?= $item->line_status ?></td>
-								<td><?= $item->dash_division ?></td>
-								<td><?= $item->order_no ?></td>
-								<td><?= $item->line_no ?></td>
-								<td><?= $item->model ?></td>
-								<td><?= $item->ordered_qty ?></td>
-								<td><?= number_format($item->sales_amount_usd, 2) ?></td>
-								<td><?= $item->inventory_org ?></td>
-								<td><?= $item->create_date ?></td>
-								<td><?= $item->req_arrival_date_to ?></td>
-								<td><?= $item->appointment_date ?></td>
-								<td><?= $item->shipment_date ?></td>
-								<!--
-								<td><?= number_format($item->sales_amount, 2) ?></td>
-								<td><?= $item->product_level1_name ?></td>
-								<td><?= $item->product_level2_name ?></td>
-								<td><?= $item->product_level3_name ?></td>
-								<td><?= $item->product_level4_name ?></td>
-								-->
+								<td><?= $item->sa_no ?>.<?= $item->sa_line_no ?></td>
+								<td><?= $item->container ?></td>
+								<td><?= $item->organization ?></td>
+								<td><?= $item->sub_inventory ?></td>
+								<td><?= $item->model ?><?php if ($item->company) {?><br/><?= $item->company ?>.<?= $item->division ?><?php } ?></td>
+								
+								<td><?= number_format($item->qty) ?></td>
+								<td><?= $item->eta ?></td>
+								<td><?= $item->ata ?></td>
+								<td><?= $item->picked_up ?></td>
+								<td><?= $item->wh_arrival ?></td>
+								<td><?= $item->returned ?></td>
+								<td><?= $item->updated_at ?></td>
 							</tr>
 							<?php } ?>
 						</tbody>
@@ -90,11 +100,10 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-	$("#form_sales_order_upload").submit(function(e) {
+	$("#form_dq_sa_report_upload").submit(function(e) {
 		e.preventDefault();
-		ajax_form_warning(this, "data_upload/lgepr_sales_order/upload", "Do you want to update sales order data?").done(function(res) {
-			//swal_redirection(res.type, res.msg, "data_upload/lgepr_sales_order");
-			swal_open_tab(res.type, res.msg, "lgepr_sales_order/process");
+		ajax_form_warning(this, "data_upload/custom_container_manage/dq_sa_report_upload", "Do you want to update container data?").done(function(res) {
+			swal_open_tab(res.type, res.msg, "custom_container_manage/dq_sa_report_process");
 		});
 	});
 });

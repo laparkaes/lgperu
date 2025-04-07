@@ -15,8 +15,8 @@ class Custom_container_manage extends CI_Controller {
 	
 	public function index(){
 		
-		$o = [["ata", "desc"], ["container", "asc"]];
-		$containers = $this->gen_m->filter("custom_container", false, null, null, null, $o);
+		$o = [["ata", "asc"], ["eta", "asc"], ["sa_no", "asc"], ["sa_line_no", "asc"], ["container", "asc"]];
+		$containers = $this->gen_m->filter("custom_sa_container", false, ["returned" => null], null, null, $o);
 		
 		$data = [
 			"containers"	=> $containers,
@@ -25,6 +25,122 @@ class Custom_container_manage extends CI_Controller {
 		
 		$this->load->view('layout', $data);
 	}
+	
+	public function dq_sa_report_upload(){
+		$type = "error"; $msg = "";
+		
+		if ($this->session->userdata('logged_in')){
+			set_time_limit(0);
+		
+			$config = [
+				'upload_path'	=> './upload/',
+				'allowed_types'	=> '*',
+				'max_size'		=> 90000,
+				'overwrite'		=> TRUE,
+				'file_name'		=> 'custom_dq_sa_report.xlsx',
+			];
+			$this->load->library('upload', $config);
+
+			if ($this->upload->do_upload('attach')){
+				$msg = "File upload completed successfully.<br/>A new tab will open to process the DB operations.<br/><br/>Please do not close new tab.";
+				$type = "success";
+				/*
+				$msg = $this->process();//delete & insert
+				if ($msg) $type = "success";
+				else $msg = "Wrong file.";
+				*/
+			}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
+		}else $msg = "Your session is finished.";
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg]);
+	}
+	
+	public function dq_sa_report_process(){
+		ini_set('memory_limit', '2G');
+		set_time_limit(0);
+		
+		$start_time = microtime(true);
+		
+		//load excel file
+		$spreadsheet = IOFactory::load("./upload/custom_dq_sa_report.xlsx");
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		//excel file header validation
+		$h = [
+			trim($sheet->getCell('A1')->getValue()),
+			trim($sheet->getCell('B1')->getValue()),
+			trim($sheet->getCell('C1')->getValue()),
+			trim($sheet->getCell('D1')->getValue()),
+			trim($sheet->getCell('E1')->getValue()),
+		];
+		
+		//magento report header
+		$h_validation = ["SUPPLY_TYPE_ORIGIN", "ORGANIZATION_CD", "SUBINVENTORY_CODE_ORIGIN", "SA_NO", "SA_LINE_NO"];
+		
+		//header validation
+		$is_ok = true;
+		foreach($h as $i => $h_i) if ($h_i !== $h_validation[$i]) $is_ok = false;
+		
+		if ($is_ok){
+			$max_row = $sheet->getHighestRow();
+			
+			//define now
+			$now = date('Y-m-d H:i:s', time());
+			
+			//set model master
+			$model_master = [];
+			$models = $this->gen_m->all("v_lgepr_model_master", [], "", "", false);
+			foreach($models as $item) $model_master[$item->model] = $item;
+			
+			for($i = 2; $i <= $max_row; $i++){
+				$row = [
+					"sa_no" 		=> trim($sheet->getCell('D'.$i)->getCalculatedValue()),
+					"sa_line_no" 	=> trim($sheet->getCell('E'.$i)->getValue()),
+					"container" 	=> trim($sheet->getCell('O'.$i)->getValue()),
+					"organization" 	=> trim($sheet->getCell('B'.$i)->getValue()),
+					"sub_inventory" => trim($sheet->getCell('C'.$i)->getValue()),
+					"model" 		=> trim($sheet->getCell('U'.$i)->getValue()),
+					"qty" 			=> trim($sheet->getCell('F'.$i)->getValue()),
+					"cbm" 			=> trim($sheet->getCell('W'.$i)->getValue()),
+					"weight" 		=> trim($sheet->getCell('V'.$i)->getValue()),
+					"eta"			=> trim($sheet->getCell('H'.$i)->getValue()),
+					"updated_at" 	=> $now,
+				];
+				
+				if (array_key_exists($row["model"], $model_master)){				
+					$row["company"] = $model_master[$row["model"]]->dash_company;
+					$row["division"] = $model_master[$row["model"]]->dash_division;	
+				}
+				
+				//date convert: 26-FEB-25 > 2025-02-26
+				$row["eta"] = $this->my_func->date_convert_4($row["eta"]);
+				
+				$container = $this->gen_m->filter("custom_sa_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
+				if ($container) $this->gen_m->update("custom_sa_container", ["container_id" => $container[0]->container_id], $row);//update
+				else $this->gen_m->insert("custom_sa_container", $row); //insert
+			}
+			
+			$msg = "Shipment advise has been updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
+		}else $msg = "File template error. Please check upload file.";
+		
+		//return $msg;
+		echo $msg;
+		echo "<br/><br/>";
+		echo 'You can close this tab now.<br/><br/><button onclick="window.close();">Close This Tab</button>';
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	public function single_update_data(){
 		$this->update_model_category();
