@@ -12,7 +12,7 @@
 </div>
 <section class="section">
 	<div class="row">
-		<div class="col-md-3">
+		<div class="col-md-4">
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Step 1. Upload Container List</h5>
@@ -24,19 +24,31 @@
 					</form>
 					<div class="mt-3">
 						<a href="<?= base_url() ?>template/custom_dq_sa_report_template.xlsx" download="custom_dq_sa_report_template">
-							Download template (Dynamic query SA report)
+							Download template (Dynamic query SA)
 						</a>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="col-md-3">
-			hola
+		<div class="col-md-4">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Step 2. Upload SA Information</h5>
+					<form id="form_sa_inquiry_upload">
+						<div class="input-group">
+							<input class="form-control" type="file" name="attach">
+							<button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Upload</button>
+						</div>
+					</form>
+					<div class="mt-3">
+						<a href="<?= base_url() ?>template/custom_sa_inquiry_template.xlsx" download="custom_sa_inquiry_template">
+							Download template (SA Inquiry)
+						</a>
+					</div>
+				</div>
+			</div>
 		</div>
-		<div class="col-md-3">
-			hola
-		</div>
-		<div class="col-md-3">
+		<div class="col-md-4">
 			hola
 		</div>
 	</div>
@@ -62,14 +74,6 @@
 								<th scope="col">3PL Arrival</th>
 								<th scope="col">Returned</th>
 								<th scope="col">Updated</th>
-								
-								<!--
-								<th scope="col">PEN</th>
-								<th scope="col">Level 1</th>
-								<th scope="col">Level 2</th>
-								<th scope="col">Level 3</th>
-								<th scope="col">Level 4</th>
-								-->
 							</tr>
 						</thead>
 						<tbody>
@@ -80,7 +84,6 @@
 								<td><?= $item->organization ?></td>
 								<td><?= $item->sub_inventory ?></td>
 								<td><?= $item->model ?><?php if ($item->company) {?><br/><?= $item->company ?>.<?= $item->division ?><?php } ?></td>
-								
 								<td><?= number_format($item->qty) ?></td>
 								<td><?= $item->eta ?></td>
 								<td><?= $item->ata ?></td>
@@ -106,5 +109,14 @@ document.addEventListener("DOMContentLoaded", () => {
 			swal_open_tab(res.type, res.msg, "custom_container_manage/dq_sa_report_process");
 		});
 	});
+	
+	$("#form_sa_inquiry_upload").submit(function(e) {
+		e.preventDefault();
+		ajax_form_warning(this, "data_upload/custom_container_manage/sa_inquiry_upload", "Do you want to update SA inquiry (House B/L)?").done(function(res) {
+			swal_open_tab(res.type, res.msg, "custom_container_manage/sa_inquiry_process");
+		});
+	});
+	
+	
 });
 </script>
