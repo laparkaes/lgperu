@@ -33,23 +33,20 @@
 		<div class="col-md-4">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Step 2. Upload SA Information</h5>
-					<form id="form_sa_inquiry_upload">
+					<h5 class="card-title">Step 2. Update Container dates</h5>
+					<form id="form_custom_container_dates">
 						<div class="input-group">
 							<input class="form-control" type="file" name="attach">
 							<button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Upload</button>
 						</div>
 					</form>
 					<div class="mt-3">
-						<a href="<?= base_url() ?>template/custom_sa_inquiry_template.xlsx" download="custom_sa_inquiry_template">
-							Download template (SA Inquiry)
+						<a href="<?= base_url() ?>template/custom_container_dates.xlsx" download="custom_container_dates_template">
+							Download template
 						</a>
 					</div>
 				</div>
 			</div>
-		</div>
-		<div class="col-md-4">
-			hola
 		</div>
 	</div>
 	<div class="row">
@@ -110,10 +107,10 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	});
 	
-	$("#form_sa_inquiry_upload").submit(function(e) {
+	$("#form_custom_container_dates").submit(function(e) {
 		e.preventDefault();
-		ajax_form_warning(this, "data_upload/custom_container_manage/sa_inquiry_upload", "Do you want to update SA inquiry (House B/L)?").done(function(res) {
-			swal_open_tab(res.type, res.msg, "custom_container_manage/sa_inquiry_process");
+		ajax_form_warning(this, "data_upload/custom_container_manage/container_dates_upload", "Do you want to update container dates?").done(function(res) {
+			swal_open_tab(res.type, res.msg, "custom_container_manage/container_dates_process");
 		});
 	});
 	

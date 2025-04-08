@@ -97,6 +97,7 @@ class Custom_container_manage extends CI_Controller {
 				$row = [
 					"sa_no" 		=> trim($sheet->getCell('D'.$i)->getCalculatedValue()),
 					"sa_line_no" 	=> trim($sheet->getCell('E'.$i)->getValue()),
+					"house_bl"		=> trim($sheet->getCell('R'.$i)->getValue()),
 					"container" 	=> trim($sheet->getCell('O'.$i)->getValue()),
 					"organization" 	=> trim($sheet->getCell('B'.$i)->getValue()),
 					"sub_inventory" => trim($sheet->getCell('C'.$i)->getValue()),
@@ -130,7 +131,7 @@ class Custom_container_manage extends CI_Controller {
 		echo 'You can close this tab now.<br/><br/><button onclick="window.close();">Close This Tab</button>';
 	}
 	
-	public function sa_inquiry_upload(){
+	public function container_dates_upload(){
 		$type = "error"; $msg = "";
 		
 		if ($this->session->userdata('logged_in')){
@@ -141,7 +142,7 @@ class Custom_container_manage extends CI_Controller {
 				'allowed_types'	=> '*',
 				'max_size'		=> 90000,
 				'overwrite'		=> TRUE,
-				'file_name'		=> 'custom_sa_inquiry.xlsx',
+				'file_name'		=> 'custom_container_dates.xlsx',
 			];
 			$this->load->library('upload', $config);
 
@@ -160,14 +161,14 @@ class Custom_container_manage extends CI_Controller {
 		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
 	
-	public function sa_inquiry_process(){
+	public function container_dates_process(){
 		ini_set('memory_limit', '2G');
 		set_time_limit(0);
 		
 		$start_time = microtime(true);
 		
 		//load excel file
-		$spreadsheet = IOFactory::load("./upload/custom_sa_inquiry.xlsx");
+		$spreadsheet = IOFactory::load("./upload/custom_container_dates.xlsx");
 		$sheet = $spreadsheet->getActiveSheet();
 		
 		//excel file header validation
@@ -178,9 +179,9 @@ class Custom_container_manage extends CI_Controller {
 			trim($sheet->getCell('D1')->getValue()),
 			trim($sheet->getCell('E1')->getValue()),
 		];
-		
+
 		//magento report header
-		$h_validation = ["SA No", "House Bl No", "Invoice No", "Receiving Close", "Bl Date"];
+		$h_validation = ["HBL No", "CNTR No", "Carrier Grp", "ETA", "ATA"];
 
 		//header validation
 		$is_ok = true;
@@ -191,42 +192,26 @@ class Custom_container_manage extends CI_Controller {
 			
 			//define now
 			$now = date('Y-m-d H:i:s', time());
-			echo "aaaaa"; return;
-			
-			//set model master
-			$model_master = [];
-			$models = $this->gen_m->all("v_lgepr_model_master", [], "", "", false);
-			foreach($models as $item) $model_master[$item->model] = $item;
 			
 			for($i = 2; $i <= $max_row; $i++){
 				$row = [
-					"sa_no" 		=> trim($sheet->getCell('D'.$i)->getCalculatedValue()),
-					"sa_line_no" 	=> trim($sheet->getCell('E'.$i)->getValue()),
-					"container" 	=> trim($sheet->getCell('O'.$i)->getValue()),
-					"organization" 	=> trim($sheet->getCell('B'.$i)->getValue()),
-					"sub_inventory" => trim($sheet->getCell('C'.$i)->getValue()),
-					"model" 		=> trim($sheet->getCell('U'.$i)->getValue()),
-					"qty" 			=> trim($sheet->getCell('F'.$i)->getValue()),
-					"cbm" 			=> trim($sheet->getCell('W'.$i)->getValue()),
-					"weight" 		=> trim($sheet->getCell('V'.$i)->getValue()),
-					"eta"			=> trim($sheet->getCell('H'.$i)->getValue()),
+					"house_bl" 		=> trim($sheet->getCell('A'.$i)->getValue()),
+					"container" 	=> trim($sheet->getCell('B'.$i)->getValue()),
+					"carrier_line" 	=> trim($sheet->getCell('C'.$i)->getValue()),
+					"eta" 			=> $sheet->getCell('D'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('D'.$i)->getFormattedValue()))) : null,
+					"ata"		 	=> $sheet->getCell('E'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('E'.$i)->getFormattedValue()))) : null,
+					"picked_up" 	=> $sheet->getCell('F'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('F'.$i)->getFormattedValue()))) : null,
+					"wh_arrival" 	=> $sheet->getCell('G'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('G'.$i)->getFormattedValue()))) : null,
+					"returned" 		=> $sheet->getCell('H'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('H'.$i)->getFormattedValue()))) : null,
 					"updated_at" 	=> $now,
 				];
 				
-				if (array_key_exists($row["model"], $model_master)){				
-					$row["company"] = $model_master[$row["model"]]->dash_company;
-					$row["division"] = $model_master[$row["model"]]->dash_division;	
-				}
+				$this->gen_m->update("custom_sa_container", ["house_bl" => $row["house_bl"], "container" => $row["container"]], $row);
 				
-				//date convert: 26-FEB-25 > 2025-02-26
-				$row["eta"] = $this->my_func->date_convert_4($row["eta"]);
-				
-				$container = $this->gen_m->filter("custom_sa_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
-				if ($container) $this->gen_m->update("custom_sa_container", ["container_id" => $container[0]->container_id], $row);//update
-				else $this->gen_m->insert("custom_sa_container", $row); //insert
+				//print_r($row); echo "<br/>";
 			}
 			
-			$msg = "Shipment advise has been updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
+			$msg = "Container dates are updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		}else $msg = "File template error. Please check upload file.";
 		
 		//return $msg;
