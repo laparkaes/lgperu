@@ -14,9 +14,10 @@ class Custom_container_manage extends CI_Controller {
 	}
 	
 	public function index(){
-		
+		$w = ["returned" => null];
+		$w = null;
 		$o = [["ata", "asc"], ["eta", "asc"], ["sa_no", "asc"], ["sa_line_no", "asc"], ["container", "asc"]];
-		$containers = $this->gen_m->filter("custom_sa_container", false, ["returned" => null], null, null, $o);
+		$containers = $this->gen_m->filter("custom_sa_container", false, $w, null, null, $o);
 		
 		$data = [
 			"containers"	=> $containers,

@@ -60,6 +60,7 @@
 						<thead>
 							<tr>
 								<th scope="col">SA</th>
+								<th scope="col">Carrier</th>
 								<th scope="col">Container</th>
 								<th scope="col">Org.</th>
 								<th scope="col">Sub-Inv.</th>
@@ -77,6 +78,7 @@
 							<?php foreach($containers as $item){ ?>
 							<tr>
 								<td><?= $item->sa_no ?>.<?= $item->sa_line_no ?></td>
+								<td><?= $item->carrier_line ?></td>
 								<td><?= $item->container ?></td>
 								<td><?= $item->organization ?></td>
 								<td><?= $item->sub_inventory ?></td>
