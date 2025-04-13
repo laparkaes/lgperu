@@ -11,6 +11,27 @@ class Lgepr extends CI_Controller {
 		$this->load->model('general_espr_model', 'gen_e');
 	}
 	
+	public function get_month(){
+		//llamasys/api/lgepr/get_month?key=lgepr
+		
+		if ($this->input->get("key") === "lgepr"){
+			$year = date("Y");
+			$months = [];
+
+			for ($i = 1; $i <= 12; $i++) {
+				$monthString = sprintf("%s-%02d", $year, $i);
+				$months[] = $monthString;
+			}
+			
+			//$o = [["create_date", "desc"], ["req_arrival_date_to", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
+			
+			$res = $months;
+		}else $res = ["Key error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+	
 	public function get_company(){
 		//llamasys/api/lgepr/get_company?key=lgepr
 		
