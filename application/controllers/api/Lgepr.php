@@ -98,6 +98,9 @@ class Lgepr extends CI_Controller {
 			$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			
 			$res = $this->gen_m->filter("lgepr_closed_order", false, $w, null, null, $o);
+			foreach($res as $item){
+				$item->month = date("Y-m", strtotime($item->closed_date));
+			}
 		}else $res = ["Key error"];
 		
 		header('Content-Type: application/json');
@@ -111,6 +114,16 @@ class Lgepr extends CI_Controller {
 			$o = [["create_date", "desc"], ["req_arrival_date_to", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			
 			$res = $this->gen_m->filter("lgepr_sales_order", false, null, null, null, $o);
+			foreach($res as $item){
+				//set last day of month if request arrival date is past
+				if (strtotime($item->req_arrival_date_to) < strtotime(date("Y-m-01"))) $item->req_arrival_date_to = date("Y-m-t");
+				
+				if ($item->shipment_date) $item->month = date("Y-m", strtotime($item->shipment_date));
+				elseif ($item->appointment_date) $item->month = date("Y-m", strtotime($item->appointment_date));
+				elseif ($item->req_arrival_date_to) $item->month = date("Y-m", strtotime($item->req_arrival_date_to));
+				elseif ($item->booked_date) $item->month = date("Y-m", strtotime($item->booked_date));
+				else $item->month = date("Y-m", strtotime($item->create_date));
+			}
 		}else $res = ["Key error"];
 		
 		header('Content-Type: application/json');
