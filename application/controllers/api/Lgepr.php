@@ -63,11 +63,12 @@ class Lgepr extends CI_Controller {
 				["company" => "MS",	"division" => "DS",				"seq" => "h"],
 				["company" => "MS",	"division" => "PC",				"seq" => "i"],
 				["company" => "MS",	"division" => "MNT Signage",	"seq" => "j"],
-				["company" => "MS",	"division" => "Commercial TV",	"seq" => "k"],
+				["company" => "MS",	"division" => "LED Signage",	"seq" => "k"],
+				["company" => "MS",	"division" => "Commercial TV",	"seq" => "l"],
 				
-				["company" => "ES",	"division" => "RAC",		"seq" => "l"],
-				["company" => "ES",	"division" => "SAC",		"seq" => "m"],
-				["company" => "ES",	"division" => "Chiller",	"seq" => "n"],
+				["company" => "ES",	"division" => "RAC",		"seq" => "m"],
+				["company" => "ES",	"division" => "SAC",		"seq" => "n"],
+				["company" => "ES",	"division" => "Chiller",	"seq" => "o"],
 			];
 		}else $res = ["Key error"];
 		
