@@ -73,7 +73,7 @@ class Lgepr extends CI_Controller {
 		
 		if ($this->input->get("key") === "lgepr"){
 			//$w = ["closed_date >=" => date("2024-12-01")];
-			$w = ["closed_date >=" => date("Y-m-01")];
+			$w = ["closed_date >=" => date("Y-01-01")];
 			$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			
 			$res = $this->gen_m->filter("lgepr_closed_order", false, $w, null, null, $o);

@@ -194,6 +194,7 @@ class Lgepr_closed_order extends CI_Controller {
 					'item_weight'			=> trim($sheet->getCell('AI'.$i)->getValue()),
 					'item_cbm'				=> trim($sheet->getCell('AJ'.$i)->getValue()),
 					'order_date'			=> trim($sheet->getCell('AK'.$i)->getValue()),
+					'shipment_date'			=> trim($sheet->getCell('AL'.$i)->getValue()),
 					'closed_date'			=> trim($sheet->getCell('AN'.$i)->getValue()),
 					'bill_to_code'			=> trim($sheet->getCell('AQ'.$i)->getValue()),
 					'ship_to_code'			=> trim($sheet->getCell('AR'.$i)->getValue()),
@@ -233,6 +234,7 @@ class Lgepr_closed_order extends CI_Controller {
 				
 				//date convert: 24/06/2021 > 2021-10-28
 				$row["order_date"] = $this->my_func->date_convert($row["order_date"]);
+				$row["shipment_date"] = $this->my_func->date_convert($row["shipment_date"]);
 				$row["closed_date"] = $this->my_func->date_convert($row["closed_date"]);
 				$row["invoice_date"] = $this->my_func->date_convert($row["invoice_date"]);
 				

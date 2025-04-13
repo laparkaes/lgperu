@@ -1,29 +1,4 @@
-20241222
 
---add dash_division and dash_category
-ALTER TABLE `lgepr_sales_order` ADD `dash_division` VARCHAR(30) NULL AFTER `sales_order_id`, ADD `dash_category` VARCHAR(30) NULL AFTER `dash_division`; 
-ALTER TABLE `lgepr_sales_order` ADD `sales_amount_usd` FLOAT NULL AFTER `sales_amount`;
+20250413
 
-
-20250103
-
-ALTER TABLE `lgepr_sales_order` CHANGE `dash_division` `dash_company` VARCHAR(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
-ALTER TABLE `lgepr_sales_order` CHANGE `dash_category` `dash_division` VARCHAR(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
-
-ALTER TABLE `lgepr_closed_order` CHANGE `dash_division` `dash_company` VARCHAR(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
-ALTER TABLE `lgepr_closed_order` CHANGE `dash_category` `dash_division` VARCHAR(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
-
-ALTER TABLE `obs_most_likely` CHANGE `division` `company` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
-ALTER TABLE `obs_most_likely` CHANGE `category` `division` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
-
-
-
-
-20250301
-
-ALTER TABLE `hr_employee` ADD `is_leader` BOOLEAN NOT NULL DEFAULT FALSE AFTER `name`;
-
-
-20250404
-
-ALTER TABLE `lgepr_sales_order` CHANGE `close_date` `appointment_date` DATE NULL DEFAULT NULL; 
+ALTER TABLE `lgepr_closed_order` ADD `shipment_date` DATE NULL AFTER `order_date`;
