@@ -349,7 +349,7 @@ class Obs extends CI_Controller {
 
 		// Devuelve la respuesta en formato JSON
 		header('Content-Type: application/json');
-		echo json_encode($res);
+		echo json_encode($res);	
 	}
 
 	public function get_market_summary(){

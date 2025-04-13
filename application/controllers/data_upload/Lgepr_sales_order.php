@@ -176,8 +176,9 @@ class Lgepr_sales_order extends CI_Controller {
 					'create_date' 			=> trim($sheet->getCell('DK'.$i)->getValue()),
 					'booked_date' 			=> trim($sheet->getCell('Y'.$i)->getValue()),
 					'req_arrival_date_to'	=> trim($sheet->getCell('AC'.$i)->getValue()),
+					'appointment_date'		=> trim($sheet->getCell('EA'.$i)->getValue()),
 					'shipment_date'			=> trim($sheet->getCell('AE'.$i)->getValue()),
-					'close_date' 			=> trim($sheet->getCell('AF'.$i)->getValue()),
+					//'close_date' 			=> trim($sheet->getCell('AF'.$i)->getValue()),
 					'receiver_city'			=> trim($sheet->getCell('BT'.$i)->getValue()),
 					'item_type_desctiption' => trim($sheet->getCell('CG'.$i)->getValue()),
 					'item_division' 		=> trim($sheet->getCell('BZ'.$i)->getValue()),
@@ -203,32 +204,51 @@ class Lgepr_sales_order extends CI_Controller {
 				$row["charge_amount"] = str_replace(",", "", $row["charge_amount"]);
 				$row["line_total"] = str_replace(",", "", $row["line_total"]);
 				
-				//date convert: 24/06/2021 > 2021-10-28
+				//date convert: 28-OCT-21 > 2021-10-28
+				$row["create_date"] = $this->my_func->date_convert_4($row["create_date"]);
 				$row["booked_date"] = $this->my_func->date_convert_4($row["booked_date"]);
 				$row["req_arrival_date_to"] = $this->my_func->date_convert_4($row["req_arrival_date_to"]);
+				$row["appointment_date"] = $this->my_func->date_convert_4($row["appointment_date"]);
 				$row["shipment_date"] = $this->my_func->date_convert_4($row["shipment_date"]);
-				$row["close_date"] = $this->my_func->date_convert_4($row["close_date"]);
-				$row["create_date"] = $this->my_func->date_convert_4($row["create_date"]);
+				//$row["close_date"] = $this->my_func->date_convert_4($row["close_date"]);
 				
 				//date format changed to number from 2025-02-06
+				if (!$row["create_date"]) $row["create_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('DK'.$i)->getFormattedValue())));
 				if (!$row["booked_date"]) $row["booked_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('Y'.$i)->getFormattedValue())));
 				if (!$row["req_arrival_date_to"]) $row["req_arrival_date_to"] = date("Y-m-d", strtotime(trim($sheet->getCell('AC'.$i)->getFormattedValue())));
+				if (!$row["appointment_date"]) $row["appointment_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('EA'.$i)->getFormattedValue())));
 				if (!$row["shipment_date"]) $row["shipment_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('AE'.$i)->getFormattedValue())));
-				if (!$row["close_date"]) $row["close_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('AF'.$i)->getFormattedValue())));
-				if (!$row["create_date"]) $row["create_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('DK'.$i)->getFormattedValue())));
+				//if (!$row["close_date"]) $row["close_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('AF'.$i)->getFormattedValue())));
 				
+				if ($row["create_date"] === "1969-12-31") $row["create_date"] = null;
 				if ($row["booked_date"] === "1969-12-31") $row["booked_date"] = null;
 				if ($row["req_arrival_date_to"] === "1969-12-31") $row["req_arrival_date_to"] = null;
+				if ($row["appointment_date"] === "1969-12-31") $row["appointment_date"] = null;
 				if ($row["shipment_date"] === "1969-12-31") $row["shipment_date"] = null;
-				if ($row["close_date"] === "1969-12-31") $row["close_date"] = null;
-				if ($row["create_date"] === "1969-12-31") $row["create_date"] = null;
+				//if ($row["close_date"] === "1969-12-31") $row["close_date"] = null;
 				
 				//print_r($row); echo"<br/><br/>";
 				
 				//usd calculation
+				switch($row['currency']){
+					case "BRL": $er = 3.25; break;
+					case "USD": $er = 1; break;
+					default:
+						$rate = $this->gen_m->filter("exchange_rate", false, ["currency" => $row['currency'], "date <=" => $row["create_date"]], null, null, [["date", "desc"]], 1);
+						
+						if ($rate) $er = $rate[0]->sell;
+						else $er = 3.7;
+						
+						//$er = $this->gen_m->filter("exchange_rate", false, ["currency" => $row['currency'], "date <=" => $row["create_date"]], null, null, [["date", "desc"]], 1)[0]->sell;
+						break;
+				}
+				
+				/*
 				if ($row['currency'] === "BRL"){//forced if currency is not USD or PEN
 					if ($row["booked_date"] === "2025-02-21") $er = 3.25;
 				}else $er = $row['currency'] === "USD" ? 1 : $this->gen_m->filter("exchange_rate", false, ["currency" => $row['currency'], "date <=" => $row["create_date"]], null, null, [["date", "desc"]], 1)[0]->sell;
+				*/
+				
 				$row["sales_amount_usd"] =  round($row["sales_amount"] / $er, 2);
 				
 				if (count($rows) > 5000){
