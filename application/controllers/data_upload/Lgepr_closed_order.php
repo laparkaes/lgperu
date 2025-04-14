@@ -52,6 +52,7 @@ class Lgepr_closed_order extends CI_Controller {
 			"MNT" 	=> ["dash_company" => "MS"	, "dash_division" => "MNT"],
 			"DS" 	=> ["dash_company" => "MS"	, "dash_division" => "DS"],
 			"SGN" 	=> ["dash_company" => "MS"	, "dash_division" => "MNT Signage"],
+			"LEDSGN" => ["dash_company" => "MS"	, "dash_division" => "LED Signage"],
 			"CTV" 	=> ["dash_company" => "MS"	, "dash_division" => "Commercial TV"],
 			"PC" 	=> ["dash_company" => "MS"	, "dash_division" => "PC"],
 			
@@ -65,6 +66,7 @@ class Lgepr_closed_order extends CI_Controller {
 		foreach($dash_mapping as $key => $item) $this->gen_m->update("lgepr_closed_order", ["model_category" => $key], $item);
 		
 		$this->gen_m->update("lgepr_closed_order", ["product_level2_name" => "SRAC"], $dash_mapping["RAC"]);
+		$this->gen_m->update("lgepr_closed_order", ["product_level2_name" => "Commercial_LED Signage"], $dash_mapping["LEDSGN"]);
 	}
 	
 	private function update_model_category(){
