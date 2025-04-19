@@ -12,11 +12,11 @@
 </div>
 <section class="section">
 	<div class="row">
-		<div class="col-md-4">
+		<div class="col-md-3">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Step 1. Upload Container List</h5>
-					<form id="form_dq_sa_report_upload">
+					<h5 class="card-title">DQ Shipment Advise (Pending CTN)</h5>
+					<form id="form_dq_shipment_advise">
 						<div class="input-group">
 							<input class="form-control" type="file" name="attach">
 							<button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Upload</button>
@@ -24,7 +24,25 @@
 					</form>
 					<div class="mt-3">
 						<a href="<?= base_url() ?>template/custom_dq_sa_report_template.xlsx" download="custom_dq_sa_report_template">
-							Download template (Dynamic query SA)
+							Download template (DQ Shipment Advise)
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Receiving Confirm (Received CTN)</h5>
+					<form id="form_receiving_confirm">
+						<div class="input-group">
+							<input class="form-control" type="file" name="attach">
+							<button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Upload</button>
+						</div>
+					</form>
+					<div class="mt-3">
+						<a href="<?= base_url() ?>template/custom_receiving_confirm_template.xlsx" download="custom_receiving_confirm_template">
+							Download template (Receiving Confirmation)
 						</a>
 					</div>
 				</div>
@@ -116,12 +134,22 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-	$("#form_dq_sa_report_upload").submit(function(e) {
+	$("#form_dq_shipment_advise").submit(function(e) {
 		e.preventDefault();
-		ajax_form_warning(this, "data_upload/custom_container_manage/dq_sa_report_upload", "Do you want to update container data?").done(function(res) {
-			swal_open_tab(res.type, res.msg, "custom_container_manage/dq_sa_report_process");
+		ajax_form_warning(this, "data_upload/custom_container_manage/dq_shipment_advise_upload", "Do you want to update container data?").done(function(res) {
+			swal_open_tab(res.type, res.msg, "custom_container_manage/dq_shipment_advise_process");
 		});
 	});
+	
+	$("#form_receiving_confirm").submit(function(e) {
+		e.preventDefault();
+		ajax_form_warning(this, "data_upload/custom_container_manage/receiving_confirm_upload", "Do you want to update container data?").done(function(res) {
+			swal_open_tab(res.type, res.msg, "custom_container_manage/receiving_confirm_process");
+		});
+	});
+	
+	
+	form_receiving_confirm
 	
 	$("#form_custom_container_dates").submit(function(e) {
 		e.preventDefault();

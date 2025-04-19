@@ -27,7 +27,7 @@ class Custom_container_manage extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	public function dq_sa_report_upload(){
+	public function dq_shipment_advise_upload(){
 		$type = "error"; $msg = "";
 		
 		if ($this->session->userdata('logged_in')){
@@ -57,7 +57,7 @@ class Custom_container_manage extends CI_Controller {
 		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
 	
-	public function dq_sa_report_process(){
+	public function dq_shipment_advise_process(){
 		ini_set('memory_limit', '2G');
 		set_time_limit(0);
 		
@@ -110,17 +110,23 @@ class Custom_container_manage extends CI_Controller {
 					"updated_at" 	=> $now,
 				];
 				
-				if (array_key_exists($row["model"], $model_master)){				
-					$row["company"] = $model_master[$row["model"]]->dash_company;
-					$row["division"] = $model_master[$row["model"]]->dash_division;	
-				}
-				
-				//date convert: 26-FEB-25 > 2025-02-26
-				$row["eta"] = $this->my_func->date_convert_4($row["eta"]);
-				
-				$container = $this->gen_m->filter("custom_sa_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
-				if ($container) $this->gen_m->update("custom_sa_container", ["container_id" => $container[0]->container_id], $row);//update
-				else $this->gen_m->insert("custom_sa_container", $row); //insert
+				//if this SA is not container, remove
+				if ($row["container"]){
+					if (array_key_exists($row["model"], $model_master)){				
+						$row["company"] = $model_master[$row["model"]]->dash_company;
+						$row["division"] = $model_master[$row["model"]]->dash_division;	
+					}
+					
+					//date convert: 26-FEB-25 > 2025-02-26
+					$row["eta"] = $this->my_func->date_convert_4($row["eta"]);
+					
+					//set status as pending
+					$row["is_received"] = false;
+					
+					$container = $this->gen_m->filter("custom_sa_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
+					if ($container) $this->gen_m->update("custom_sa_container", ["container_id" => $container[0]->container_id], $row);//update
+					else $this->gen_m->insert("custom_sa_container", $row); //insert	
+				}else $this->gen_m->delete("custom_sa_container", ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
 			}
 			
 			$msg = "Shipment advise has been updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
@@ -131,6 +137,9 @@ class Custom_container_manage extends CI_Controller {
 		echo "<br/><br/>";
 		echo 'You can close this tab now.<br/><br/><button onclick="window.close();">Close This Tab</button>';
 	}
+	
+	
+	
 	
 	public function container_dates_upload(){
 		$type = "error"; $msg = "";
