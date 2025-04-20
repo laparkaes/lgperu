@@ -24,7 +24,7 @@
 					</form>
 					<div class="mt-3">
 						<a href="<?= base_url() ?>template/custom_dq_sa_report_template.xlsx" download="custom_dq_sa_report_template">
-							Download template (DQ Shipment Advise)
+							DQ Shipment Advise template
 						</a>
 					</div>
 				</div>
@@ -42,16 +42,34 @@
 					</form>
 					<div class="mt-3">
 						<a href="<?= base_url() ?>template/custom_receiving_confirm_template.xlsx" download="custom_receiving_confirm_template">
-							Download template (Receiving Confirmation)
+							Receiving confirmation template
 						</a>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="col-md-4">
+		<div class="col-md-3">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Step 2. Update Container dates</h5>
+					<h5 class="card-title">SA Inquiry</h5>
+					<form id="form_sa_inquiry">
+						<div class="input-group">
+							<input class="form-control" type="file" name="attach">
+							<button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Upload</button>
+						</div>
+					</form>
+					<div class="mt-3">
+						<a href="<?= base_url() ?>template/custom_sa_inquiry.xlsx" download="custom_sa_inquiry_template">
+							SA inquiry template
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">3PL Container dates</h5>
 					<form id="form_custom_container_dates">
 						<div class="input-group">
 							<input class="form-control" type="file" name="attach">
@@ -60,7 +78,7 @@
 					</form>
 					<div class="mt-3">
 						<a href="<?= base_url() ?>template/custom_container_dates.xlsx" download="custom_container_dates_template">
-							Download template
+							Container dates template
 						</a>
 					</div>
 				</div>
@@ -95,7 +113,6 @@
 								<th scope="col">Carrier</th>
 								<th scope="col">Container</th>
 								<th scope="col">Org.</th>
-								<th scope="col">Sub-Inv.</th>
 								<th scope="col">Model</th>
 								<th scope="col">Qty</th>
 								<th scope="col">ETA</th>
@@ -113,7 +130,6 @@
 								<td><?= $item->carrier_line ?></td>
 								<td><?= $item->container ?></td>
 								<td><?= $item->organization ?></td>
-								<td><?= $item->sub_inventory ?></td>
 								<td><?= $item->model ?><?php if ($item->company) {?><br/><?= $item->company ?>.<?= $item->division ?><?php } ?></td>
 								<td><?= number_format($item->qty) ?></td>
 								<td><?= $item->eta ?></td>
@@ -148,8 +164,12 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	});
 	
-	
-	form_receiving_confirm
+	$("#form_sa_inquiry").submit(function(e) {
+		e.preventDefault();
+		ajax_form_warning(this, "data_upload/custom_container_manage/sa_inquiry_upload", "Do you want to update container data?").done(function(res) {
+			swal_open_tab(res.type, res.msg, "custom_container_manage/sa_inquiry_process");
+		});
+	});
 	
 	$("#form_custom_container_dates").submit(function(e) {
 		e.preventDefault();
