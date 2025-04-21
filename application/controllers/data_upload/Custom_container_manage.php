@@ -125,8 +125,7 @@ class Custom_container_manage extends CI_Controller {
 					
 					$container = $this->gen_m->filter("custom_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
 					if ($container){
-						//$row["eta"] = null;
-						$row["ata"] = null;
+						//if container is in SA list, this container is not received by 3PL
 						$row["picked_up"] = null;
 						$row["wh_arrival"] = null;
 						
@@ -214,8 +213,7 @@ class Custom_container_manage extends CI_Controller {
 			for($i = 2; $i <= $max_row; $i++){
 				$row = [
 					"sa_no" 		=> trim($sheet->getCell('D'.$i)->getCalculatedValue()),
-					"sa_line_no" 	=> trim($sheet->getCell('E'.$i)->getValue()),
-					//"house_bl"		=> trim($sheet->getCell('R'.$i)->getValue()),
+					"sa_line_no" 	=> trim($sheet->getCell('F'.$i)->getValue()),
 					"container" 	=> trim($sheet->getCell('W'.$i)->getValue()),
 					"organization" 	=> trim($sheet->getCell('J'.$i)->getValue()),
 					"sub_inventory" => trim($sheet->getCell('Q'.$i)->getValue()),
@@ -240,16 +238,11 @@ class Custom_container_manage extends CI_Controller {
 					
 					$container = $this->gen_m->filter("custom_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
 					if ($container){//update
-						//if (!$container[0]->eta) $row["eta"] = $received[0];
-						//if (!$container[0]->ata) $row["ata"] = $received[0];
 						if (!$container[0]->picked_up) $row["picked_up"] = $received[0];
-						
 						$row["wh_arrival"] = $received[0];//wh_arrival always is received date
 						
 						$this->gen_m->update("custom_container", ["container_id" => $container[0]->container_id], $row);
 					}else{//insert
-						//$row["eta"] = $received[0];
-						//$row["ata"] = $received[0];
 						$row["picked_up"] = $received[0];
 						$row["wh_arrival"] = $received[0];
 						
@@ -337,8 +330,9 @@ class Custom_container_manage extends CI_Controller {
 					"updated_at" 	=> $now,
 				];
 				
-				$eta_new = trim($sheet->getCell('W'.$i)->getValue());
-				if ($eta_new) $row["eta"] = $eta_new;
+				//new eta has a lot of errors
+				//$eta_new = trim($sheet->getCell('W'.$i)->getValue());
+				//if ($eta_new) $row["eta"] = $eta_new;
 				
 				//date format dd/mm/yyyy > yyyy-mm-dd
 				$row["eta"] = $this->my_func->date_convert($row["eta"]);
@@ -422,7 +416,6 @@ class Custom_container_manage extends CI_Controller {
 					"house_bl" 		=> trim($sheet->getCell('A'.$i)->getValue()),
 					"container" 	=> trim($sheet->getCell('B'.$i)->getValue()),
 					"carrier_line" 	=> trim($sheet->getCell('C'.$i)->getValue()),
-					//"eta" 			=> $sheet->getCell('D'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('D'.$i)->getFormattedValue()))) : null,
 					"ata"		 	=> $sheet->getCell('E'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('E'.$i)->getFormattedValue()))) : null,
 					"picked_up" 	=> $sheet->getCell('F'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('F'.$i)->getFormattedValue()))) : null,
 					"wh_arrival" 	=> $sheet->getCell('G'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('G'.$i)->getFormattedValue()))) : null,
@@ -437,6 +430,7 @@ class Custom_container_manage extends CI_Controller {
 				if (!$row["returned"]) unset($row["returned"]);
 				
 				$this->gen_m->update("custom_container", ["house_bl" => $row["house_bl"], "container" => $row["container"]], $row);
+				if ($row["carrier_line"]) $this->gen_m->update("custom_container", ["container" => $row["container"]], ["carrier_line" => $row["carrier_line"]]);
 			}
 			
 			$msg = "Container dates are updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";

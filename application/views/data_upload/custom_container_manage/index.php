@@ -92,20 +92,6 @@
 					<div class="d-flex justify-content-between align-items-center">
 						<h5 class="card-title">Containers</h5>
 					</div>
-					<ul class="nav nav-tabs" id="myTab" role="tablist">
-                <li class="nav-item" role="ata">
-                  <button class="nav-link active" id="ata-tab" data-bs-toggle="tab" data-bs-target="#ata" type="button" role="tab" aria-controls="ata" aria-selected="true">ATA</button>
-                </li>
-                <li class="nav-item" role="3pl">
-                  <button class="nav-link" id="3pl-tab" data-bs-toggle="tab" data-bs-target="#3pl" type="button" role="tab" aria-controls="3pl" aria-selected="false" tabindex="-1">3PL</button>
-                </li>
-                <li class="nav-item" role="returned">
-                  <button class="nav-link" id="returned-tab" data-bs-toggle="tab" data-bs-target="#returned" type="button" role="tab" aria-controls="returned" aria-selected="false" tabindex="-1">Returned</button>
-                </li>
-              </ul>
-					
-					
-					
 					<table class="table">
 						<thead>
 							<tr>
