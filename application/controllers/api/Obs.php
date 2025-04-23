@@ -713,7 +713,7 @@ class Obs extends CI_Controller {
 		//get token
 		$token = $this->to_get_access_token();
 		if ($token["type"] === "error"){
-			echo $token["msg"];
+			//echo $token["msg"];
 			return;
 		}
 		
