@@ -693,6 +693,7 @@ class Obs extends CI_Controller {
 				$result = [
 					"type" => "error",
 					"token" => null,
+					"msg" => "Error loading access token.",
 				];	
 			}
 			
