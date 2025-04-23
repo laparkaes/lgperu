@@ -601,6 +601,7 @@ class Obs extends CI_Controller {
 			$summary[$index]["d2b2c_price"] = "";
 			$summary[$index]["d2p_price"] = "";
 			$summary[$index]["d2e_price"] = "";
+			$summary[$index]["model_code"] = "";
 		}
 
 		foreach ($prices as $item) {
@@ -640,6 +641,7 @@ class Obs extends CI_Controller {
 							$summary[$index]["d2e_price"] = $item->unit_price * 1.18;
 						}
 					}
+					$summary[$index]["model_code"] = $item->model_code;
 				}			
 			}
 		}

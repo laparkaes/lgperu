@@ -166,6 +166,104 @@ class Lgepr extends CI_Controller {
 		echo json_encode($res);
 	}
 	
+	public function get_most_likely2(){
+		//llamasys/api/lgepr/get_most_likely2?key=lgepr
+		
+		$data_ml = $this->gen_m->filter("lgepr_ml", false);
+		
+		
+		if ($this->input->get("key") === "lgepr") {
+			
+			foreach($data_ml as $item){
+				// Clona el objeto para evitar modificar el original
+				$cloned_item = clone $item;
+				
+				// Columnas a excluir
+				$exclude_columns = ['updated'];
+
+				 // Itera a través de las propiedades del objeto
+				foreach ($cloned_item as $key => $value) {
+					// Verifica si la columna está en la lista de exclusión
+					if (in_array($key, $exclude_columns)) {
+						// Elimina la columna del objeto clonado
+						unset($cloned_item->$key);
+					} else {
+						// Verifica si el valor es numérico y es 0
+						if (is_numeric($value) && $value == 0) {
+							// Reemplaza 0 con una cadena vacía
+							$cloned_item->$key = "";
+						}
+					}
+					$cloned_item->month = $cloned_item->yyyy . "-" . $cloned_item->mm;
+				}
+				//echo '<pre>'; print_r($item);
+				$res[] = clone $cloned_item;
+				//$res['month'] = $cloned_item->yyyy . "-" . $cloned_item->mm;
+			}
+		}
+		
+		
+		
+		// $res = $this->gen_m->filter("obs_most_likely", false, ["year" => $last->year, "month" => $last->month]);
+		else $res = ["Key error"];
+		
+		//if (!$res) $res = ["No this month ML data in database."];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+	
+	public function get_sales_deduction(){
+		//llamasys/api/lgepr/get_sales_deduction?key=lgepr		
+		
+		$data_sd = $this->gen_m->filter("lgepr_sales_deduction", false);
+		
+		
+		if ($this->input->get("key") === "lgepr") {
+			
+			foreach($data_sd as $item){
+				// Clona el objeto para evitar modificar el original
+				$cloned_item = clone $item;
+				
+				// Columnas a excluir
+				$exclude_columns = ['updated'];
+
+				// Itera a través de las propiedades del objeto
+				foreach ($cloned_item as $key => $value) {
+					// Verifica si la columna está en la lista de exclusión
+					if (in_array($key, $exclude_columns)) {
+						// Elimina la columna del objeto clonado
+						unset($cloned_item->$key);
+					} else {
+						// Verifica si el valor es numérico y es 0
+						if (is_numeric($value) && $value == 0 && $key !== 'sd_rate') {
+							// Reemplaza 0 con una cadena vacía
+							$cloned_item->$key = "";
+							//$cloned_item->sd_rate = 0;
+						}
+						elseif ($value === NULL){
+							$cloned_item->$key = "";
+						}
+					}
+					$cloned_item->month = $cloned_item->yyyy . "-" . $cloned_item->mm;
+				}
+				//echo '<pre>'; print_r($item);
+				$res[] = clone $cloned_item;
+				//$res['month'] = $cloned_item->yyyy . "-" . $cloned_item->mm;
+			}
+		}
+		
+		
+		
+		// $res = $this->gen_m->filter("obs_most_likely", false, ["year" => $last->year, "month" => $last->month]);
+		else $res = ["Key error"];
+		
+		//if (!$res) $res = ["No this month ML data in database."];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+
 	
 	public function get_NGSI(){
 		//llamasys/api/lgepr/get_NGSI?key=lgepr
