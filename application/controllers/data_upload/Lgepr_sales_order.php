@@ -11,6 +11,7 @@ class Lgepr_sales_order extends CI_Controller {
 		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
+		$this->load->model('general_espr_model', 'gen_e');
 	}
 	
 	public function index(){
