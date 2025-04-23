@@ -684,10 +684,18 @@ class Obs extends CI_Controller {
         }else{
 			$data = json_decode($response, true);
 			//print_r($data);
-			$result = [
-				"type" => "success",
-				"token" => array_key_exists('access_token', $data) ? $data["access_token"] : null,
-			];
+			if ($data){
+				$result = [
+					"type" => "success",
+					"token" => $data["access_token"],
+				];	
+			}else{
+				$result = [
+					"type" => "error",
+					"token" => null,
+				];	
+			}
+			
 		}
 
         curl_close($ch);
