@@ -686,7 +686,7 @@ class Obs extends CI_Controller {
 			//print_r($data);
 			$result = [
 				"type" => "success",
-				"token" => $data["access_token"],
+				"token" => array_key_exists('access_token', $data) ? $data["access_token"] : null,
 			];
 		}
 
