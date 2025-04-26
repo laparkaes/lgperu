@@ -2,8 +2,4 @@ cd C:\xampp\mysql\bin
 mysql -uroot -p llamasys < C:\xampp\htdocs\llamasys\db\llamasys.sql
 
 
-mysql -uroot -p llamasys < C:\xampp\htdocs\llamasys\db\llamasys_backup_20250206.sql
-
-
-
-mysql -uroot -p llamasys < C:\xampp\htdocs\llamasys\db\tax_daily_book.sql
+mysql -uroot -p llamasys < C:\xampp\htdocs\llamasys\db\llamasys_backup_20250425.sql
