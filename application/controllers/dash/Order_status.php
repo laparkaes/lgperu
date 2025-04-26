@@ -42,15 +42,15 @@ class Order_status extends CI_Controller {
 			"po_needs" => 0,
 			"sales_projection" => 0,
 			"sales_projection_per" => 0,
-			"actual" => 0,//actual
-			"actual_per" => 0,//actual %
-			"expected" => 0,//expected
+			"actual_original" => 0,
+			"actual" => 0,
+			"actual_per" => 0,
+			"expected" => 0,
 			"shipped" => 0,
 			"picking" => 0,
 			"appointment" => 0,
 			"customer" => 0,
 			"requested" => 0,
-			"reviewing" => 0,
 			"no_alloc" => 0,
 			"sales_deduction" => 0,
 		];
@@ -102,9 +102,11 @@ class Order_status extends CI_Controller {
 		$d = $this->input->get("d");
 		if (!$d) $d = date("Y-m");
 		
+		//setting initial arrays
 		$rows = $this->get_dash_company_division(false);
 		$data_no_mapping = [];
 		
+		//setting closed orders
 		$w = ["closed_date >=" => date("Y-m-01", strtotime($d)), "closed_date <=" => date("Y-m-t", strtotime($d))];
 		$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "asc"]];
 		
@@ -125,14 +127,61 @@ class Order_status extends CI_Controller {
 			if (array_key_exists($item->customer_department, $rows)) {
 				if (array_key_exists($item->dash_company, $rows[$item->customer_department]["coms"])) {
 					if (array_key_exists($item->dash_division, $rows[$item->customer_department]["coms"][$item->dash_company]["divs"])) {
-						$rows[$item->customer_department]["data"]["actual"] += $item->order_amount_usd;
-						$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["actual"] += $item->order_amount_usd;
-						$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["actual"] += $item->order_amount_usd;
+						$rows[$item->customer_department]["data"]["actual_original"] += $item->order_amount_usd;
+						$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["actual_original"] += $item->order_amount_usd;
+						$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["actual_original"] += $item->order_amount_usd;
 					}else $data_no_mapping[] = clone $item;
 				}else $data_no_mapping[] = clone $item;
 			}else $data_no_mapping[] = clone $item;
 		}
 		
+		
+		//setting sales deduction (sd)
+		$dpt_deductions = ["LGEPR"];//LGEPR is unique department applying sales deduction
+		$w_sd = ["yyyy" => date("Y", strtotime($d)), "mm" => date("m", strtotime($d))];
+		
+		foreach($dpt_deductions as $dpt){
+			$dpt_sd_amount = 0;
+			
+			foreach($rows[$dpt]["coms"] as $com => $item_com){
+				$com_sd_amount = 0;
+				
+				foreach($item_com["divs"] as $div => $item_div){
+					$div_sd_amount = 0;
+					
+					//load sd
+					$w_sd["company"] = $com;
+					$w_sd["division"] = $div;
+					
+					$sd = $this->gen_m->filter("lgepr_sales_deduction", false, $w_sd);
+					if ($sd) $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["sales_deduction"] = $sd[0]->sd_rate;
+					
+					//calculate sales deduction % and amount of division
+					$div_sd = $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["sales_deduction"];
+					$div_sd_amount = $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["actual_original"] * $div_sd;
+					
+					//calculate actual
+					$rows[$dpt]["coms"][$com]["divs"][$div]["data"]["actual"] = $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["actual_original"] - $div_sd_amount;
+					
+					$dpt_sd_amount += $div_sd_amount;
+					$com_sd_amount += $div_sd_amount;
+				}
+				
+				$com_actual_original = $rows[$dpt]["coms"][$com]["data"]["actual_original"];
+				
+				//calculate sales deduction % and amount of company
+				$rows[$dpt]["coms"][$com]["data"]["actual"] = $com_actual_original - $com_sd_amount;
+				$rows[$dpt]["coms"][$com]["data"]["sales_deduction"] = $com_sd_amount / $com_actual_original;
+			}
+				
+			$dpt_actual_original = $rows[$dpt]["data"]["actual_original"];
+			
+			//calculate sales deduction % and amount of company
+			$rows[$dpt]["data"]["actual"] = $dpt_actual_original - $dpt_sd_amount;
+			$rows[$dpt]["data"]["sales_deduction"] = $dpt_sd_amount / $dpt_actual_original;
+		}
+		
+		echo "<br/><br/>";
 		
 		/* rows debugging */
 		foreach($rows as $dpt => $dpt_item){
