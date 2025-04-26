@@ -237,10 +237,12 @@ class Lgepr_sales_order extends CI_Controller {
 					case "BRL": $er = 3.25; break;
 					case "USD": $er = 1; break;
 					default:
-						$rate = $this->gen_m->filter("exchange_rate", false, ["currency" => $row['currency'], "date <=" => $row["create_date"]], null, null, [["date", "desc"]], 1);
-						
-						if ($rate) $er = $rate[0]->sell;
-						else $er = 3.7;
+						if ($row["create_date"]){
+							$rate = $this->gen_m->filter("exchange_rate", false, ["currency" => $row['currency'], "date <=" => $row["create_date"]], null, null, [["date", "desc"]], 1);
+							
+							if ($rate) $er = $rate[0]->sell;
+							else $er = 3.7;
+						}else $er = 3.7;
 						
 						//$er = $this->gen_m->filter("exchange_rate", false, ["currency" => $row['currency'], "date <=" => $row["create_date"]], null, null, [["date", "desc"]], 1)[0]->sell;
 						break;
