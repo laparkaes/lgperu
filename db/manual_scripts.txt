@@ -2,3 +2,9 @@
 20250413
 
 ALTER TABLE `lgepr_closed_order` ADD `shipment_date` DATE NULL AFTER `order_date`;
+
+
+
+20250426
+
+ALTER TABLE `lgepr_sales_order` ADD `scm_status` VARCHAR(100) NULL AFTER `line_status`; 

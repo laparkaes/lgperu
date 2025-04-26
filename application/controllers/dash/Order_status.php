@@ -51,6 +51,7 @@ class Order_status extends CI_Controller {
 			"appointment" => 0,
 			"customer" => 0,
 			"requested" => 0,
+			"reviewing" => 0,
 			"no_alloc" => 0,
 			"sales_deduction" => 0,
 		];
@@ -135,7 +136,6 @@ class Order_status extends CI_Controller {
 			}else $data_no_mapping[] = clone $item;
 		}
 		
-		
 		//setting sales deduction (sd)
 		$dpt_deductions = ["LGEPR"];//LGEPR is unique department applying sales deduction
 		$w_sd = ["yyyy" => date("Y", strtotime($d)), "mm" => date("m", strtotime($d))];
@@ -179,6 +179,15 @@ class Order_status extends CI_Controller {
 			//calculate sales deduction % and amount of company
 			$rows[$dpt]["data"]["actual"] = $dpt_actual_original - $dpt_sd_amount;
 			$rows[$dpt]["data"]["sales_deduction"] = $dpt_sd_amount / $dpt_actual_original;
+		}
+		
+		//setting closed orders
+		$w = []; //["booked_date >=" => date("Y-m-01", strtotime($d)), "booked_date <=" => date("Y-m-t", strtotime($d))];
+		$o = [["booked_date", "desc"], ["order_no", "desc"], ["line_no", "asc"]];
+		
+		$sales_orders = $this->gen_m->filter("lgepr_sales_order", false, $w, null, null, $o);
+		foreach($sales_orders as $item){
+			print_r($item); echo "<br/><br/>";
 		}
 		
 		echo "<br/><br/>";
