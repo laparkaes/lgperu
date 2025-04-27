@@ -187,10 +187,53 @@ class Order_status extends CI_Controller {
 		
 		$sales_orders = $this->gen_m->filter("lgepr_sales_order", false, $w, null, null, $o);
 		foreach($sales_orders as $item){
+			/*
+			echo "bill_to ".$item->bill_to."<br/>";
+			echo "dash_company ".$item->dash_company."<br/>";
+			echo "dash_division ".$item->dash_division."<br/>";
+			echo "order_no ".$item->order_no."<br/>";
+			echo "line_no ".$item->line_no."<br/>";
+			echo "line_status ".$item->line_status."<br/>";
+			echo "model ".$item->model."<br/>";
+			echo "ordered_qty ".$item->ordered_qty."<br/>";
+			echo "sales_amount_usd ".$item->sales_amount_usd."<br/>";
+			echo "customer_department ".$item->customer_department."<br/>";
+			echo "--------------------------<br/>";
+			echo "create_date ".$item->create_date."<br/>";
+			echo "booked_date ".$item->booked_date."<br/>";
+			echo "req_arrival_date_to ".$item->req_arrival_date_to."<br/>";
+			echo "appointment_date ".$item->appointment_date."<br/>";
+			echo "shipment_date ".$item->shipment_date."<br/>";
+			echo "<br/><br/>";
 			print_r($item); echo "<br/><br/>";
+			*/
+			
+			if (array_key_exists($item->customer_department, $rows)) {
+				if (array_key_exists($item->dash_company, $rows[$item->customer_department]["coms"])) {
+					if (array_key_exists($item->dash_division, $rows[$item->customer_department]["coms"][$item->dash_company]["divs"])) {
+						if ($item->shipment_date){
+							$rows[$item->customer_department]["data"]["shipped"] += $item->sales_amount_usd;
+							$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["shipped"] += $item->sales_amount_usd;
+							$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["shipped"] += $item->sales_amount_usd;	
+						}elseif ($item->appointment_date){
+							$rows[$item->customer_department]["data"]["appointment"] += $item->sales_amount_usd;
+							$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["appointment"] += $item->sales_amount_usd;
+							$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["appointment"] += $item->sales_amount_usd;	
+						}elseif ($item->booked_date){
+							$rows[$item->customer_department]["data"]["requested"] += $item->sales_amount_usd;
+							$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["requested"] += $item->sales_amount_usd;
+							$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["requested"] += $item->sales_amount_usd;	
+						}else{
+							$rows[$item->customer_department]["data"]["reviewing"] += $item->sales_amount_usd;
+							$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["reviewing"] += $item->sales_amount_usd;
+							$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["reviewing"] += $item->sales_amount_usd;	
+						}
+					}else $data_no_mapping[] = clone $item;
+				}else $data_no_mapping[] = clone $item;
+			}else $data_no_mapping[] = clone $item;
 		}
 		
-		echo "<br/><br/>";
+		echo "-----------------------------<br/><br/>";
 		
 		/* rows debugging */
 		foreach($rows as $dpt => $dpt_item){
@@ -211,8 +254,13 @@ class Order_status extends CI_Controller {
 			}
 		}
 		
+		echo "-----------------------------<br/><br/>";
+		
 		/* data_no_mapping debugging */
-		print_r($data_no_mapping);
+		foreach($data_no_mapping as $item){
+			print_r($item);
+			echo "<br/><br/>";
+		}
 		
 		
 		
@@ -226,3 +274,4 @@ class Order_status extends CI_Controller {
 	}
 
 }
+
