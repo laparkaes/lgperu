@@ -26,6 +26,7 @@
 					<table class="table datatable">
 						<thead>
 							<tr>
+								<th scope="col">Country</th>
 								<th scope="col">Company</th>
 								<th scope="col">Division</th>
 								<th scope="col">Period</th>
@@ -37,6 +38,7 @@
 						<tbody>
 							<?php foreach($ml as $item){ ?>
 							<tr>
+								<td><?= $item->country ?></td>
 								<td><?= $item->company ?></td>
 								<td><?= $item->division ?></td>
 								<td><?= $item->yyyy . "-" . $item->mm ?></td>

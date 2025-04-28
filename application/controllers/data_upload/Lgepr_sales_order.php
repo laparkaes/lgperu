@@ -406,27 +406,18 @@ class Lgepr_sales_order extends CI_Controller {
 				
 				$row["sales_amount_usd"] =  round($row["sales_amount"] / $er, 2);
 				
-				print_r($row); echo"<br/><br/>";
-				
 				/*
-				1. sales in closed order > delete
-				2. sales in sales order > update
-				3. sales not in sales order > insert
+				1. sales in sales order > update
+				2. sales not in sales order > insert
 				*/
-				
-				/*
-				if (count($rows) > 5000){
-					$records += $this->gen_m->insert_m("lgepr_sales_order", $rows);
-					$rows = [];
-				}
-				//print_r($row); echo "<br/><br/>";
-				$rows[] = $row;
-				$order_lines[] = $row["order_line"];
-				*/
+				if ($this->gen_m->filter("lgepr_sales_order", false, ["order_line" => $row["order_line"]])) $this->gen_m->update("lgepr_sales_order", ["order_line" => $row["order_line"]], $row);
+				else $this->gen_m->insert("lgepr_sales_order", $row);
 			}
 			
+			//all sales orders in closed order > delete
+			
+			
 			/*
-			if ($rows) $records += $this->gen_m->insert_m("lgepr_sales_order", $rows);
 			
 			//remove closed orders in sales order table
 			$order_lines_split = array_chunk($order_lines, 500);

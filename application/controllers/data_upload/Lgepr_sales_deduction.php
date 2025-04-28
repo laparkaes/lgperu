@@ -59,7 +59,7 @@ class Lgepr_sales_deduction extends CI_Controller {
 		else return null;
 	}
 	
-	public function row_assigned($sheet, $i, $company_mapping){
+	public function row_assigned($sheet, $i, $company_mapping, $country){
 		$updated = date("Y-m-d H:i:s");
 		$row = [];
 		if (in_array(trim($sheet->getCell('A'.$i)->getValue()), $company_mapping)) return $row;
@@ -93,11 +93,69 @@ class Lgepr_sales_deduction extends CI_Controller {
 					"yyyy" 							=> trim($sheet->getCell('B'.$i)->getValue()),
 					"mm" 							=> trim($sheet->getCell('C'.$i)->getValue()),
 					"mp_sales_deduction" 			=> trim($sheet->getCell('D'.$i)->getValue()) == 0 ? NULL : trim($sheet->getCell('D'.$i)->getValue()),
-					"sd_rate" 						=> round(trim($sheet->getCell('E'.$i)->getValue())/100, 4),
+					"sd_rate" 						=> is_numeric(trim($sheet->getCell('E'.$i)->getValue())) ? round(trim($sheet->getCell('E'.$i)->getValue())/100, 4) : 0,
+					"country"						=> $country,
 					//"updated"						=> $updated,
 				];
 				
 		return $row;
+	}
+	
+	public function process_rows($max_row, $sheet, $company_mapping, $data_sd, $flag_unique, $country, $batch_data, $batch_size){
+		for($i = 3; $i <= $max_row; $i++){
+			$is_row_empty = true; // Inicializar como fila vacía
+
+			// Verificar si todas las celdas están vacías
+			foreach (range('A', 'E') as $col) { // Recorrer las columnas de datos
+				$cell_value = trim($sheet->getCell($col . $i)->getValue());
+				if (!empty($cell_value)) {
+					$is_row_empty = false; // Si alguna celda tiene valor, la fila no está vacía
+					break; // No es necesario seguir verificando, la fila ya no está vacía
+				}
+			}
+			
+			if (!$is_row_empty) { // Si la fila no está vacía, procesarla
+				$row = $this->row_assigned($sheet, $i, $company_mapping, $country);
+				if (empty($row)) continue;
+				
+				foreach($data_sd as $item_sd){
+					if($item_sd->mp_sales_deduction == 0) $item_sd->mp_sales_deduction = NULL;
+					//echo '<pr>'; print_r($item_sd);
+					if ($row['division'] === $item_sd->division && $row['yyyy'] == $item_sd->yyyy &&  $row['mm'] == $item_sd->mm && 
+						$row['mp_sales_deduction'] === $item_sd->mp_sales_deduction && $row['company'] === $item_sd->company && $row['sd_rate'] == $item_sd->sd_rate){
+						$flag_unique = 0;
+						break;
+					}
+					if ($row['division'] === $item_sd->division && $row['yyyy'] == $item_sd->yyyy &&  $row['mm'] == $item_sd->mm){
+						$flag_unique = 0;
+						$where = ['division' => $row['division'], 'yyyy' => $row['yyyy'], 'mm' => $row['mm']];
+						$row['updated'] = date("Y-m-d H:i:s");
+						$this->gen_m->update("lgepr_sales_deduction", $where, $row);
+						break;
+					}
+					else $flag_unique = 1; //Not found in DB
+				}
+				
+				if ($flag_unique == 1){
+					$row['updated'] = date("Y-m-d H:i:s");
+					$batch_data[] = $row;
+					
+					//print_r($batch_data);
+					if(count($batch_data)>=$batch_size){
+						$this->gen_m->insert_m("lgepr_sales_deduction", $batch_data);
+						$batch_data = [];
+						unset($batch_data);
+					}
+				} else continue;
+			}
+		}
+		if (!empty($batch_data)) {
+			$this->gen_m->insert_m("lgepr_sales_deduction", $batch_data);
+			$batch_data = [];
+			unset($batch_data);
+		}
+
+		
 	}
 	
 	public function process(){
@@ -111,113 +169,58 @@ class Lgepr_sales_deduction extends CI_Controller {
 
 		// Cargar el archivo Excel
 		$spreadsheet = IOFactory::load("./upload/lgepr_sales_deduction.xlsx");
-		$sheet = $spreadsheet->getActiveSheet(0);
-		// Iniciar transacción para mejorar el rendimiento
-		//$this->db->trans_start();
 		
 		$company_mapping = ["HS", "MS", "ES", "MC"];
 		$filter_select = ['company', 'division', 'yyyy', 'mm', 'mp_sales_deduction', 'sd_rate'];
 	
 		$data_sd = $this->gen_m->filter_select('lgepr_sales_deduction', false, $filter_select);
-		//foreach($data_total_ml as $item) $data_ml = $item;
-		//echo '<pr>'; print_r($data_ml); return;
-		
-		//excel file header validation
-		$h = [
-			trim($sheet->getCell('A1')->getValue()),
-			trim($sheet->getCell('B1')->getValue()),
-			trim($sheet->getCell('C1')->getValue()),
-			trim($sheet->getCell('D1')->getValue()),
-			trim($sheet->getCell('E1')->getValue())
-		];
-		//print_r($h);
-		// //magento report header
-		$header = ["DIVISION", "YYYY", "MM", "MP Sales Deduction", "SD Rate"];
-		
-		// //header validation
+
 		$is_ok = true;
-		foreach($h as $i => $h_i) if ($h_i !== $header[$i]) $is_ok = false;
-		
+	
 		if ($is_ok){
-			//print_r($sheetName);
-			$updated = date("Y-m-d H:i:s");
-			$max_row = $sheet->getHighestRow();
-			$batch_data = [];
-			$batch_size = 100;
-			$flag_unique = 1;
-			// Procesar datos desde la fila 6 en adelante
-			// Iniciar transacción para mejorar rendimiento
-			//$this->db->trans_start();
-			for($i = 3; $i <= $max_row; $i++){
-				$is_row_empty = true; // Inicializar como fila vacía
 
-				// Verificar si todas las celdas están vacías
-				foreach (range('A', 'E') as $col) { // Recorrer las columnas de datos
-					$cell_value = trim($sheet->getCell($col . $i)->getValue());
-					if (!empty($cell_value)) {
-						$is_row_empty = false; // Si alguna celda tiene valor, la fila no está vacía
-						break; // No es necesario seguir verificando, la fila ya no está vacía
-					}
-				}
+			foreach($spreadsheet->getSheetNames() as $sheetName){
 				
-				if (!$is_row_empty) { // Si la fila no está vacía, procesarla
-					$row = $this->row_assigned($sheet, $i, $company_mapping);
-					if (empty($row)) continue;
+				if ($sheetName === 'PR'){					
+					$sheet = $spreadsheet->getSheetByName($sheetName);
+					$max_row = $sheet->getHighestRow();
+					$batch_data = [];
+					$batch_size = 100;
+					$flag_unique = 1;
+					$country = 'PR';
+					$this->process_rows($max_row, $sheet, $company_mapping, $data_sd, $flag_unique, $country, $batch_data, $batch_size);
+				}
+				elseif ($sheetName === 'PY'){
+					$sheet = $spreadsheet->getSheetByName($sheetName);
+					$max_row = $sheet->getHighestRow();
+					$batch_data = [];
+					$batch_size = 100;
+					$flag_unique = 1;
+					$country = 'PY';
 					
-					foreach($data_sd as $item_sd){
-						if($item_sd->mp_sales_deduction == 0) $item_sd->mp_sales_deduction = NULL;
-						//echo '<pr>'; print_r($item_sd);
-						if ($row['division'] === $item_sd->division && $row['yyyy'] == $item_sd->yyyy &&  $row['mm'] == $item_sd->mm && 
-							$row['mp_sales_deduction'] === $item_sd->mp_sales_deduction && $row['company'] === $item_sd->company && $row['sd_rate'] == $item_sd->sd_rate){
-							$flag_unique = 0;
-							break;
-						}
-						if ($row['division'] === $item_sd->division && $row['yyyy'] == $item_sd->yyyy &&  $row['mm'] == $item_sd->mm){
-							$flag_unique = 0;
-							$where = ['division' => $row['division'], 'yyyy' => $row['yyyy'], 'mm' => $row['mm']];
-							$row['updated'] = date("Y-m-d H:i:s");
-							$this->gen_m->update("lgepr_sales_deduction", $where, $row);
-							break;
-						}
-						else $flag_unique = 1; //Not found in DB
-					}
+					$this->process_rows($max_row, $sheet, $company_mapping, $data_sd, $flag_unique, $country, $batch_data, $batch_size);
+				}
+				elseif ($sheetName === 'UY'){
+					$sheet = $spreadsheet->getSheetByName($sheetName);
+					$max_row = $sheet->getHighestRow();
+					$batch_data = [];
+					$batch_size = 100;
+					$flag_unique = 1;
+					$country = 'UY';
 					
-					if ($flag_unique == 1){
-						$row['updated'] = date("Y-m-d H:i:s");
-						$batch_data[] = $row;
-						
-						//print_r($batch_data);
-						if(count($batch_data)>=$batch_size){
-							$this->gen_m->insert_m("lgepr_sales_deduction", $batch_data);
-							$batch_data = [];
-							unset($batch_data);
-						}
-					} else continue;
+					$this->process_rows($max_row, $sheet, $company_mapping, $data_sd, $flag_unique, $country, $batch_data, $batch_size);
 				}
 			}
-			//print_r($batch_data);
-			// Insertar cualquier dato restante en el lote
+			$msg = " record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 			
-			//echo '<pre>'; print_r($batch_data);
-			if (!empty($batch_data)) {
-				$this->gen_m->insert_m("lgepr_sales_deduction", $batch_data);
-				$batch_data = [];
-				unset($batch_data);
-			}
-
-			$msg = " record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";;
-			//print_r($msg); return;
 			$this->db->trans_complete();
 			return $msg;
 
-			
-			// Recorrer las filas de datos (desde la fila de inicio de los valores)
 			
 		}else return '';
 
 		// Finalizar transacción
 		//$this->db->trans_complete();
-
 		
 	}
 

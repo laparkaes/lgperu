@@ -214,19 +214,19 @@ class Lgepr extends CI_Controller {
 	}
 	
 	public function get_sales_deduction(){
-		//llamasys/api/lgepr/get_sales_deduction?key=lgepr		
-		
-		$data_sd = $this->gen_m->filter("lgepr_sales_deduction", false);
-		
+			//llamasys/api/lgepr/get_sales_deduction?key=lgepr		
+			
 		
 		if ($this->input->get("key") === "lgepr") {
+			
+			$data_sd = $this->gen_m->filter("lgepr_sales_deduction", false);
 			
 			foreach($data_sd as $item){
 				// Clona el objeto para evitar modificar el original
 				$cloned_item = clone $item;
 				
 				// Columnas a excluir
-				$exclude_columns = ['updated'];
+				$exclude_columns = ['sales_deduction_id', 'updated'];
 
 				// Itera a través de las propiedades del objeto
 				foreach ($cloned_item as $key => $value) {
