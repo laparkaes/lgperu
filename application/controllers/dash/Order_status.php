@@ -51,7 +51,7 @@ class Order_status extends CI_Controller {
 			"appointment" => 0,
 			"customer" => 0,
 			"requested" => 0,
-			"reviewing" => 0,
+			"no_booked" => 0,
 			"no_alloc" => 0,
 			"sales_deduction" => 0,
 		];
@@ -125,15 +125,17 @@ class Order_status extends CI_Controller {
 			echo "<br/><br/>";
 			*/
 			
-			if (array_key_exists($item->customer_department, $rows)) {
-				if (array_key_exists($item->dash_company, $rows[$item->customer_department]["coms"])) {
-					if (array_key_exists($item->dash_division, $rows[$item->customer_department]["coms"][$item->dash_company]["divs"])) {
-						$rows[$item->customer_department]["data"]["actual_original"] += $item->order_amount_usd;
-						$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["actual_original"] += $item->order_amount_usd;
-						$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["actual_original"] += $item->order_amount_usd;
+			if ($item->order_amount_usd){
+				if (array_key_exists($item->customer_department, $rows)) {
+					if (array_key_exists($item->dash_company, $rows[$item->customer_department]["coms"])) {
+						if (array_key_exists($item->dash_division, $rows[$item->customer_department]["coms"][$item->dash_company]["divs"])) {
+							$rows[$item->customer_department]["data"]["actual_original"] += $item->order_amount_usd;
+							$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["actual_original"] += $item->order_amount_usd;
+							$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["actual_original"] += $item->order_amount_usd;
+						}else $data_no_mapping[] = clone $item;
 					}else $data_no_mapping[] = clone $item;
-				}else $data_no_mapping[] = clone $item;
-			}else $data_no_mapping[] = clone $item;
+				}else $data_no_mapping[] = clone $item;	
+			}
 		}
 		
 		//setting sales deduction (sd)
@@ -181,8 +183,8 @@ class Order_status extends CI_Controller {
 			$rows[$dpt]["data"]["sales_deduction"] = $dpt_sd_amount / $dpt_actual_original;
 		}
 		
-		//setting closed orders
-		$w = []; //["booked_date >=" => date("Y-m-01", strtotime($d)), "booked_date <=" => date("Y-m-t", strtotime($d))];
+		//setting sales orders
+		$w = [];
 		$o = [["booked_date", "desc"], ["order_no", "desc"], ["line_no", "asc"]];
 		
 		$sales_orders = $this->gen_m->filter("lgepr_sales_order", false, $w, null, null, $o);
@@ -208,32 +210,42 @@ class Order_status extends CI_Controller {
 			print_r($item); echo "<br/><br/>";
 			*/
 			
-			if (array_key_exists($item->customer_department, $rows)) {
-				if (array_key_exists($item->dash_company, $rows[$item->customer_department]["coms"])) {
-					if (array_key_exists($item->dash_division, $rows[$item->customer_department]["coms"][$item->dash_company]["divs"])) {
-						if ($item->shipment_date){
-							$rows[$item->customer_department]["data"]["shipped"] += $item->sales_amount_usd;
-							$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["shipped"] += $item->sales_amount_usd;
-							$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["shipped"] += $item->sales_amount_usd;	
-						}elseif ($item->appointment_date){
-							$rows[$item->customer_department]["data"]["appointment"] += $item->sales_amount_usd;
-							$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["appointment"] += $item->sales_amount_usd;
-							$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["appointment"] += $item->sales_amount_usd;	
-						}elseif ($item->booked_date){
-							$rows[$item->customer_department]["data"]["requested"] += $item->sales_amount_usd;
-							$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["requested"] += $item->sales_amount_usd;
-							$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["requested"] += $item->sales_amount_usd;	
-						}else{
-							$rows[$item->customer_department]["data"]["reviewing"] += $item->sales_amount_usd;
-							$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["reviewing"] += $item->sales_amount_usd;
-							$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["reviewing"] += $item->sales_amount_usd;	
-						}
+			if ($item->sales_amount_usd){
+				if (array_key_exists($item->customer_department, $rows)) {
+					if (array_key_exists($item->dash_company, $rows[$item->customer_department]["coms"])) {
+						if (array_key_exists($item->dash_division, $rows[$item->customer_department]["coms"][$item->dash_company]["divs"])) {
+							if ($item->shipment_date){
+								$rows[$item->customer_department]["data"]["shipped"] += $item->sales_amount_usd;
+								$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["shipped"] += $item->sales_amount_usd;
+								$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["shipped"] += $item->sales_amount_usd;	
+							}elseif ($item->appointment_date){
+								$rows[$item->customer_department]["data"]["appointment"] += $item->sales_amount_usd;
+								$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["appointment"] += $item->sales_amount_usd;
+								$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["appointment"] += $item->sales_amount_usd;	
+							}elseif ($item->booked_date){
+								$rows[$item->customer_department]["data"]["requested"] += $item->sales_amount_usd;
+								$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["requested"] += $item->sales_amount_usd;
+								$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["requested"] += $item->sales_amount_usd;	
+							}else{
+								$rows[$item->customer_department]["data"]["no_booked"] += $item->sales_amount_usd;
+								$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["no_booked"] += $item->sales_amount_usd;
+								$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["no_booked"] += $item->sales_amount_usd;	
+							}
+						}else $data_no_mapping[] = clone $item;
 					}else $data_no_mapping[] = clone $item;
 				}else $data_no_mapping[] = clone $item;
-			}else $data_no_mapping[] = clone $item;
+			}
 		}
 		
-		echo "-----------------------------<br/><br/>";
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		/* rows debugging */
 		foreach($rows as $dpt => $dpt_item){

@@ -327,7 +327,7 @@ class Lgepr_sales_order extends CI_Controller {
 			$records = 0;
 			
 			//$this->gen_m->truncate("lgepr_sales_order");
-			
+			$rows_update = $rows_insert = [];
 			for($i = 2; $i <= $max_row; $i++){
 				$row = [
 					'bill_to' 				=> trim($sheet->getCell('AJ'.$i)->getValue()),
@@ -412,14 +412,12 @@ class Lgepr_sales_order extends CI_Controller {
 				*/
 				if ($this->gen_m->filter("lgepr_sales_order", false, ["order_line" => $row["order_line"]])) $this->gen_m->update("lgepr_sales_order", ["order_line" => $row["order_line"]], $row);
 				else $this->gen_m->insert("lgepr_sales_order", $row);
+				
+				$order_lines[] = $row["order_line"];
+				$records++;
 			}
 			
 			//all sales orders in closed order > delete
-			
-			
-			/*
-			
-			//remove closed orders in sales order table
 			$order_lines_split = array_chunk($order_lines, 500);
 			foreach($order_lines_split as $items){
 				$closed_orders = $this->gen_m->filter_select("lgepr_closed_order", false, ["order_line"], null, null, [["field" => "order_line", "values" => $items]]);
@@ -430,9 +428,8 @@ class Lgepr_sales_order extends CI_Controller {
 					$this->gen_m->delete_in("lgepr_sales_order", "order_line", $aux);
 				}
 			}
-			*/
 			
-			//$this->update_model_category();
+			$this->update_model_category();
 			
 			$msg = number_format($records)." record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		}else $msg = "File template error. Please check upload file.";
