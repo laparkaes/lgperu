@@ -47,11 +47,11 @@ class Order_status extends CI_Controller {
 			"actual_per" => 0,
 			"expected" => 0,
 			"shipped" => 0,
+			"shipping" => 0,
 			"picking" => 0,
 			"appointment" => 0,
-			"customer" => 0,
-			"requested" => 0,
-			"no_booked" => 0,
+			"entered" => 0,
+			"in_transit" => 0,
 			"no_alloc" => 0,
 			"sales_deduction" => 0,
 		];
@@ -114,11 +114,11 @@ class Order_status extends CI_Controller {
 			"actual_per" => 0,
 			"expected" => 0,
 			"shipped" => 0,
+			"shipping" => 0,
 			"picking" => 0,
 			"appointment" => 0,
-			"customer" => 0,
-			"requested" => 0,
-			"no_booked" => 0,
+			"entered" => 0,
+			"in_transit" => 0,
 			"no_alloc" => 0,
 			"sales_deduction" => 0,
 		];
@@ -212,6 +212,23 @@ class Order_status extends CI_Controller {
 		$total["actual"] = $sub_actual_original - $sub_sd_amount;
 		$total["sales_deduction"] = $sub_sd_amount / $sub_actual_original;
 		
+		//no sales deduction
+		$dpt_no_deductions = ["Branch"];//Branch
+		foreach($dpt_no_deductions as $dpt){
+			foreach($rows[$dpt]["coms"] as $com => $item_com){
+				foreach($item_com["divs"] as $div => $item_div){
+					$rows[$dpt]["coms"][$com]["divs"][$div]["data"]["actual"] = $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["actual_original"];
+					$rows[$dpt]["coms"][$com]["divs"][$div]["data"]["sales_deduction"] = 0;
+				}
+				
+				$rows[$dpt]["coms"][$com]["data"]["actual"] = $rows[$dpt]["coms"][$com]["data"]["actual_original"];
+				$rows[$dpt]["coms"][$com]["data"]["sales_deduction"] = 0;
+			}
+				
+			$rows[$dpt]["data"]["actual"] = $rows[$dpt]["data"]["actual_original"];
+			$rows[$dpt]["data"]["sales_deduction"] = 0;
+		}
+		
 		//setting sales orders
 		$w = [];
 		$o = [["booked_date", "desc"], ["order_no", "desc"], ["line_no", "asc"]];
@@ -243,6 +260,41 @@ class Order_status extends CI_Controller {
 				if (array_key_exists($item->customer_department, $rows)) {
 					if (array_key_exists($item->dash_company, $rows[$item->customer_department]["coms"])) {
 						if (array_key_exists($item->dash_division, $rows[$item->customer_department]["coms"][$item->dash_company]["divs"])) {
+							/* by status 
+							Line Status	Order		Description		Detail			Remark
+							Awaiting Receipt		1				In Transit	
+							Entered					2				Entered	
+							Booked					3				Entered			Book w/out Appoiment date
+							Appoiment				4				Appoiment		Book w/ Appoiment date
+							Awaiting Fulfillment	5				Picking			Pick instruction
+							Awaiting Shipping		6				Shipping		Pick confirm
+							Pending pre-billing acceptance	7		Shipped			Ship confirm
+							Awaiting Return			8				Shipped
+							*/
+							switch($item->line_status){
+								case "Awaiting Receipt"		: $status_type = "no_alloc"; break;
+								case "Entered"				: $status_type = "entered"; break;
+								case "Booked"				: $status_type = $item->appointment_date ? "entered" : "appointment"; break;
+								case "Awaiting Fulfillment"	: $status_type = "picking"; break;
+								case "Awaiting Shipping"	: $status_type = "shipping"; break;
+								case "Pending pre-billing acceptance": $status_type = "shipped"; break;
+								case "Awaiting Return"		: $status_type = "shipped"; break;
+							}
+							
+							$total[$status_type] += $item->sales_amount_usd;
+							$rows[$item->customer_department]["data"][$status_type] += $item->sales_amount_usd;
+							$rows[$item->customer_department]["coms"][$item->dash_company]["data"][$status_type] += $item->sales_amount_usd;
+							$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"][$status_type] += $item->sales_amount_usd;
+							
+							if ($status_type !== "no_alloc"){
+								$status_type = "expected";
+								$total[$status_type] += $item->sales_amount_usd;
+								$rows[$item->customer_department]["data"][$status_type] += $item->sales_amount_usd;
+								$rows[$item->customer_department]["coms"][$item->dash_company]["data"][$status_type] += $item->sales_amount_usd;
+								$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"][$status_type] += $item->sales_amount_usd;
+							}
+							
+							/* by dates
 							if ($item->shipment_date){
 								$total["shipped"] += $item->sales_amount_usd;
 								$rows[$item->customer_department]["data"]["shipped"] += $item->sales_amount_usd;
@@ -259,11 +311,12 @@ class Order_status extends CI_Controller {
 								$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["requested"] += $item->sales_amount_usd;
 								$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["requested"] += $item->sales_amount_usd;	
 							}else{
-								$total["no_booked"] += $item->sales_amount_usd;
-								$rows[$item->customer_department]["data"]["no_booked"] += $item->sales_amount_usd;
-								$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["no_booked"] += $item->sales_amount_usd;
-								$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["no_booked"] += $item->sales_amount_usd;	
+								$total["entered"] += $item->sales_amount_usd;
+								$rows[$item->customer_department]["data"]["entered"] += $item->sales_amount_usd;
+								$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["entered"] += $item->sales_amount_usd;
+								$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["entered"] += $item->sales_amount_usd;	
 							}
+							*/
 						}else $data_no_mapping[] = clone $item;
 					}else $data_no_mapping[] = clone $item;
 				}else $data_no_mapping[] = clone $item;
