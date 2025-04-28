@@ -323,9 +323,51 @@ class Order_status extends CI_Controller {
 			}
 		}
 		
+		//setting most likely
+		$mls = $this->gen_m->filter("lgepr_most_likely", false, ["yyyy" => date("Y", strtotime($d)), "mm" => date("m", strtotime($d))]);
+		foreach($mls as $item){
+			//department identify by country
+			$dpt = $item->country === "PR" ? "LGEPR" : "Branch";
+			
+			$item->monthly_report = (float) $item->monthly_report;
+			if ($item->monthly_report){
+				$type = "monthly_report";
+				$total[$type] += $item->monthly_report;
+				$rows[$dpt]["data"][$type] += $item->monthly_report;
+				$rows[$dpt]["coms"][$item->company]["data"][$type] += $item->monthly_report;
+				$rows[$dpt]["coms"][$item->company]["divs"][$item->division]["data"][$type] += $item->monthly_report;	
+			}
+			
+			$item->ml = (float) $item->ml;
+			if ($item->ml){
+				$type = "ml";
+				$total[$type] += $item->ml;
+				$rows[$dpt]["data"][$type] += $item->ml;
+				$rows[$dpt]["coms"][$item->company]["data"][$type] += $item->ml;
+				$rows[$dpt]["coms"][$item->company]["divs"][$item->division]["data"][$type] += $item->ml;	
+			}
+			
+			$item->ml_actual = (float) $item->ml_actual;
+			if ($item->ml_actual){
+				$type = "ml_actual";
+				$total[$type] += $item->ml_actual;
+				$rows[$dpt]["data"][$type] += $item->ml_actual;
+				$rows[$dpt]["coms"][$item->company]["data"][$type] += $item->ml_actual;
+				$rows[$dpt]["coms"][$item->company]["divs"][$item->division]["data"][$type] += $item->ml_actual;	
+			}
+			
+			
+			echo $dpt." ";
+			
+			print_r($item); echo "<br/><br/>";
+		}
+		
+		
+		echo "-----------------------------<br/><br/>";
+		
+		/* total & rows debugging */
 		print_r($total); echo "<br/><br/>";
 		
-		/* rows debugging */
 		foreach($rows as $dpt => $dpt_item){
 			echo $dpt."<br/>";
 			print_r($dpt_item["data"]);
