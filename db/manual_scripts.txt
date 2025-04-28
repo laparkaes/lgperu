@@ -8,3 +8,8 @@ ALTER TABLE `lgepr_closed_order` ADD `shipment_date` DATE NULL AFTER `order_date
 20250426
 
 ALTER TABLE `lgepr_sales_order` ADD `scm_status` VARCHAR(100) NULL AFTER `line_status`; 
+
+
+20250428
+DROP TABLE `lgepr_most_likely`;
+RENAME TABLE lgepr_ml TO lgepr_most_likely;
