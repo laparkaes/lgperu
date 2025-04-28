@@ -111,7 +111,7 @@ class Lgepr_sales_order extends CI_Controller {
 		$this->update_dash_div_cat();
 	}
 	
-	public function process(){
+	public function process_snap(){//sales order shapshot
 		ini_set('memory_limit', '2G');
 		set_time_limit(0);
 		
@@ -280,6 +280,168 @@ class Lgepr_sales_order extends CI_Controller {
 			}
 			
 			$this->update_model_category();
+			
+			$msg = number_format($records)." record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
+		}else $msg = "File template error. Please check upload file.";
+		
+		//return $msg;
+		echo $msg;
+		echo "<br/><br/>";
+		echo 'You can close this tab now.<br/><br/><button onclick="window.close();">Close This Tab</button>';
+	}
+	
+	public function process(){
+		ini_set('memory_limit', '2G');
+		set_time_limit(0);
+		
+		$start_time = microtime(true);
+		
+		//load excel file
+		$spreadsheet = IOFactory::load("./upload/lgepr_sales_order.xls");
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		//excel file header validation
+		$h = [
+			trim($sheet->getCell('A1')->getValue()),
+			trim($sheet->getCell('B1')->getValue()),
+			trim($sheet->getCell('C1')->getValue()),
+			trim($sheet->getCell('D1')->getValue()),
+			trim($sheet->getCell('E1')->getValue()),
+			trim($sheet->getCell('EL1')->getValue()),
+		];
+		
+		//sales order header
+		$h_gerp = ["Bill To Name", "Ship To Name", "Model", "Order No.", "Line No.", "RAD Unmeet Reason"];
+		
+		//header validation
+		$is_gerp = true;
+		foreach($h as $i => $h_i) if ($h_i !== $h_gerp[$i]) $is_gerp = false;
+		
+		if ($is_gerp){
+			$max_row = $sheet->getHighestRow();
+			
+			//define now
+			$now = date('Y-m-d H:i:s', time());
+			
+			$rows = $order_lines = [];
+			$records = 0;
+			
+			//$this->gen_m->truncate("lgepr_sales_order");
+			
+			for($i = 2; $i <= $max_row; $i++){
+				$row = [
+					'bill_to' 				=> trim($sheet->getCell('AJ'.$i)->getValue()),
+					'bill_to_name' 			=> trim($sheet->getCell('A'.$i)->getValue()),
+					'ship_to' 				=> trim($sheet->getCell('AL'.$i)->getValue()),
+					'ship_to_name' 			=> trim($sheet->getCell('B'.$i)->getValue()),
+					'order_type' 			=> trim($sheet->getCell('F'.$i)->getValue()),
+					'order_no' 				=> trim($sheet->getCell('D'.$i)->getValue()),
+					'line_no' 				=> trim($sheet->getCell('E'.$i)->getValue()),
+					'line_status' 			=> trim($sheet->getCell('G'.$i)->getValue()),
+					'order_status' 			=> trim($sheet->getCell('BE'.$i)->getValue()),
+					'order_category'		=> trim($sheet->getCell('BC'.$i)->getValue()),
+					'model' 				=> trim($sheet->getCell('C'.$i)->getValue()),
+					'ordered_qty' 			=> trim($sheet->getCell('L'.$i)->getValue()),
+					'currency' 				=> trim($sheet->getCell('U'.$i)->getValue()),
+					'unit_selling_price'	=> trim($sheet->getCell('M'.$i)->getValue()),
+					'sales_amount' 			=> trim($sheet->getCell('N'.$i)->getValue()),
+					'tax_amount' 			=> trim($sheet->getCell('O'.$i)->getValue()),
+					'charge_amount'			=> trim($sheet->getCell('P'.$i)->getValue()),
+					'line_total' 			=> trim($sheet->getCell('Q'.$i)->getValue()),
+					'create_date' 			=> trim($sheet->getCell('DO'.$i)->getValue()),
+					'booked_date' 			=> trim($sheet->getCell('Y'.$i)->getValue()),
+					'req_arrival_date_to'	=> trim($sheet->getCell('AD'.$i)->getValue()),
+					'appointment_date'		=> trim($sheet->getCell('EH'.$i)->getValue()),
+					'shipment_date'			=> trim($sheet->getCell('AF'.$i)->getValue()),
+					'receiver_city'			=> trim($sheet->getCell('BX'.$i)->getValue()),
+					'item_type_desctiption' => trim($sheet->getCell('CK'.$i)->getValue()),
+					'item_division' 		=> trim($sheet->getCell('CD'.$i)->getValue()),
+					'model_category' 		=> trim($sheet->getCell('CJ'.$i)->getValue()),
+					'product_level1_name'	=> trim($sheet->getCell('CE'.$i)->getValue()),
+					'product_level2_name' 	=> trim($sheet->getCell('CF'.$i)->getValue()),
+					'product_level3_name' 	=> trim($sheet->getCell('CG'.$i)->getValue()),
+					'product_level4_name' 	=> trim($sheet->getCell('CH'.$i)->getValue()),
+					'product_level4_code' 	=> trim($sheet->getCell('CI'.$i)->getValue()),
+					'customer_department'	=> trim($sheet->getCell('AK'.$i)->getValue()),
+					'inventory_org' 		=> trim($sheet->getCell('AZ'.$i)->getValue()),
+					'sub_inventory' 		=> trim($sheet->getCell('BA'.$i)->getValue()),
+				];
+				
+				//apply trim
+				$row["order_no"] = trim($row["order_no"]);
+				$row["line_no"] = trim($row["line_no"]);
+				$row["order_line"] = $row["order_no"]."_".$row["line_no"];
+				
+				//float_convert
+				$row["unit_selling_price"] = str_replace(",", "", $row["unit_selling_price"]);
+				$row["sales_amount"] = str_replace(",", "", $row["sales_amount"]);
+				$row["tax_amount"] = str_replace(",", "", $row["tax_amount"]);
+				$row["charge_amount"] = str_replace(",", "", $row["charge_amount"]);
+				$row["line_total"] = str_replace(",", "", $row["line_total"]);
+				
+				//date convert: 28-OCT-2021 > 2021-10-28
+				$row["appointment_date"] = $this->my_func->date_convert_5($row["appointment_date"]);
+				
+				//date convert: 28-OCT-21 > 2021-10-28
+				$row["create_date"] = $this->my_func->date_convert($row["create_date"]);
+				$row["booked_date"] = $this->my_func->date_convert($row["booked_date"]);
+				$row["req_arrival_date_to"] = $this->my_func->date_convert($row["req_arrival_date_to"]);
+				$row["shipment_date"] = $this->my_func->date_convert($row["shipment_date"]);
+				
+				//usd calculation
+				switch($row['currency']){
+					case "BRL": $er = 3.25; break;
+					case "USD": $er = 1; break;
+					default:
+						if ($row["booked_date"]){
+							$rate = $this->gen_m->filter("exchange_rate", false, ["currency" => $row['currency'], "date <=" => $row["booked_date"]], null, null, [["date", "desc"]], 1);
+							
+							if ($rate) $er = $rate[0]->sell;
+							else $er = 3.7;
+						}else $er = 3.7;
+						
+						//$er = $this->gen_m->filter("exchange_rate", false, ["currency" => $row['currency'], "date <=" => $row["booked_date"]], null, null, [["date", "desc"]], 1)[0]->sell;
+						break;
+				}
+				
+				$row["sales_amount_usd"] =  round($row["sales_amount"] / $er, 2);
+				
+				print_r($row); echo"<br/><br/>";
+				
+				/*
+				1. sales in closed order > delete
+				2. sales in sales order > update
+				3. sales not in sales order > insert
+				*/
+				
+				/*
+				if (count($rows) > 5000){
+					$records += $this->gen_m->insert_m("lgepr_sales_order", $rows);
+					$rows = [];
+				}
+				//print_r($row); echo "<br/><br/>";
+				$rows[] = $row;
+				$order_lines[] = $row["order_line"];
+				*/
+			}
+			
+			/*
+			if ($rows) $records += $this->gen_m->insert_m("lgepr_sales_order", $rows);
+			
+			//remove closed orders in sales order table
+			$order_lines_split = array_chunk($order_lines, 500);
+			foreach($order_lines_split as $items){
+				$closed_orders = $this->gen_m->filter_select("lgepr_closed_order", false, ["order_line"], null, null, [["field" => "order_line", "values" => $items]]);
+				if ($closed_orders){
+					$aux = [];
+					foreach($closed_orders as $item) $aux[] = $item->order_line;
+					
+					$this->gen_m->delete_in("lgepr_sales_order", "order_line", $aux);
+				}
+			}
+			*/
+			
+			//$this->update_model_category();
 			
 			$msg = number_format($records)." record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		}else $msg = "File template error. Please check upload file.";
