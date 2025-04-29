@@ -361,16 +361,16 @@ class Order_status extends CI_Controller {
 		}
 		
 		//setting progress parameters
-		$total["actual_per"] = $total["actual"] / $total["ml_actual"] * 100;
+		$total["actual_per"] = $total["actual"] / $total["ml_actual"];
 		$total["sales_projection"] = $total["actual"] + $total["expected"];
-		$total["sales_projection_per"] = $total["sales_projection"] / $total["ml_actual"] * 100;
+		$total["sales_projection_per"] = $total["sales_projection"] / $total["ml_actual"];
 		$total["po_needs"] = $total["ml_actual"] - $total["actual"];
 		if ($total["po_needs"] < 0) $total["po_needs"] = 0;
 		
 		foreach($rows as $dpt => $dpt_item){
-			$rows[$dpt]["data"]["actual_per"] = $rows[$dpt]["data"]["actual"] / $rows[$dpt]["data"]["ml_actual"] * 100;
+			$rows[$dpt]["data"]["actual_per"] = $rows[$dpt]["data"]["actual"] / $rows[$dpt]["data"]["ml_actual"];
 			$rows[$dpt]["data"]["sales_projection"] = $rows[$dpt]["data"]["actual"] + $rows[$dpt]["data"]["expected"];
-			$rows[$dpt]["data"]["sales_projection_per"] = $rows[$dpt]["data"]["sales_projection"] / $rows[$dpt]["data"]["ml_actual"] * 100;
+			$rows[$dpt]["data"]["sales_projection_per"] = $rows[$dpt]["data"]["sales_projection"] / $rows[$dpt]["data"]["ml_actual"];
 			$rows[$dpt]["data"]["po_needs"] = $rows[$dpt]["data"]["ml_actual"] - $rows[$dpt]["data"]["actual"];
 			if ($rows[$dpt]["data"]["po_needs"] < 0) $rows[$dpt]["data"]["po_needs"] = 0;
 			
@@ -389,7 +389,7 @@ class Order_status extends CI_Controller {
 			*/
 		}
 		
-		/* total & rows debugging */
+		/* total & rows debugging 
 		print_r($total); echo "<br/><br/>";
 		
 		foreach($rows as $dpt => $dpt_item){
@@ -412,21 +412,20 @@ class Order_status extends CI_Controller {
 		
 		echo "-----------------------------<br/><br/>";
 		
-		/* data_no_mapping debugging */
+		// data_no_mapping debugging
 		foreach($data_no_mapping as $item){
 			print_r($item);
 			echo "<br/><br/>";
 		}
+		*/
 		
-		
-		
-		
-		
-		
+		$data["period"] = $d;
+		$data["total"] = $total;
+		$data["rows"] = $rows;
 		$data["overflow"] = "";
-		$data["main"] = "dashboard/order_status";
+		$data["main"] = "dash/order_status";
 		
-		//$this->load->view('layout_dashboard', $data);
+		$this->load->view('layout_dashboard', $data);
 	}
 
 }

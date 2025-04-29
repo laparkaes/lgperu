@@ -1,24 +1,10 @@
 <head>
     <title>Mi Página</title>
-    <style>
-        .fixed-bottom-right {
-			position: fixed;
-			bottom: 20px; /* Aumenta el espacio desde la parte inferior */
-			right: 20px; /* Aumenta el espacio desde la derecha */
-			z-index: 1000;
-			width: 40px; /* Aumenta el ancho del botón */
-			height: 40px; /* Aumenta la altura del botón */
-			font-size: 24px; /* Aumenta el tamaño de la fuente del signo de interrogación */
-			display: flex; /* Centra el contenido vertical y horizontalmente */
-			align-items: center;
-			justify-content: center;
-		}
-    </style>
 </head>
 <div class="card mt-3">
 	<div class="card-body">
 		<div class="d-flex justify-content-between align-items-center">
-			<h5 class="card-title">Punctuality <?= $period ?></h5>
+			<h5 class="card-title">Order Status <?= $period ?></h5>
 			<div class="d-flex justify-content-end">
 				<select class="form-select me-1" id="sl_period" style="width: 150px;">
 					<?php foreach($periods as $item){  ?>
@@ -35,6 +21,53 @@
 				<input type="text" class="form-control me-1" id="ip_search" placeholder="Search [Type 'enter' to apply filter]" style="width: 300px;">
 			</div>
 		</div>
+		<?php foreach($total as $k => $i) echo $k.'<br/>'; ?>
+		<table class="table align-middle" style="font-size: 0.8rem;">
+			<thead class="sticky-top" style="z-index: 10;">
+				<tr>
+					<th scope="col">K USD (Net Amount)</th>
+					<th scope="col">monthly_report</th>
+					<th scope="col">ml</th>
+					<th scope="col">ml_actual</th>
+					<th scope="col">po_needs</th>
+					<th scope="col">sales_projection</th>
+					<th scope="col">sales_projection_per</th>
+					<th scope="col">actual</th>
+					<th scope="col">actual_per</th>
+					<th scope="col">expected</th>
+					<th scope="col">shipped</th>
+					<th scope="col">shipping</th>
+					<th scope="col">picking</th>
+					<th scope="col">appointment</th>
+					<th scope="col">entered</th>
+					<th scope="col">in_transit</th>
+					<th scope="col">no_alloc</th>
+					<th scope="col">sales_deduction</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>Total</td>
+					<td><?= number_format($total["monthly_report"] / 1000 ) ?></td>
+					<td><?= number_format($total["ml"] / 1000 ) ?></td>
+					<td><?= number_format($total["ml_actual"] / 1000 ) ?></td>
+					<td><?= number_format($total["po_needs"] / 1000 ) ?></td>
+					<td><?= number_format($total["sales_projection"] / 1000 ) ?></td>
+					<td><?= $total["sales_projection_per"] ?></td>
+					<td><?= number_format($total["actual"] / 1000 ) ?></td>
+					<td><?= $total["actual_per"] ?></td>
+					<td><?= number_format($total["expected"] / 1000 ) ?></td>
+					<td><?= number_format($total["shipped"] / 1000 ) ?></td>
+					<td><?= number_format($total["shipping"] / 1000 ) ?></td>
+					<td><?= number_format($total["picking"] / 1000 ) ?></td>
+					<td><?= number_format($total["appointment"] / 1000 ) ?></td>
+					<td><?= number_format($total["entered"] / 1000 ) ?></td>
+					<td><?= number_format($total["in_transit"] / 1000 ) ?></td>
+					<td><?= number_format($total["no_alloc"] / 1000 ) ?></td>
+					<td><?= $total["sales_deduction"] ?></td>
+				</tr>
+			</tbody>
+		</table>
 		<table class="table align-middle" style="font-size: 0.8rem;">
 			<thead class="sticky-top" style="z-index: 10;">
 				<tr>
@@ -139,61 +172,6 @@
 		</table>
 	</div>
 </div>
-
-<button type="button" class="btn btn-primary btn-xl rounded-circle fixed-bottom-right" data-bs-toggle="modal" data-bs-target="#legendModal">
-    ?
-</button>
-
-<div class="modal fade" id="legendModal" tabindex="-1" aria-labelledby="legendModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="legendModalLabel">Types Exception List</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <table id="legendTable" class="table datatable" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Type Exception</th>
-                            <th>Incidence</th>
-                        </tr>
-                    </thead>
-					<tbody>
-						<tr><td>H</td><td>Holiday</td></tr>
-							<tr><td>EF</td><td>Early Friday</td></tr>
-							<tr><td>BT</td><td>Biz Trip</td></tr>
-							<tr><td>CE</td><td>Ceased</td></tr>
-							<tr><td>CO</td><td>Commission</td></tr>
-							<tr><td>CMP</td><td>Compensation</td></tr>
-							<tr><td>HO</td><td>Home Office</td></tr>
-							<tr><td>L</td><td>License</td></tr>
-							<tr><td>MV</td><td>Morning Vacation</td></tr>
-							<tr><td>AV</td><td>Afternoon Vacation</td></tr>
-							<tr><td>V</td><td>Vacation</td></tr>
-							<tr><td>MED</td><td>Medical Vacation</td></tr>
-							<tr><td>MB</td><td>Morning Birthday</td></tr>
-							<tr><td>AB</td><td>Afternoon Birthday</td></tr>
-							<tr><td>MBT</td><td>Morning Biz Trip</td></tr>
-							<tr><td>ABT</td><td>Afternoon Biz Trip</td></tr>
-							<tr><td>MCO</td><td>Morning Commission</td></tr>
-							<tr><td>ACO</td><td>Afternoon Commission</td></tr>
-							<tr><td>MCMP</td><td>Morning Compensation</td></tr>
-							<tr><td>ACMP</td><td>Afternoon Compensation</td></tr>
-							<tr><td>MHO</td><td>Morning Home Office</td></tr>
-							<tr><td>AHO</td><td>Afternoon Home Office</td></tr>
-							<tr><td>MT</td><td>Morning Topic</td></tr>
-							<tr><td>AT</td><td>Afternoon Topic</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-			
-<div class="d-none" id="bl_export_result"></div>
-
-<input type="hidden" id="ip_period" value="<?= $period ?>">
 
 <script>
 function apply_filter(dom){
