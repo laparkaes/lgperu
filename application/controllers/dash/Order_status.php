@@ -356,14 +356,38 @@ class Order_status extends CI_Controller {
 				$rows[$dpt]["coms"][$item->company]["divs"][$item->division]["data"][$type] += $item->ml_actual;	
 			}
 			
-			
-			echo $dpt." ";
-			
-			print_r($item); echo "<br/><br/>";
+			//echo $dpt." ";
+			//print_r($item); echo "<br/><br/>";
 		}
 		
+		//setting progress parameters
+		$total["actual_per"] = $total["actual"] / $total["ml_actual"] * 100;
+		$total["sales_projection"] = $total["actual"] + $total["expected"];
+		$total["sales_projection_per"] = $total["sales_projection"] / $total["ml_actual"] * 100;
+		$total["po_needs"] = $total["ml_actual"] - $total["actual"];
+		if ($total["po_needs"] < 0) $total["po_needs"] = 0;
 		
-		echo "-----------------------------<br/><br/>";
+		foreach($rows as $dpt => $dpt_item){
+			$rows[$dpt]["data"]["actual_per"] = $rows[$dpt]["data"]["actual"] / $rows[$dpt]["data"]["ml_actual"] * 100;
+			$rows[$dpt]["data"]["sales_projection"] = $rows[$dpt]["data"]["actual"] + $rows[$dpt]["data"]["expected"];
+			$rows[$dpt]["data"]["sales_projection_per"] = $rows[$dpt]["data"]["sales_projection"] / $rows[$dpt]["data"]["ml_actual"] * 100;
+			$rows[$dpt]["data"]["po_needs"] = $rows[$dpt]["data"]["ml_actual"] - $rows[$dpt]["data"]["actual"];
+			if ($rows[$dpt]["data"]["po_needs"] < 0) $rows[$dpt]["data"]["po_needs"] = 0;
+			
+			/*
+			foreach($dpt_item["coms"] as $com => $com_item){
+				echo $dpt." >>> ".$com."<br/>";
+				print_r($com_item["data"]);
+				echo "<br/><br/>";	
+				
+				foreach($com_item["divs"] as $div => $div_item){
+					echo $dpt." >>> ".$com." >>> ".$div."<br/>";
+					print_r($div_item["data"]);
+					echo "<br/><br/>";
+				}	
+			}
+			*/
+		}
 		
 		/* total & rows debugging */
 		print_r($total); echo "<br/><br/>";
