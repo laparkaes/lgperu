@@ -13,3 +13,23 @@ ALTER TABLE `lgepr_sales_order` ADD `scm_status` VARCHAR(100) NULL AFTER `line_s
 20250428
 DROP TABLE `lgepr_most_likely`;
 RENAME TABLE lgepr_ml TO lgepr_most_likely;
+
+20250430
+ALTER TABLE lgepr_sales_order
+ADD COLUMN hold_flag CHAR(1) NULL,
+ADD COLUMN instock_flag CHAR(1) NULL,
+ADD COLUMN back_order_hold CHAR(1) NULL,
+ADD COLUMN credit_hold CHAR(1) NULL,
+ADD COLUMN overdue_hold CHAR(1) NULL,
+ADD COLUMN customer_hold CHAR(1) NULL,
+ADD COLUMN payterm_term_hold CHAR(1) NULL,
+ADD COLUMN fp_hold CHAR(1) NULL,
+ADD COLUMN minimum_hold CHAR(1) NULL,
+ADD COLUMN future_hold CHAR(1) NULL,
+ADD COLUMN reserve_hold CHAR(1) NULL,
+ADD COLUMN manual_hold CHAR(1) NULL,
+ADD COLUMN auto_pending_hold CHAR(1) NULL,
+ADD COLUMN sa_hold CHAR(1) NULL,
+ADD COLUMN form_hold CHAR(1) NULL,
+ADD COLUMN bank_collateral_hold CHAR(1) NULL,
+ADD COLUMN insurance_hold CHAR(1) NULL;

@@ -26,11 +26,11 @@
 					<th scope="col" class="align-middle" style="width:110px;">Expected</th>
 					<th scope="col" class="align-middle" style="width:110px;">Shipped</th>
 					<th scope="col" class="align-middle" style="width:110px;">Ready</th>
-					<th scope="col" class="align-middle" style="width:110px;">Picking</th>
 					<th scope="col" class="align-middle" style="width:110px;">Appointment</th>
 					<th scope="col" class="align-middle" style="width:110px;">Entered</th>
-					<th scope="col" class="align-middle" style="width:110px;">In Transit</th>
-					<th scope="col" class="align-middle" style="border-right-width:thin;width:110px;">No Alloc.</th>
+					<th scope="col" class="align-middle" style="border-right-width:thin;width:110px;">In Transit</th>
+					<th scope="col" class="align-middle" style="width:110px;">No Stock</th>
+					<th scope="col" class="align-middle" style="border-right-width:thin;width:110px;">Hold</th>
 					<th scope="col" class="align-middle" style="width:70px;">SD</th>
 				</tr>
 			</thead>
@@ -45,12 +45,12 @@
 					<td><?= number_format($total["actual"] / 1000 ) ?> (<?= number_format($total["actual_per"] * 100) ?>%)</td>
 					<td><?= number_format($total["expected"] / 1000 ) ?></td>
 					<td><?= number_format($total["shipped"] / 1000 ) ?></td>
-					<td><?= number_format($total["shipping"] / 1000 ) ?></td>
-					<td><?= number_format($total["picking"] / 1000 ) ?></td>
+					<td><?= number_format($total["ready"] / 1000 ) ?></td>
 					<td><?= number_format($total["appointment"] / 1000 ) ?></td>
 					<td><?= number_format($total["entered"] / 1000 ) ?></td>
-					<td><?= number_format($total["in_transit"] / 1000 ) ?></td>
-					<td style="border-right-width:thin;"><?= number_format($total["no_alloc"] / 1000 ) ?></td>
+					<td style="border-right-width:thin;"><?= number_format($total["in_transit"] / 1000 ) ?></td>
+					<td><?= number_format($total["no_stock"] / 1000 ) ?></td>
+					<td style="border-right-width:thin;"><?= number_format($total["hold"] / 1000 ) ?></td>
 					<td><?= number_format($total["sales_deduction"] * 100) ?>%</td>
 				</tr>
 				<?php
@@ -66,12 +66,12 @@
 					<td><?= number_format($dpt_item["data"]["actual"] / 1000 ) ?> (<?= number_format($dpt_item["data"]["actual_per"] * 100) ?>%)</td>
 					<td><?= number_format($dpt_item["data"]["expected"] / 1000 ) ?></td>
 					<td><?= number_format($dpt_item["data"]["shipped"] / 1000 ) ?></td>
-					<td><?= number_format($dpt_item["data"]["shipping"] / 1000 ) ?></td>
-					<td><?= number_format($dpt_item["data"]["picking"] / 1000 ) ?></td>
+					<td><?= number_format($dpt_item["data"]["ready"] / 1000 ) ?></td>
 					<td><?= number_format($dpt_item["data"]["appointment"] / 1000 ) ?></td>
 					<td><?= number_format($dpt_item["data"]["entered"] / 1000 ) ?></td>
-					<td><?= number_format($dpt_item["data"]["in_transit"] / 1000 ) ?></td>
-					<td style="border-right-width:thin;"><?= number_format($dpt_item["data"]["no_alloc"] / 1000 ) ?></td>
+					<td style="border-right-width:thin;"><?= number_format($dpt_item["data"]["in_transit"] / 1000 ) ?></td>
+					<td><?= number_format($dpt_item["data"]["no_stock"] / 1000 ) ?></td>
+					<td style="border-right-width:thin;"><?= number_format($dpt_item["data"]["hold"] / 1000 ) ?></td>
 					<td><?= number_format($dpt_item["data"]["sales_deduction"] * 100) ?>%</td>
 				</tr>
 					<?php
@@ -87,12 +87,12 @@
 					<td><?= number_format($com_item["data"]["actual"] / 1000 ) ?> (<?= number_format($com_item["data"]["actual_per"] * 100) ?>%)</td>
 					<td><?= number_format($com_item["data"]["expected"] / 1000 ) ?></td>
 					<td><?= number_format($com_item["data"]["shipped"] / 1000 ) ?></td>
-					<td><?= number_format($com_item["data"]["shipping"] / 1000 ) ?></td>
-					<td><?= number_format($com_item["data"]["picking"] / 1000 ) ?></td>
+					<td><?= number_format($com_item["data"]["ready"] / 1000 ) ?></td>
 					<td><?= number_format($com_item["data"]["appointment"] / 1000 ) ?></td>
 					<td><?= number_format($com_item["data"]["entered"] / 1000 ) ?></td>
-					<td><?= number_format($com_item["data"]["in_transit"] / 1000 ) ?></td>
-					<td style="border-right-width:thin;"><?= number_format($com_item["data"]["no_alloc"] / 1000 ) ?></td>
+					<td style="border-right-width:thin;"><?= number_format($com_item["data"]["in_transit"] / 1000 ) ?></td>
+					<td><?= number_format($com_item["data"]["no_stock"] / 1000 ) ?></td>
+					<td style="border-right-width:thin;"><?= number_format($com_item["data"]["hold"] / 1000 ) ?></td>
 					<td><?= number_format($com_item["data"]["sales_deduction"] * 100) ?>%</td>
 				</tr>
 						<?php
@@ -108,12 +108,12 @@
 					<td><?= number_format($div_item["data"]["actual"] / 1000 ) ?> (<?= number_format($div_item["data"]["actual_per"] * 100) ?>%)</td>
 					<td><?= number_format($div_item["data"]["expected"] / 1000 ) ?></td>
 					<td><?= number_format($div_item["data"]["shipped"] / 1000 ) ?></td>
-					<td><?= number_format($div_item["data"]["shipping"] / 1000 ) ?></td>
-					<td><?= number_format($div_item["data"]["picking"] / 1000 ) ?></td>
+					<td><?= number_format($div_item["data"]["ready"] / 1000 ) ?></td>
 					<td><?= number_format($div_item["data"]["appointment"] / 1000 ) ?></td>
 					<td><?= number_format($div_item["data"]["entered"] / 1000 ) ?></td>
-					<td><?= number_format($div_item["data"]["in_transit"] / 1000 ) ?></td>
-					<td style="border-right-width:thin;"><?= number_format($div_item["data"]["no_alloc"] / 1000 ) ?></td>
+					<td style="border-right-width:thin;"><?= number_format($div_item["data"]["in_transit"] / 1000 ) ?></td>
+					<td><?= number_format($div_item["data"]["no_stock"] / 1000 ) ?></td>
+					<td style="border-right-width:thin;"><?= number_format($div_item["data"]["hold"] / 1000 ) ?></td>
 					<td><?= number_format($div_item["data"]["sales_deduction"] * 100) ?>%</td>
 				</tr>
 							<?php

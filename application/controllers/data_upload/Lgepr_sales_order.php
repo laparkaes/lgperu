@@ -365,6 +365,23 @@ class Lgepr_sales_order extends CI_Controller {
 					'customer_department'	=> trim($sheet->getCell('AK'.$i)->getValue()),
 					'inventory_org' 		=> trim($sheet->getCell('AZ'.$i)->getValue()),
 					'sub_inventory' 		=> trim($sheet->getCell('BA'.$i)->getValue()),
+					'hold_flag' 			=> trim($sheet->getCell('H'.$i)->getValue()),
+					'instock_flag' 			=> trim($sheet->getCell('K'.$i)->getValue()),
+					'back_order_hold' 		=> trim($sheet->getCell('CQ'.$i)->getValue()),
+					'credit_hold' 			=> trim($sheet->getCell('CR'.$i)->getValue()),
+					'overdue_hold' 			=> trim($sheet->getCell('CS'.$i)->getValue()),
+					'customer_hold' 		=> trim($sheet->getCell('CT'.$i)->getValue()),
+					'payterm_term_hold' 	=> trim($sheet->getCell('CU'.$i)->getValue()),
+					'fp_hold' 				=> trim($sheet->getCell('CV'.$i)->getValue()),
+					'minimum_hold' 			=> trim($sheet->getCell('CW'.$i)->getValue()),
+					'future_hold' 			=> trim($sheet->getCell('CX'.$i)->getValue()),
+					'reserve_hold' 			=> trim($sheet->getCell('CY'.$i)->getValue()),
+					'manual_hold' 			=> trim($sheet->getCell('CZ'.$i)->getValue()),
+					'auto_pending_hold' 	=> trim($sheet->getCell('DA'.$i)->getValue()),
+					'sa_hold' 				=> trim($sheet->getCell('DB'.$i)->getValue()),
+					'form_hold' 			=> trim($sheet->getCell('DC'.$i)->getValue()),
+					'bank_collateral_hold' 	=> trim($sheet->getCell('DD'.$i)->getValue()),
+					'insurance_hold' 		=> trim($sheet->getCell('DE'.$i)->getValue()),
 				];
 				
 				//apply trim

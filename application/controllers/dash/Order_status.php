@@ -47,12 +47,12 @@ class Order_status extends CI_Controller {
 			"actual_per" => 0,
 			"expected" => 0,
 			"shipped" => 0,
-			"shipping" => 0,
-			"picking" => 0,
+			"ready" => 0,
 			"appointment" => 0,
 			"entered" => 0,
 			"in_transit" => 0,
-			"no_alloc" => 0,
+			"no_stock" => 0,
+			"hold" => 0,
 			"sales_deduction" => 0,
 		];
 		
@@ -114,12 +114,12 @@ class Order_status extends CI_Controller {
 			"actual_per" => 0,
 			"expected" => 0,
 			"shipped" => 0,
-			"shipping" => 0,
-			"picking" => 0,
+			"ready" => 0,
 			"appointment" => 0,
 			"entered" => 0,
 			"in_transit" => 0,
-			"no_alloc" => 0,
+			"no_stock" => 0,
+			"hold" => 0,
 			"sales_deduction" => 0,
 		];
 		
@@ -275,48 +275,31 @@ class Order_status extends CI_Controller {
 								case "Awaiting Receipt"		: $status_type = "in_transit"; break;
 								case "Entered"				: $status_type = "entered"; break;
 								case "Booked"				: $status_type = $item->appointment_date ? "entered" : "appointment"; break;
-								case "Awaiting Fulfillment"	: $status_type = "picking"; break;
-								case "Awaiting Shipping"	: $status_type = "shipping"; break;
+								case "Awaiting Fulfillment"	: $status_type = "ready"; break;
+								case "Awaiting Shipping"	: $status_type = "ready"; break;
 								case "Pending pre-billing acceptance": $status_type = "shipped"; break;
 								case "Awaiting Return"		: $status_type = "shipped"; break;
 							}
+							
+							/* by in stock & hold flag
+							hold_flag		'Y'	> hold
+							instock_flag	'N'	> no_stock
+							*/
+							if ($item->hold_flag === "Y") $status_type = "hold";
+							if ($item->instock_flag === "N") $status_type = "no_stock";
 							
 							$total[$status_type] += $item->sales_amount_usd;
 							$rows[$item->customer_department]["data"][$status_type] += $item->sales_amount_usd;
 							$rows[$item->customer_department]["coms"][$item->dash_company]["data"][$status_type] += $item->sales_amount_usd;
 							$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"][$status_type] += $item->sales_amount_usd;
 							
-							if ($status_type !== "no_alloc"){
+							if (($status_type !== "no_stock") and ($status_type !== "hold")){
 								$status_type = "expected";
 								$total[$status_type] += $item->sales_amount_usd;
 								$rows[$item->customer_department]["data"][$status_type] += $item->sales_amount_usd;
 								$rows[$item->customer_department]["coms"][$item->dash_company]["data"][$status_type] += $item->sales_amount_usd;
 								$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"][$status_type] += $item->sales_amount_usd;
 							}
-							
-							/* by dates
-							if ($item->shipment_date){
-								$total["shipped"] += $item->sales_amount_usd;
-								$rows[$item->customer_department]["data"]["shipped"] += $item->sales_amount_usd;
-								$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["shipped"] += $item->sales_amount_usd;
-								$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["shipped"] += $item->sales_amount_usd;	
-							}elseif ($item->appointment_date){
-								$total["appointment"] += $item->sales_amount_usd;
-								$rows[$item->customer_department]["data"]["appointment"] += $item->sales_amount_usd;
-								$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["appointment"] += $item->sales_amount_usd;
-								$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["appointment"] += $item->sales_amount_usd;	
-							}elseif ($item->booked_date){
-								$total["requested"] += $item->sales_amount_usd;
-								$rows[$item->customer_department]["data"]["requested"] += $item->sales_amount_usd;
-								$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["requested"] += $item->sales_amount_usd;
-								$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["requested"] += $item->sales_amount_usd;	
-							}else{
-								$total["entered"] += $item->sales_amount_usd;
-								$rows[$item->customer_department]["data"]["entered"] += $item->sales_amount_usd;
-								$rows[$item->customer_department]["coms"][$item->dash_company]["data"]["entered"] += $item->sales_amount_usd;
-								$rows[$item->customer_department]["coms"][$item->dash_company]["divs"][$item->dash_division]["data"]["entered"] += $item->sales_amount_usd;	
-							}
-							*/
 						}else $data_no_mapping[] = clone $item;
 					}else $data_no_mapping[] = clone $item;
 				}else $data_no_mapping[] = clone $item;
