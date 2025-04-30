@@ -1,2 +1,2 @@
 cd C:\xampp\mysql\bin
-mysqldump -uroot -p llamasys > C:\xampp\htdocs\llamasys\db\llamasys_backup_20241010.sql
+mysqldump -uroot -p llamasys > C:\xampp\htdocs\llamasys\db\llamasys_backup_20250430.sql
