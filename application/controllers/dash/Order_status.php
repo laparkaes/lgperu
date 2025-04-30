@@ -272,7 +272,7 @@ class Order_status extends CI_Controller {
 							Awaiting Return			8				Shipped
 							*/
 							switch($item->line_status){
-								case "Awaiting Receipt"		: $status_type = "no_alloc"; break;
+								case "Awaiting Receipt"		: $status_type = "in_transit"; break;
 								case "Entered"				: $status_type = "entered"; break;
 								case "Booked"				: $status_type = $item->appointment_date ? "entered" : "appointment"; break;
 								case "Awaiting Fulfillment"	: $status_type = "picking"; break;
@@ -361,32 +361,43 @@ class Order_status extends CI_Controller {
 		}
 		
 		//setting progress parameters
-		$total["actual_per"] = $total["actual"] / $total["ml_actual"];
+		$total["actual_per"] = $total["ml_actual"] > 0 ? $total["actual"] / $total["ml_actual"] : 1;
 		$total["sales_projection"] = $total["actual"] + $total["expected"];
-		$total["sales_projection_per"] = $total["sales_projection"] / $total["ml_actual"];
+		$total["sales_projection_per"] = $total["ml_actual"] > 0 ? $total["sales_projection"] / $total["ml_actual"] : 1;
 		$total["po_needs"] = $total["ml_actual"] - $total["actual"];
 		if ($total["po_needs"] < 0) $total["po_needs"] = 0;
 		
 		foreach($rows as $dpt => $dpt_item){
-			$rows[$dpt]["data"]["actual_per"] = $rows[$dpt]["data"]["actual"] / $rows[$dpt]["data"]["ml_actual"];
+			$rows[$dpt]["data"]["actual_per"] = $rows[$dpt]["data"]["ml_actual"] > 0 ? $rows[$dpt]["data"]["actual"] / $rows[$dpt]["data"]["ml_actual"] : 1;
 			$rows[$dpt]["data"]["sales_projection"] = $rows[$dpt]["data"]["actual"] + $rows[$dpt]["data"]["expected"];
-			$rows[$dpt]["data"]["sales_projection_per"] = $rows[$dpt]["data"]["sales_projection"] / $rows[$dpt]["data"]["ml_actual"];
+			$rows[$dpt]["data"]["sales_projection_per"] = $rows[$dpt]["data"]["ml_actual"] > 0 ? $rows[$dpt]["data"]["sales_projection"] / $rows[$dpt]["data"]["ml_actual"] : 1;
 			$rows[$dpt]["data"]["po_needs"] = $rows[$dpt]["data"]["ml_actual"] - $rows[$dpt]["data"]["actual"];
 			if ($rows[$dpt]["data"]["po_needs"] < 0) $rows[$dpt]["data"]["po_needs"] = 0;
 			
-			/*
 			foreach($dpt_item["coms"] as $com => $com_item){
-				echo $dpt." >>> ".$com."<br/>";
-				print_r($com_item["data"]);
-				echo "<br/><br/>";	
+				$rows[$dpt]["coms"][$com]["data"]["actual_per"] = $rows[$dpt]["coms"][$com]["data"]["ml_actual"] > 0 ? $rows[$dpt]["coms"][$com]["data"]["actual"] / $rows[$dpt]["coms"][$com]["data"]["ml_actual"] : 1;
+				$rows[$dpt]["coms"][$com]["data"]["sales_projection"] = $rows[$dpt]["coms"][$com]["data"]["actual"] + $rows[$dpt]["coms"][$com]["data"]["expected"];
+				$rows[$dpt]["coms"][$com]["data"]["sales_projection_per"] = $rows[$dpt]["coms"][$com]["data"]["ml_actual"] > 0 ? $rows[$dpt]["coms"][$com]["data"]["sales_projection"] / $rows[$dpt]["coms"][$com]["data"]["ml_actual"] : 1;
+				$rows[$dpt]["coms"][$com]["data"]["po_needs"] = $rows[$dpt]["coms"][$com]["data"]["ml_actual"] - $rows[$dpt]["coms"][$com]["data"]["actual"];
+				if ($rows[$dpt]["coms"][$com]["data"]["po_needs"] < 0) $rows[$dpt]["coms"][$com]["data"]["po_needs"] = 0;
 				
 				foreach($com_item["divs"] as $div => $div_item){
-					echo $dpt." >>> ".$com." >>> ".$div."<br/>";
-					print_r($div_item["data"]);
-					echo "<br/><br/>";
-				}	
+					$rows[$dpt]["coms"][$com]["divs"][$div]["data"]["actual_per"] = $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["ml_actual"] > 0 ? $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["actual"] / $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["ml_actual"] : 1;
+					$rows[$dpt]["coms"][$com]["divs"][$div]["data"]["sales_projection"] = $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["actual"] + $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["expected"];
+					$rows[$dpt]["coms"][$com]["divs"][$div]["data"]["sales_projection_per"] = $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["ml_actual"] > 0 ? $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["sales_projection"] / $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["ml_actual"] : 1;
+					$rows[$dpt]["coms"][$com]["divs"][$div]["data"]["po_needs"] = $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["ml_actual"] - $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["actual"];
+					if ($rows[$dpt]["coms"][$com]["divs"][$div]["data"]["po_needs"] < 0) $rows[$dpt]["coms"][$com]["divs"][$div]["data"]["po_needs"] = 0;
+				}
 			}
-			*/
+		}
+		
+		//set period
+		$periods = [];
+		$jan = date("Y-01"); 
+		$now = date("Y-m");
+		while(strtotime($now) >= strtotime($jan)){
+			$periods[] = $now;
+			$now = date("Y-m", strtotime($now." -1 month"));
 		}
 		
 		/* total & rows debugging 
@@ -420,6 +431,7 @@ class Order_status extends CI_Controller {
 		*/
 		
 		$data["period"] = $d;
+		$data["periods"] = $periods;
 		$data["total"] = $total;
 		$data["rows"] = $rows;
 		$data["overflow"] = "";
