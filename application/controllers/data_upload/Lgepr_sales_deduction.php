@@ -14,10 +14,7 @@ class Lgepr_sales_deduction extends CI_Controller {
 	}
 	
 	public function index(){
-		
-		// $w = ["updated >=" => date("Y-m-d", strtotime("-3 months"))];
-		// $o = [["updated", "desc"], ["model_description", "asc"], ["model", "asc"]];
-		
+				
 		$data = [
 			"ml"	=> $this->gen_m->filter("lgepr_sales_deduction", false, null, null, null, "", 100),
 			"main" 		=> "data_upload/lgepr_sales_deduction/index",
@@ -119,16 +116,18 @@ class Lgepr_sales_deduction extends CI_Controller {
 				if (empty($row)) continue;
 				
 				foreach($data_sd as $item_sd){
-					if($item_sd->mp_sales_deduction == 0) $item_sd->mp_sales_deduction = NULL;
+					if($item_sd->mp_sales_deduction == 0 || $item_sd->mp_sales_deduction === NULL) $item_sd->mp_sales_deduction = NULL;
+					//print_r($row);
+					
 					//echo '<pr>'; print_r($item_sd);
-					if ($row['division'] === $item_sd->division && $row['yyyy'] == $item_sd->yyyy &&  $row['mm'] == $item_sd->mm && 
-						$row['mp_sales_deduction'] === $item_sd->mp_sales_deduction && $row['company'] === $item_sd->company && $row['sd_rate'] == $item_sd->sd_rate){
+					if ($row['division'] === $item_sd->division && $row['yyyy'] == $item_sd->yyyy && $row['mm'] == $item_sd->mm && 
+						$row['mp_sales_deduction'] === $item_sd->mp_sales_deduction && $row['company'] === $item_sd->company && $row['sd_rate'] == $item_sd->sd_rate && $row['country'] === $item_sd->country){
 						$flag_unique = 0;
 						break;
 					}
-					if ($row['division'] === $item_sd->division && $row['yyyy'] == $item_sd->yyyy &&  $row['mm'] == $item_sd->mm){
+					if ($row['division'] === $item_sd->division && $row['yyyy'] == $item_sd->yyyy &&  $row['mm'] == $item_sd->mm && $row['country'] === $item_sd->country &&($row['mp_sales_deduction'] != $item_sd->mp_sales_deduction || $row['sd_rate'] != $item_sd->sd_rate)){
 						$flag_unique = 0;
-						$where = ['division' => $row['division'], 'yyyy' => $row['yyyy'], 'mm' => $row['mm']];
+						$where = ['division' => $row['division'], 'yyyy' => $row['yyyy'], 'mm' => $row['mm'], 'country' => $row['country']];
 						$row['updated'] = date("Y-m-d H:i:s");
 						$this->gen_m->update("lgepr_sales_deduction", $where, $row);
 						break;
@@ -163,7 +162,7 @@ class Lgepr_sales_deduction extends CI_Controller {
 		ini_set("memory_limit", -1);
 		
 		//delete all rows ngsi_inventory 
-		//$this->gen_m->truncate("lgepr_ml");
+		//$this->gen_m->truncate("Lgepr_sales_deduction");
 		
 		$start_time = microtime(true);
 
@@ -171,7 +170,7 @@ class Lgepr_sales_deduction extends CI_Controller {
 		$spreadsheet = IOFactory::load("./upload/lgepr_sales_deduction.xlsx");
 		
 		$company_mapping = ["HS", "MS", "ES", "MC"];
-		$filter_select = ['company', 'division', 'yyyy', 'mm', 'mp_sales_deduction', 'sd_rate'];
+		$filter_select = ['country', 'company', 'division', 'yyyy', 'mm', 'mp_sales_deduction', 'sd_rate'];
 	
 		$data_sd = $this->gen_m->filter_select('lgepr_sales_deduction', false, $filter_select);
 
@@ -223,7 +222,6 @@ class Lgepr_sales_deduction extends CI_Controller {
 		//$this->db->trans_complete();
 		
 	}
-
 
 	public function update(){
 		$type = "error"; $msg = "";

@@ -4,13 +4,13 @@
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item active">Lgepr inventory</li>
+				<li class="breadcrumb-item active">Lgepr Most Likely</li>
 			</ol>
 		</nav>
 	</div>
 </div>
 <section class="section">
-	<div class="row">
+	<!--<div class="row">
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-body">
@@ -56,6 +56,48 @@
 				</div>
 			</div>
 		</div>
+	</div>-->
+	
+	<div class="row">
+		<div class="col">
+			<div class="card">
+				<div class="card-body">
+					<div class="d-flex justify-content-between align-items-center">
+						<h5 class="card-title">Last Record: <?= $month ?></h5>
+						<form id="form_mdms_update">
+							<div class="input-group">							
+								<input class="form-control" type="file" name="attach">
+								<button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i></button>
+							</div>
+						</form>
+					</div>
+					<table class="table">
+						<thead>
+							<tr>
+								<th scope="col"></th>
+								<th scope="col" class="text-center">BP</th>
+								<th scope="col" class="text-center">Target</th>
+								<th scope="col" class="text-center">Monthly Report</th>
+								<th scope="col" class="text-center">ML</th>
+								<th scope="col" class="text-center">ML Actual</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach($rows as $item){ $desc = explode("_", $item["desc"]); ?>
+							<tr class="table-<?= count($desc) == 1 ? "dark" : (count($desc) == 2 ? "secondary" : (count($desc) == 3 ? "success" :"")) ?>">
+								<td><div class="ms-<?= 2 * (count($desc)-2) ?>"><?= $desc[count($desc)-1] ?></div></td>
+								<td class="text-end"><?= number_format($item["bp"], 2) ?></td>
+								<td class="text-end"><?= number_format($item["target"], 2) ?></td>
+								<td class="text-end"><?= number_format($item["monthly_report"], 2) ?></td>
+								<td class="text-end"><?= number_format($item["ml"], 2) ?></td>
+								<td class="text-end"><?= number_format($item["ml_actual"], 2) ?></td>
+							</tr>
+							<?php } ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
 	</div>
 </section>
 
@@ -92,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				document.body.removeChild(a);
 				},
 				error: function() {
-					swal("Error", "Hubo un problema al procesar el archivo.", "error");
+					swal("Error", "There was a problem processing the file.", "error");
 				}
 			});
 		});

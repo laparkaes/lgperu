@@ -27,27 +27,33 @@ class Ngsi_inventory extends CI_Controller {
 	}
 	
 	public function date_convert_mm_dd_yyyy($date) {
+    // Intentamos convertir con la lógica del valor numérico (excel date)
 		if (is_numeric($date)) {
-
+			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
 			return $date->format('Y-m-d');
 		}
 
+		// Si no es un número, intentamos convertir con la lógica de fecha en formato mm/dd/yyyy
 		$aux = explode("/", $date);
 		if (count($aux) == 3) {
+			// Verificamos que la fecha esté en formato mm/dd/yyyy
 			return $aux[2]."-".$aux[0]."-".$aux[1]; // yyyy-mm-dd
 		}
-
+		
+		// Si la fecha no está en un formato esperado, devolvemos null
 		return null;
 	}
 
 	public function date_convert_dd_mm_yyyy($date) {
-
+    // Intentamos convertir con la lógica del valor numérico (excel date)
 		if (is_numeric($date)) {
+			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
 			return $date->format('Y-m-d');
 		}
 
+		// Si no es un número, intentamos convertir con la lógica de fecha en formato dd/mm/yyyy
 		$aux = explode("/", $date);
 		if (count($aux) > 2) return $aux[2]."-".$aux[1]."-".$aux[0];
 		else return null;
@@ -61,8 +67,8 @@ class Ngsi_inventory extends CI_Controller {
 		$this->gen_m->truncate("ngsi_inventory");
 		
 		$start_time = microtime(true);
-		$updated = date("Y-m-d");
-		$batch_size = 100;
+		// $updated = date("Y-m-d");
+		// $batch_size = 100;
 
 	
 		// Cargar el archivo Excel
@@ -73,7 +79,7 @@ class Ngsi_inventory extends CI_Controller {
 
 		foreach ($spreadsheet->getSheetNames() as $sheetName) {
 			//print_r($sheetName);
-			if ($sheetName === 'NGSI by Division'){
+			if ($sheetName === 'NGSI by Model'){
 				$updated = date("Y-m-d");
 				$sheet = $spreadsheet->getSheetByName($sheetName);
 				$max_row = $sheet->getHighestRow();
@@ -83,13 +89,13 @@ class Ngsi_inventory extends CI_Controller {
 				// Iniciar transacción para mejorar rendimiento
 				$this->db->trans_start();
 				for($i = 8; $i < $max_row; $i++){
-					$is_row_empty = true;
-
-					foreach (range('B', 'AD') as $col) { // Recorrer las columnas de datos
+					$is_row_empty = true; // Inicializar como fila vacía
+					// Verificar si todas las celdas están vacías
+					foreach (range('B', 'AI') as $col) { // Recorrer las columnas de datos
 						$cell_value = trim($sheet->getCell($col . $i)->getValue());
 						if (!empty($cell_value)) {
 							$is_row_empty = false; // Si alguna celda tiene valor, la fila no está vacía
-							break;
+							break; // No es necesario seguir verificando, la fila ya no está vacía
 						}
 					}
 					
@@ -97,33 +103,34 @@ class Ngsi_inventory extends CI_Controller {
 						$row = [
 							"date" 										=> trim($sheet->getCell('B'.$i)->getValue()),
 							"division" 									=> trim($sheet->getCell('C'.$i)->getValue()),
-							"inv_org" 									=> trim($sheet->getCell('D'.$i)->getValue()),
-							"inv_org_description" 						=> trim($sheet->getCell('E'.$i)->getValue()),
-							"sub_inv_grade" 							=> trim($sheet->getCell('F'.$i)->getValue()),
-							"sub_inv"									=> trim($sheet->getCell('G'.$i)->getValue()),
-							"qty_onhand" 								=> trim($sheet->getCell('H'.$i)->getValue()),
-							"qty_in_transit" 							=> trim($sheet->getCell('I'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('I'.$i)->getValue()),
-							"qty_30"									=> trim($sheet->getCell('J'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('J'.$i)->getValue()),
-							"qty_60"									=> trim($sheet->getCell('K'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('K'.$i)->getValue()),
-							"qty_90"									=> trim($sheet->getCell('L'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('L'.$i)->getValue()),
-							"qty_120"									=> trim($sheet->getCell('M'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('M'.$i)->getValue()),
-							"qty_150"									=> trim($sheet->getCell('N'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('N'.$i)->getValue()),		
-							"qty_180"									=> trim($sheet->getCell('O'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('O'.$i)->getValue()),
-							"qty_360"									=> trim($sheet->getCell('P'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('P'.$i)->getValue()),
-							"qty_over_360"								=> trim($sheet->getCell('Q'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('Q'.$i)->getValue()),
-							"qty_non_history"							=> trim($sheet->getCell('R'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('R'.$i)->getValue()),
-							"amt_onhand_1"								=> trim($sheet->getCell('S'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('S'.$i)->getValue()),
-							"amt_in_transit_1"							=> trim($sheet->getCell('T'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('T'.$i)->getValue()),
-							"amt_30_1"									=> trim($sheet->getCell('U'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('U'.$i)->getValue()),
-							"amt_60_1"									=> trim($sheet->getCell('V'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('V'.$i)->getValue()),
-							"amt_90_1"									=> trim($sheet->getCell('W'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('W'.$i)->getValue()),
-							"amt_120_1"									=> trim($sheet->getCell('X'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('X'.$i)->getValue()),
-							"amt_150_1"									=> trim($sheet->getCell('Y'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('Y'.$i)->getValue()),
-							"amt_180_1"									=> trim($sheet->getCell('Z'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('Z'.$i)->getValue()),
-							"amt_360_1"									=> trim($sheet->getCell('AA'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('AA'.$i)->getValue()),
-							"over_360_1"								=> trim($sheet->getCell('AB'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('AB'.$i)->getValue()),
-							"non_history_1"								=> trim($sheet->getCell('AC'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('AC'.$i)->getValue()),
-							"remark"									=> trim($sheet->getCell('AD'.$i)->getValue()),
+							"model"										=> trim($sheet->getCell('H'.$i)->getValue()),						
+							"inv_org" 									=> trim($sheet->getCell('I'.$i)->getValue()),
+							"inv_org_description" 						=> trim($sheet->getCell('J'.$i)->getValue()),
+							"sub_inv_grade" 							=> trim($sheet->getCell('K'.$i)->getValue()),
+							"sub_inv"									=> trim($sheet->getCell('L'.$i)->getValue()),
+							"qty_onhand" 								=> trim($sheet->getCell('M'.$i)->getValue()),
+							"qty_in_transit" 							=> trim($sheet->getCell('N'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('N'.$i)->getValue()),
+							"qty_30"									=> trim($sheet->getCell('O'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('O'.$i)->getValue()),
+							"qty_60"									=> trim($sheet->getCell('P'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('P'.$i)->getValue()),
+							"qty_90"									=> trim($sheet->getCell('Q'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('Q'.$i)->getValue()),
+							"qty_120"									=> trim($sheet->getCell('R'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('R'.$i)->getValue()),
+							"qty_150"									=> trim($sheet->getCell('S'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('S'.$i)->getValue()),		
+							"qty_180"									=> trim($sheet->getCell('T'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('T'.$i)->getValue()),
+							"qty_360"									=> trim($sheet->getCell('U'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('U'.$i)->getValue()),
+							"qty_over_360"								=> trim($sheet->getCell('V'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('V'.$i)->getValue()),
+							"qty_non_history"							=> trim($sheet->getCell('W'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('W'.$i)->getValue()),
+							"amt_onhand_1"								=> trim($sheet->getCell('X'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('X'.$i)->getValue()),
+							"amt_in_transit_1"							=> trim($sheet->getCell('Y'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('Y'.$i)->getValue()),
+							"amt_30_1"									=> trim($sheet->getCell('Z'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('Z'.$i)->getValue()),
+							"amt_60_1"									=> trim($sheet->getCell('AA'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('AA'.$i)->getValue()),
+							"amt_90_1"									=> trim($sheet->getCell('AB'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('AB'.$i)->getValue()),
+							"amt_120_1"									=> trim($sheet->getCell('AC'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('AC'.$i)->getValue()),
+							"amt_150_1"									=> trim($sheet->getCell('AD'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('AD'.$i)->getValue()),
+							"amt_180_1"									=> trim($sheet->getCell('AE'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('AE'.$i)->getValue()),
+							"amt_360_1"									=> trim($sheet->getCell('AF'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('AF'.$i)->getValue()),
+							"over_360_1"								=> trim($sheet->getCell('AG'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('AG'.$i)->getValue()),
+							"non_history_1"								=> trim($sheet->getCell('AH'.$i)->getValue()) == 0 ? "" : trim($sheet->getCell('AH'.$i)->getValue()),
+							"remark"									=> trim($sheet->getCell('AI'.$i)->getValue()),
 							"updated"									=> $updated,
 						];
 						
@@ -150,8 +157,6 @@ class Ngsi_inventory extends CI_Controller {
 				// Insertar cualquier dato restante en el lote
 				
 				if (!empty($batch_data)) {
-					//print_r($batch_data);
-					//print_r($batch_data); echo '<br>'; echo '<br>'; echo '<br>';
 					$this->gen_m->insert_m("ngsi_inventory", $batch_data);
 					$batch_data = [];
 					unset($batch_data);
@@ -162,8 +167,6 @@ class Ngsi_inventory extends CI_Controller {
 				$this->db->trans_complete();
 				return $msg;
 			}
-
-			// Recorrer las filas de datos (desde la fila de inicio de los valores)
 			
 		}
 

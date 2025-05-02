@@ -17,9 +17,121 @@ class Lgepr_most_likely extends CI_Controller {
 		
 		// $w = ["updated >=" => date("Y-m-d", strtotime("-3 months"))];
 		// $o = [["updated", "desc"], ["model_description", "asc"], ["model", "asc"]];
+		$month = $this->input->get("m");
+		if (!$month){
+			$month = "0000-00";
+			$last = $this->gen_m->filter("lgepr_most_likely", false, null, null, null, [["yyyy", "desc"], ["mm", "desc"]], 1, 0);
+			if ($last){
+				$last = $last[0];
+				$month = $last->yyyy."-".$last->mm;
+			}
+		}
+		
+		// Calculate sum
+		
+		//$vars_ml = $this->gen_m->filter('lgepr_most_likely', false, ['yyyy' => $last->yyyy, 'mm' => $last->mm]);
+		//echo "<pre>"; print_r($vars_ml); return;
+		$bp_acc = 0;
+		$target_acc = 0;
+		$monthly_report_acc = 0;
+		$ml_acc = 0;
+		$ml_actual_acc = 0;
+		
+		$subsidiary = ["LGEPR"];
+		$countries = ["PR", "UY", "PY"];
+		$coms = ["HS", "MS", "ES"];
+		$divs = [
+			"HS" => ["REF", "Cooking", "Dishwasher", "W/M"],
+			"MS" => ["LTV", "Audio", "MNT", "DS", "MNT Signage", "LED Signage", "Commercial TV", "PC"],
+			"ES" => ["RAC", "SAC", "Chiller"],
+			"MC" => ["MC"],
+		];
+		
+		$rows = [];
+		foreach($subsidiary as $sub){
+			$rows[$sub] = [
+				"desc" => $sub,
+				"bp" => 0,
+				"target" => 0,
+				"monthly_report" => 0,
+				"ml" => 0,
+				"ml_actual" => 0,
+			];
+			foreach($countries as $country){
+				//subsidiary ml timeline set
+				$rows[$sub."_".$country] = [
+					"desc" => $sub."_".$country,
+					"bp" => 0,
+					"target" => 0,
+					"monthly_report" => 0,
+					"ml" => 0,
+					"ml_actual" => 0,
+				];
+				
+				//company ml timeline set
+				foreach($coms as $com){
+					$rows[$sub."_".$country."_".$com] = [
+						"desc" => $sub."_".$country."_".$com,
+						"bp" => 0,
+						"target" => 0,
+						"monthly_report" => 0,
+						"ml" => 0,
+						"ml_actual" => 0,
+					];
+					
+					//division ml timeline set
+					$com_divs = $divs[$com];
+					foreach($com_divs as $div){
+						$rows[$sub."_".$country."_".$com."_".$div] = [
+							"desc" => $sub."_".$country."_".$com."_".$div,
+							"bp" => 0,
+							"target" => 0,
+							"monthly_report" => 0,
+							"ml" => 0,
+							"ml_actual" => 0,
+						];
+					}
+				}
+			}
+		}
+		
+		//ml values
+		$filter = explode("-", $month);
+		$mls = $this->gen_m->filter("lgepr_most_likely", false, ["yyyy" => $filter[0], "mm" => $filter[1]]);
+		foreach($mls as $item){
+			$k = "LGEPR";
+			$rows[$k]["bp"] += $item->bp;
+			$rows[$k]["target"] += $item->target;
+			$rows[$k]["monthly_report"] += $item->monthly_report;
+			$rows[$k]["ml"] += $item->ml;
+			$rows[$k]["ml_actual"] += $item->ml_actual;
+			
+			$k = "LGEPR"."_".$item->country;
+			$rows[$k]["bp"] += $item->bp;
+			$rows[$k]["target"] += $item->target;
+			$rows[$k]["monthly_report"] += $item->monthly_report;
+			$rows[$k]["ml"] += $item->ml;
+			$rows[$k]["ml_actual"] += $item->ml_actual;
+			
+			$k = "LGEPR"."_".$item->country."_".$item->company;
+			$rows[$k]["bp"] += $item->bp;
+			$rows[$k]["target"] += $item->target;
+			$rows[$k]["monthly_report"] += $item->monthly_report;
+			$rows[$k]["ml"] += $item->ml;
+			$rows[$k]["ml_actual"] += $item->ml_actual;
+			
+			$k = "LGEPR"."_".$item->country."_".$item->company."_".$item->division;
+			$rows[$k]["bp"] += $item->bp;
+			$rows[$k]["target"] += $item->target;
+			$rows[$k]["monthly_report"] += $item->monthly_report;
+			$rows[$k]["ml"] += $item->ml;
+			$rows[$k]["ml_actual"] += $item->ml_actual;
+		}
 		
 		$data = [
-			"ml"	=> $this->gen_m->filter("lgepr_most_likely", false, null, null, null, "", 100),
+			"month"		=> $month,
+			"rows"		=> $rows,
+			"ml"		=> $this->gen_m->filter("lgepr_most_likely", false, null, null, null, "", 100),
 			"main" 		=> "data_upload/lgepr_most_likely/index",
 		];
 		
@@ -27,28 +139,22 @@ class Lgepr_most_likely extends CI_Controller {
 	}
 	
 	public function date_convert_mm_dd_yyyy($date) {
-    // Intentamos convertir con la lógica del valor numérico (excel date)
 		if (is_numeric($date)) {
-			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
 			return $date->format('Y-m-d');
 		}
 
-		// Si no es un número, intentamos convertir con la lógica de fecha en formato mm/dd/yyyy
 		$aux = explode("/", $date);
 		if (count($aux) == 3) {
-			// Verificamos que la fecha esté en formato mm/dd/yyyy
 			return $aux[2]."-".$aux[0]."-".$aux[1]; // yyyy-mm-dd
 		}
-		
-		// Si la fecha no está en un formato esperado, devolvemos null
+
 		return null;
 	}
 
 	public function date_convert_dd_mm_yyyy($date) {
     // Intentamos convertir con la lógica del valor numérico (excel date)
 		if (is_numeric($date)) {
-			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
 			return $date->format('Y-m-d');
 		}
@@ -336,7 +442,6 @@ class Lgepr_most_likely extends CI_Controller {
 				}
 			}
 			
-			// Recorrer las filas de datos (desde la fila de inicio de los valores)
 			
 		}
 

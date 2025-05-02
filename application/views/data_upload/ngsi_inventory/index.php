@@ -28,6 +28,7 @@
 							<tr>
 								<th scope="col">Date</th>
 								<th scope="col">Division</th>
+								<th scope="col">Model</th>
 								<th scope="col">Inv. Org.</th>
 								<th scope="col">Sub Inv</th>
 								<th scope="col">Qty Onhand</th>
@@ -39,6 +40,7 @@
 							<tr>
 								<td><?= $item->date ?></td>
 								<td><?= $item->division ?></td>
+								<td><?= $item->model ?></td>
 								<td><?= $item->inv_org ?></td>
 								<td><?= $item->sub_inv ?></td>
 								<td><?= $item->qty_onhand ?></td>
@@ -86,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				document.body.removeChild(a);
 				},
 				error: function() {
-					swal("Error", "Hubo un problema al procesar el archivo.", "error");
+					swal("Error", "There was a problem processing the file.", "error");
 				}
 			});
 		});

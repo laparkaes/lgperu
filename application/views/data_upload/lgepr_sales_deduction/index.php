@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				document.body.removeChild(a);
 				},
 				error: function() {
-					swal("Error", "Hubo un problema al procesar el archivo.", "error");
+					swal("Error", "There was a problem processing the file.", "error");
 				}
 			});
 		});

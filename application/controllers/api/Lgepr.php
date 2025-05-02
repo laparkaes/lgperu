@@ -169,7 +169,7 @@ class Lgepr extends CI_Controller {
 	public function get_most_likely2(){
 		//llamasys/api/lgepr/get_most_likely2?key=lgepr
 		
-		$data_ml = $this->gen_m->filter("lgepr_ml", false);
+		$data_ml = $this->gen_m->filter("lgepr_most_likely", false);
 		
 		
 		if ($this->input->get("key") === "lgepr") {
@@ -263,7 +263,6 @@ class Lgepr extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode($res);
 	}
-
 	
 	public function get_NGSI(){
 		//llamasys/api/lgepr/get_NGSI?key=lgepr
@@ -299,6 +298,55 @@ class Lgepr extends CI_Controller {
 		
 		//if (!$res) $res = ["No this month ML data in database."];
 		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+	
+	public function get_Inventory_CBM(){
+    //llamasys/api/lgepr/get_Inventory_CBM?key=lgepr
+
+		if ($this->input->get("key") === "lgepr") {
+
+			$data = $this->gen_m->filter("lgepr_inv_cbm", false);
+			$res = [];
+
+			foreach($data as $item){
+				// Columnas base que se repetirán en cada día
+				$base_data = [
+					"company"      => $item->company,
+					"division"     => $item->division,
+					"model"         => $item->model,
+					"model_gross_cbm"   => $item->model_gross_cbm,
+					"inventory_org_code"=> $item->inventory_org_code,
+					"subinventory_code" => $item->subinventory_code,
+					"begining_qty"      => $item->begining_qty,
+				];
+
+				for ($day = 1; $day <= 31; $day++) {
+					$day_str = sprintf("%02d", $day); // Formatea el día a dos dígitos (01, 02, ..., 31)
+					$total_cbm_key = "total_cbm_day" . $day;
+					$balance_key = "balance_day" . $day;
+					$in_key = "in_day" . $day;
+					$out_key = "out_day" . $day;
+
+					// Verifica si existen los datos para el día actual
+					if (isset($item->$total_cbm_key) || isset($item->$balance_key) || isset($item->$in_key) || isset($item->$out_key)) {
+						$daily_data = [
+							"date"      => $item->period . "-" . $day_str, // yyyy-mm-dd
+						] + $base_data + [
+							"total_cbm" => $item->$total_cbm_key,
+							"balance"   => $item->$balance_key,
+							"in"        => $item->$in_key,
+							"out"       => $item->$out_key,
+						];
+						$res[] = $daily_data;
+					}
+				}
+			}
+		} else {
+			$res = ["Key error"];
+		}
+
 		header('Content-Type: application/json');
 		echo json_encode($res);
 	}
