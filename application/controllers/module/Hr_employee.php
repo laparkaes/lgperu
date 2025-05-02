@@ -93,6 +93,65 @@ class Hr_employee extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
+	public function create(){	
+		$schs = [
+			"07:00 ~ 17:00",
+			"07:30 ~ 16:30",
+			"07:30 ~ 17:30",
+			"08:00 ~ 18:00",
+			"08:30 ~ 18:30",
+			"09:00 ~ 19:00",
+			"09:30 ~ 19:30",
+		];
+		
+		$f = ["subsidiary", "organization", "department"];
+		$dpts = [];
+		$dpts_rec = $this->gen_m->only_multi("hr_employee", $f, ["department !=" => ""], $f);
+		foreach($dpts_rec as $item) $dpts[] = $item->subsidiary." > ".$item->organization." > ".$item->department;
+		sort($dpts);
+		
+		$data = [
+			"dpts" 		=> $dpts,
+			"schs"		=> $schs,
+			"main" 		=> "module/hr_employee/create",
+		];
+		
+		$this->load->view('layout', $data);
+	}
+	
+	public function save_create_data(){
+		
+		$sub_org_dpt = $this->input->post('dpt');
+		$aux = explode('>', $sub_org_dpt);
+		$data = array(
+			'subsidiary' 		=> trim($aux[0]),
+			'organization' 		=> trim($aux[1]),
+			'department'		=> trim($aux[2]),
+			'location' 			=> $this->input->post('location'),
+			'employee_number' 	=> $this->input->post('employee_number'),
+			'ep_mail' 			=> $this->input->post('ep_mail'),
+			'password' 			=> '$2y$10$OuF068yS5HokUgSY3Lw8YO1.mtiHfnNfAyFja7RgW.DT0yuXmYOQO',
+			'name' 				=> $this->input->post('name'),
+			'is_leader'			=> $this->input->post('')??0,
+			'is_supervised' 	=> $this->input->post('')??0,
+			'access' 			=> $this->input->post('')??0,
+			'working' 			=> $this->input->post('')??0,
+			'active' 			=> $this->input->post('active') ? true : false
+		);
+		$insert_id = $this->gen_m->insert("Hr_employee", $data);
+		
+		$last_id = $this->gen_m->filter_select("Hr_employee", false, 'employee_id', ['employee_number' => $this->input->post('employee_number')]);
+
+		header('Content-Type: application/json');
+        if ($insert_id) {
+            // Success		
+            echo json_encode(["type" => "success", "msg" => "Employee created successfully.", "url" => 'module/hr_employee/edit/'.$last_id[0]->employee_id]);
+        } else {
+            // Failure
+            echo json_encode(["type" => "error", "message" => "Failed to insert data.", "url" => ""]);
+        }
+	}
+	
 	public function save_data(){
 		$type = "error"; $msg = "";
 		

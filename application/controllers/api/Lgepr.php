@@ -302,7 +302,7 @@ class Lgepr extends CI_Controller {
 		echo json_encode($res);
 	}
 	
-	public function get_Inventory_CBM(){
+	public function get_inventory_CBM(){
     //llamasys/api/lgepr/get_Inventory_CBM?key=lgepr
 
 		if ($this->input->get("key") === "lgepr") {
@@ -313,13 +313,13 @@ class Lgepr extends CI_Controller {
 			foreach($data as $item){
 				// Columnas base que se repetirán en cada día
 				$base_data = [
-					"company"      => $item->company,
-					"division"     => $item->division,
-					"model"         => $item->model,
-					"model_gross_cbm"   => $item->model_gross_cbm,
-					"inventory_org_code"=> $item->inventory_org_code,
-					"subinventory_code" => $item->subinventory_code,
-					"begining_qty"      => $item->begining_qty,
+					"company"      			=> $item->company,
+					"division"     			=> $item->division,
+					"model"         		=> $item->model,
+					"model_gross_cbm"   	=> $item->model_gross_cbm,
+					"inventory_org_code"	=> $item->inventory_org_code,
+					"subinventory_code" 	=> $item->subinventory_code,
+					"begining_qty"      	=> $item->begining_qty,
 				];
 
 				for ($day = 1; $day <= 31; $day++) {
@@ -330,9 +330,10 @@ class Lgepr extends CI_Controller {
 					$out_key = "out_day" . $day;
 
 					// Verifica si existen los datos para el día actual
-					if (isset($item->$total_cbm_key) || isset($item->$balance_key) || isset($item->$in_key) || isset($item->$out_key)) {
+					if ($item->$total_cbm_key != 0 || $item->$balance_key != 0 || $item->$in_key != 0 || $item->$out_key != 0) {
+					//if (isset($item->$total_cbm_key) || isset($item->$balance_key) || isset($item->$in_key) || isset($item->$out_key)) {
 						$daily_data = [
-							"date"      => $item->period . "-" . $day_str, // yyyy-mm-dd
+							"date"      => $item->period . "-" . $day_str, // Asigna la fecha (año-mes-día)
 						] + $base_data + [
 							"total_cbm" => $item->$total_cbm_key,
 							"balance"   => $item->$balance_key,
@@ -341,6 +342,7 @@ class Lgepr extends CI_Controller {
 						];
 						$res[] = $daily_data;
 					}
+					else continue;
 				}
 			}
 		} else {
