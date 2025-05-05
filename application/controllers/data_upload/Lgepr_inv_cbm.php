@@ -59,64 +59,63 @@ class Lgepr_inv_cbm extends CI_Controller {
 		}
 		return $excelColumn;
 	}
-
+	
 	public function row_assigned($sheet, $i){
 		$updated = date("Y-m-d H:i:s");
 		$row = [];
-		
-			$company = trim($sheet->getCell('C'.$i)->getValue()) ?? null;
-			$division = trim($sheet->getCell('D'.$i)->getValue()) ?? null;
-			$model = trim($sheet->getCell('F'.$i)->getValue()) ?? null;
-			$model_gross_cbm = round(trim($sheet->getCell('G'.$i)->getValue()), 3) ?? null;
-			$inventory_org_code = trim($sheet->getCell('H'.$i)->getValue()) ?? null;
-			$subinventory_code = trim($sheet->getCell('I'.$i)->getValue()) ?? null;
-			$begining_qty = round(trim($sheet->getCell('J'.$i)->getValue()), 3) ?? null;
-			$printOnText = trim($sheet->getCell('B5')->getValue());
-			
-			// Utilizar una expresión regular para extraer el mes y el año
-			if (preg_match('/Print On: (\w+) (\d{1,2}) (\d{4})/', $printOnText, $matches)) {
-				$monthName = $matches[1];
-				$year = $matches[3];
 
-				// Convertir el nombre del mes a número
-				$monthNumber = date('n', strtotime($monthName));
+		$company = trim($sheet->getCell('C'.$i)->getValue()) ?? null;
+		$division = trim($sheet->getCell('D'.$i)->getValue()) ?? null;
+		$model = trim($sheet->getCell('F'.$i)->getValue()) ?? null;
+		$model_gross_cbm = round(trim($sheet->getCell('G'.$i)->getValue()), 3) ?? null;
+		$inventory_org_code = trim($sheet->getCell('H'.$i)->getValue()) ?? null;
+		$subinventory_code = trim($sheet->getCell('I'.$i)->getValue()) ?? null;
+		$begining_qty = round(trim($sheet->getCell('J'.$i)->getValue()), 3) ?? null;
+		$printOnText = trim($sheet->getCell('B5')->getValue());
+		if (preg_match('/Print On: (\w+) (\d{1,2}) (\d{4})/', $printOnText, $matches)) {
+			$monthName = $matches[1];
+			$year = $matches[3];
 
-				$periodValue = $year . "-" . sprintf("%02d", $monthNumber);
-			} else {
-				// Manejo de error si el formato del texto no coincide
-				$periodValue = null; // O algún valor por defecto
-				log_message('error', 'No se pudo extraer el mes y el año de la celda B6: ' . $printOnText);
-			}
-			
-			$row = [
-					"company"          			=> $company,
-					"division"         			=> $division,
-					"model"             		=> $model,
-					"model_gross_cbm"       	=> $model_gross_cbm,
-					"inventory_org_code"    	=> $inventory_org_code,
-					"subinventory_code"     	=> $subinventory_code,
-					"begining_qty"          	=> $begining_qty,
-					];
-					
-			for ($day = 1; $day <= 31; $day++) {
-				$colIndex = 11 + $day; // La columna L es la 12ª (índice 11 si empezamos desde 0)
-				$col = $this->getExcelColumnLetter($colIndex);
+			// Convertir el nombre del mes a número
+			$monthNumber = date('n', strtotime($monthName));
 
-				$row["total_cbm_day" . $day] = round(trim($sheet->getCell($col . ($i))->getValue()), 3) ?? null;
-				$row["balance_day" . $day] = round(trim($sheet->getCell($col . ($i + 1))->getValue()), 3) ?? null;
-				$row["in_day" . $day] = round(trim($sheet->getCell($col . ($i + 2))->getValue()), 3) ?? null;
-				$row["out_day" . $day] = round(trim($sheet->getCell($col . ($i + 3))->getValue()), 3) ?? null;
-				
-				// Aquí deberías llamar a tu función del modelo para insertar la $row en la base de datos
-				// $this->tu_modelo->insertar_inventario($row);				
-			//}
-			}
-			$row["period"] = $periodValue;
-			$row["updated"] = $updated;
+			$periodValue = $year . "-" . sprintf("%02d", $monthNumber);
+		} else {
+			// Manejo de error si el formato del texto no coincide
+			$periodValue = null;
+			log_message('error', 'No se pudo extraer el mes y el año de la celda B6: ' . $printOnText);
+		}
+
+		$row = [
+			"company"             => $company,
+			"division"            => $division,
+			"model"               => $model,
+			"model_gross_cbm"     => $model_gross_cbm,
+			"inventory_org_code"  => $inventory_org_code,
+			"subinventory_code"   => $subinventory_code,
+			"begining_qty"        => $begining_qty,
+		];
+
+		for ($day = 1; $day <= 31; $day++) {
+			$colIndex = 11 + $day; // La columna L es la 12ª (índice 11 si empezamos desde 0)
+			$col = $this->getExcelColumnLetter($colIndex);
+
+			$total_cbm_cell = $sheet->getCell($col . ($i))->getValue();
+			$balance_cell = $sheet->getCell($col . ($i + 1))->getValue();
+			$in_cell = $sheet->getCell($col . ($i + 2))->getValue();
+			$out_cell = $sheet->getCell($col . ($i + 3))->getValue();
+
+			$row["total_cbm_day" . $day] = (trim($total_cbm_cell) !== '') ? round(trim($total_cbm_cell), 3) : null;
+			$row["balance_day" . $day] = (trim($balance_cell) !== '') ? round(trim($balance_cell), 3) : null;
+			$row["in_day" . $day] = (trim($in_cell) !== '') ? round(trim($in_cell), 3) : null;
+			$row["out_day" . $day] = (trim($out_cell) !== '') ? round(trim($out_cell), 3) : null;
+		}
+		$row["period"] = $periodValue;
+		$row["updated"] = $updated;
 		//print_r($row);
 		return $row;
 	}
-	
+
 	public function process(){
 		set_time_limit(0);
 		ini_set("memory_limit", -1);
@@ -195,7 +194,6 @@ class Lgepr_inv_cbm extends CI_Controller {
 		//$this->db->trans_complete();
 		return $msg;
 	}
-
 
 	public function update(){
 		$type = "error"; $msg = "";

@@ -42,18 +42,18 @@
 						</thead>
 						<tbody>
 							<?php foreach($inv as $item){?>
-								<td class="text-end"><?= $item->period?></td>
-								<td class="text-end"><?= $item->company?></td>
-								<td class="text-end"><?= $item->division?></td>
-								<td class="text-end"><?= $item->model?></td>
-								<td class="text-end"><?= $item->model_gross_cbm?></td>
-								<td class="text-end"><?= $item->inventory_org_code?></td>
-								<td class="text-end"><?= $item->subinventory_code?></td>
-								<td class="text-end"><?= $item->begining_qty?></td>
-								<td class="text-end"><?= $item->total_cbm_day1?></td>
-								<td class="text-end"><?= $item->balance_day1?></td>
-								<td class="text-end"><?= $item->in_day1?></td>
-								<td class="text-end"><?= $item->out_day1?></td>
+								<td class="text-end text-center"><?= $item->period?></td>
+								<td class="text-end text-center"><?= $item->company?></td>
+								<td class="text-end text-center"><?= $item->division?></td>
+								<td class="text-end text-center"><?= $item->model?></td>
+								<td class="text-end text-center"><?= $item->model_gross_cbm?></td>
+								<td class="text-end text-center"><?= $item->inventory_org_code?></td>
+								<td class="text-end text-center"><?= $item->subinventory_code?></td>
+								<td class="text-end text-center"><?= $item->begining_qty?></td>
+								<td class="text-end text-center"><?= $item->total_cbm_day1?></td>
+								<td class="text-end text-center"><?= $item->balance_day1?></td>
+								<td class="text-end text-center"><?= $item->in_day1?></td>
+								<td class="text-end text-center"><?= $item->out_day1?></td>
 							</tr>
 							<?php } ?>
 						</tbody>

@@ -303,47 +303,159 @@ class Lgepr extends CI_Controller {
 	}
 	
 	public function get_inventory_CBM(){
-    //llamasys/api/lgepr/get_Inventory_CBM?key=lgepr
+		//llamasys/api/lgepr/get_inventory_CBM?key=lgepr
 
 		if ($this->input->get("key") === "lgepr") {
 
 			$data = $this->gen_m->filter("lgepr_inv_cbm", false);
 			$res = [];
+			$res_detailed = []; // Array para el resultado detallado por producto
+			$daily_totals = [];
+			$inventory_codes = ['N4M', 'N4S', 'N4J', 'N4D'];
+			$global_totals_last_day = [
+											'total_cbm' => 0,
+											'balance' 	=> 0,
+											'in'		=> 0,
+											'out'		=> 0,
+											'last_day' 	=> null,
+										];
 
+			// Inicializar el array de totales diarios por código
+			foreach ($inventory_codes as $code) {
+				$daily_totals[$code] = [];
+			}
+
+			// Función para procesar los días por métrica
+			$process_metric = function ($days_array) {
+				$processed = [];
+				$has_any_data = false;
+				$last_day = 0;
+
+				// Find the last day with any data
+				foreach (array_keys($days_array) as $day) {
+					$last_day = max($last_day, $day);
+					$has_any_data = true;
+				}
+
+				if ($has_any_data) {
+					for ($d = 1; $d <= $last_day; $d++) {
+						$day_str = sprintf("%02d", $d);
+						$processed[$day_str] = $days_array[$day_str] ?? 0;
+					}
+				}
+				return $processed;
+			};
+
+			// Procesamiento para el resultado detallado y acumulación de totales
 			foreach($data as $item){
-				// Columnas base que se repetirán en cada día
-				$base_data = [
-					"company"      			=> $item->company,
-					"division"     			=> $item->division,
-					"model"         		=> $item->model,
-					"model_gross_cbm"   	=> $item->model_gross_cbm,
-					"inventory_org_code"	=> $item->inventory_org_code,
-					"subinventory_code" 	=> $item->subinventory_code,
-					"begining_qty"      	=> $item->begining_qty,
-				];
+				$base_key = $item->company . "_" . $item->division . "_" . $item->model . "_" . $item->model_gross_cbm . "_" . $item->inventory_org_code . "_" . $item->subinventory_code . "_" . $item->begining_qty;
+
+				if (!isset($grouped_data[$base_key])) {
+					$grouped_data[$base_key] = [
+						"company"           => $item->company,
+						"division"          => $item->division,
+						"model"             => $item->model,
+						"modelGrossCBM"     => floatval($item->model_gross_cbm),
+						"inventoryOrgCode"  => $item->inventory_org_code,
+						"subinventory"      => $item->subinventory_code,
+						"qty"               => intval($item->begining_qty),
+						"total_cbm_days"    => [],
+						"balance_days"      => [],
+						"in_days"           => [],
+						"out_days"          => [],
+					];
+				}
 
 				for ($day = 1; $day <= 31; $day++) {
-					$day_str = sprintf("%02d", $day); // Formatea el día a dos dígitos (01, 02, ..., 31)
+					$day_str = sprintf("%02d", $day);
 					$total_cbm_key = "total_cbm_day" . $day;
 					$balance_key = "balance_day" . $day;
 					$in_key = "in_day" . $day;
 					$out_key = "out_day" . $day;
 
-					// Verifica si existen los datos para el día actual
-					if ($item->$total_cbm_key != 0 || $item->$balance_key != 0 || $item->$in_key != 0 || $item->$out_key != 0) {
-					//if (isset($item->$total_cbm_key) || isset($item->$balance_key) || isset($item->$in_key) || isset($item->$out_key)) {
-						$daily_data = [
-							"date"      => $item->period . "-" . $day_str, // Asigna la fecha (año-mes-día)
-						] + $base_data + [
-							"total_cbm" => $item->$total_cbm_key,
-							"balance"   => $item->$balance_key,
-							"in"        => $item->$in_key,
-							"out"       => $item->$out_key,
-						];
-						$res[] = $daily_data;
+					if (isset($item->$total_cbm_key)) {
+						$grouped_data[$base_key]["total_cbm_days"][$day_str] = floatval($item->$total_cbm_key);
+						if (in_array($item->inventory_org_code, $inventory_codes)) {
+							$daily_totals[$item->inventory_org_code][$day_str]['total_cbm'] = ($daily_totals[$item->inventory_org_code][$day_str]['total_cbm'] ?? 0) + floatval($item->$total_cbm_key);
+						}
 					}
-					else continue;
+					if (isset($item->$balance_key)) {
+						$grouped_data[$base_key]["balance_days"][$day_str] = floatval($item->$balance_key);
+						if (in_array($item->inventory_org_code, $inventory_codes)) {
+							$daily_totals[$item->inventory_org_code][$day_str]['balance'] = ($daily_totals[$item->inventory_org_code][$day_str]['balance'] ?? 0) + floatval($item->$balance_key);
+						}
+					}
+					if (isset($item->$in_key)) {
+						$grouped_data[$base_key]["in_days"][$day_str] = floatval($item->$in_key);
+						if (in_array($item->inventory_org_code, $inventory_codes)) {
+							$daily_totals[$item->inventory_org_code][$day_str]['in'] = ($daily_totals[$item->inventory_org_code][$day_str]['in'] ?? 0) + floatval($item->$in_key);
+						}
+					}
+					if (isset($item->$out_key)) {
+						$grouped_data[$base_key]["out_days"][$day_str] = floatval($item->$out_key);
+						if (in_array($item->inventory_org_code, $inventory_codes)) {
+							$daily_totals[$item->inventory_org_code][$day_str]['out'] = ($daily_totals[$item->inventory_org_code][$day_str]['out'] ?? 0) + floatval($item->$out_key);
+						}
+					}
 				}
+
+				$base_info = [
+					"company"           => $grouped_data[$base_key]["company"],
+					"division"          => $grouped_data[$base_key]["division"],
+					"model"             => $grouped_data[$base_key]["model"],
+					"modelGrossCBM"     => $grouped_data[$base_key]["modelGrossCBM"],
+					"inventoryOrgCode"  => $grouped_data[$base_key]["inventoryOrgCode"],
+					"subinventory"      => $grouped_data[$base_key]["subinventory"],
+					"qty"               => intval($item->begining_qty),
+				];
+
+				if (!empty($grouped_data[$base_key]["total_cbm_days"])) {
+					$res_detailed[] = $base_info + ["metric" => "total_cbm", "days" => $process_metric($grouped_data[$base_key]["total_cbm_days"])];
+				}
+				if (!empty($grouped_data[$base_key]["balance_days"])) {
+					$res_detailed[] = $base_info + ["metric" => "balance", "days" => $process_metric($grouped_data[$base_key]["balance_days"])];
+				}
+				if (!empty($grouped_data[$base_key]["in_days"])) {
+					$res_detailed[] = $base_info + ["metric" => "in", "days" => $process_metric($grouped_data[$base_key]["in_days"])];
+				}
+				if (!empty($grouped_data[$base_key]["out_days"])) {
+					$res_detailed[] = $base_info + ["metric" => "out", "days" => $process_metric($grouped_data[$base_key]["out_days"])];
+				}
+			}
+
+			$res = $res_detailed; 
+
+			$global_last_day = 0;
+			foreach ($inventory_codes as $code) {
+				$last_day = 0;
+				$last_day_data = [
+					'total_cbm' => 0,
+					'balance' => 0,
+					'in' => 0,
+					'out' => 0,
+				];
+
+				if (!empty($daily_totals[$code])) {
+					$days_with_data = array_keys($daily_totals[$code]);
+					$last_day = max($days_with_data);
+					$last_day_data = $daily_totals[$code][$last_day];
+
+					// Accumulate global totals for the last day of each code
+					$global_totals_last_day['total_cbm'] += $last_day_data['total_cbm'];
+					$global_totals_last_day['balance'] += $last_day_data['balance'];
+					$global_totals_last_day['in'] += $last_day_data['in'];
+					$global_totals_last_day['out'] += $last_day_data['out'];
+					$global_last_day = max($global_last_day, $last_day);
+				}
+
+				$res[] = [
+					'inventoryOrgCode' => $code,
+					'day' => $last_day ? sprintf("%02d", $last_day) : null,
+					'total_cbm' => $last_day_data['total_cbm'],
+					'balance' => $last_day_data['balance'],
+					'in' => $last_day_data['in'],
+					'out' => $last_day_data['out'],
+				];
 			}
 		} else {
 			$res = ["Key error"];
@@ -351,6 +463,7 @@ class Lgepr extends CI_Controller {
 
 		header('Content-Type: application/json');
 		echo json_encode($res);
+	
 	}
 	
 	public function get_monthly_closed_order(){
