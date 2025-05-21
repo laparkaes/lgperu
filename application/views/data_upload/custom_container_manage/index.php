@@ -93,7 +93,7 @@
 						<h5 class="card-title">Containers</h5>
 					</div>
 					<table class="table">
-						<thead>
+						<thead class="sticky-top" style="top:60px;">
 							<tr>
 								<th scope="col">SA</th>
 								<th scope="col">Carrier</th>
@@ -112,7 +112,7 @@
 						<tbody>
 							<?php foreach($containers as $item){ ?>
 							<tr>
-								<td><?= $item->sa_no ?>.<?= $item->sa_line_no ?></td>
+								<td><?= $item->sa_no ?>_<?= $item->sa_line_no ?></td>
 								<td><?= $item->carrier_line ?></td>
 								<td><?= $item->container ?></td>
 								<td><?= $item->organization ?></td>
