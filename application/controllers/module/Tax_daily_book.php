@@ -19,9 +19,21 @@ class Tax_daily_book extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 	}
 	
-	public function index(){		
+	public function index(){
+
+		$period = $this->gen_m->filter_select('tax_daily_book', false, 'period_name', null, null, null, [['period_name', 'desc']]);
+		
+		$uniquePeriods = [];
+
+		foreach ($period as $item) {
+			if (isset($item->period_name) && !in_array($item->period_name, $uniquePeriods)) {
+				$uniquePeriods[] = $item->period_name;
+			}
+		}
+
 		$data = [
-			"tax"	=> $this->gen_m->filter("tax_daily_book", false, null, null, null, null, 1000),
+			"period" 	=> $uniquePeriods,
+			"tax"		=> $this->gen_m->filter("tax_daily_book", false, null, null, null, null, 1000),
 			"main" 		=> "module/tax_daily_book/index",
 		];
 		
@@ -709,7 +721,7 @@ class Tax_daily_book extends CI_Controller {
 		
 	}
 	
-	public function number_document($from_date, $to_date) {
+	public function number_document_v1($from_date, $to_date) {
 		set_time_limit(0);
 		ini_set("memory_limit", -1);
 		// Función para limpiar números (deja solo dígitos)
@@ -723,6 +735,110 @@ class Tax_daily_book extends CI_Controller {
 					AND accounting_unit NOT LIKE 'EPG'
 					AND accounting_unit NOT LIKE 'INT'
 					AND effective_date BETWEEN '$from_date' AND '$to_date'";
+
+		// Obtener vendor_customer y je_id en una sola consulta
+		$vendor_data = $this->gen_m->filter_select("tax_daily_book", false, ['vendor_customer', 'je_id'], $w_daily);
+
+		if (empty($vendor_data)) {
+			return [];
+		}
+		$vendor_chars = [];
+		// Extraer valores únicos de vendor_customer según la condición
+		$vendor_chars = ['numbers' => [], 'letters' => [], 'pe' => []];
+		foreach ($vendor_data as $v) {
+			$vc = $v->vendor_customer;
+			
+
+			if (ctype_digit(substr($vc, 0, 1))) {
+				//$vendor_chars['numbers'][] = strtok($vc, ' '); // Extraer hasta el primer espacio
+				$cleaned_number =  clean_number(strtok($vc, ' '));  // Elimina todo excepto dígitos
+				$vendor_chars['numbers'][] = $cleaned_number; 
+				//print_r($cleaned_number); echo '<br>';
+			} elseif (stripos($vc, 'PE') === 0) {
+				$vendor_chars['pe'][] = substr($vc, 0, 8); // Extraer primeros 8 caracteres
+				
+			} else {
+				$vendor_chars['letters'][] = substr($vc, 0, 8); // Extraer primeros 8 caracteres
+			}
+		}
+		//print_r($vendor_chars['pe']); echo '<br>'; return;
+		// Remover duplicados
+		$vendor_chars['numbers'] = array_unique($vendor_chars['numbers']);
+		$vendor_chars['letters'] = array_unique($vendor_chars['letters']);
+		$vendor_chars['pe'] = array_unique($vendor_chars['pe']);
+
+		// Consultar en ar_mdms para valores que comienzan con letra (excepto PE)
+		$biz_map = [];
+		if (!empty($vendor_chars['letters'])) {
+			$w_letters = "master_id IN ('" . implode("','", $vendor_chars['letters']) . "') 
+						  OR bp_code IN ('" . implode("','", $vendor_chars['letters']) . "')";
+			
+			$biz_numbers_letters = $this->gen_m->filter_select("ar_mdms", false, ['master_id', 'bp_code']);
+			foreach ($biz_numbers_letters as $biz) {
+				$key = $biz->master_id ?: $biz->bp_code;
+				$biz_map[$key] = true; // Solo se usa para verificar existencia
+			}
+		}
+
+		// Consultar en ar_mdms para valores que comienzan con número
+		$biz_numbers_map = [];
+		if (!empty($vendor_chars['numbers'])) {
+			$clean_numbers = array_map('clean_number', $vendor_chars['numbers']); // Limpiar todos los números
+			$w_numbers = "biz_registration_no IN ('" . implode("','", $clean_numbers) . "')";
+			//$w_numbers = "biz_registration_no IN ('" . implode("','", $vendor_chars['numbers']) . "')";
+			$biz_numbers_numbers = $this->gen_m->filter_select("ar_mdms", false, ['biz_registration_no']);
+			$biz_numbers_map = array_column($biz_numbers_numbers, 'biz_registration_no', 'biz_registration_no');
+		}
+
+		// Consultar en ar_mdms para valores que comienzan con "PE"
+		$biz_pe_map = [];
+		if (!empty($vendor_chars['pe'])) {
+			$w_pe = "master_id IN ('" . implode("','", $vendor_chars['pe']) . "') 
+					OR bp_code IN ('" . implode("','", $vendor_chars['pe']) . "')";
+						  
+			$biz_pe_numbers = $this->gen_m->filter_select("ar_mdms", false, ['master_id', 'bp_code', 'biz_registration_no'], $w_pe);
+			//$w_pe = "biz_registration_no IN ('" . implode("','", $vendor_chars['pe']) . "')";
+			//$biz_pe_numbers = $this->gen_m->filter_select("ar_mdms", false, ['biz_registration_no']);
+			foreach ($biz_pe_numbers as $biz) {
+				$key = $biz->master_id ?: $biz->bp_code;
+				$biz_map[$key] = !empty($biz->biz_registration_no) ? substr($biz->biz_registration_no, 0, 11) : "Pendiente"; // Solo se usa para verificar existencia
+			}
+			//$biz_pe_map = array_column($biz_pe_numbers, 'biz_registration_no', 'biz_registration_no');
+		}
+
+		// Construir el array final con los datos optimizados
+		return array_map(function ($vendor) use ($biz_map, $biz_numbers_map) {
+			$vc = $vendor->vendor_customer;
+
+			if (ctype_digit(substr($vc, 0, 1))) {
+				$vendor_char = clean_number(strtok($vc, ' ')); // Extraer hasta el primer espacio
+				$ci_value = $biz_numbers_map[$vendor_char] ?? "00000000000"; // Buscar en biz_registration_no
+			} elseif (stripos($vc, 'PE') === 0) {
+				$vendor_char = substr($vc, 0, 8);
+				$ci_value = $biz_map[$vendor_char] ?? "00000000000"; // Si PE existe en ar_mdms, usarlo, si no, "00000000"
+			} else {
+				$vendor_char = substr($vc, 0, 8);
+				$ci_value = isset($biz_map[$vendor_char]) ? $vendor_char : "00000000000"; // Si existe en ar_mdms, usar el extraído
+			}
+
+			return [$vendor->je_id, $ci_value, $vendor_char];
+		}, $vendor_data);
+	}
+	
+	public function number_document($period) {
+		set_time_limit(0);
+		ini_set("memory_limit", -1);
+		// Función para limpiar números (deja solo dígitos)
+		function clean_number($number) {
+			return preg_replace('/\D/', '', $number); // Elimina todo excepto dígitos
+		}
+
+		// Condición filtrando registros válidos
+		$w_daily = "vendor_customer NOT LIKE 'PR%' 
+					AND vendor_customer NOT LIKE 'GCC%'
+					AND accounting_unit NOT LIKE 'EPG'
+					AND accounting_unit NOT LIKE 'INT'
+					AND period_name LIKE '$period'";
 
 		// Obtener vendor_customer y je_id en una sola consulta
 		$vendor_data = $this->gen_m->filter_select("tax_daily_book", false, ['vendor_customer', 'je_id'], $w_daily);
@@ -862,12 +978,11 @@ class Tax_daily_book extends CI_Controller {
 		}
  
 		else {
-			$batchSpecialData = ["CI" . $row_num, $vendor_char_map[$row->je_id] ?? "00000000000"];
-						
+			$batchSpecialData = ["CI" . $row_num, $vendor_char_map[$row->je_id] ?? "00000000000"];						
 		}				
-		if($row->type_voucher === '00' && $row->serie_voucher === '0000' && $row->number_voucher === '00000000'){
-			$batchSpecialData = ["CI" . $row_num, '00000000000'];
-		}
+		// if($row->type_voucher === '00' && $row->serie_voucher === '0000' && $row->number_voucher === '00000000'){
+			// $batchSpecialData = ["CI" . $row_num, '00000000000'];
+		// }
 		// Aplicar estilo condicional para la celda "Pendiente"
 		if(strpos($batchSpecialData[1], 'M') === 0){
 			$batchSpecialData = ["CI" . $row_num, "Pendiente"];
@@ -900,17 +1015,24 @@ class Tax_daily_book extends CI_Controller {
 		
 		// **3. Obtener datos de entrada**
 		$dataStart = microtime(true);
-		$from_date = $this->input->post('effective_from');
-		$to_date = $this->input->post('effective_to');
-		if (!$from_date || !$to_date) {
-			echo "Error: Fechas no proporcionadas";
+		//$from_date = $this->input->post('effective_from');
+		//$to_date = $this->input->post('effective_to');
+		$period = $this->input->post('period');
+		// if (!$from_date || !$to_date) {
+			// echo "Error: Fechas no proporcionadas";
+			// return;
+		// }
+		
+		if (!$period) {
+			echo "Error: Periodo no proporcionado";
 			return;
 		}
-
-		$where = [
-			'effective_date >=' => $from_date,
-			'effective_date <=' => $to_date
-		];
+		
+		$where = ['period_name' => $period];
+		// $where = [
+			// 'effective_date >=' => $from_date,
+			// 'effective_date <=' => $to_date
+		// ];
 	
 		// $where = 
 			// "'effective_date' BETWEEN {$from_date} AND {$to_date}
@@ -936,7 +1058,8 @@ class Tax_daily_book extends CI_Controller {
 		
 		
 		$vendor_char_map = [];
-		foreach ($this->number_document($from_date, $to_date) as $biz) {
+		foreach ($this->number_document($period) as $biz) {
+		//foreach ($this->number_document($from_date, $to_date) as $biz) {
 			$vendor_char_map[$biz[0]] = $biz[1]; // [je_id] => vendor_char extraído
 		}
 		
@@ -1092,7 +1215,7 @@ class Tax_daily_book extends CI_Controller {
 				// Rellenado de columna CU
 				$batchSpecialData[] = ["CU" . $row_num, 1];	
 				
-				// Columnas CW y CX
+				// Columnas CW, CX y CZ
 				if (strpos($batchSpecialData_pcge, '10') === 0){
 					
 					if(!empty($row->bank_name)){
@@ -1143,7 +1266,7 @@ class Tax_daily_book extends CI_Controller {
 						}
 					}
 					
-					//Rellenado de columna DY
+					//Rellenado de columna CY
 					if(!empty($banks_account_code[$bank_name])){
 						$batchSpecialData[] = ["CY" . $row_num, '003' ?? ""];
 					}
@@ -1298,6 +1421,7 @@ class Tax_daily_book extends CI_Controller {
 			$query->free_result();
 		}
 	}
+	
 	public function export_to_excel() {
 		
 		// Llamamos a la función que genera el archivo Excel

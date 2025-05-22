@@ -102,14 +102,15 @@
 						// }else $aux[] = $now["last_access"]["remark"];
 						
 						
-						$mRemarks = ["MV", "MB", "MBT", "MCO", "MCMP", "MHO", "MT"];
+						$mRemarks = ["MV", "MB", "MBT", "MCO", "MCMP", "MHO", "MT", "NEF"];
 						$aRemarks = ["AV", "AB", "ABT", "ACO", "ACMP", "AHO", "AT"];
 						if ($now["first_access"]["time"]){
 							if (in_array($now["first_access"]["remark"], $mRemarks)) $aux[] = $now["first_access"]["remark"];
 							
 							switch($now["first_access"]["remark"]){
 								case "T": $color = "danger"; break;
-								case "TT": $color = "success"; break;
+								//case "TT": $color = "success"; break;
+								case "NEF": $color = "danger"; break;
 								default: $color = "";
 							}
 							
@@ -184,6 +185,8 @@
 							<tr><td>AHO</td><td>Afternoon Home Office</td></tr>
 							<tr><td>MT</td><td>Morning Topic</td></tr>
 							<tr><td>AT</td><td>Afternoon Topic</td></tr>
+							<tr><td>J</td><td>Justified</td></tr>
+							<tr><td>NEF</td><td>No Early Friday</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -240,4 +243,3 @@ document.addEventListener("DOMContentLoaded", () => {
 	
 });
 </script>
-

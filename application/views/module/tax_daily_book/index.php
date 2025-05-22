@@ -18,7 +18,7 @@
         <div class="card-body">
           <h5 class="card-title text-center">Upload Daily Book</h5>
 		  
-		  <form class="row g-3" id="form_tax_update" href="<?= base_url() ?>" enctype="multipart/form-data">
+		    <form class="row g-3" id="form_tax_update" href="<?= base_url() ?>" enctype="multipart/form-data">
                 <div class="col-md-12">
                   <label class="form-label">Select File</label>
                   <input class="form-control" type="file" name="attach">
@@ -29,40 +29,72 @@
 					<i class="bi bi-upload"></i> Upload
 				  </button>
                 </div>
-              </form>	
+            </form>	
         </div>
       </div>
 	  </div>
 	  <div class="col-md-6">
 
       <!-- Formulario para Exportar Reporte Excel -->
-      <div class="card">
-        <div class="card-body">
-			<h5 class="card-title text-center">Export Daily Book</h5>		  
-		  <form class="row g-3" id="export_report_form" action="<?= base_url('module/tax_daily_book/export_to_excel')?>" method="POST">
-                <div class="col-md-6">
-                  <label class="form-label">From</label>
-                  <input type="date" class="form-control" id="effective_from" name="effective_from" required>
-                </div>
-                
-				<div class="col-md-6">
-                  <label class="form-label">To</label>
-                  <input type="date" class="form-control" id="effective_to" name="effective_to" required>
-                </div>
+		
+		<div class="card">
+			<div class="card-body">
+				<h5 class="card-title text-center">Export Daily Book</h5>
 				
-                <div class="text-center pt-3">
-                  <button type="submit" class="btn btn-primary">
-					<i class="bi bi-file-earmark-arrow-down"></i> Export				
-				  </button>
-                </div>
-              </form>
+				<form class="row g-3 justify-content-center" id="export_report_form" action="<?= base_url('module/tax_daily_book/export_to_excel')?>" method="POST">
+					<div class="col-md-12">
+						<label for="period" class="form-label">Period</label>
+						<select class="form-select flex-grow-1" id="period" name="period" required>
+							<option value="">Choose period...</option>
+							<?php foreach ($period as $periodName) { ?>
+								<option value="<?php echo htmlspecialchars($periodName); ?>"><?php echo htmlspecialchars($periodName); ?></option>
+							<?php } ?>
+						</select>
+						<!-- <div class="form-text">Select the period to export.</div> -->
+					</div>
 
-
-
+					<div class="text-center pt-3">
+						<button type="submit" class="btn btn-primary">
+							<i class="bi bi-file-earmark-arrow-down me-2"></i> Export
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+		<!--<div class="card">
+			<div class="card-body">
+				<h5 class="card-title text-center">Export Daily Book</h5>		  
+				<form class="row g-3" id="export_report_form" action="<?= base_url('module/tax_daily_book/export_to_excel')?>" method="POST">
 			  
-        </div>
-      </div>
-    </div>
+					<div class="col-md-6">
+						<select id="period" name="period" required>
+							<option value="">Choose period...</option>
+							<?php foreach ($period as $periodName) { ?>
+								<option value="<?php echo htmlspecialchars($periodName); ?>"><?php echo htmlspecialchars($periodName); ?></option>
+							<?php } ?>
+						</select>
+					</div>
+					<!--<div class="col-md-6">
+					  <label class="form-label">From</label>
+					  <input type="date" class="form-control" id="effective_from" name="effective_from" required>
+					</div>
+					
+					<div class="col-md-6">
+					  <label class="form-label">To</label>
+					  <input type="date" class="form-control" id="effective_to" name="effective_to" required>
+					</div>-->
+					
+					<!--<div class="text-center pt-3">
+					  <button type="submit" class="btn btn-primary">
+						<i class="bi bi-file-earmark-arrow-down"></i> Export				
+					  </button>
+					</div>
+				</form>			  
+			</div>-->
+		</div>
+		
+       
+	  </div>
   </div>
   
   <table class="table datatable">

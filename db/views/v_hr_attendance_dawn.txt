@@ -1,15 +1,30 @@
 CREATE VIEW v_hr_attendance_dawn AS
-SELECT 
-    pr,
-    access,
-    MAX(attendance_id) AS attendance_id,
-    MAX(name) AS name
-FROM 
-    hr_attendance
-WHERE 
-    TIME(access) BETWEEN '00:00:01' AND '03:59:59'
-GROUP BY 
-    pr, 
-    DATE(access)
-ORDER BY 
-    access DESC;
+SELECT
+    `subquery`.`attendance_id` AS `attendance_id`,
+    `subquery`.`pr` AS `pr`,
+    `subquery`.`name` AS `name`,
+    `subquery`.`access` AS `access`
+FROM
+    (
+    SELECT
+        `llamasys`.`hr_attendance`.`attendance_id` AS `attendance_id`,
+        `llamasys`.`hr_attendance`.`pr` AS `pr`,
+        `llamasys`.`hr_attendance`.`name` AS `name`,
+        `llamasys`.`hr_attendance`.`access` AS `access`,
+        row_number() OVER(
+        PARTITION BY `llamasys`.`hr_attendance`.`pr`,
+        CAST(
+            `llamasys`.`hr_attendance`.`access` AS DATE
+        )
+    ORDER BY
+        `llamasys`.`hr_attendance`.`access`
+    DESC
+    ) AS `rn`
+FROM
+    `llamasys`.`hr_attendance`
+WHERE
+    CAST(
+        `llamasys`.`hr_attendance`.`access` AS TIME
+    ) BETWEEN '00:00:01' AND '03:59:59') `subquery`
+    WHERE
+        `subquery`.`rn` = 1
