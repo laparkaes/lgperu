@@ -51,7 +51,7 @@
 		<div class="col-md-3">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">SA Inquiry</h5>
+					<h5 class="card-title">SA Inquiry (ETA Update)</h5>
 					<form id="form_sa_inquiry">
 						<div class="input-group">
 							<input class="form-control" type="file" name="attach">
@@ -69,7 +69,7 @@
 		<div class="col-md-3">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">3PL Container dates</h5>
+					<h5 class="card-title">3PL Container dates (ATA Update)</h5>
 					<form id="form_custom_container_dates">
 						<div class="input-group">
 							<input class="form-control" type="file" name="attach">

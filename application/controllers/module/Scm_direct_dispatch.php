@@ -49,11 +49,58 @@ class Scm_direct_dispatch extends CI_Controller {
 		}
 		
 		//load all sales orders to evalulate direct dispatch from port to customer
-		$sales_orders = $this->gen_m->all("lgepr_sales_order", [["booked_date", "asc"], ["order_no", "asc"], ["line_no", "asc"]], null, null, false);
+		$sales_orders = $this->gen_m->all("lgepr_sales_order", [["booked_date", "desc"], ["order_no", "asc"], ["line_no", "asc"]], null, null, false);
 		foreach($sales_orders as $so){
 			//print_r($so);
-			echo $so->order_no." _ ".$so->line_no." _ ".$so->dash_company." _ ".$so->dash_division." _ ".$so->model." _ ".$so->ordered_qty." _ ".$so->ship_to_name." _ ".$so->booked_date." _ ".$so->req_arrival_date_to;
-			echo "<br/><br/>";
+			
+			if ((!in_array($so->ship_to_name, ["B2E", "B2C"]))){
+				
+				
+				$aux_ctns = $no_ctns = [];
+				$containers = []; if (array_key_exists($so->model, $model_containers)) $containers = $model_containers[$so->model];
+				foreach($containers as $ctn){
+					if ($so->ordered_qty >= $ctn["qty"]){
+						$aux_ctns[] = $ctn;
+						
+						/*
+						print_r($ctn);
+						echo "<br/>";
+						
+						foreach($containers_model[$ctn['container']] as $ctn_models){
+							echo "---- ";
+							print_r($ctn_models);
+							echo "<br/>";
+						}
+						*/	
+					}else $no_ctns[] = $ctn;
+					
+				}
+				
+				if ($aux_ctns){
+					echo $so->order_no." _ ".$so->line_no." _ ".$so->dash_company." _ ".$so->dash_division." _ ".$so->model." _ ".$so->ordered_qty." _ ".$so->ship_to_name." _ ".$so->booked_date." _ ".$so->req_arrival_date_to;
+					echo "<br/>";
+					
+					echo "<br/>Posible ctn =======================<br/>";
+					foreach($aux_ctns as $ctn){
+						print_r($ctn);
+						echo "<br/>";
+					}
+					echo "==============================<br/>";
+					
+					if ($no_ctns){
+						echo "<br/>No ctn =======================<br/>";
+						foreach($no_ctns as $ctn){
+							print_r($ctn);
+							echo "<br/>";
+						}
+						echo "==============================<br/>";
+					}
+					
+					echo "<br/><br/>";
+				}
+				
+				
+			}
 		}
 		
 		
