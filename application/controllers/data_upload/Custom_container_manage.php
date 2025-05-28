@@ -234,20 +234,23 @@ class Custom_container_manage extends CI_Controller {
 					$received = explode(" ", trim($sheet->getCell('B'.$i)->getValue()));
 					$received[0] = $this->my_func->date_convert($received[0]);//dd/mm/yyyy > yyyy-mm-dd
 					
-					//set status as received
-					$row["is_received"] = true;
-					
-					$container = $this->gen_m->filter("custom_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
-					if ($container){//update
-						if (!$container[0]->picked_up) $row["picked_up"] = $received[0];
-						$row["wh_arrival"] = $received[0];//wh_arrival always is received date
+					//get transfer flag
+					$transfer_flag = trim($sheet->getCell('A'.$i)->getCalculatedValue());
+					if ($transfer_flag === "Y"){
+						$row["is_received"] = true;
 						
-						$this->gen_m->update("custom_container", ["container_id" => $container[0]->container_id], $row);
-					}else{//insert
-						$row["picked_up"] = $received[0];
-						$row["wh_arrival"] = $received[0];
-						
-						$this->gen_m->insert("custom_container", $row); 
+						$container = $this->gen_m->filter("custom_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
+						if ($container){//update
+							if (!$container[0]->picked_up) $row["picked_up"] = $received[0];
+							$row["wh_arrival"] = $received[0];//wh_arrival always is received date
+							
+							$this->gen_m->update("custom_container", ["container_id" => $container[0]->container_id], $row);
+						}else{//insert
+							$row["picked_up"] = $received[0];
+							$row["wh_arrival"] = $received[0];
+							
+							$this->gen_m->insert("custom_container", $row);
+						}	
 					}
 				}else $this->gen_m->delete("custom_container", ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
 			}
