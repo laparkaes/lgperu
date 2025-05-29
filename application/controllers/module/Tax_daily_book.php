@@ -689,15 +689,10 @@ class Tax_daily_book extends CI_Controller {
 		$existing_je_ids_result = $this->gen_m->filter_select('tax_daily_book', false, 'je_id', ['period_name' => $batch_data[0]['period_name']]);
 		$existing_je_ids = array_column($existing_je_ids_result, 'je_id');
 		
-		//print_r($existing_je_ids); echo '<br>'; echo '<br>'; return;
-		
-
-		
 		foreach($batch_data as $index=>$row){
 			
 			//Validacion je_id
 			if (!in_array($row['je_id'], $existing_je_ids)) {
-			//if (!($this->gen_m->filter('tax_daily_book', false, ['je_id' => $row['je_id']]))) {
 				
 				$row_modified = $this->performCalculations($row);
 				//je_id NULL
@@ -996,7 +991,6 @@ class Tax_daily_book extends CI_Controller {
 		return $batchSpecialData;
 	}
 
-	
 	public function generate_excel() {
 		ini_set('memory_limit', -1);
 		set_time_limit(0);
@@ -1015,8 +1009,9 @@ class Tax_daily_book extends CI_Controller {
 		
 		// **3. Obtener datos de entrada**
 		$dataStart = microtime(true);
-		//$from_date = $this->input->post('effective_from');
-		//$to_date = $this->input->post('effective_to');
+		// $from_date = $this->input->post('effective_from');
+		// $to_date = $this->input->post('effective_to');
+		
 		$period = $this->input->post('period');
 		// if (!$from_date || !$to_date) {
 			// echo "Error: Fechas no proporcionadas";
@@ -1029,16 +1024,11 @@ class Tax_daily_book extends CI_Controller {
 		}
 		
 		$where = ['period_name' => $period];
-		// $where = [
-			// 'effective_date >=' => $from_date,
-			// 'effective_date <=' => $to_date
-		// ];
+		 // $where = [
+			 // 'effective_date >=' => $from_date,
+			 // 'effective_date <=' => $to_date
+		 // ];
 	
-		// $where = 
-			// "'effective_date' BETWEEN {$from_date} AND {$to_date}
-			// AND 'accounting_unit' NOT LIKE 'EPG'
-			// AND 'accounting_unit' NOT LIKE 'INT'"
-		// ;
 		
 		$dataEnd = microtime(true);
 		 
@@ -1059,7 +1049,7 @@ class Tax_daily_book extends CI_Controller {
 		
 		$vendor_char_map = [];
 		foreach ($this->number_document($period) as $biz) {
-		//foreach ($this->number_document($from_date, $to_date) as $biz) {
+		// foreach ($this->number_document($from_date, $to_date) as $biz) {
 			$vendor_char_map[$biz[0]] = $biz[1]; // [je_id] => vendor_char extraído
 		}
 		
@@ -1067,7 +1057,7 @@ class Tax_daily_book extends CI_Controller {
 		$banks_account = ['PEN' =>['SCOTIA'=>'000-0099058', 'BCP'=>'193-1705267-0-18', 'CITI'=>'000-2898004', 'INTER'=>'200-3006258334', 'BBVA'=>'0011-0910-0100073657-77', 'NACION'=>'00-005-177405'], 
 		'USD'=>['SCOTIA'=>'01-283-103-0288-25', 'BCP'=>'193-1020580-1-98', 'CITI'=>'000-2898136', 'INTER'=>'200-3006258376', 'BBVA'=>'0011-0910-0100060709-71']];
 		
-		$banks_account_code = ['SCOTIA'=>'09', 'BCP'=>'02', 'CITI'=>'07', 'INTER'=>'03', 'BBVA'=>'02', 'NACION'=>'18'];
+		$banks_account_code = ['SCOTIA'=>'09', 'BCP'=>'02', 'CITI'=>'07', 'INTER'=>'03', 'BBVA'=>'11', 'NACION'=>'18'];
 		// Obtener los valores de number_document (solo una vez)
 		$biz_map = [];
 
@@ -1256,9 +1246,13 @@ class Tax_daily_book extends CI_Controller {
 						}
 					}
 					
-					//Rellando de columna DA
+					//Rellenado de columna DA
 					if (isset($bank_code_map[$row->effective_date])) {
 						foreach($bank_code_map[$row->effective_date] as $item_date){
+							if($bank_name === 'SCOTIA'){
+								$bank_name = 'SCB';
+							}
+						
 							if($bank_name ===  $item_date['bank_name'] && $row->net_entered_debit == $item_date['total_amount']){
 								$batchSpecialData[] = ["DA" . $row_num, $item_date['number_operation'] ?? ""];
 								break;
@@ -1379,24 +1373,6 @@ class Tax_daily_book extends CI_Controller {
 		// $this->db->select('*')->from($table)->where($where);
 		// $query = $this->db->get();
 		$columns = ["legal_entity", "period_name","effective_date", "posted_date", "accounting_unit", "department", "department_name","account", "account_name","project", "affiliate", "temporary1", "temporary2", "currency", "net_entered_debit", "entered_debit", "entered_credit","net_accounted_debit","accounted_debit","accounted_credit","description_ar_comments","journal_source","journal_category","gl_batch_name","gl_journal_name","gl_document_seq_number","ap_ar_source","line_type","ap_ar_batch_name","invoice_number","transaction_number","transaction_date","check_number","receipt_number","vendor_customer","bank_name","bank_account_number","business_number","tax_payer_id","subledger_document_seq_number","tax_date","tax_code","tax_rate","created_by","create_user_name","dff_context","dff1","dff2","dff3","dff4","dff5","dff6","dff7","dff8","dff9","dff10","dff11","dff12","dff13","dff14","dff15","dff16","dff17","dff18","dff19","dff20","lease_no","asset_number","org_id","link_id","je_header_id","je_line_number","je_id","type_voucher","serie_voucher","number_voucher"];
-		
-		// while (true) {
-			// $query = $this->db->select($columns)
-							  // ->from($table)
-							  // ->limit($batchSize, $offset)
-							  // ->where($where)
-							  // ->order_by('effective_date', 'ASC')
-							  // ->get();
-			
-			// if ($query->num_rows() === 0) {
-				// break;
-			// }
-
-			// yield from array_map(fn($row) => $row, $query->result());
-
-			// $offset += $batchSize;
-			// $query->free_result();
-		// }
 
 		while (true) {
 			$query = $this->db->select($columns)
