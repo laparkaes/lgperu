@@ -21,6 +21,9 @@ class Scm_direct_dispatch extends CI_Controller {
 		$w = ["eta >=" => date("Y-m-01"), "eta <=" => date("Y-m-t")];
 		$containers = $this->gen_m->filter("custom_container", false, $w, null, null, [["eta", "asc"], ["sa_no", "asc"], ["sa_line_no", "asc"]]);
 		foreach($containers as $ctn){
+			
+			$appointment = date("Y-m-d", strtotime(($ctn->ata ? $ctn->ata : $ctn->eta)." +3 days"));
+			
 			//insert model to container
 			if (!array_key_exists($ctn->container, $containers_model)) $containers_model[$ctn->container] = [];
 			
@@ -29,7 +32,7 @@ class Scm_direct_dispatch extends CI_Controller {
 				"container" 	=> $ctn->container,
 				"eta" 			=> $ctn->eta,
 				"ata" 			=> $ctn->ata,
-				"ref_date"		=> $ctn->ata ? $ctn->ata : $ctn->eta,
+				"appointment"	=> $appointment,
 				"model" 		=> $ctn->model,
 				"qty" 			=> $ctn->qty,
 			];
@@ -42,7 +45,7 @@ class Scm_direct_dispatch extends CI_Controller {
 				"container" 	=> $ctn->container,
 				"eta" 			=> $ctn->eta,
 				"ata" 			=> $ctn->ata,
-				"ref_date"		=> $ctn->ata ? $ctn->ata : $ctn->eta,
+				"appointment"	=> $appointment,
 				"model" 		=> $ctn->model,
 				"qty" 			=> $ctn->qty,
 			];
@@ -63,7 +66,7 @@ class Scm_direct_dispatch extends CI_Controller {
 				foreach($containers as $ctn){
 					
 					if (($so->ordered_qty < $ctn["qty"]) or ($so->ordered_qty % $ctn["qty"] != 0)) $missmatch_qty[] = $ctn;
-					elseif ((strtotime($so->booked_date) > strtotime($ctn["ref_date"])) or (strtotime($so->req_arrival_date_to) < strtotime($ctn["ref_date"]))) $out_date[] = $ctn;
+					elseif ((strtotime($so->booked_date) > strtotime($ctn["appointment"])) or (strtotime($so->req_arrival_date_to) < strtotime($ctn["appointment"]))) $out_date[] = $ctn;
 					elseif (count($containers_model[$ctn["container"]]) > 1) $multi_model[] = $ctn;
 					else $possible_ctns[] = $ctn;
 					
