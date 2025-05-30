@@ -25,11 +25,11 @@ class Scm_direct_dispatch extends CI_Controller {
 			if (!array_key_exists($ctn->container, $containers_model)) $containers_model[$ctn->container] = [];
 			
 			$containers_model[$ctn->container][] = [
-				"sa_no" 		=> $ctn->sa_no,
-				"sa_line_no" 	=> $ctn->sa_line_no,
+				"sa_line" 		=> $ctn->sa_no."_".$ctn->sa_line_no,
 				"container" 	=> $ctn->container,
 				"eta" 			=> $ctn->eta,
 				"ata" 			=> $ctn->ata,
+				"ref_date"		=> $ctn->ata ? $ctn->ata : $ctn->eta,
 				"model" 		=> $ctn->model,
 				"qty" 			=> $ctn->qty,
 			];
@@ -38,15 +38,17 @@ class Scm_direct_dispatch extends CI_Controller {
 			if (!array_key_exists($ctn->model, $model_containers)) $model_containers[$ctn->model] = [];
 			
 			$model_containers[$ctn->model][] = [
-				"sa_no" 		=> $ctn->sa_no,
-				"sa_line_no" 	=> $ctn->sa_line_no,
+				"sa_line" 		=> $ctn->sa_no."_".$ctn->sa_line_no,
 				"container" 	=> $ctn->container,
 				"eta" 			=> $ctn->eta,
 				"ata" 			=> $ctn->ata,
+				"ref_date"		=> $ctn->ata ? $ctn->ata : $ctn->eta,
 				"model" 		=> $ctn->model,
 				"qty" 			=> $ctn->qty,
 			];
 		}
+		
+		$possible_so = 0;
 		
 		//load all sales orders to evalulate direct dispatch from port to customer
 		$sales_orders = $this->gen_m->all("lgepr_sales_order", [["booked_date", "desc"], ["order_no", "asc"], ["line_no", "asc"]], null, null, false);
@@ -56,41 +58,67 @@ class Scm_direct_dispatch extends CI_Controller {
 			if ((!in_array($so->ship_to_name, ["B2E", "B2C"]))){
 				
 				
-				$aux_ctns = $no_ctns = [];
+				$possible_ctns = $multi_model = $missmatch_qty = $out_date = [];
 				$containers = []; if (array_key_exists($so->model, $model_containers)) $containers = $model_containers[$so->model];
 				foreach($containers as $ctn){
-					if ($so->ordered_qty >= $ctn["qty"]){
-						$aux_ctns[] = $ctn;
-						
-						/*
-						print_r($ctn);
-						echo "<br/>";
-						
-						foreach($containers_model[$ctn['container']] as $ctn_models){
-							echo "---- ";
-							print_r($ctn_models);
-							echo "<br/>";
-						}
-						*/	
-					}else $no_ctns[] = $ctn;
 					
+					if (($so->ordered_qty < $ctn["qty"]) or ($so->ordered_qty % $ctn["qty"] != 0)) $missmatch_qty[] = $ctn;
+					elseif ((strtotime($so->booked_date) > strtotime($ctn["ref_date"])) or (strtotime($so->req_arrival_date_to) < strtotime($ctn["ref_date"]))) $out_date[] = $ctn;
+					elseif (count($containers_model[$ctn["container"]]) > 1) $multi_model[] = $ctn;
+					else $possible_ctns[] = $ctn;
+					
+					/*
+					print_r($ctn);
+					echo "<br/>";
+					
+					foreach($containers_model[$ctn['container']] as $ctn_models){
+						echo "---- ";
+						print_r($ctn_models);
+						echo "<br/>";
+					}
+					*/	
 				}
 				
-				if ($aux_ctns){
+				if ($possible_ctns){
+					
+					$possible_so++;
+					
 					echo $so->order_no." _ ".$so->line_no." _ ".$so->dash_company." _ ".$so->dash_division." _ ".$so->model." _ ".$so->ordered_qty." _ ".$so->ship_to_name." _ ".$so->booked_date." _ ".$so->req_arrival_date_to;
 					echo "<br/>";
 					
 					echo "<br/>Posible ctn =======================<br/>";
-					foreach($aux_ctns as $ctn){
+					foreach($possible_ctns as $ctn){
 						print_r($ctn);
+						echo "Models: ".count($containers_model[$ctn["container"]]);
 						echo "<br/>";
 					}
 					echo "==============================<br/>";
 					
-					if ($no_ctns){
-						echo "<br/>No ctn =======================<br/>";
-						foreach($no_ctns as $ctn){
+					if ($multi_model){
+						echo "<br/>Multi models =======================<br/>";
+						foreach($multi_model as $ctn){
 							print_r($ctn);
+							echo "Models: ".count($containers_model[$ctn["container"]]);
+							echo "<br/>";
+						}
+						echo "==============================<br/>";
+					}
+					
+					if ($missmatch_qty){
+						echo "<br/>Qty missmatch =======================<br/>";
+						foreach($missmatch_qty as $ctn){
+							print_r($ctn);
+							echo "Models: ".count($containers_model[$ctn["container"]]);
+							echo "<br/>";
+						}
+						echo "==============================<br/>";
+					}
+					
+					if ($out_date){
+						echo "<br/>Out of date =======================<br/>";
+						foreach($out_date as $ctn){
+							print_r($ctn);
+							echo "Models: ".count($containers_model[$ctn["container"]]);
 							echo "<br/>";
 						}
 						echo "==============================<br/>";
@@ -98,12 +126,12 @@ class Scm_direct_dispatch extends CI_Controller {
 					
 					echo "<br/><br/>";
 				}
-				
-				
 			}
 		}
 		
+		echo $possible_so;
 		
+		return;
 		
 	
 		foreach($containers_model as $container => $models){
