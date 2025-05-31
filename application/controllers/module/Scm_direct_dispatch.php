@@ -54,21 +54,32 @@ class Scm_direct_dispatch extends CI_Controller {
 		$possible_so = 0;
 		
 		//load all sales orders to evalulate direct dispatch from port to customer
-		$sales_orders = $this->gen_m->all("lgepr_sales_order", [["booked_date", "desc"], ["order_no", "asc"], ["line_no", "asc"]], null, null, false);
+		$sales_orders = $this->gen_m->all("lgepr_sales_order", [["booked_date", "asc"], ["order_no", "asc"], ["line_no", "asc"]], null, null, false);
 		foreach($sales_orders as $so){
 			//print_r($so);
+			if (!$so->booked_date) $so->booked_date = $so->create_date;
 			
 			if ((!in_array($so->ship_to_name, ["B2E", "B2C"]))){
 				
-				
-				$possible_ctns = $multi_model = $missmatch_qty = $out_date = [];
+				$best_options = $second_options = $multi_model = $missmatch_qty = $out_date = $etc_ctns = [];
 				$containers = []; if (array_key_exists($so->model, $model_containers)) $containers = $model_containers[$so->model];
 				foreach($containers as $ctn){
 					
-					if (($so->ordered_qty < $ctn["qty"]) or ($so->ordered_qty % $ctn["qty"] != 0)) $missmatch_qty[] = $ctn;
-					elseif ((strtotime($so->booked_date) > strtotime($ctn["appointment"])) or (strtotime($so->req_arrival_date_to) < strtotime($ctn["appointment"]))) $out_date[] = $ctn;
-					elseif (count($containers_model[$ctn["container"]]) > 1) $multi_model[] = $ctn;
-					else $possible_ctns[] = $ctn;
+					/*
+					best options	: multiple qty
+					second options	: no multiple qty and only model in ctn
+					multi models	: multi models in ctn
+					out of date		: ctn eta/ata out of SO date (booked ~ req arrival)
+					etc ctns		: other ctns
+					*/
+					
+					if ((strtotime($so->booked_date) <= strtotime($ctn["appointment"])) and (strtotime($so->req_arrival_date_to) >= strtotime($ctn["appointment"]))){
+						if (count($containers_model[$ctn["container"]]) == 1){
+							if ($so->ordered_qty % $ctn["qty"] == 0) $best_options[] = $ctn;
+							else $second_options[] = $ctn;
+						}else $multi_model[] = $ctn;
+					}else $out_date[] = $ctn;
+					
 					
 					/*
 					print_r($ctn);
@@ -82,7 +93,7 @@ class Scm_direct_dispatch extends CI_Controller {
 					*/	
 				}
 				
-				if ($possible_ctns){
+				if ($best_options){
 					
 					$possible_so++;
 					
@@ -90,7 +101,7 @@ class Scm_direct_dispatch extends CI_Controller {
 					echo "<br/>";
 					
 					echo "<br/>Posible ctn =======================<br/>";
-					foreach($possible_ctns as $ctn){
+					foreach($best_options as $ctn){
 						print_r($ctn);
 						echo "Models: ".count($containers_model[$ctn["container"]]);
 						echo "<br/>";
@@ -120,6 +131,16 @@ class Scm_direct_dispatch extends CI_Controller {
 					if ($out_date){
 						echo "<br/>Out of date =======================<br/>";
 						foreach($out_date as $ctn){
+							print_r($ctn);
+							echo "Models: ".count($containers_model[$ctn["container"]]);
+							echo "<br/>";
+						}
+						echo "==============================<br/>";
+					}
+					
+					if ($etc_ctns){
+						echo "<br/>Other ctns =======================<br/>";
+						foreach($etc_ctns as $ctn){
 							print_r($ctn);
 							echo "Models: ".count($containers_model[$ctn["container"]]);
 							echo "<br/>";
