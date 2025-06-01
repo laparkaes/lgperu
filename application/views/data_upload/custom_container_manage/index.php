@@ -90,15 +90,28 @@
 			<div class="card">
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
-						<h5 class="card-title">Containers</h5>
+						<h5 class="card-title">Container list</h5>
+						<div>
+							<form class="input-group mb-3">
+								<input type="date" class="form-control" placeholder="From" name="eta_from" value="<?= $eta_from ?>">
+								<span class="input-group-text">~</span>
+								<input type="date" class="form-control" placeholder="To" name="eta_to" value="<?= $eta_to ?>">
+								<button type="submit" class="btn btn-primary">Apply</button>
+							</form>
+						</div>
 					</div>
 					<table class="table">
 						<thead class="sticky-top" style="top:60px;">
 							<tr>
-								<th scope="col">SA/Line</th>
+								<th scope="col">SA #</th>
+								<th scope="col">Line</th>
+								<th scope="col">Status</th>
+								<th scope="col">House BL</th>
 								<th scope="col">Carrier</th>
 								<th scope="col">Container</th>
 								<th scope="col">Org.</th>
+								<th scope="col">Company</th>
+								<th scope="col">Division</th>
 								<th scope="col">Model</th>
 								<th scope="col">Qty</th>
 								<th scope="col">ETA</th>
@@ -107,17 +120,22 @@
 								<th scope="col">3PL Arrival</th>
 								<th scope="col">Return Due</th>
 								<th scope="col">Returned</th>
-								<th scope="col">Updated</th>
+								
 							</tr>
 						</thead>
 						<tbody>
 							<?php foreach($containers as $item){ ?>
 							<tr>
-								<td><?= $item->sa_no ?><br/><?= $item->sa_line_no ?></td>
+								<td><?= $item->sa_no ?></td>
+								<td><?= $item->sa_line_no ?></td>
+								<td><?= $item->is_received == 1 ? "Received" : "Intransit" ?></td>
+								<td><?= $item->house_bl ?></td>
 								<td><?= $item->carrier_line ?></td>
-								<td><?= $item->container ?><br/><?= $item->is_received == 1 ? "Received" : "Intransit" ?></td>
+								<td><?= $item->container ?></td>
 								<td><?= $item->organization ?></td>
-								<td><?= $item->model ?><?php if ($item->company) {?><br/><?= $item->company ?>.<?= $item->division ?><?php } ?></td>
+								<td><?= $item->company ?></td>
+								<td><?= $item->division ?></td>
+								<td><?= $item->model ?></td>
 								<td><?= number_format($item->qty) ?></td>
 								<td><?= $item->eta ?></td>
 								<td><?= $item->ata ?></td>
@@ -125,7 +143,6 @@
 								<td><?= $item->wh_arrival ?></td>
 								<td><?= $item->return_due ?></td>
 								<td><?= $item->returned ?></td>
-								<td><?= $item->updated_at ?></td>
 							</tr>
 							<?php } ?>
 						</tbody>

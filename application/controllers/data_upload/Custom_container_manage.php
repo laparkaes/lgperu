@@ -14,16 +14,39 @@ class Custom_container_manage extends CI_Controller {
 	}
 	
 	public function index(){
-		$w = ["eta >=" => date('Y-m-01', strtotime('-2 months')), "eta <=" => date("Y-m-t"),];
+		$eta_from = $this->input->get("eta_from"); if (!$eta_from) $eta_from = date('Y-m-01', strtotime('-2 months'));
+		$eta_to = $this->input->get("eta_to"); if (!$eta_to) $eta_to = date("Y-m-t");
+		
+		$w = ["eta >=" => $eta_from, "eta <=" => $eta_to,];
 		$o = [["eta", "desc"], ["sa_no", "asc"], ["sa_line_no", "asc"], ["container", "asc"]];
 		$containers = $this->gen_m->filter("custom_container", false, $w, null, null, $o, 2000);
 		
 		$data = [
+			"eta_from"		=> $eta_from,
+			"eta_to"		=> $eta_to,
 			"containers"	=> $containers,
 			"main" 			=> "data_upload/custom_container_manage/index",
 		];
 		
 		$this->load->view('layout', $data);
+	}
+	
+	private function container_cleansing(){
+		$list = [];//remove records without container number
+		$containers = $this->gen_m->filter("custom_container", false);
+		foreach($containers as $item){
+			//print_r($item);
+			if (strlen($item->container) < 5){
+				$list[] = $item->container;
+				//echo $item->container."<br/><br/>";
+			}
+		}
+		
+		$this->gen_m->delete_in("custom_container", "container", $list);
+	}
+	
+	public function assign_com_div(){
+		
 	}
 	
 	public function dq_shipment_advise_upload(){
@@ -135,6 +158,8 @@ class Custom_container_manage extends CI_Controller {
 			
 			$msg = "Shipment advise has been updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		}else $msg = "File template error. Please check upload file.";
+		
+		$this->container_cleansing();
 		
 		//return $msg;
 		echo $msg;
@@ -256,6 +281,8 @@ class Custom_container_manage extends CI_Controller {
 			$msg = "Shipment advise has been updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		}else $msg = "File template error. Please check upload file.";
 		
+		$this->container_cleansing();
+		
 		//return $msg;
 		echo $msg;
 		echo "<br/><br/>";
@@ -344,6 +371,8 @@ class Custom_container_manage extends CI_Controller {
 			
 			$msg = "Shipment advise has been updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		}else $msg = "File template error. Please check upload file.";
+		
+		$this->container_cleansing();
 		
 		//return $msg;
 		echo $msg;
@@ -442,6 +471,8 @@ class Custom_container_manage extends CI_Controller {
 			
 			$msg = "Container dates are updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		}else $msg = "File template error. Please check upload file.";
+		
+		$this->container_cleansing();
 		
 		//return $msg;
 		echo $msg;
