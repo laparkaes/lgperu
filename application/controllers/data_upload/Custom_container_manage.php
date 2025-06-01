@@ -14,9 +14,7 @@ class Custom_container_manage extends CI_Controller {
 	}
 	
 	public function index(){
-		$w = ["returned" => null];
-		$w = null;
-		//$o = [["eta", "asc"], ["sa_no", "asc"], ["sa_line_no", "asc"], ["container", "asc"]];
+		$w = ["eta >=" => date('Y-m-01', strtotime('-2 months')), "eta <=" => date("Y-m-t"),];
 		$o = [["eta", "desc"], ["sa_no", "asc"], ["sa_line_no", "asc"], ["container", "asc"]];
 		$containers = $this->gen_m->filter("custom_container", false, $w, null, null, $o, 2000);
 		
@@ -420,21 +418,26 @@ class Custom_container_manage extends CI_Controller {
 					"house_bl" 		=> trim($sheet->getCell('A'.$i)->getValue()),
 					"container" 	=> trim($sheet->getCell('B'.$i)->getValue()),
 					"carrier_line" 	=> trim($sheet->getCell('C'.$i)->getValue()),
+					"eta"		 	=> $sheet->getCell('D'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('D'.$i)->getFormattedValue()))) : null,
 					"ata"		 	=> $sheet->getCell('E'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('E'.$i)->getFormattedValue()))) : null,
 					"picked_up" 	=> $sheet->getCell('F'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('F'.$i)->getFormattedValue()))) : null,
 					"wh_arrival" 	=> $sheet->getCell('G'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('G'.$i)->getFormattedValue()))) : null,
 					"returned" 		=> $sheet->getCell('H'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('H'.$i)->getFormattedValue()))) : null,
+					"return_due"	=> $sheet->getCell('I'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('I'.$i)->getFormattedValue()))) : null,
 					"updated_at" 	=> $now,
 				];
 				
-				//if (!$row["eta"]) unset($row["eta"]);
+				if ($row["ata"] or $row["picked_up"] or $row["wh_arrival"] or $row["returned"]) $row["is_received"] = true;
+				
+				if (!$row["eta"]) unset($row["eta"]);
 				if (!$row["ata"]) unset($row["ata"]);
 				if (!$row["picked_up"]) unset($row["picked_up"]);
 				if (!$row["wh_arrival"]) unset($row["wh_arrival"]);
 				if (!$row["returned"]) unset($row["returned"]);
+				if (!$row["return_due"]) unset($row["return_due"]);
 				
 				$this->gen_m->update("custom_container", ["house_bl" => $row["house_bl"], "container" => $row["container"]], $row);
-				if ($row["carrier_line"]) $this->gen_m->update("custom_container", ["container" => $row["container"]], ["carrier_line" => $row["carrier_line"]]);
+				//if ($row["carrier_line"]) $this->gen_m->update("custom_container", ["container" => $row["container"]], ["carrier_line" => $row["carrier_line"]]);
 			}
 			
 			$msg = "Container dates are updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";

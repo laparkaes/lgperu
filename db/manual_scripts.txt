@@ -33,3 +33,6 @@ ADD COLUMN sa_hold CHAR(1) NULL,
 ADD COLUMN form_hold CHAR(1) NULL,
 ADD COLUMN bank_collateral_hold CHAR(1) NULL,
 ADD COLUMN insurance_hold CHAR(1) NULL;
+
+20250601
+ALTER TABLE `custom_container` ADD `return_due` DATE NULL AFTER `wh_arrival`; 

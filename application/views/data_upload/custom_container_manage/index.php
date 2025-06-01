@@ -95,7 +95,7 @@
 					<table class="table">
 						<thead class="sticky-top" style="top:60px;">
 							<tr>
-								<th scope="col">SA</th>
+								<th scope="col">SA/Line</th>
 								<th scope="col">Carrier</th>
 								<th scope="col">Container</th>
 								<th scope="col">Org.</th>
@@ -105,6 +105,7 @@
 								<th scope="col">ATA</th>
 								<th scope="col">Picked Up</th>
 								<th scope="col">3PL Arrival</th>
+								<th scope="col">Return Due</th>
 								<th scope="col">Returned</th>
 								<th scope="col">Updated</th>
 							</tr>
@@ -112,9 +113,9 @@
 						<tbody>
 							<?php foreach($containers as $item){ ?>
 							<tr>
-								<td><?= $item->sa_no ?>_<?= $item->sa_line_no ?></td>
+								<td><?= $item->sa_no ?><br/><?= $item->sa_line_no ?></td>
 								<td><?= $item->carrier_line ?></td>
-								<td><?= $item->container ?></td>
+								<td><?= $item->container ?><br/><?= $item->is_received == 1 ? "Received" : "Intransit" ?></td>
 								<td><?= $item->organization ?></td>
 								<td><?= $item->model ?><?php if ($item->company) {?><br/><?= $item->company ?>.<?= $item->division ?><?php } ?></td>
 								<td><?= number_format($item->qty) ?></td>
@@ -122,6 +123,7 @@
 								<td><?= $item->ata ?></td>
 								<td><?= $item->picked_up ?></td>
 								<td><?= $item->wh_arrival ?></td>
+								<td><?= $item->return_due ?></td>
 								<td><?= $item->returned ?></td>
 								<td><?= $item->updated_at ?></td>
 							</tr>
