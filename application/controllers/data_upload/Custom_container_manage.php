@@ -58,7 +58,8 @@ class Custom_container_manage extends CI_Controller {
 					$item->det_days = $days;
 				}
 			}elseif (!$item->returned){
-				$item->det_days = $this->my_func->day_counter($item->return_due, $today) - 1;
+				if (strtotime($item->return_due) < strtotime($today))
+					$item->det_days = $this->my_func->day_counter($item->return_due, $today) - 1;
 			}else $is_no_data = true;
 			
 			if ($is_no_data) $item->no_data = true;
