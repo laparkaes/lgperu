@@ -342,6 +342,7 @@ class Lgepr_sales_order extends CI_Controller {
 					'order_category'		=> trim($sheet->getCell('BC'.$i)->getValue()),
 					'model' 				=> trim($sheet->getCell('C'.$i)->getValue()),
 					'ordered_qty' 			=> trim($sheet->getCell('L'.$i)->getValue()),
+					'cbm' 					=> trim($sheet->getCell('CM'.$i)->getValue()),
 					'currency' 				=> trim($sheet->getCell('U'.$i)->getValue()),
 					'unit_selling_price'	=> trim($sheet->getCell('M'.$i)->getValue()),
 					'sales_amount' 			=> trim($sheet->getCell('N'.$i)->getValue()),

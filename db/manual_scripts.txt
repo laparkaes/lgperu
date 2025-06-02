@@ -39,4 +39,6 @@ ALTER TABLE `custom_container` ADD `return_due` DATE NULL AFTER `wh_arrival`;
 
 20250602
 ALTER TABLE `lgepr_stock` ADD `on_hand` INT NULL AFTER `product_level4`, ADD `on_hand_cbm` FLOAT NULL AFTER `on_hand`;
+ALTER TABLE `lgepr_sales_order` ADD `cbm` FLOAT NULL AFTER `ordered_qty`;
+
 
