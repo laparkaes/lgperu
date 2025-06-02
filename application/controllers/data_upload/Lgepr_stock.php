@@ -167,10 +167,7 @@ class Lgepr_stock extends CI_Controller {
 					"updated"				=> $updated,
 				];
 				
-				//$this->gen_m->insert("lgepr_stock", $row);//create daily stock record
-				
-				/* update stock
-				*/
+				/* update stock */
 				$filter = [
 					"org" 					=> $row["org"],
 					"sub_inventory" 		=> $row["sub_inventory"],
@@ -182,7 +179,6 @@ class Lgepr_stock extends CI_Controller {
 				$stock = $this->gen_m->filter("lgepr_stock", false, $filter);
 				if ($stock) $this->gen_m->update("lgepr_stock", ["stock_id" => $stock[0]->stock_id], $row);
 				else $this->gen_m->insert("lgepr_stock", $row);
-				//$this->update_model_category();
 			}
 			$this->update_model_category();
 			return "Stock update has been finished. (".$updated.")";
