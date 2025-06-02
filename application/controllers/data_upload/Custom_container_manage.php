@@ -82,6 +82,12 @@ class Custom_container_manage extends CI_Controller {
 			$rec = $this->gen_m->unique("v_lgepr_model_master_stock", "model", $item->model, false);
 			if ($rec) $this->gen_m->update("custom_container", ["model" => $item->model], ["company" => $rec->dash_company, "division" => $rec->dash_division]);
 		}
+		
+		$containers = $this->gen_m->filter("custom_container", false, ["company" => null]);
+		foreach($containers as $item){
+			$rec = $this->gen_m->unique("v_lgepr_model_master", "model", $item->model, false);
+			if ($rec) $this->gen_m->update("custom_container", ["model" => $item->model], ["company" => $rec->dash_company, "division" => $rec->dash_division]);
+		}
 	}
 	
 	public function dq_shipment_advise_upload(){
