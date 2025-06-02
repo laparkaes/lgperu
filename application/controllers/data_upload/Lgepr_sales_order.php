@@ -433,6 +433,8 @@ class Lgepr_sales_order extends CI_Controller {
 				
 				$order_lines[] = $row["order_line"];
 				$records++;
+				
+				print_r($row); echo "<br/><br/>";
 			}
 			
 			//all sales orders in closed order > delete
