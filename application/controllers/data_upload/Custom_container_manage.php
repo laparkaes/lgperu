@@ -27,6 +27,10 @@ class Custom_container_manage extends CI_Controller {
 		$this->gen_m->delete_in("custom_container", "container", $list);
 	}
 	
+	public function assign_com_div(){
+		
+	}
+	
 	public function index(){
 		$eta_from = $this->input->get("eta_from"); if (!$eta_from) $eta_from = date('Y-m-01', strtotime('-2 months'));
 		$eta_to = $this->input->get("eta_to"); if (!$eta_to) $eta_to = date("Y-m-t");
@@ -73,49 +77,11 @@ class Custom_container_manage extends CI_Controller {
 	}
 	
 	public function aging_summary(){
-		$eta_from = $this->input->get("eta_from"); if (!$eta_from) $eta_from = date('Y-m-01', strtotime('-2 months'));
-		$eta_to = $this->input->get("eta_to"); if (!$eta_to) $eta_to = date("Y-m-t");
-		
-		$w = ["eta >=" => $eta_from, "eta <=" => $eta_to,];
-		$o = [["eta", "desc"], ["sa_no", "asc"], ["sa_line_no", "asc"], ["container", "asc"]];
-		$containers = $this->gen_m->filter("custom_container", false, $w, null, null, $o);
-		
-		$summary = [];
+		$containers = $this->gen_m->filter("custom_container", false, ["company" => null]);
 		foreach($containers as $item){
-			//print_r($item); 
-			
-			$is_no_data = false;
-			$item->dem_days = $item->det_days = $item->no_data = 0;
-			
-			if ($item->ata and $item->picked_up){
-				$days = $this->my_func->day_counter($item->ata, $item->picked_up) - 1;
-				if ($days > 2){
-					$item->dem_days = $days - 2;
-				}
-			}else $is_no_data = true;
-			
-			if ($item->returned and $item->return_due){
-				$days = $this->my_func->day_counter($item->returned, $item->return_due) - 1;
-				if (strtotime($item->return_due) < strtotime($item->returned)){
-					$item->det_days = $days;
-				}
-			}else $is_no_data = true;
-			
-			if ($is_no_data) $item->no_data = true;
-			
-			$summary[] = clone $item;
+			$rec = $this->gen_m->unique("v_lgepr_model_master_stock", "model", $item->model, false);
+			$this->gen_m->update("custom_container", ["model" => $item->model], ["company" => $rec->dash_company, "division" => $rec->dash_division]);
 		}
-		
-		echo "Summary:<br/><br/>";
-		foreach($summary as $item){
-			print_r($item);
-			echo "<br/><br/>";
-		}
-		
-	}
-	
-	public function assign_com_div(){
-		
 	}
 	
 	public function dq_shipment_advise_upload(){
@@ -229,6 +195,7 @@ class Custom_container_manage extends CI_Controller {
 		}else $msg = "File template error. Please check upload file.";
 		
 		$this->container_cleansing();
+		$this->aging_summary();
 		
 		//return $msg;
 		echo $msg;
@@ -351,6 +318,7 @@ class Custom_container_manage extends CI_Controller {
 		}else $msg = "File template error. Please check upload file.";
 		
 		$this->container_cleansing();
+		$this->aging_summary();
 		
 		//return $msg;
 		echo $msg;
@@ -442,6 +410,7 @@ class Custom_container_manage extends CI_Controller {
 		}else $msg = "File template error. Please check upload file.";
 		
 		$this->container_cleansing();
+		$this->aging_summary();
 		
 		//return $msg;
 		echo $msg;
@@ -542,6 +511,7 @@ class Custom_container_manage extends CI_Controller {
 		}else $msg = "File template error. Please check upload file.";
 		
 		$this->container_cleansing();
+		$this->aging_summary();
 		
 		//return $msg;
 		echo $msg;

@@ -1,0 +1,1 @@
+CREATE VIEW `v_lgepr_model_master_stock`  AS SELECT DISTINCT `lgepr_stock`.`dash_company` AS `dash_company`, `lgepr_stock`.`dash_division` AS `dash_division`, `lgepr_stock`.`model` AS `model` FROM `lgepr_stock`;
