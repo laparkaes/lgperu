@@ -36,3 +36,7 @@ ADD COLUMN insurance_hold CHAR(1) NULL;
 
 20250601
 ALTER TABLE `custom_container` ADD `return_due` DATE NULL AFTER `wh_arrival`; 
+
+20250602
+ALTER TABLE `lgepr_stock` ADD `on_hand` INT NULL AFTER `product_level4`, ADD `on_hand_cbm` FLOAT NULL AFTER `on_hand`;
+

@@ -16,8 +16,7 @@
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
 						<h5 class="card-title">Last 5,000 records</h5>
-						<form id="form_stock_update" 																																																
-						>
+						<form id="form_stock_update">
 							<div class="input-group">
 								<a class="btn btn-success" href="<?= base_url() ?>template/lgepr_stock_template.xlsx" download="lgepr_stock_template"><i class="bi bi-file-earmark-spreadsheet"></i></a>
 								<input class="form-control" type="file" name="attach">
@@ -31,10 +30,13 @@
 								<th scope="col">Org</th>
 								<th scope="col">Sub</th>
 								<th scope="col">Grade</th>
-								<th scope="col">Category</th>
+								<th scope="col">Company</th>
+								<th scope="col">Division</th>
 								<th scope="col">Model</th>
 								<th scope="col">Description</th>
-								<th scope="col">Qty</th>
+								<th scope="col">Available</th>
+								<th scope="col">On Hand</th>
+								<th scope="col">On Hand CBM</th>
 								<th scope="col">Status</th>
 								<th scope="col">Sea stock total</th>
 								<th scope="col">Sea stock W1</th>
@@ -51,10 +53,13 @@
 								<td><?= $item->org ?></td>
 								<td><?= $item->sub_inventory ?></td>
 								<td><?= $item->grade ?></td>
-								<td><?= $item->model_category_code ?></td>
+								<td><?= $item->dash_company ?></td>
+								<td><?= $item->dash_division ?></td>
 								<td><?= $item->model ?></td>
 								<td><?= $item->model_description ?></td>
 								<td><?= $item->available_qty ?></td>
+								<td><?= $item->on_hand ?></td>
+								<td><?= $item->on_hand_cbm ?></td>
 								<td><?= $item->model_status ?></td>
 								<td><?= $item->seaStockTotal ?></td>
 								<td><?= $item->seaStockW1 ?></td>
