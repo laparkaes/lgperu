@@ -91,8 +91,10 @@
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
 						<h5 class="card-title">Container list</h5>
-						<div>
-							<form class="input-group mb-3">
+						<div class="d-flex justify-content-end align-items-center">
+							<a type="button" class="btn btn-success me-3" href="<?= base_url() ?>data_upload/custom_container_manage/aging_summary?eta_from=<?= $eta_from ?>&eta_to=<?= $eta_to ?>" target="_blank">Aging</a>
+							<form class="input-group">
+								<span class="input-group-text">ETA</span>
 								<input type="date" class="form-control" placeholder="From" name="eta_from" value="<?= $eta_from ?>">
 								<span class="input-group-text">~</span>
 								<input type="date" class="form-control" placeholder="To" name="eta_to" value="<?= $eta_to ?>">
@@ -120,7 +122,9 @@
 								<th scope="col">3PL Arrival</th>
 								<th scope="col">Return Due</th>
 								<th scope="col">Returned</th>
-								
+								<th scope="col">Dem.</th>
+								<th scope="col">Det.</th>
+								<th scope="col">No Data</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -143,6 +147,9 @@
 								<td><?= $item->wh_arrival ?></td>
 								<td><?= $item->return_due ?></td>
 								<td><?= $item->returned ?></td>
+								<td><?= $item->dem_days ? $item->dem_days : ""; ?></td>
+								<td><?= $item->det_days ? $item->det_days : ""; ?></td>
+								<td><?= $item->no_data ? "<span class='text-danger'>●</span>" : ""; ?></td>
 							</tr>
 							<?php } ?>
 						</tbody>
