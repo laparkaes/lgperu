@@ -161,7 +161,7 @@ class Lgepr_stock extends CI_Controller {
 					"seaStockW3"			=> trim($sheet->getCell('BQ'.$i)->getValue()),
 					"seaStockW4"			=> trim($sheet->getCell('BR'.$i)->getValue()),
 					"seaStockW5"			=> trim($sheet->getCell('BS'.$i)->getValue()),
-					"product_level4"		=> trim($sheet->getCell('BY'.$i)->getValue()),					
+					"product_level4"		=> trim($sheet->getCell('BX'.$i)->getValue()),					
 					"updated"				=> $updated,
 				];
 				
