@@ -80,7 +80,7 @@ class Custom_container_manage extends CI_Controller {
 		$containers = $this->gen_m->filter("custom_container", false, ["company" => null]);
 		foreach($containers as $item){
 			$rec = $this->gen_m->unique("v_lgepr_model_master_stock", "model", $item->model, false);
-			$this->gen_m->update("custom_container", ["model" => $item->model], ["company" => $rec->dash_company, "division" => $rec->dash_division]);
+			if ($rec) $this->gen_m->update("custom_container", ["model" => $item->model], ["company" => $rec->dash_company, "division" => $rec->dash_division]);
 		}
 	}
 	
