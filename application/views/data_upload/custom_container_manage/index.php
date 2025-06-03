@@ -119,11 +119,11 @@
 								<th scope="col">ETA</th>
 								<th scope="col">ATA</th>
 								<th scope="col">Picked Up</th>
-								<th scope="col">3PL Arrival</th>
-								<th scope="col">Return Due</th>
+								<th scope="col">Warehouse</th>
 								<th scope="col">Returned</th>
-								<th scope="col">Dem.</th>
-								<th scope="col">Det.</th>
+								<th scope="col">Return Due</th>
+								<th scope="col">Dem. days</th>
+								<th scope="col">Det. days</th>
 								<th scope="col">No Data</th>
 							</tr>
 						</thead>

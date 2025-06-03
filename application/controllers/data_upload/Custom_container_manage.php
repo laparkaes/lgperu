@@ -27,18 +27,21 @@ class Custom_container_manage extends CI_Controller {
 		$this->gen_m->delete_in("custom_container", "container", $list);
 	}
 	
-	public function assign_com_div(){
+	private function set_com_div(){
+		$containers = $this->gen_m->filter("custom_container", false, ["company" => null]);
+		foreach($containers as $item){
+			$rec = $this->gen_m->unique("v_lgepr_model_master_stock", "model", $item->model, false);
+			if ($rec) $this->gen_m->update("custom_container", ["model" => $item->model], ["company" => $rec->dash_company, "division" => $rec->dash_division]);
+		}
 		
+		$containers = $this->gen_m->filter("custom_container", false, ["company" => null]);
+		foreach($containers as $item){
+			$rec = $this->gen_m->unique("v_lgepr_model_master", "model", $item->model, false);
+			if ($rec) $this->gen_m->update("custom_container", ["model" => $item->model], ["company" => $rec->dash_company, "division" => $rec->dash_division]);
+		}
 	}
 	
-	public function index(){
-		$eta_from = $this->input->get("eta_from"); if (!$eta_from) $eta_from = date('Y-m-01', strtotime('-2 months'));
-		$eta_to = $this->input->get("eta_to"); if (!$eta_to) $eta_to = date("Y-m-t");
-		
-		$w = ["eta >=" => $eta_from, "eta <=" => $eta_to,];
-		$o = [["eta", "desc"], ["sa_no", "asc"], ["sa_line_no", "asc"], ["container", "asc"]];
-		$containers = $this->gen_m->filter("custom_container", false, $w, null, null, $o);
-		
+	private function set_containers($containers){
 		$today = date("Y-m-d");
 		$summary = [];
 		foreach($containers as $item){
@@ -67,10 +70,21 @@ class Custom_container_manage extends CI_Controller {
 			$summary[] = clone $item;
 		}
 		
+		return $summary;
+	}
+	
+	public function index(){
+		$eta_from = $this->input->get("eta_from"); if (!$eta_from) $eta_from = date('Y-m-01', strtotime('-2 months'));
+		$eta_to = $this->input->get("eta_to"); if (!$eta_to) $eta_to = date("Y-m-t");
+		
+		$w = ["eta >=" => $eta_from, "eta <=" => $eta_to,];
+		$o = [["eta", "desc"], ["sa_no", "asc"], ["sa_line_no", "asc"], ["container", "asc"]];
+		$containers = $this->gen_m->filter("custom_container", false, $w, null, null, $o);
+		
 		$data = [
 			"eta_from"		=> $eta_from,
 			"eta_to"		=> $eta_to,
-			"containers"	=> $summary,
+			"containers"	=> $this->set_containers($containers),
 			"main" 			=> "data_upload/custom_container_manage/index",
 		];
 		
@@ -78,17 +92,25 @@ class Custom_container_manage extends CI_Controller {
 	}
 	
 	public function aging_summary(){
-		$containers = $this->gen_m->filter("custom_container", false, ["company" => null]);
-		foreach($containers as $item){
-			$rec = $this->gen_m->unique("v_lgepr_model_master_stock", "model", $item->model, false);
-			if ($rec) $this->gen_m->update("custom_container", ["model" => $item->model], ["company" => $rec->dash_company, "division" => $rec->dash_division]);
-		}
+		$eta_from = $this->input->get("eta_from"); if (!$eta_from) $eta_from = date('Y-m-01', strtotime('-2 months'));
+		$eta_to = $this->input->get("eta_to"); if (!$eta_to) $eta_to = date("Y-m-t");
 		
-		$containers = $this->gen_m->filter("custom_container", false, ["company" => null]);
-		foreach($containers as $item){
-			$rec = $this->gen_m->unique("v_lgepr_model_master", "model", $item->model, false);
-			if ($rec) $this->gen_m->update("custom_container", ["model" => $item->model], ["company" => $rec->dash_company, "division" => $rec->dash_division]);
-		}
+		$w = ["eta >=" => $eta_from, "eta <=" => $eta_to,];
+		$o = [["eta", "desc"], ["sa_no", "asc"], ["sa_line_no", "asc"], ["container", "asc"]];
+		$g = ["eta", "sa_no", "carrier_line", "house_bl", "container", "company", "division", "ata", "picked_up", "wh_arrival", "return_due", "returned"];
+		
+		$containers = $this->gen_m->only_multi("custom_container", $g, $w, $g);
+		$containers = $this->set_containers($containers);
+		$containers = array_reverse($containers);
+		
+		
+		$data = [
+			"eta_from"		=> $eta_from,
+			"eta_to"		=> $eta_to,
+			"containers"	=> $containers,
+		];
+		
+		$this->load->view('email/custom_container_aging', $data);
 	}
 	
 	public function dq_shipment_advise_upload(){
@@ -202,7 +224,7 @@ class Custom_container_manage extends CI_Controller {
 		}else $msg = "File template error. Please check upload file.";
 		
 		$this->container_cleansing();
-		$this->aging_summary();
+		$this->set_com_div();
 		
 		//return $msg;
 		echo $msg;
@@ -325,7 +347,7 @@ class Custom_container_manage extends CI_Controller {
 		}else $msg = "File template error. Please check upload file.";
 		
 		$this->container_cleansing();
-		$this->aging_summary();
+		$this->set_com_div();
 		
 		//return $msg;
 		echo $msg;
@@ -417,7 +439,7 @@ class Custom_container_manage extends CI_Controller {
 		}else $msg = "File template error. Please check upload file.";
 		
 		$this->container_cleansing();
-		$this->aging_summary();
+		$this->set_com_div();
 		
 		//return $msg;
 		echo $msg;
@@ -518,7 +540,7 @@ class Custom_container_manage extends CI_Controller {
 		}else $msg = "File template error. Please check upload file.";
 		
 		$this->container_cleansing();
-		$this->aging_summary();
+		$this->set_com_div();
 		
 		//return $msg;
 		echo $msg;
