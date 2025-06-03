@@ -53,17 +53,34 @@ class Custom_container_manage extends CI_Controller {
 				if ($days > 2){
 					$item->dem_days = $days - 2;
 				}
-			}else $is_no_data = true;
+			}else{
+				$ata = $item->ata ? $item->ata : $item->eta;
+				$picked_up = $item->picked_up ? $item->picked_up : $today;
+
+				if (strtotime($ata) <= strtotime($picked_up)){
+					$days = $this->my_func->day_counter($ata, $picked_up) - 1;
+					if ($days > 2){
+						$item->dem_days = $days - 2;
+					}
+				}
+				
+				$is_no_data = true;
+			}
 			
 			if ($item->returned and $item->return_due){
-				$days = $this->my_func->day_counter($item->returned, $item->return_due) - 1;
 				if (strtotime($item->return_due) < strtotime($item->returned)){
-					$item->det_days = $days;
+					$item->det_days = $this->my_func->day_counter($item->returned, $item->return_due) - 1;
 				}
-			}elseif (!$item->returned){
-				if (strtotime($item->return_due) < strtotime($today))
-					$item->det_days = $this->my_func->day_counter($item->return_due, $today) - 1;
-			}else $is_no_data = true;
+			}else{
+				$returned = $item->returned ? $item->returned : $today;
+				$return_due = $item->return_due ? $item->return_due : date('Y-m-d', strtotime('+25 days', strtotime($item->eta)));
+				
+				if (strtotime($return_due) < strtotime($returned)){
+					$item->det_days = $this->my_func->day_counter($returned, $return_due) - 1;
+				}
+				
+				$is_no_data = true;
+			}
 			
 			if ($is_no_data) $item->no_data = true;
 			
@@ -97,12 +114,11 @@ class Custom_container_manage extends CI_Controller {
 		
 		$w = ["eta >=" => $eta_from, "eta <=" => $eta_to,];
 		$o = [["eta", "desc"], ["sa_no", "asc"], ["sa_line_no", "asc"], ["container", "asc"]];
-		$g = ["eta", "sa_no", "carrier_line", "house_bl", "container", "company", "division", "ata", "picked_up", "wh_arrival", "return_due", "returned"];
+		$g = ["eta", "carrier_line", "container", "company", "division", "ata", "picked_up", "wh_arrival", "return_due", "returned"];
 		
 		$containers = $this->gen_m->only_multi("custom_container", $g, $w, $g);
 		$containers = $this->set_containers($containers);
 		$containers = array_reverse($containers);
-		
 		
 		$data = [
 			"eta_from"		=> $eta_from,
@@ -532,8 +548,9 @@ class Custom_container_manage extends CI_Controller {
 				if (!$row["returned"]) unset($row["returned"]);
 				if (!$row["return_due"]) unset($row["return_due"]);
 				
-				$this->gen_m->update("custom_container", ["house_bl" => $row["house_bl"], "container" => $row["container"]], $row);
-				//if ($row["carrier_line"]) $this->gen_m->update("custom_container", ["container" => $row["container"]], ["carrier_line" => $row["carrier_line"]]);
+				if ($row["eta"]){
+					$this->gen_m->update("custom_container", ["eta >=" => date('Y-m-d', strtotime('-1 month', strtotime($row["eta"]))), "container" => $row["container"]], $row);
+				}
 			}
 			
 			$msg = "Container dates are updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
