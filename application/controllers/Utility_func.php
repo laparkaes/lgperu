@@ -220,7 +220,7 @@ class Utility_func extends CI_Controller {
 			"containers"	=> $containers,
 		];
 		
-		$to = ["georgio.park@lge.com"];
+		$to = ["georgio.park@lge.com", "ricardo.alvarez@lge.com"];
 		
 		$subject = "[Custom] Container aging auto-report.";
 		$content = $this->load->view('email/custom_container_aging', $data, true);
