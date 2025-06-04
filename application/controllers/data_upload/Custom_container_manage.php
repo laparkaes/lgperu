@@ -120,6 +120,14 @@ class Custom_container_manage extends CI_Controller {
 		$containers = $this->set_containers($containers);
 		$containers = array_reverse($containers);
 		
+		$now = time();
+		
+		foreach($containers as $i => $item){
+			if ($now < strtotime($item->eta)){
+				if (!$item->ata) unset($containers[$i]);
+			}
+		}
+		
 		$data = [
 			"eta_from"		=> $eta_from,
 			"eta_to"		=> $eta_to,
