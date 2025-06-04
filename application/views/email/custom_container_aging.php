@@ -51,18 +51,18 @@
 	<div>* Ports will be splitted when Custom team is ready to upload correct data.</div>
 	<br/>
 	<br/>
-	<div><strong><< Detention >></strong><br/>Containers not returned to the port within the permitted days.</div>
+	<div><strong><< Detention >></strong><br/>Containers not returned to the port within the free days.</div>
 	<br/>
 	<table style="text-align: center; border-collapse: collapse;">
 		<tr>
 			<td style="width: 100px; border-left: 1px solid black; border-right: 1px solid black;"><strong>Free Time</strong></td>
 			<td style="width: 100px; color: red;"><strong>Overdue</strong></td>
 			<td style="width: 100px;"><strong>0 day</strong></td>
-			<td style="width: 100px;"><strong>3 day</strong></td>
-			<td style="width: 100px;"><strong>7 days</strong></td>
-			<td style="width: 100px;"><strong>14 days</strong></td>
-			<td style="width: 100px;"><strong>21 days</strong></td>
-			<td style="width: 100px;"><strong>Over</strong></td>
+			<td style="width: 100px;"><strong>~3 day</strong></td>
+			<td style="width: 100px;"><strong>~7 days</strong></td>
+			<td style="width: 100px;"><strong>~14 days</strong></td>
+			<td style="width: 100px;"><strong>~21 days</strong></td>
+			<td style="width: 100px;"><strong>21 days~</strong></td>
 			<td style="width: 100px; border-left: 1px solid black; border-right: 1px solid black;"><strong>Total</strong></td>
 		</tr>
 		<?php foreach($detention as $carrier => $item){ if ($carrier !== "Total"){ ?>
