@@ -91,26 +91,46 @@ class Utility_func extends CI_Controller {
 		//$containers = $this->set_containers($containers);
 		$containers = array_reverse($summary);
 		
+		$dem_row = [
+			"2d"	=> 0,
+			"1d"		=> 0,
+			"0d"		=> 0,
+			"overdue"	=> 0,
+			"total"		=> 0,
+		];
+		
+		$demurrage = [
+			"Total" => $dem_row,
+		];
+		
+		$det_row = [
+			"99d"	=> 0,
+			"21d"	=> 0,
+			"14d"	=> 0,
+			"7d"	=> 0,
+			"3d"	=> 0,
+			"0d"		=> 0,
+			"overdue"	=> 0,
+			"total"		=> 0,
+		];
+		
+		$detention = [
+			"Total" => $det_row,
+		];
+		
+		
+		
 		$remind = [
-			"dem" => [
-				"2_days"	=> 0,
-				"1_day"		=> 0,
-				"0_day"		=> 0,
-				"issuing"	=> 0,
-			],
+			"dem" => $dem_row,
 			"det" => [
 				"6_10_days"	=> 0,
 				"1_5_day"	=> 0,
 				"0_day"	=> 0,
-				"issuing"	=> 0,
+				"overdue"	=> 0,
 			],
 		];
 		
-		$issued = [
-			date('Y-m', strtotime('-2 months')) => ["dem" => ["qty" => 0, "days" => 0, "amount" => 0], "det" => ["qty" => 0, "days" => 0, "amount" => 0]],
-			date('Y-m', strtotime('-1 months')) => ["dem" => ["qty" => 0, "days" => 0, "amount" => 0], "det" => ["qty" => 0, "days" => 0, "amount" => 0]],
-			date('Y-m') 						=> ["dem" => ["qty" => 0, "days" => 0, "amount" => 0], "det" => ["qty" => 0, "days" => 0, "amount" => 0]],
-		];
+		$port = "DPW + APM";
 		
 		foreach($containers as $i => $item){
 			
@@ -121,46 +141,79 @@ class Utility_func extends CI_Controller {
 			else{
 				if ($item->no_data) $no_data_qty++;
 				
-				//demurrage remind
+				//demurrage
 				if (!$item->ata){
-					if ($item->dem_days) $remind["dem"]["issuing"]++;
-					else switch($item->dem_reminds){
-						case 2: $remind["dem"]["2_days"]++; break;
-						case 1: $remind["dem"]["1_day"]++; break;
-						case 0: $remind["dem"]["0_day"]++; break;
+					
+					if (!array_key_exists($port, $demurrage)) $demurrage[$port] = $dem_row;
+
+					$demurrage[$port]["total"]++;
+					$demurrage["Total"]["total"]++;
+					
+					if ($item->dem_days){
+						$demurrage[$port]["overdue"]++;
+						$demurrage["Total"]["overdue"]++;
+					}else switch($item->dem_reminds){
+						case 2: 
+							$demurrage[$port]["2d"]++;
+							$demurrage["Total"]["2d"]++;
+							break;
+						case 1:
+							$demurrage[$port]["1d"]++;
+							$demurrage["Total"]["1d"]++;
+							break;
+						case 0:
+							$demurrage[$port]["0d"]++;
+							$demurrage["Total"]["0d"]++;
+							break;
 					}
 				}
 				
 				//detention remind
 				if (!$item->returned){
-					if ($item->det_days) $remind["det"]["issuing"]++;
-					else switch(true){
-						case $item->det_reminds == 0: $remind["det"]["0_day"]++; break;
-						case $item->det_reminds <= 5: $remind["det"]["1_5_day"]++; break;
-						case $item->det_reminds <= 10: $remind["det"]["6_10_days"]++; break;
+					
+					if (!$item->carrier_line) $item->carrier_line = "_blank";
+					
+					if (!array_key_exists($item->carrier_line, $detention)) $detention[$item->carrier_line] = $det_row;
+					
+					$detention[$item->carrier_line]["total"]++;
+					$detention["Total"]["total"]++;
+					
+					if ($item->det_days){
+						$detention[$item->carrier_line]["overdue"]++;
+						$detention["Total"]["overdue"]++;
+					}else switch(true){
+						case $item->det_reminds == 0: 
+							$detention[$item->carrier_line]["0d"]++;
+							$detention["Total"]["0d"]++;
+							break;
+						case $item->det_reminds <= 3: 
+							$detention[$item->carrier_line]["3d"]++;
+							$detention["Total"]["3d"]++;
+							break;
+						case $item->det_reminds <= 7:
+							$detention[$item->carrier_line]["7d"]++;
+							$detention["Total"]["7d"]++;
+							break;
+						case $item->det_reminds <= 14:
+							$detention[$item->carrier_line]["14d"]++;
+							$detention["Total"]["14d"]++;
+							break;
+						case $item->det_reminds <= 21:
+							$detention[$item->carrier_line]["21d"]++;
+							$detention["Total"]["21d"]++;
+							break;
+						default:
+							$detention[$item->carrier_line]["99d"]++;
+							$detention["Total"]["99d"]++;
+							break;
 					}
-				}
-				
-				//demurrage issued
-				if ($item->dem_days > 0){
-					if (!array_key_exists($item->dem_period, $issued)) $issued[$item->dem_period] = ["dem" => ["qty" => 0, "days" => 0, "amount" => 0], "det" => ["qty" => 0, "days" => 0, "amount" => 0]];
-					
-					$issued[$item->dem_period]["dem"]["qty"]++;
-					$issued[$item->dem_period]["dem"]["days"] += $item->dem_days;
-					$issued[$item->dem_period]["dem"]["amount"] += $item->dem_days * 180;
-				}
-				
-				//detention issued
-				if ($item->det_days > 0){
-					//echo $item->det_period." "; print_r($item); echo "<br/>";
-					if (!array_key_exists($item->det_period, $issued)) $issued[$item->det_period] = ["dem" => ["qty" => 0, "days" => 0, "amount" => 0], "det" => ["qty" => 0, "days" => 0, "amount" => 0]];
-					
-					$issued[$item->det_period]["det"]["qty"]++;
-					$issued[$item->det_period]["det"]["days"] += $item->det_days;
-					$issued[$item->det_period]["det"]["amount"] += $item->det_days * 180;
 				}
 			}
 		}
+		
+		uasort($detention, function($a, $b) {
+			return $b['total'] <=> $a['total'];
+		});
 		
 		$spreadsheet = new Spreadsheet();
 		$sheet = $spreadsheet->getActiveSheet();
@@ -205,7 +258,6 @@ class Utility_func extends CI_Controller {
 			$row++;
 		}
 
-		// 파일 저장
 		$writer = new Xlsx($spreadsheet);
 		$filePath = 'report/custom_container_aging_report.xlsx';
 		$writer->save($filePath);
@@ -216,16 +268,17 @@ class Utility_func extends CI_Controller {
 			"today"			=> $today,
 			"no_data_qty"	=> $no_data_qty,
 			"remind"		=> $remind,
-			"issued"		=> $issued,
-			"containers"	=> $containers,
+			"demurrage"		=> $demurrage,
+			"detention"	=> $detention,
 		];
 		
-		$to = ["georgio.park@lge.com", "ricardo.alvarez@lge.com"];
+		$to = ["wonshik.woo@lge.com", "mariela.carbajal@lge.com", "juan.gonzales@lge.com", "nicolas.nigro@lgepartner.com", "georgio.park@lge.com", "ricardo.alvarez@lge.com"];
 		
 		$subject = "[Custom] Container aging auto-report.";
 		$content = $this->load->view('email/custom_container_aging', $data, true);
 		
 		echo $this->my_func->send_email("georgio.park@lge.com", $to, $subject, $content, $filePath);
+		//echo $content;
 		echo "Aging report sent.";
 	}
 	
