@@ -22,7 +22,7 @@ class Tax_daily_book extends CI_Controller {
 	public function index(){
 
 		$period = $this->gen_m->filter_select('tax_daily_book', false, 'period_name', null, null, null, [['period_name', 'desc']]);
-		
+		$net_accounted_debit = $this->gen_m->filter_select('tax_daily_book', false, ['net_accounted_debit', 'period_name', 'accounting_unit'], null, null, null, [['period_name', 'desc']]);
 		$uniquePeriods = [];
 
 		foreach ($period as $item) {
@@ -32,9 +32,10 @@ class Tax_daily_book extends CI_Controller {
 		}
 
 		$data = [
-			"period" 	=> $uniquePeriods,
-			"tax"		=> $this->gen_m->filter("tax_daily_book", false, null, null, null, null, 1000),
-			"main" 		=> "module/tax_daily_book/index",
+			"net_accounted_debit" 	=> $net_accounted_debit,
+			"period" 				=> $uniquePeriods,
+			"tax"					=> $this->gen_m->filter("tax_daily_book", false, null, null, null, [['period_name', 'desc']], 500),
+			"main" 					=> "module/tax_daily_book/index",
 		];
 		
 		$this->load->view('layout', $data);
@@ -689,10 +690,15 @@ class Tax_daily_book extends CI_Controller {
 		$existing_je_ids_result = $this->gen_m->filter_select('tax_daily_book', false, 'je_id', ['period_name' => $batch_data[0]['period_name']]);
 		$existing_je_ids = array_column($existing_je_ids_result, 'je_id');
 		
+		//print_r($existing_je_ids); echo '<br>'; echo '<br>'; return;
+		
+
+		
 		foreach($batch_data as $index=>$row){
 			
 			//Validacion je_id
 			if (!in_array($row['je_id'], $existing_je_ids)) {
+			//if (!($this->gen_m->filter('tax_daily_book', false, ['je_id' => $row['je_id']]))) {
 				
 				$row_modified = $this->performCalculations($row);
 				//je_id NULL
@@ -991,6 +997,7 @@ class Tax_daily_book extends CI_Controller {
 		return $batchSpecialData;
 	}
 
+	
 	public function generate_excel() {
 		ini_set('memory_limit', -1);
 		set_time_limit(0);
@@ -1250,6 +1257,11 @@ class Tax_daily_book extends CI_Controller {
 					if (isset($bank_code_map[$row->effective_date])) {
 						foreach($bank_code_map[$row->effective_date] as $item_date){
 							if($bank_name === 'SCOTIA'){
+								// log_message('info', "Date: " . $row->effective_date);
+								// log_message('info', "Bank Name db: " . $bank_name);
+								// log_message('info', "Bank Name bank code: " . $item_date['bank_name']);
+								// log_message('info', "net_entered_debit_db: " . $row->net_entered_debit);
+								// log_message('info', "net_entered_debit Bank Code: " . $item_date['total_amount']);
 								$bank_name = 'SCB';
 							}
 						
@@ -1373,6 +1385,24 @@ class Tax_daily_book extends CI_Controller {
 		// $this->db->select('*')->from($table)->where($where);
 		// $query = $this->db->get();
 		$columns = ["legal_entity", "period_name","effective_date", "posted_date", "accounting_unit", "department", "department_name","account", "account_name","project", "affiliate", "temporary1", "temporary2", "currency", "net_entered_debit", "entered_debit", "entered_credit","net_accounted_debit","accounted_debit","accounted_credit","description_ar_comments","journal_source","journal_category","gl_batch_name","gl_journal_name","gl_document_seq_number","ap_ar_source","line_type","ap_ar_batch_name","invoice_number","transaction_number","transaction_date","check_number","receipt_number","vendor_customer","bank_name","bank_account_number","business_number","tax_payer_id","subledger_document_seq_number","tax_date","tax_code","tax_rate","created_by","create_user_name","dff_context","dff1","dff2","dff3","dff4","dff5","dff6","dff7","dff8","dff9","dff10","dff11","dff12","dff13","dff14","dff15","dff16","dff17","dff18","dff19","dff20","lease_no","asset_number","org_id","link_id","je_header_id","je_line_number","je_id","type_voucher","serie_voucher","number_voucher"];
+		
+		// while (true) {
+			// $query = $this->db->select($columns)
+							  // ->from($table)
+							  // ->limit($batchSize, $offset)
+							  // ->where($where)
+							  // ->order_by('effective_date', 'ASC')
+							  // ->get();
+			
+			// if ($query->num_rows() === 0) {
+				// break;
+			// }
+
+			// yield from array_map(fn($row) => $row, $query->result());
+
+			// $offset += $batchSize;
+			// $query->free_result();
+		// }
 
 		while (true) {
 			$query = $this->db->select($columns)
