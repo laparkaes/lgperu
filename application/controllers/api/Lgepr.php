@@ -327,7 +327,7 @@ class Lgepr extends CI_Controller {
 							"dash_division" 	=> $item_stock->dash_division, 
 							"model" 			=> $item_stock->model,
 							"org" 				=> $item_stock->org,
-							"qty"				=> $item_stock->available_qty,
+							"qty"				=> $item_stock->on_hand,
 							"on_hand_cbm" 		=> number_format($item_stock->on_hand_cbm, 2)
 							];
 			}
