@@ -140,7 +140,6 @@ class Lgepr_stock extends CI_Controller {
 		$is_ok = true;
 		foreach($h as $i => $h_i) if ($h_i !== $header[$i]) $is_ok = false;
 		
-		
 		if ($is_ok){
 			$updated = date("Y-m-d");
 			$max_row = $sheet->getHighestRow();

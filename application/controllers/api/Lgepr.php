@@ -399,11 +399,25 @@ class Lgepr extends CI_Controller {
 			echo "<td>Qty</td>";
 			echo "<td>CBM</td>";
 			echo "<td>Container</td>";
-			echo "<td></td>";
 			echo "</tr>";
 			
 			foreach($res as $item){
 				print_r($item); echo "<br/>";
+				
+				echo "<tr>";
+				echo "<td>".$item["type"]."</td>";
+				echo "<td>".$item["date"]."</td>";
+				echo "<td>".$item["year"]."</td>";
+				echo "<td>".$item["month"]."</td>";
+				echo "<td>".$item["day"]."</td>";
+				echo "<td>".$item["dash_company"]."</td>";
+				echo "<td>".$item["dash_division"]."</td>";
+				echo "<td>".$item["model"]."</td>";
+				echo "<td>".$item["org"]."</td>";
+				echo "<td>".$item["qty"]."</td>";
+				echo "<td>".$item["cbm"]."</td>";
+				echo "<td>".$item["container"]."</td>";
+				echo "</tr>";
 			}
 			
 			echo "</table>";
