@@ -2,6 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
 class Custom_container_manage extends CI_Controller {
 
@@ -277,6 +278,9 @@ class Custom_container_manage extends CI_Controller {
 			foreach($models as $item) $model_master[$item->model] = $item;
 			
 			for($i = 2; $i <= $max_row; $i++){
+				
+				$sheet->getCell('D'.$i)->setDataType(DataType::TYPE_STRING);
+				
 				$row = [
 					"sa_no" 		=> trim($sheet->getCell('D'.$i)->getCalculatedValue()),
 					"sa_line_no" 	=> trim($sheet->getCell('E'.$i)->getValue()),
