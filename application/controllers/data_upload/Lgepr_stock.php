@@ -108,7 +108,7 @@ class Lgepr_stock extends CI_Controller {
 		$this->update_dash_div_cat();
 	}
 	
-	public function process($filename = "lgepr_stock_report.xls", $debug = false){
+	public function process($filename = "lgepr_stock_current_inventory.xls", $debug = false){
 		set_time_limit(0);
 		ini_set("memory_limit", -1);
 		
@@ -198,7 +198,7 @@ class Lgepr_stock extends CI_Controller {
 				'allowed_types'	=> '*',
 				'max_size'		=> 90000,
 				'overwrite'		=> TRUE,
-				'file_name'		=> 'lgepr_stock_report.xls',
+				'file_name'		=> 'lgepr_stock_current_inventory.xls',
 			];
 			$this->load->library('upload', $config);
 
