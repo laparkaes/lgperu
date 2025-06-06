@@ -220,7 +220,7 @@ class Custom_container_manage extends CI_Controller {
 				'allowed_types'	=> '*',
 				'max_size'		=> 90000,
 				'overwrite'		=> TRUE,
-				'file_name'		=> 'custom_dq_sa_report.xlsx',
+				'file_name'		=> 'custom_dq_sa_report.xls',
 			];
 			$this->load->library('upload', $config);
 
@@ -246,7 +246,7 @@ class Custom_container_manage extends CI_Controller {
 		$start_time = microtime(true);
 		
 		//load excel file
-		$spreadsheet = IOFactory::load("./upload/custom_dq_sa_report.xlsx");
+		$spreadsheet = IOFactory::load("./upload/custom_dq_sa_report.xls");
 		$sheet = $spreadsheet->getActiveSheet();
 		
 		//excel file header validation
