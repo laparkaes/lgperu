@@ -282,7 +282,7 @@ class Custom_container_manage extends CI_Controller {
 				$sheet->getCell('D'.$i)->setDataType(DataType::TYPE_STRING);
 				
 				$row = [
-					"sa_no" 		=> trim($sheet->getCell('D'.$i)->getCalculatedValue()),
+					"sa_no" 		=> trim($sheet->getCell('D'.$i)->getValue()),
 					"sa_line_no" 	=> trim($sheet->getCell('E'.$i)->getValue()),
 					"house_bl"		=> trim($sheet->getCell('R'.$i)->getValue()),
 					"container" 	=> trim($sheet->getCell('O'.$i)->getValue()),
@@ -317,7 +317,6 @@ class Custom_container_manage extends CI_Controller {
 						
 						$this->gen_m->update("custom_container", ["container_id" => $container[0]->container_id], $row);//update
 					}else $this->gen_m->insert("custom_container", $row); //insert	
-					
 				}else $this->gen_m->delete("custom_container", ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
 			}
 			
