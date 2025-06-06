@@ -303,7 +303,7 @@ class Lgepr extends CI_Controller {
 	}
 	
 	public function get_cbm_inventory(){
-		//llamasys/api/lgepr/get_cbm_inventory?key=lgepr
+		//llamasys/api/lgepr/get_cbm_inventory?key=lgepr&type=table
 		
 		if ($this->input->get("key") === "lgepr"){
 			
@@ -328,7 +328,8 @@ class Lgepr extends CI_Controller {
 							"model" 			=> $item_stock->model,
 							"org" 				=> $item_stock->org,
 							"qty"				=> $item_stock->on_hand,
-							"cbm" 				=> number_format($item_stock->on_hand_cbm, 2)
+							"cbm" 				=> $item_stock->on_hand_cbm,
+							"container" 		=> null,
 							];
 			}
 			
@@ -351,7 +352,8 @@ class Lgepr extends CI_Controller {
 							"model" 			=> $item_sales->model,
 							"org" 				=> $item_sales->inventory_org,
 							"qty"				=> $item_sales->ordered_qty,
-							"cbm" 				=> number_format($item_sales->cbm * -1, 2)
+							"cbm" 				=> $item_sales->cbm * -1,
+							"container" 		=> null,
 							];
 			}
 			
@@ -374,15 +376,21 @@ class Lgepr extends CI_Controller {
 							"model" 			=> $item_container->model,
 							"org" 				=> $item_container->organization,
 							"qty"				=> $item_container->qty,
+							"cbm" 				=> $item_container->cbm,
 							"container"			=> $item_container->container,
-							"cbm" 				=> number_format($item_container->cbm, 2)
 							];
 			}
 			
 		}else $res = ["Key error"];
 		
-		header('Content-Type: application/json');
-		echo json_encode($res);
+		if ($this->input->get("type") === "type"){
+			foreach($res as $item){
+				print_r($item); echo "<br/>";
+			}
+		}else{
+			header('Content-Type: application/json');
+			echo json_encode($res);	
+		}
 	}
 	
 	public function get_monthly_closed_order(){
