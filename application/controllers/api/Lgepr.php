@@ -384,9 +384,29 @@ class Lgepr extends CI_Controller {
 		}else $res = ["Key error"];
 		
 		if ($this->input->get("type") === "table"){
+			echo "<table>";
+			
+			echo "<tr>";
+			echo "<td>Type</td>";
+			echo "<td>Date</td>";
+			echo "<td>Year</td>";
+			echo "<td>Month</td>";
+			echo "<td>Day</td>";
+			echo "<td>Company</td>";
+			echo "<td>Division</td>";
+			echo "<td>Model</td>";
+			echo "<td>Org</td>";
+			echo "<td>Qty</td>";
+			echo "<td>CBM</td>";
+			echo "<td>Container</td>";
+			echo "<td></td>";
+			echo "</tr>";
+			
 			foreach($res as $item){
 				print_r($item); echo "<br/>";
 			}
+			
+			echo "</table>";
 		}else{
 			header('Content-Type: application/json');
 			echo json_encode($res);	
