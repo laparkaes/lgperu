@@ -292,8 +292,6 @@ class Custom_container_manage extends CI_Controller {
 					"updated_at" 	=> $now,
 				];
 				
-				print_r($row); echo "<br/>";
-				
 				//if this SA is not container, remove
 				if ($row["container"]){
 					if (array_key_exists($row["model"], $model_master)){				
@@ -306,7 +304,7 @@ class Custom_container_manage extends CI_Controller {
 					
 					//set status as pending
 					$row["is_received"] = false;
-					
+				
 					$container = $this->gen_m->filter("custom_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
 					if ($container){
 						//if container is in SA list, this container is not received by 3PL
@@ -315,6 +313,12 @@ class Custom_container_manage extends CI_Controller {
 						
 						$this->gen_m->update("custom_container", ["container_id" => $container[0]->container_id], $row);//update
 					}else $this->gen_m->insert("custom_container", $row); //insert	
+					
+					
+					print_r($row); echo "<br/>";
+					print_r($container); echo "<br/>";
+					echo "<br/>";
+					
 				}else $this->gen_m->delete("custom_container", ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
 			}
 			
