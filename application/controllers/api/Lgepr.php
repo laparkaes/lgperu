@@ -383,7 +383,7 @@ class Lgepr extends CI_Controller {
 			
 		}else $res = ["Key error"];
 		
-		if ($this->input->get("type") === "type"){
+		if ($this->input->get("type") === "table"){
 			foreach($res as $item){
 				print_r($item); echo "<br/>";
 			}
