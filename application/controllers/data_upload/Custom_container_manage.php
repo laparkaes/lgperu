@@ -292,6 +292,8 @@ class Custom_container_manage extends CI_Controller {
 					"updated_at" 	=> $now,
 				];
 				
+				print_r($row); echo "<br/>";
+				
 				//if this SA is not container, remove
 				if ($row["container"]){
 					if (array_key_exists($row["model"], $model_master)){				
