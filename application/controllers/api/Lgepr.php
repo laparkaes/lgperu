@@ -402,7 +402,7 @@ class Lgepr extends CI_Controller {
 			echo "</tr>";
 			
 			foreach($res as $item){
-				print_r($item); echo "<br/>";
+				//print_r($item); echo "<br/>";
 				
 				echo "<tr>";
 				echo "<td>".$item["type"]."</td>";
