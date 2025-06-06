@@ -314,6 +314,7 @@ class Custom_container_manage extends CI_Controller {
 						$this->gen_m->update("custom_container", ["container_id" => $container[0]->container_id], $row);//update
 					}else $this->gen_m->insert("custom_container", $row); //insert	
 					
+					echo trim($sheet->getCell('D'.$i)->getFormattedValue()); echo "<br/>";
 					echo trim($sheet->getCell('D'.$i)->getCalculatedValue()); echo "<br/>";
 					echo trim($sheet->getCell('D'.$i)->getValue()); echo "<br/>";
 					print_r($row["sa_no"]); echo "<br/>";
