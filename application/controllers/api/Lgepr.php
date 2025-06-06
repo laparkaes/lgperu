@@ -328,7 +328,7 @@ class Lgepr extends CI_Controller {
 							"model" 			=> $item_stock->model,
 							"org" 				=> $item_stock->org,
 							"qty"				=> $item_stock->on_hand,
-							"on_hand_cbm" 		=> number_format($item_stock->on_hand_cbm, 2)
+							"cbm" 				=> number_format($item_stock->on_hand_cbm, 2)
 							];
 			}
 			
@@ -351,7 +351,7 @@ class Lgepr extends CI_Controller {
 							"model" 			=> $item_sales->model,
 							"org" 				=> $item_sales->inventory_org,
 							"qty"				=> $item_sales->ordered_qty,
-							"on_hand_cbm" 		=> number_format($item_sales->cbm * -1, 2)
+							"cbm" 				=> number_format($item_sales->cbm * -1, 2)
 							];
 			}
 			
@@ -375,7 +375,7 @@ class Lgepr extends CI_Controller {
 							"org" 				=> $item_container->organization,
 							"qty"				=> $item_container->qty,
 							"container"			=> $item_container->container,
-							"on_hand_cbm" 		=> number_format($item_container->cbm, 2)
+							"cbm" 				=> number_format($item_container->cbm, 2)
 							];
 			}
 			
