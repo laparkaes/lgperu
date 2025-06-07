@@ -2,6 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
 class Custom_container_manage extends CI_Controller {
 
@@ -119,7 +120,7 @@ class Custom_container_manage extends CI_Controller {
 				'allowed_types'	=> '*',
 				'max_size'		=> 90000,
 				'overwrite'		=> TRUE,
-				'file_name'		=> 'custom_dq_sa_report.xlsx',
+				'file_name'		=> 'custom_dq_sa_report.xls',
 			];
 			$this->load->library('upload', $config);
 
@@ -145,7 +146,7 @@ class Custom_container_manage extends CI_Controller {
 		$start_time = microtime(true);
 		
 		//load excel file
-		$spreadsheet = IOFactory::load("./upload/custom_dq_sa_report.xlsx");
+		$spreadsheet = IOFactory::load("./upload/custom_dq_sa_report.xls");
 		$sheet = $spreadsheet->getActiveSheet();
 		
 		//excel file header validation
@@ -176,8 +177,11 @@ class Custom_container_manage extends CI_Controller {
 			foreach($models as $item) $model_master[$item->model] = $item;
 			
 			for($i = 2; $i <= $max_row; $i++){
+				
+				$sheet->getCell('D'.$i)->setDataType(DataType::TYPE_STRING);
+				
 				$row = [
-					"sa_no" 		=> trim($sheet->getCell('D'.$i)->getCalculatedValue()),
+					"sa_no" 		=> trim($sheet->getCell('D'.$i)->getValue()),
 					"sa_line_no" 	=> trim($sheet->getCell('E'.$i)->getValue()),
 					"house_bl"		=> trim($sheet->getCell('R'.$i)->getValue()),
 					"container" 	=> trim($sheet->getCell('O'.$i)->getValue()),
@@ -203,7 +207,7 @@ class Custom_container_manage extends CI_Controller {
 					
 					//set status as pending
 					$row["is_received"] = false;
-					
+				
 					$container = $this->gen_m->filter("custom_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
 					if ($container){
 						//if container is in SA list, this container is not received by 3PL
@@ -225,6 +229,11 @@ class Custom_container_manage extends CI_Controller {
 		echo $msg;
 		echo "<br/><br/>";
 		echo 'You can close this tab now.<br/><br/><button onclick="window.close();">Close This Tab</button>';
+	}
+	
+	public function testing(){
+		$container = $this->gen_m->filter("custom_container", false, ["sa_no" => 202400002594, "sa_line_no" => 1]);
+		print_r($container);
 	}
 	
 	public function receiving_confirm_upload(){

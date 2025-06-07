@@ -108,7 +108,7 @@ class Lgepr_stock extends CI_Controller {
 		$this->update_dash_div_cat();
 	}
 	
-	public function process($filename = "lgepr_stock_report.xlsx", $debug = false){
+	public function process($filename = "lgepr_stock_current_inventory.xls", $debug = false){
 		set_time_limit(0);
 		ini_set("memory_limit", -1);
 		
@@ -140,7 +140,6 @@ class Lgepr_stock extends CI_Controller {
 		$is_ok = true;
 		foreach($h as $i => $h_i) if ($h_i !== $header[$i]) $is_ok = false;
 		
-		
 		if ($is_ok){
 			$updated = date("Y-m-d");
 			$max_row = $sheet->getHighestRow();
@@ -155,15 +154,15 @@ class Lgepr_stock extends CI_Controller {
 					"model_description" 	=> trim($sheet->getCell('H'.$i)->getValue()),
 					"model_status" 			=> trim($sheet->getCell('J'.$i)->getValue()),
 					"available_qty"			=> trim($sheet->getCell('N'.$i)->getValue()),
-					"on_hand"				=> trim($sheet->getCell('P'.$i)->getValue()),
-					"seaStockTotal"			=> trim($sheet->getCell('BM'.$i)->getValue()),
-					"seaStockW1"			=> trim($sheet->getCell('BN'.$i)->getValue()),
-					"seaStockW2"			=> trim($sheet->getCell('BO'.$i)->getValue()),
-					"seaStockW3"			=> trim($sheet->getCell('BP'.$i)->getValue()),
-					"seaStockW4"			=> trim($sheet->getCell('BQ'.$i)->getValue()),
-					"seaStockW5"			=> trim($sheet->getCell('BR'.$i)->getValue()),
-					"on_hand_cbm"			=> trim($sheet->getCell('BV'.$i)->getValue()),
-					"product_level4"		=> trim($sheet->getCell('BX'.$i)->getValue()),
+					"on_hand"				=> trim($sheet->getCell('Q'.$i)->getValue()),
+					"seaStockTotal"			=> trim($sheet->getCell('BN'.$i)->getValue()),
+					"seaStockW1"			=> trim($sheet->getCell('BO'.$i)->getValue()),
+					"seaStockW2"			=> trim($sheet->getCell('BP'.$i)->getValue()),
+					"seaStockW3"			=> trim($sheet->getCell('BQ'.$i)->getValue()),
+					"seaStockW4"			=> trim($sheet->getCell('BR'.$i)->getValue()),
+					"seaStockW5"			=> trim($sheet->getCell('BS'.$i)->getValue()),
+					"on_hand_cbm"			=> trim($sheet->getCell('BW'.$i)->getValue()),
+					"product_level4"		=> trim($sheet->getCell('BY'.$i)->getValue()),
 					"updated"				=> $updated,
 				];
 				
@@ -198,7 +197,7 @@ class Lgepr_stock extends CI_Controller {
 				'allowed_types'	=> '*',
 				'max_size'		=> 90000,
 				'overwrite'		=> TRUE,
-				'file_name'		=> 'lgepr_stock_report.xlsx',
+				'file_name'		=> 'lgepr_stock_current_inventory.xls',
 			];
 			$this->load->library('upload', $config);
 
