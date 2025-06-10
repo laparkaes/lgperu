@@ -42,7 +42,7 @@ class Utility_func extends CI_Controller {
 		
 		$w = ["eta >=" => $eta_from, "eta <=" => $eta_to,];
 		$o = [["eta", "desc"], ["sa_no", "asc"], ["sa_line_no", "asc"], ["container", "asc"]];
-		$g = ["eta", "carrier_line", "container", "company", "division", "ata", "picked_up", "wh_arrival", "return_due", "returned"];
+		$g = ["eta", "carrier_line", "container", "house_bl", "company", "division", "ata", "picked_up", "wh_arrival", "return_due", "returned"];
 		$containers = $this->gen_m->only_multi("custom_container", $g, $w, $g);
 		
 		foreach($containers as $item){
@@ -220,41 +220,72 @@ class Utility_func extends CI_Controller {
 
 		$row = 1;
 
-		//header
-		$sheet->setCellValue('A'.$row, 'Company');
-		$sheet->setCellValue('B'.$row, 'Division');
-		$sheet->setCellValue('C'.$row, 'Container');
-		$sheet->setCellValue('D'.$row, 'ETA');
-		$sheet->setCellValue('E'.$row, 'ATA');
-		$sheet->setCellValue('F'.$row, 'Picked up');
-		$sheet->setCellValue('G'.$row, 'Warehouse');
-		$sheet->setCellValue('H'.$row, 'Returned');
-		$sheet->setCellValue('I'.$row, 'Return due');
-		$sheet->setCellValue('J'.$row, 'DEM remind');
-		$sheet->setCellValue('K'.$row, 'DEM days');
-		$sheet->setCellValue('L'.$row, 'DET remind');
-		$sheet->setCellValue('M'.$row, 'DET days');
-		$sheet->setCellValue('N'.$row, 'Total Amount');
-
+		//header 1
+		$sheet->setCellValueByColumnAndRow(1, $row, 'Carrier line');
+		$sheet->setCellValueByColumnAndRow(2, $row, 'House BL');
+		$sheet->setCellValueByColumnAndRow(3, $row, 'Container');
+		$sheet->setCellValueByColumnAndRow(4, $row, 'Company');
+		$sheet->setCellValueByColumnAndRow(5, $row, 'Division');
+		$sheet->setCellValueByColumnAndRow(6, $row, 'ETA');
+		$sheet->setCellValueByColumnAndRow(7, $row, 'ATA');
+		$sheet->setCellValueByColumnAndRow(8, $row, 'Picked up');
+		$sheet->setCellValueByColumnAndRow(9, $row, 'Warehouse');
+		$sheet->setCellValueByColumnAndRow(10, $row, 'Returned');
+		$sheet->setCellValueByColumnAndRow(11, $row, 'Return due');
+		$sheet->setCellValueByColumnAndRow(12, $row, 'Demurrage');
+		$sheet->setCellValueByColumnAndRow(16, $row, 'Detention');
+		$sheet->setCellValueByColumnAndRow(20, $row, 'Total cost (USD)');
+		
+		//header 2
 		$row++;
+		$sheet->setCellValueByColumnAndRow(12, $row, 'Period');
+		$sheet->setCellValueByColumnAndRow(13, $row, 'Remind');
+		$sheet->setCellValueByColumnAndRow(14, $row, 'Occured');
+		$sheet->setCellValueByColumnAndRow(15, $row, 'Amount (USD)');
+		$sheet->setCellValueByColumnAndRow(16, $row, 'Period');
+		$sheet->setCellValueByColumnAndRow(17, $row, 'Remind');
+		$sheet->setCellValueByColumnAndRow(18, $row, 'Occured');
+		$sheet->setCellValueByColumnAndRow(19, $row, 'Amount (USD)');
+		
+		//merge cells
+		$sheet->mergeCells('A1:A2');
+		$sheet->mergeCells('B1:B2');
+		$sheet->mergeCells('C1:C2');
+		$sheet->mergeCells('D1:D2');
+		$sheet->mergeCells('E1:E2');
+		$sheet->mergeCells('F1:F2');
+		$sheet->mergeCells('G1:G2');
+		$sheet->mergeCells('H1:H2');
+		$sheet->mergeCells('I1:I2');
+		$sheet->mergeCells('J1:J2');
+		$sheet->mergeCells('K1:K2');
+		$sheet->mergeCells('L1:O1');
+		$sheet->mergeCells('H1:H2');
 
-		//rows
+
+//stdClass Object ( [eta] => 2025-06-11 [carrier_line] => HAPAG [container] => HAMU3693789 [house_bl] => PLIHQ4G56878 [company] => HS [division] => W/M [ata] => 2025-06-02 [picked_up] => [wh_arrival] => [return_due] => 2025-06-22 [returned] => [no_data] => 1 [det_days] => 0 [dem_days] => 5 [det_reminds] => 13 [dem_reminds] => 0 [dem_period] => 2025-06 [det_period] => 2025-06 )
+
+		//rawdatas
+		$row++;
 		foreach($containers as $item){
-			$sheet->setCellValue('A'.$row, $item->company);
-			$sheet->setCellValue('B'.$row, $item->division);
-			$sheet->setCellValue('C'.$row, $item->container);
-			$sheet->setCellValue('D'.$row, $item->eta);
-			$sheet->setCellValue('E'.$row, $item->ata);
-			$sheet->setCellValue('F'.$row, $item->picked_up);
-			$sheet->setCellValue('G'.$row, $item->wh_arrival);
-			$sheet->setCellValue('H'.$row, $item->returned);
-			$sheet->setCellValue('I'.$row, $item->return_due);
-			$sheet->setCellValue('J'.$row, $item->dem_reminds);
-			$sheet->setCellValue('K'.$row, $item->dem_days);
-			$sheet->setCellValue('L'.$row, $item->det_reminds);
-			$sheet->setCellValue('M'.$row, $item->det_days);
-			$sheet->setCellValue('N'.$row, 180 * ($item->dem_days + $item->det_days));
 			
+			print_r($item); echo "<br/><br/>";
+			
+			$sheet->setCellValueByColumnAndRow(1, $row, $item->company);
+			$sheet->setCellValueByColumnAndRow(2, $row, $item->division);
+			$sheet->setCellValueByColumnAndRow(3, $row, $item->container);
+			$sheet->setCellValueByColumnAndRow(4, $row, $item->eta);
+			$sheet->setCellValueByColumnAndRow(5, $row, $item->ata);
+			$sheet->setCellValueByColumnAndRow(6, $row, $item->picked_up);
+			$sheet->setCellValueByColumnAndRow(7, $row, $item->wh_arrival);
+			$sheet->setCellValueByColumnAndRow(8, $row, $item->returned);
+			$sheet->setCellValueByColumnAndRow(9, $row, $item->return_due);
+			$sheet->setCellValueByColumnAndRow(10, $row, $item->dem_reminds);
+			$sheet->setCellValueByColumnAndRow(11, $row, $item->dem_days);
+			$sheet->setCellValueByColumnAndRow(12, $row, $item->det_reminds);
+			$sheet->setCellValueByColumnAndRow(13, $row, $item->det_days);
+			$sheet->setCellValueByColumnAndRow(14, $row, 180 * ($item->dem_days + $item->det_days));
+
 			$row++;
 		}
 
@@ -277,8 +308,8 @@ class Utility_func extends CI_Controller {
 		$subject = "[Custom] Container aging auto-report.";
 		$content = $this->load->view('email/custom_container_aging', $data, true);
 		
-		echo $this->my_func->send_email("georgio.park@lge.com", $to, $subject, $content, $filePath);
-		//echo $content;
+		//echo $this->my_func->send_email("georgio.park@lge.com", $to, $subject, $content, $filePath);
+		echo $content;
 		echo "Aging report sent.";
 	}
 	
