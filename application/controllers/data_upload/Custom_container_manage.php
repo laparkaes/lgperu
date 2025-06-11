@@ -493,16 +493,16 @@ class Custom_container_manage extends CI_Controller {
 		
 		//excel file header validation
 		$h = [
-			trim($sheet->getCell('A1')->getValue()),
-			trim($sheet->getCell('B1')->getValue()),
-			trim($sheet->getCell('C1')->getValue()),
-			trim($sheet->getCell('D1')->getValue()),
-			trim($sheet->getCell('E1')->getValue()),
+			trim($sheet->getCell('A2')->getValue()),
+			trim($sheet->getCell('B2')->getValue()),
+			trim($sheet->getCell('C2')->getValue()),
+			trim($sheet->getCell('D2')->getValue()),
+			trim($sheet->getCell('E2')->getValue()),
 		];
 
 		//magento report header
-		$h_validation = ["HBL No", "CNTR No", "Carrier Grp", "ETA", "ATA"];
-
+		$h_validation = ["HBL No.", "Invoice No.", "CNTR No.", "MBL No.", "SHPR Name"];
+		
 		//header validation
 		$is_ok = true;
 		foreach($h as $i => $h_i) if ($h_i !== $h_validation[$i]) $is_ok = false;
@@ -513,32 +513,55 @@ class Custom_container_manage extends CI_Controller {
 			//define now
 			$now = date('Y-m-d H:i:s', time());
 			
-			for($i = 2; $i <= $max_row; $i++){
+			for($i = 3; $i <= $max_row; $i++){
 				$row = [
-					"house_bl" 		=> trim($sheet->getCell('A'.$i)->getValue()),
-					"container" 	=> trim($sheet->getCell('B'.$i)->getValue()),
-					"carrier_line" 	=> trim($sheet->getCell('C'.$i)->getValue()),
-					"eta"		 	=> $sheet->getCell('D'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('D'.$i)->getFormattedValue()))) : null,
-					"ata"		 	=> $sheet->getCell('E'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('E'.$i)->getFormattedValue()))) : null,
-					"picked_up" 	=> $sheet->getCell('F'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('F'.$i)->getFormattedValue()))) : null,
-					"wh_arrival" 	=> $sheet->getCell('G'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('G'.$i)->getFormattedValue()))) : null,
-					"returned" 		=> $sheet->getCell('H'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('H'.$i)->getFormattedValue()))) : null,
-					"return_due"	=> $sheet->getCell('I'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('I'.$i)->getFormattedValue()))) : null,
-					"updated_at" 	=> $now,
+					"master_bl"				=> trim($sheet->getCell('D'.$i)->getValue()),
+					"house_bl"				=> trim($sheet->getCell('A'.$i)->getValue()),
+					"invoice"				=> trim($sheet->getCell('B'.$i)->getValue()),
+					"carrier_line"			=> trim($sheet->getCell('K'.$i)->getValue()),
+					"carrier_name"			=> trim($sheet->getCell('L'.$i)->getValue()),
+					"current_vessel"		=> trim($sheet->getCell('M'.$i)->getValue()),
+					"shipper"				=> trim($sheet->getCell('E'.$i)->getValue()),
+					"incoterms"				=> trim($sheet->getCell('J'.$i)->getValue()),
+					"ctn_size"				=> trim($sheet->getCell('I'.$i)->getValue()),
+					"container"				=> trim($sheet->getCell('C'.$i)->getValue()),
+					"product"				=> trim($sheet->getCell('F'.$i)->getValue()),
+					"transshipment"			=> trim($sheet->getCell('P'.$i)->getValue()),
+					"transshipment_op"		=> trim($sheet->getCell('Q'.$i)->getValue()),
+					"transshipment_route"	=> trim($sheet->getCell('R'.$i)->getValue()),
+					"transshipment_loc"		=> trim($sheet->getCell('S'.$i)->getValue()),
+					"transshipment_vessel"	=> trim($sheet->getCell('T'.$i)->getValue()),
+					"port_departure"		=> trim($sheet->getCell('N'.$i)->getValue()),
+					"port_terminal"			=> trim($sheet->getCell('U'.$i)->getValue()),
+					"atd"					=> $sheet->getCell('O'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('O'.$i)->getFormattedValue()))) : null,
+					"eta_initial"			=> $sheet->getCell('V'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('V'.$i)->getFormattedValue()))) : null,
+					"eta"					=> $sheet->getCell('W'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('W'.$i)->getFormattedValue()))) : null,
+					"ata"					=> $sheet->getCell('X'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('X'.$i)->getFormattedValue()))) : null,
+					"picked_up"				=> $sheet->getCell('Y'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Y'.$i)->getFormattedValue()))) : null,
+					"wh_arrival"			=> $sheet->getCell('Z'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Z'.$i)->getFormattedValue()))) : null,
+					"returned"				=> $sheet->getCell('AA'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('AA'.$i)->getFormattedValue()))) : null,
+					"return_due"			=> $sheet->getCell('AG'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('AG'.$i)->getFormattedValue()))) : null,
+					"updated_at"			=> $now,
 				];
 				
 				if ($row["ata"] or $row["picked_up"] or $row["wh_arrival"] or $row["returned"]) $row["is_received"] = true;
 				
-				if (!$row["eta"]) unset($row["eta"]);
-				if (!$row["ata"]) unset($row["ata"]);
-				if (!$row["picked_up"]) unset($row["picked_up"]);
-				if (!$row["wh_arrival"]) unset($row["wh_arrival"]);
-				if (!$row["returned"]) unset($row["returned"]);
-				if (!$row["return_due"]) unset($row["return_due"]);
+				//terminal information reset
+				if (stripos($row["port_terminal"], 'APM') !== false) $row["port_terminal"] = "APM";
+				elseif (stripos($row["port_terminal"], 'DP') !== false) $row["port_terminal"] = "DPW";
+				elseif (stripos($row["port_terminal"], 'DUBAI') !== false) $row["port_terminal"] = "DPW";
+				elseif (stripos($row["port_terminal"], 'PECLL') !== false) $row["port_terminal"] = "PECLL";
+				else unset($row["port_terminal"]);
 				
-				if ($row["eta"]){
-					$this->gen_m->update("custom_container", ["eta >=" => date('Y-m-d', strtotime('-1 month', strtotime($row["eta"]))), "container" => $row["container"]], $row);
-				}
+				//clean null values
+				foreach($row as $k => $val) if (!$val) unset($row[$k]);
+				
+				//return due date is a formula
+				if ($row["return_due"] === "1969-12-31") $row["return_due"] = null;
+				
+				//update container information
+				if (array_key_exists('container', $row) and array_key_exists('eta', $row))
+					$this->gen_m->update("custom_container", ["eta >=" => date('Y-m-d', strtotime('-40 days', strtotime($row["eta"]))), "container" => $row["container"]], $row);
 			}
 			
 			$msg = "Container dates are updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";

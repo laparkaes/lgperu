@@ -42,7 +42,36 @@ class Utility_func extends CI_Controller {
 		
 		$w = ["eta >=" => $eta_from, "eta <=" => $eta_to,];
 		$o = [["eta", "desc"], ["sa_no", "asc"], ["sa_line_no", "asc"], ["container", "asc"]];
-		$g = ["eta", "carrier_line", "container", "company", "division", "ata", "picked_up", "wh_arrival", "return_due", "returned"];
+		$g = [
+			"eta", 
+			"master_bl", 
+			"house_bl", 
+			"invoice", 
+			"carrier_line", 
+			"carrier_name", 
+			"current_vessel", 
+			"shipper", 
+			"incoterms", 
+			"ctn_size", 
+			"container", 
+			"company", 
+			"division", 
+			"product", 
+			"transshipment", 
+			"transshipment_op", 
+			"transshipment_route", 
+			"transshipment_loc", 
+			"transshipment_vessel", 
+			"port_departure", 
+			"port_terminal", 
+			"atd", 
+			"eta_initial", 
+			"ata", 
+			"picked_up", 
+			"wh_arrival", 
+			"return_due", 
+			"returned", 
+		];
 		$containers = $this->gen_m->only_multi("custom_container", $g, $w, $g);
 		
 		foreach($containers as $item){
@@ -130,7 +159,7 @@ class Utility_func extends CI_Controller {
 			],
 		];
 		
-		$port = "DPW + APM";
+		//$port = "DPW + APM";
 		
 		foreach($containers as $i => $item){
 			
@@ -143,26 +172,26 @@ class Utility_func extends CI_Controller {
 				
 				//demurrage
 				if (!$item->ata){
-					
-					if (!array_key_exists($port, $demurrage)) $demurrage[$port] = $dem_row;
+					if (!$item->port_terminal) $item->port_terminal = "_blank";
+					if (!array_key_exists($item->port_terminal, $demurrage)) $demurrage[$item->port_terminal] = $dem_row;
 
-					$demurrage[$port]["total"]++;
+					$demurrage[$item->port_terminal]["total"]++;
 					$demurrage["Total"]["total"]++;
 					
 					if ($item->dem_days){
-						$demurrage[$port]["overdue"]++;
+						$demurrage[$item->port_terminal]["overdue"]++;
 						$demurrage["Total"]["overdue"]++;
 					}else switch($item->dem_reminds){
 						case 2: 
-							$demurrage[$port]["2d"]++;
+							$demurrage[$item->port_terminal]["2d"]++;
 							$demurrage["Total"]["2d"]++;
 							break;
 						case 1:
-							$demurrage[$port]["1d"]++;
+							$demurrage[$item->port_terminal]["1d"]++;
 							$demurrage["Total"]["1d"]++;
 							break;
 						case 0:
-							$demurrage[$port]["0d"]++;
+							$demurrage[$item->port_terminal]["0d"]++;
 							$demurrage["Total"]["0d"]++;
 							break;
 					}
@@ -220,40 +249,131 @@ class Utility_func extends CI_Controller {
 
 		$row = 1;
 
-		//header
-		$sheet->setCellValue('A'.$row, 'Company');
-		$sheet->setCellValue('B'.$row, 'Division');
-		$sheet->setCellValue('C'.$row, 'Container');
-		$sheet->setCellValue('D'.$row, 'ETA');
-		$sheet->setCellValue('E'.$row, 'ATA');
-		$sheet->setCellValue('F'.$row, 'Picked up');
-		$sheet->setCellValue('G'.$row, 'Warehouse');
-		$sheet->setCellValue('H'.$row, 'Returned');
-		$sheet->setCellValue('I'.$row, 'Return due');
-		$sheet->setCellValue('J'.$row, 'DEM remind');
-		$sheet->setCellValue('K'.$row, 'DEM days');
-		$sheet->setCellValue('L'.$row, 'DET remind');
-		$sheet->setCellValue('M'.$row, 'DET days');
-		$sheet->setCellValue('N'.$row, 'Total Amount');
+/*
+[eta] => 2025-04-01 
+[master_bl] => JNG0238004 
+[house_bl] => PLISH4G08589 
+[invoice] => HQDF361631163-1 
+[carrier_line] => CMA 
+[carrier_name] => CMA 
+[current_vessel] => EVER LIFTING 
+[shipper] => NANJING LG PANDA APPLIANCES CO.,LTD 
+[incoterms] => CFR 
+[ctn_size] => 40FT 
+[container] => FFAU4437141 
+[company] => HS 
+[division] => W/M 
+[product] => WASHING MACHINE 
+[transshipment] => 
+[transshipment_op] => N 
+[transshipment_route] => 
+[transshipment_loc] => 
+[transshipment_vessel] => 
+[port_departure] => CNNKG 
+[port_terminal] => PECLL 
+[atd] => 2025-02-17 
+[eta_initial] => 2025-04-07 
+[ata] => 2025-04-03 
+[picked_up] => 2025-04-05 
+[wh_arrival] => 2025-04-05 
+[return_due] => 2025-05-02 
+[returned] => 2025-04-25 
+[no_data] => 0 
+[det_days] => 0 
+[dem_days] => 0 
+[det_reminds] => 0 
+[dem_reminds] => 0 
+[dem_period] => 2025-04 
+[det_period] => 2025-04
+*/
 
+
+		//header 1
+		$sheet->setCellValueByColumnAndRow(29, $row, 'Demurrage');
+		$sheet->setCellValueByColumnAndRow(32, $row, 'Detention');
+		$sheet->setCellValueByColumnAndRow(35, $row, 'Amount (USD)');
+		
+		//header 2
 		$row++;
+		$sheet->setCellValueByColumnAndRow(1, $row, "Master bl");
+		$sheet->setCellValueByColumnAndRow(2, $row, "House bl");
+		$sheet->setCellValueByColumnAndRow(3, $row, "Invoice");
+		$sheet->setCellValueByColumnAndRow(4, $row, "Carrier line");
+		$sheet->setCellValueByColumnAndRow(5, $row, "Carrier name");
+		$sheet->setCellValueByColumnAndRow(6, $row, "Current vessel");
+		$sheet->setCellValueByColumnAndRow(7, $row, "Shipper");
+		$sheet->setCellValueByColumnAndRow(8, $row, "Incoterms");
+		$sheet->setCellValueByColumnAndRow(9, $row, "CTN size");
+		$sheet->setCellValueByColumnAndRow(10, $row, "Container");
+		$sheet->setCellValueByColumnAndRow(11, $row, "Company");
+		$sheet->setCellValueByColumnAndRow(12, $row, "Division");
+		$sheet->setCellValueByColumnAndRow(13, $row, "Product");
+		$sheet->setCellValueByColumnAndRow(14, $row, "Transshipment");
+		$sheet->setCellValueByColumnAndRow(15, $row, "T/S optional");
+		$sheet->setCellValueByColumnAndRow(16, $row, "T/S route");
+		$sheet->setCellValueByColumnAndRow(17, $row, "T/S port");
+		$sheet->setCellValueByColumnAndRow(18, $row, "T/S vessel");
+		$sheet->setCellValueByColumnAndRow(19, $row, "Port departure");
+		$sheet->setCellValueByColumnAndRow(20, $row, "Port terminal");
+		$sheet->setCellValueByColumnAndRow(21, $row, "ATD");
+		$sheet->setCellValueByColumnAndRow(22, $row, "ETA initial");
+		$sheet->setCellValueByColumnAndRow(23, $row, "ETA");
+		$sheet->setCellValueByColumnAndRow(24, $row, "ATA");
+		$sheet->setCellValueByColumnAndRow(25, $row, "Picked up");
+		$sheet->setCellValueByColumnAndRow(26, $row, "Warehouse");
+		$sheet->setCellValueByColumnAndRow(27, $row, "Return due");
+		$sheet->setCellValueByColumnAndRow(28, $row, "Returned");
+		$sheet->setCellValueByColumnAndRow(29, $row, 'Period');
+		$sheet->setCellValueByColumnAndRow(30, $row, 'Remind');
+		$sheet->setCellValueByColumnAndRow(31, $row, 'Occured');
+		$sheet->setCellValueByColumnAndRow(32, $row, 'Period');
+		$sheet->setCellValueByColumnAndRow(33, $row, 'Remind');
+		$sheet->setCellValueByColumnAndRow(34, $row, 'Occured');
+		$sheet->setCellValueByColumnAndRow(35, $row, 'DEM+DET');
+		
+		//merge cells
+		$sheet->mergeCells('AC1:AE1');
+		$sheet->mergeCells('AF1:AH1');
 
-		//rows
+		//rawdatas
+		$row++;
 		foreach($containers as $item){
-			$sheet->setCellValue('A'.$row, $item->company);
-			$sheet->setCellValue('B'.$row, $item->division);
-			$sheet->setCellValue('C'.$row, $item->container);
-			$sheet->setCellValue('D'.$row, $item->eta);
-			$sheet->setCellValue('E'.$row, $item->ata);
-			$sheet->setCellValue('F'.$row, $item->picked_up);
-			$sheet->setCellValue('G'.$row, $item->wh_arrival);
-			$sheet->setCellValue('H'.$row, $item->returned);
-			$sheet->setCellValue('I'.$row, $item->return_due);
-			$sheet->setCellValue('J'.$row, $item->dem_reminds);
-			$sheet->setCellValue('K'.$row, $item->dem_days);
-			$sheet->setCellValue('L'.$row, $item->det_reminds);
-			$sheet->setCellValue('M'.$row, $item->det_days);
-			$sheet->setCellValue('N'.$row, 180 * ($item->dem_days + $item->det_days));
+			
+			$sheet->setCellValueByColumnAndRow(1, $row, $item->master_bl);
+			$sheet->setCellValueByColumnAndRow(2, $row, $item->house_bl);
+			$sheet->setCellValueByColumnAndRow(3, $row, $item->invoice);
+			$sheet->setCellValueByColumnAndRow(4, $row, $item->carrier_line);
+			$sheet->setCellValueByColumnAndRow(5, $row, $item->carrier_name);
+			$sheet->setCellValueByColumnAndRow(6, $row, $item->current_vessel);
+			$sheet->setCellValueByColumnAndRow(7, $row, $item->shipper);
+			$sheet->setCellValueByColumnAndRow(8, $row, $item->incoterms);
+			$sheet->setCellValueByColumnAndRow(9, $row, $item->ctn_size);
+			$sheet->setCellValueByColumnAndRow(10, $row, $item->container);
+			$sheet->setCellValueByColumnAndRow(11, $row, $item->company);
+			$sheet->setCellValueByColumnAndRow(12, $row, $item->division);
+			$sheet->setCellValueByColumnAndRow(13, $row, $item->product);
+			$sheet->setCellValueByColumnAndRow(14, $row, $item->transshipment);
+			$sheet->setCellValueByColumnAndRow(15, $row, $item->transshipment_op);
+			$sheet->setCellValueByColumnAndRow(16, $row, $item->transshipment_route);
+			$sheet->setCellValueByColumnAndRow(17, $row, $item->transshipment_loc);
+			$sheet->setCellValueByColumnAndRow(18, $row, $item->transshipment_vessel);
+			$sheet->setCellValueByColumnAndRow(19, $row, $item->port_departure);
+			$sheet->setCellValueByColumnAndRow(20, $row, $item->port_terminal);
+			$sheet->setCellValueByColumnAndRow(21, $row, $item->atd);
+			$sheet->setCellValueByColumnAndRow(22, $row, $item->eta_initial);
+			$sheet->setCellValueByColumnAndRow(23, $row, $item->eta);
+			$sheet->setCellValueByColumnAndRow(24, $row, $item->ata);
+			$sheet->setCellValueByColumnAndRow(25, $row, $item->picked_up);
+			$sheet->setCellValueByColumnAndRow(26, $row, $item->wh_arrival);
+			$sheet->setCellValueByColumnAndRow(27, $row, $item->return_due);
+			$sheet->setCellValueByColumnAndRow(28, $row, $item->returned);
+			$sheet->setCellValueByColumnAndRow(29, $row, $item->dem_period);
+			$sheet->setCellValueByColumnAndRow(30, $row, $item->dem_days);
+			$sheet->setCellValueByColumnAndRow(31, $row, $item->dem_reminds);
+			$sheet->setCellValueByColumnAndRow(32, $row, $item->det_period);
+			$sheet->setCellValueByColumnAndRow(33, $row, $item->det_days);
+			$sheet->setCellValueByColumnAndRow(34, $row, $item->det_reminds);
+			$sheet->setCellValueByColumnAndRow(35, $row, 180 * ($item->dem_days + $item->det_days));
 			
 			$row++;
 		}
