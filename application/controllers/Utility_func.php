@@ -296,20 +296,18 @@ class Utility_func extends CI_Controller {
 		$sheet->setCellValueByColumnAndRow(27, $row, "Return due");
 		$sheet->setCellValueByColumnAndRow(28, $row, "Returned");
 		$sheet->setCellValueByColumnAndRow(29, $row, 'Demurrage');
-		$sheet->setCellValueByColumnAndRow(33, $row, 'Detention');
-		$sheet->setCellValueByColumnAndRow(37, $row, 'Amount (USD)');
+		$sheet->setCellValueByColumnAndRow(32, $row, 'Detention');
+		$sheet->setCellValueByColumnAndRow(35, $row, 'Amount (USD)');
 		
 		//header 2
 		$row++;
-		$sheet->setCellValueByColumnAndRow(29, $row, 'Period');
-		$sheet->setCellValueByColumnAndRow(30, $row, 'Range');
-		$sheet->setCellValueByColumnAndRow(31, $row, 'Freedays');
-		$sheet->setCellValueByColumnAndRow(32, $row, 'Occured');
-		$sheet->setCellValueByColumnAndRow(33, $row, 'Period');
-		$sheet->setCellValueByColumnAndRow(34, $row, 'Range');
-		$sheet->setCellValueByColumnAndRow(35, $row, 'Freedays');
-		$sheet->setCellValueByColumnAndRow(36, $row, 'Occured');
-		$sheet->setCellValueByColumnAndRow(37, $row, 'DEM+DET');
+		$sheet->setCellValueByColumnAndRow(29, $row, 'Range');
+		$sheet->setCellValueByColumnAndRow(30, $row, 'Freedays');
+		$sheet->setCellValueByColumnAndRow(31, $row, 'Overdays');
+		$sheet->setCellValueByColumnAndRow(32, $row, 'Range');
+		$sheet->setCellValueByColumnAndRow(33, $row, 'Freedays');
+		$sheet->setCellValueByColumnAndRow(34, $row, 'Overdays');
+		$sheet->setCellValueByColumnAndRow(35, $row, 'DEM+DET');
 		
 		//rawdatas
 		$row++;
@@ -343,15 +341,13 @@ class Utility_func extends CI_Controller {
 			$sheet->setCellValueByColumnAndRow(26, $row, $item->wh_arrival);
 			$sheet->setCellValueByColumnAndRow(27, $row, $item->return_due);
 			$sheet->setCellValueByColumnAndRow(28, $row, $item->returned);
-			$sheet->setCellValueByColumnAndRow(29, $row, $item->dem_period);
-			$sheet->setCellValueByColumnAndRow(30, $row, $item->dem_range);
-			$sheet->setCellValueByColumnAndRow(31, $row, $item->dem_reminds);
-			$sheet->setCellValueByColumnAndRow(32, $row, $item->dem_days);
-			$sheet->setCellValueByColumnAndRow(33, $row, $item->det_period);
-			$sheet->setCellValueByColumnAndRow(34, $row, $item->det_range);
-			$sheet->setCellValueByColumnAndRow(35, $row, $item->det_reminds);
-			$sheet->setCellValueByColumnAndRow(36, $row, $item->det_days);
-			$sheet->setCellValueByColumnAndRow(37, $row, 180 * ($item->dem_days + $item->det_days));
+			$sheet->setCellValueByColumnAndRow(29, $row, $item->dem_range);
+			$sheet->setCellValueByColumnAndRow(30, $row, $item->dem_reminds);
+			$sheet->setCellValueByColumnAndRow(31, $row, $item->dem_days);
+			$sheet->setCellValueByColumnAndRow(32, $row, $item->det_range);
+			$sheet->setCellValueByColumnAndRow(33, $row, $item->det_reminds);
+			$sheet->setCellValueByColumnAndRow(34, $row, $item->det_days);
+			$sheet->setCellValueByColumnAndRow(35, $row, 180 * ($item->dem_days + $item->det_days));
 			
 			$row++;
 		}
@@ -361,8 +357,8 @@ class Utility_func extends CI_Controller {
 			$col = Coordinate::stringFromColumnIndex($i); // A ~ AB
 			$sheet->mergeCells("{$col}1:{$col}2");
 		}
-		$sheet->mergeCells('AC1:AF1');
-		$sheet->mergeCells('AG1:AJ1');
+		$sheet->mergeCells('AC1:AE1');
+		$sheet->mergeCells('AF1:AH1');
 		
 		//set width
 		for ($colIndex = 1; $colIndex <= 37; $colIndex++) {
@@ -390,15 +386,14 @@ class Utility_func extends CI_Controller {
 		$sheet->getColumnDimension('AA')->setWidth(15);
 		$sheet->getColumnDimension('AB')->setWidth(15);
 		$sheet->getColumnDimension('AK')->setWidth(15);
+		$sheet->getColumnDimension('AI')->setWidth(15);
 		
 		$sheet->getColumnDimension('AC')->setWidth(10);
 		$sheet->getColumnDimension('AD')->setWidth(10);
 		$sheet->getColumnDimension('AE')->setWidth(10);
 		$sheet->getColumnDimension('AF')->setWidth(10);
-		$sheet->getColumnDimension('AH')->setWidth(10);
-		$sheet->getColumnDimension('AI')->setWidth(10);
-		$sheet->getColumnDimension('AJ')->setWidth(10);
 		$sheet->getColumnDimension('AG')->setWidth(10);
+		$sheet->getColumnDimension('AH')->setWidth(10);
 		
 		//header style
 		$range = 'A1:AK2';
@@ -425,8 +420,8 @@ class Utility_func extends CI_Controller {
 			"detention"	=> $detention,
 		];
 		
-		//$to = ["wonshik.woo@lge.com", "mariela.carbajal@lge.com", "juan.gonzales@lge.com", "nicolas.nigro@lgepartner.com", "georgio.park@lge.com", "ricardo.alvarez@lge.com"];
-		$to = ["georgio.park@lge.com"];
+		$to = ["wonshik.woo@lge.com", "mariela.carbajal@lge.com", "juan.gonzales@lge.com", "nicolas.nigro@lgepartner.com", "georgio.park@lge.com", "ricardo.alvarez@lge.com"];
+		//$to = ["georgio.park@lge.com"];
 		
 		$subject = "[Custom] Container aging auto-report.";
 		$content = $this->load->view('email/custom_container_aging', $data, true);
