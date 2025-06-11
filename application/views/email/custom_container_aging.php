@@ -44,6 +44,14 @@
 			<td style="border-left: 1px solid black; border-right: 1px solid black;"><?= $item["total"] ? number_format($item["total"]) : "-" ?></td>
 		</tr>
 		<?php }} ?>
+		<tr>
+			<td style="border-left: 1px solid black; border-right: 1px solid black;"><strong>Total</strong></td>
+			<td style="color: red;"><?= $demurrage["Total"]["overdue"] ? number_format($demurrage["Total"]["overdue"]) : "-" ?></td>
+			<td><?= $demurrage["Total"]["0d"] ? number_format($demurrage["Total"]["0d"]) : "-" ?></td>
+			<td><?= $demurrage["Total"]["1d"] ? number_format($demurrage["Total"]["1d"]) : "-" ?></td>
+			<td><?= $demurrage["Total"]["2d"] ? number_format($demurrage["Total"]["2d"]) : "-" ?></td>
+			<td style="border-left: 1px solid black; border-right: 1px solid black;"><?= $demurrage["Total"]["total"] ? number_format($demurrage["Total"]["total"]) : "-" ?></td>
+		</tr>
 	</table>
 	<div>* Ports will be splitted when Custom team is ready to upload correct data.</div>
 	<br/>
@@ -55,7 +63,7 @@
 			<td style="width: 100px; border-left: 1px solid black; border-right: 1px solid black;"><strong>Free Time</strong></td>
 			<td style="width: 100px; color: red;"><strong>Overdue</strong></td>
 			<td style="width: 100px;"><strong>0 day</strong></td>
-			<td style="width: 100px;"><strong>~3 day</strong></td>
+			<td style="width: 100px;"><strong>~3 days</strong></td>
 			<td style="width: 100px;"><strong>~7 days</strong></td>
 			<td style="width: 100px;"><strong>~14 days</strong></td>
 			<td style="width: 100px;"><strong>~21 days</strong></td>

@@ -3,6 +3,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Font;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class Utility_func extends CI_Controller {
@@ -162,7 +168,7 @@ class Utility_func extends CI_Controller {
 		//$port = "DPW + APM";
 		
 		foreach($containers as $i => $item){
-			
+			$item->dem_range = $item->det_range = "";
 			$item->dem_period = date("Y-m", strtotime($item->ata ? $item->ata : $today));
 			$item->det_period = date("Y-m", strtotime($item->returned ? $item->returned : $today));
 			
@@ -171,26 +177,30 @@ class Utility_func extends CI_Controller {
 				if ($item->no_data) $no_data_qty++;
 				
 				//demurrage
-				if (!$item->ata){
-					if (!$item->port_terminal) $item->port_terminal = "_blank";
-					if (!array_key_exists($item->port_terminal, $demurrage)) $demurrage[$item->port_terminal] = $dem_row;
-
+				if (!$item->port_terminal) $item->port_terminal = "_blank";
+				if (!array_key_exists($item->port_terminal, $demurrage)) $demurrage[$item->port_terminal] = $dem_row;
+				
+				if (!$item->picked_up){
 					$demurrage[$item->port_terminal]["total"]++;
 					$demurrage["Total"]["total"]++;
 					
 					if ($item->dem_days){
+						$item->dem_range = "Overdue";
 						$demurrage[$item->port_terminal]["overdue"]++;
 						$demurrage["Total"]["overdue"]++;
 					}else switch($item->dem_reminds){
 						case 2: 
+							$item->dem_range = "2 days";
 							$demurrage[$item->port_terminal]["2d"]++;
 							$demurrage["Total"]["2d"]++;
 							break;
 						case 1:
+							$item->dem_range = "1 day";
 							$demurrage[$item->port_terminal]["1d"]++;
 							$demurrage["Total"]["1d"]++;
 							break;
 						case 0:
+							$item->dem_range = "0 day";
 							$demurrage[$item->port_terminal]["0d"]++;
 							$demurrage["Total"]["0d"]++;
 							break;
@@ -199,39 +209,44 @@ class Utility_func extends CI_Controller {
 				
 				//detention remind
 				if (!$item->returned){
-					
 					if (!$item->carrier_line) $item->carrier_line = "_blank";
-					
 					if (!array_key_exists($item->carrier_line, $detention)) $detention[$item->carrier_line] = $det_row;
 					
 					$detention[$item->carrier_line]["total"]++;
 					$detention["Total"]["total"]++;
 					
 					if ($item->det_days){
+						$item->det_range = "Overdue";
 						$detention[$item->carrier_line]["overdue"]++;
 						$detention["Total"]["overdue"]++;
 					}else switch(true){
 						case $item->det_reminds == 0: 
+							$item->det_range = "0 day";
 							$detention[$item->carrier_line]["0d"]++;
 							$detention["Total"]["0d"]++;
 							break;
 						case $item->det_reminds <= 3: 
+							$item->det_range = "~3 days";
 							$detention[$item->carrier_line]["3d"]++;
 							$detention["Total"]["3d"]++;
 							break;
 						case $item->det_reminds <= 7:
+							$item->det_range = "~7 days";
 							$detention[$item->carrier_line]["7d"]++;
 							$detention["Total"]["7d"]++;
 							break;
 						case $item->det_reminds <= 14:
+							$item->det_range = "~14 days";
 							$detention[$item->carrier_line]["14d"]++;
 							$detention["Total"]["14d"]++;
 							break;
 						case $item->det_reminds <= 21:
+							$item->det_range = "~21 days";
 							$detention[$item->carrier_line]["21d"]++;
 							$detention["Total"]["21d"]++;
 							break;
 						default:
+							$item->det_range = "21 days~";
 							$detention[$item->carrier_line]["99d"]++;
 							$detention["Total"]["99d"]++;
 							break;
@@ -246,55 +261,12 @@ class Utility_func extends CI_Controller {
 		
 		$spreadsheet = new Spreadsheet();
 		$sheet = $spreadsheet->getActiveSheet();
+		
+		$sheet->setTitle('rawdata');
 
 		$row = 1;
 
-/*
-[eta] => 2025-04-01 
-[master_bl] => JNG0238004 
-[house_bl] => PLISH4G08589 
-[invoice] => HQDF361631163-1 
-[carrier_line] => CMA 
-[carrier_name] => CMA 
-[current_vessel] => EVER LIFTING 
-[shipper] => NANJING LG PANDA APPLIANCES CO.,LTD 
-[incoterms] => CFR 
-[ctn_size] => 40FT 
-[container] => FFAU4437141 
-[company] => HS 
-[division] => W/M 
-[product] => WASHING MACHINE 
-[transshipment] => 
-[transshipment_op] => N 
-[transshipment_route] => 
-[transshipment_loc] => 
-[transshipment_vessel] => 
-[port_departure] => CNNKG 
-[port_terminal] => PECLL 
-[atd] => 2025-02-17 
-[eta_initial] => 2025-04-07 
-[ata] => 2025-04-03 
-[picked_up] => 2025-04-05 
-[wh_arrival] => 2025-04-05 
-[return_due] => 2025-05-02 
-[returned] => 2025-04-25 
-[no_data] => 0 
-[det_days] => 0 
-[dem_days] => 0 
-[det_reminds] => 0 
-[dem_reminds] => 0 
-[dem_period] => 2025-04 
-[det_period] => 2025-04
-*/
-
-
 		//header 1
-		$sheet->setCellValueByColumnAndRow(29, $row, 'Demurrage');
-		$sheet->setCellValueByColumnAndRow(32, $row, 'Detention');
-		$sheet->setCellValueByColumnAndRow(35, $row, 'Amount (USD)');
-		
-		//header 2
-		$row++;
 		$sheet->setCellValueByColumnAndRow(1, $row, "Master bl");
 		$sheet->setCellValueByColumnAndRow(2, $row, "House bl");
 		$sheet->setCellValueByColumnAndRow(3, $row, "Invoice");
@@ -323,18 +295,22 @@ class Utility_func extends CI_Controller {
 		$sheet->setCellValueByColumnAndRow(26, $row, "Warehouse");
 		$sheet->setCellValueByColumnAndRow(27, $row, "Return due");
 		$sheet->setCellValueByColumnAndRow(28, $row, "Returned");
-		$sheet->setCellValueByColumnAndRow(29, $row, 'Period');
-		$sheet->setCellValueByColumnAndRow(30, $row, 'Remind');
-		$sheet->setCellValueByColumnAndRow(31, $row, 'Occured');
-		$sheet->setCellValueByColumnAndRow(32, $row, 'Period');
-		$sheet->setCellValueByColumnAndRow(33, $row, 'Remind');
-		$sheet->setCellValueByColumnAndRow(34, $row, 'Occured');
-		$sheet->setCellValueByColumnAndRow(35, $row, 'DEM+DET');
+		$sheet->setCellValueByColumnAndRow(29, $row, 'Demurrage');
+		$sheet->setCellValueByColumnAndRow(33, $row, 'Detention');
+		$sheet->setCellValueByColumnAndRow(37, $row, 'Amount (USD)');
 		
-		//merge cells
-		$sheet->mergeCells('AC1:AE1');
-		$sheet->mergeCells('AF1:AH1');
-
+		//header 2
+		$row++;
+		$sheet->setCellValueByColumnAndRow(29, $row, 'Period');
+		$sheet->setCellValueByColumnAndRow(30, $row, 'Range');
+		$sheet->setCellValueByColumnAndRow(31, $row, 'Freedays');
+		$sheet->setCellValueByColumnAndRow(32, $row, 'Occured');
+		$sheet->setCellValueByColumnAndRow(33, $row, 'Period');
+		$sheet->setCellValueByColumnAndRow(34, $row, 'Range');
+		$sheet->setCellValueByColumnAndRow(35, $row, 'Freedays');
+		$sheet->setCellValueByColumnAndRow(36, $row, 'Occured');
+		$sheet->setCellValueByColumnAndRow(37, $row, 'DEM+DET');
+		
 		//rawdatas
 		$row++;
 		foreach($containers as $item){
@@ -368,16 +344,73 @@ class Utility_func extends CI_Controller {
 			$sheet->setCellValueByColumnAndRow(27, $row, $item->return_due);
 			$sheet->setCellValueByColumnAndRow(28, $row, $item->returned);
 			$sheet->setCellValueByColumnAndRow(29, $row, $item->dem_period);
-			$sheet->setCellValueByColumnAndRow(30, $row, $item->dem_days);
+			$sheet->setCellValueByColumnAndRow(30, $row, $item->dem_range);
 			$sheet->setCellValueByColumnAndRow(31, $row, $item->dem_reminds);
-			$sheet->setCellValueByColumnAndRow(32, $row, $item->det_period);
-			$sheet->setCellValueByColumnAndRow(33, $row, $item->det_days);
-			$sheet->setCellValueByColumnAndRow(34, $row, $item->det_reminds);
-			$sheet->setCellValueByColumnAndRow(35, $row, 180 * ($item->dem_days + $item->det_days));
+			$sheet->setCellValueByColumnAndRow(32, $row, $item->dem_days);
+			$sheet->setCellValueByColumnAndRow(33, $row, $item->det_period);
+			$sheet->setCellValueByColumnAndRow(34, $row, $item->det_range);
+			$sheet->setCellValueByColumnAndRow(35, $row, $item->det_reminds);
+			$sheet->setCellValueByColumnAndRow(36, $row, $item->det_days);
+			$sheet->setCellValueByColumnAndRow(37, $row, 180 * ($item->dem_days + $item->det_days));
 			
 			$row++;
 		}
+		
+		//merge cells
+		for ($i = 1; $i <= 28; $i++) {
+			$col = Coordinate::stringFromColumnIndex($i); // A ~ AB
+			$sheet->mergeCells("{$col}1:{$col}2");
+		}
+		$sheet->mergeCells('AC1:AF1');
+		$sheet->mergeCells('AG1:AJ1');
+		
+		//set width
+		for ($colIndex = 1; $colIndex <= 37; $colIndex++) {
+			$colLetter = Coordinate::stringFromColumnIndex($colIndex);
+			$sheet->getColumnDimension($colLetter)->setWidth(20);
+		}
+		
+		$sheet->getColumnDimension('D')->setWidth(15);
+		$sheet->getColumnDimension('H')->setWidth(15);
+		$sheet->getColumnDimension('I')->setWidth(15);
+		$sheet->getColumnDimension('K')->setWidth(15);
+		$sheet->getColumnDimension('L')->setWidth(15);
+		$sheet->getColumnDimension('N')->setWidth(15);
+		$sheet->getColumnDimension('O')->setWidth(15);
+		$sheet->getColumnDimension('P')->setWidth(15);
+		$sheet->getColumnDimension('Q')->setWidth(15);
+		$sheet->getColumnDimension('S')->setWidth(15);
+		$sheet->getColumnDimension('T')->setWidth(15);
+		$sheet->getColumnDimension('U')->setWidth(15);
+		$sheet->getColumnDimension('V')->setWidth(15);
+		$sheet->getColumnDimension('W')->setWidth(15);
+		$sheet->getColumnDimension('X')->setWidth(15);
+		$sheet->getColumnDimension('Y')->setWidth(15);
+		$sheet->getColumnDimension('Z')->setWidth(15);
+		$sheet->getColumnDimension('AA')->setWidth(15);
+		$sheet->getColumnDimension('AB')->setWidth(15);
+		$sheet->getColumnDimension('AK')->setWidth(15);
+		
+		$sheet->getColumnDimension('AC')->setWidth(10);
+		$sheet->getColumnDimension('AD')->setWidth(10);
+		$sheet->getColumnDimension('AE')->setWidth(10);
+		$sheet->getColumnDimension('AF')->setWidth(10);
+		$sheet->getColumnDimension('AH')->setWidth(10);
+		$sheet->getColumnDimension('AI')->setWidth(10);
+		$sheet->getColumnDimension('AJ')->setWidth(10);
+		$sheet->getColumnDimension('AG')->setWidth(10);
+		
+		//header style
+		$range = 'A1:AK2';
+		
+		//header align center & middle
+		$sheet->getStyle($range)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+		$sheet->getStyle($range)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
+		//header font bold
+		$sheet->getStyle($range)->getFont()->setBold(true);
+		
+		//save file
 		$writer = new Xlsx($spreadsheet);
 		$filePath = 'report/custom_container_aging_report.xlsx';
 		$writer->save($filePath);
@@ -397,8 +430,8 @@ class Utility_func extends CI_Controller {
 		$subject = "[Custom] Container aging auto-report.";
 		$content = $this->load->view('email/custom_container_aging', $data, true);
 		
-		echo $this->my_func->send_email("georgio.park@lge.com", $to, $subject, $content, $filePath);
-		//echo $content;
+		//echo $this->my_func->send_email("georgio.park@lge.com", $to, $subject, $content, $filePath);
+		echo $content;
 		echo "Aging report sent.";
 	}
 	
