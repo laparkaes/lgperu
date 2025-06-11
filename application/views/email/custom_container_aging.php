@@ -11,9 +11,6 @@
 <body>
 	<div>[This is auto generated container daily report]</div>
 	<br/>
-	<div><?= number_format($no_data_qty) ?> containers require to be reviewed.</div>
-	<br/>
-	<br/>
 	<table style="text-align: center; border-collapse: collapse;">
 		<tr>
 			<td style="width: 150px; border-left: 1px solid black; border-right: 1px solid black;"><strong>Generation date</strong></td>
