@@ -31,8 +31,8 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 /tests/tests/
 /tests/results/
 
-eDocuments/*
-upload/*
-upload_file/*
-download/*
-report/*
+eDocuments/
+upload/
+upload_file/
+download/
+report/
