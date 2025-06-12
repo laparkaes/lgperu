@@ -178,9 +178,10 @@ class Utility_func extends CI_Controller {
 				
 				//demurrage
 				if (!$item->port_terminal) $item->port_terminal = "_blank";
-				if (!array_key_exists($item->port_terminal, $demurrage)) $demurrage[$item->port_terminal] = $dem_row;
 				
 				if (!$item->picked_up){
+					if (!array_key_exists($item->port_terminal, $demurrage)) $demurrage[$item->port_terminal] = $dem_row;
+						
 					$demurrage[$item->port_terminal]["total"]++;
 					$demurrage["Total"]["total"]++;
 					
