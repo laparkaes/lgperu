@@ -41,4 +41,5 @@ ALTER TABLE `custom_container` ADD `return_due` DATE NULL AFTER `wh_arrival`;
 ALTER TABLE `lgepr_stock` ADD `on_hand` INT NULL AFTER `product_level4`, ADD `on_hand_cbm` FLOAT NULL AFTER `on_hand`;
 ALTER TABLE `lgepr_sales_order` ADD `cbm` FLOAT NULL AFTER `ordered_qty`;
 
-
+20250611
+ALTER TABLE `custom_container` ADD `wh_temp` VARCHAR(10) NULL AFTER `wh_arrival`, ADD `destination` VARCHAR(30) NULL AFTER `wh_temp`, ADD `wh_arrival_plan` DATE NULL AFTER `destination`, ADD `ctn_type` VARCHAR(5) NULL AFTER `wh_arrival_plan`; 

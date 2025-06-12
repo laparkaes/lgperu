@@ -230,12 +230,7 @@ class Custom_container_manage extends CI_Controller {
 		echo "<br/><br/>";
 		echo 'You can close this tab now.<br/><br/><button onclick="window.close();">Close This Tab</button>';
 	}
-	
-	public function testing(){
-		$container = $this->gen_m->filter("custom_container", false, ["sa_no" => 202400002594, "sa_line_no" => 1]);
-		print_r($container);
-	}
-	
+		
 	public function receiving_confirm_upload(){
 		$type = "error"; $msg = "";
 		
