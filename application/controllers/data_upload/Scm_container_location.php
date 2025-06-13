@@ -144,12 +144,12 @@ class Scm_container_location extends CI_Controller {
 					"ctn_type"			=> trim($sheet->getCell('M'.$i)->getValue()),
 					"wh_temp"			=> trim($sheet->getCell('R'.$i)->getValue()),
 					"destination"		=> trim($sheet->getCell('T'.$i)->getValue()),
+					"picked_up"			=> $sheet->getCell('Q'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Q'.$i)->getFormattedValue()))) : null,
 					"wh_arrival_plan"	=> $sheet->getCell('S'.$i)->getValue() !== "DD" ? date("Y-m-d", strtotime(trim($sheet->getCell('S'.$i)->getFormattedValue()))) : null,
 					"updated_at"			=> $now,
 				];
 				
 				if (strlen($row["container"]) > 8){
-										
 					if ($row["ctn_type"] !== "DD") $row["ctn_type"] = "3PL";
 					if (!$row["wh_arrival_plan"]) $row["wh_arrival_plan"] = date("Y-m-d", strtotime(trim($sheet->getCell('U'.$i)->getFormattedValue())));
 					
@@ -158,9 +158,17 @@ class Scm_container_location extends CI_Controller {
 				
 			}
 			
+			$today_time = time();
+			$w = ["eta >" => date('Y-m-d', strtotime('-2 months', strtotime($now)))];
+			
 			$rows = array_map("unserialize", array_unique(array_map("serialize", $rows)));
-
 			foreach($rows as $item){
+				if (strtotime($item["picked_up"]) <= $today_time){
+					$w["container"] = $item["container"];
+					$this->gen_m->update("custom_container", $w, $item);	
+				}
+				
+				
 				print_r($item); echo "<br/>";
 			}
 			
