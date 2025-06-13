@@ -422,12 +422,12 @@ class Utility_func extends CI_Controller {
 		];
 		
 		$to = ["wonshik.woo@lge.com", "mariela.carbajal@lge.com", "juan.gonzales@lge.com", "nicolas.nigro@lgepartner.com", "georgio.park@lge.com", "ricardo.alvarez@lge.com"];
-		//$to = ["georgio.park@lge.com"];
+		$to = ["georgio.park@lge.com"];
 		
 		$subject = "[Custom] Container aging auto-report.";
 		$content = $this->load->view('email/custom_container_aging', $data, true);
 		
-		//echo $this->my_func->send_email("rpa.espr@lgepartner.com", $to, $subject, $content, $filePath);
+		echo $this->my_func->send_email("rpa.espr@lgepartner.com", $to, $subject, $content, $filePath);
 		echo $content;
 		echo "<br/><br/><br/>////////////////////// Aging report sent. ////////////////////// ";
 		
