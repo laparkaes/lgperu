@@ -84,14 +84,14 @@
 		<?php }} ?>
 		<tr>
 			<td style="border-left: 1px solid black; border-right: 1px solid black;"><strong>Total</strong></td>
-			<td style="color: red;"><?= number_format($detention["Total"]["overdue"]) ?></td>
-			<td><?= number_format($detention["Total"]["0d"]) ?></td>
-			<td><?= number_format($detention["Total"]["3d"]) ?></td>
-			<td><?= number_format($detention["Total"]["7d"]) ?></td>
-			<td><?= number_format($detention["Total"]["14d"]) ?></td>
-			<td><?= number_format($detention["Total"]["21d"]) ?></td>
-			<td><?= number_format($detention["Total"]["99d"]) ?></td>
-			<td style="border-left: 1px solid black; border-right: 1px solid black;"><?= number_format($detention["Total"]["total"]) ?></td>
+			<td style="color: red;"><?= $detention["Total"]["overdue"] ? number_format($detention["Total"]["overdue"]) : "-" ?></td>
+			<td><?= $detention["Total"]["0d"] ? number_format($detention["Total"]["0d"]) : "-" ?></td>
+			<td><?= $detention["Total"]["3d"] ? number_format($detention["Total"]["3d"]) : "-" ?></td>
+			<td><?= $detention["Total"]["7d"] ? number_format($detention["Total"]["7d"]) : "-" ?></td>
+			<td><?= $detention["Total"]["14d"] ? number_format($detention["Total"]["14d"]) : "-" ?></td>
+			<td><?= $detention["Total"]["21d"] ? number_format($detention["Total"]["21d"]) : "-" ?></td>
+			<td><?= $detention["Total"]["99d"] ? number_format($detention["Total"]["99d"]) : "-" ?></td>
+			<td style="border-left: 1px solid black; border-right: 1px solid black;"><?= $detention["Total"]["total"] ? number_format($detention["Total"]["total"]) : "-" ?></td>
 		</tr>
 	</table>
 	<br/>
