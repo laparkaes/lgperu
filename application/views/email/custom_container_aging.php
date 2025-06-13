@@ -53,7 +53,6 @@
 			<td style="border-left: 1px solid black; border-right: 1px solid black;"><?= $demurrage["Total"]["total"] ? number_format($demurrage["Total"]["total"]) : "-" ?></td>
 		</tr>
 	</table>
-	<div>* Ports will be splitted when Custom team is ready to upload correct data.</div>
 	<br/>
 	<br/>
 	<div><strong><< Detention >></strong><br/>Containers not returned to the port within the free days.</div>
