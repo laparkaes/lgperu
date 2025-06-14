@@ -78,7 +78,7 @@ class Utility_func extends CI_Controller {
 			"return_due", 
 			"returned", 
 		];
-		$containers = $this->gen_m->only_multi("custom_container", $g, $w, $g);
+		$containers = $this->gen_m->only_multi("lgepr_container", $g, $w, $g);
 		
 		foreach($containers as $item){
 			$is_no_data = false;

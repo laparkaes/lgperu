@@ -68,7 +68,7 @@ class Scm_container_location extends CI_Controller {
 		
 		$w = ["eta >=" => $eta_from, "eta <=" => $eta_to,];
 		$o = [["eta", "desc"], ["sa_no", "asc"], ["sa_line_no", "asc"], ["container", "asc"]];
-		$containers = $this->gen_m->filter("custom_container", false, $w, null, null, $o);
+		$containers = $this->gen_m->filter("lgepr_container", false, $w, null, null, $o);
 		
 		$data = [
 			"eta_from"		=> $eta_from,
@@ -158,83 +158,18 @@ class Scm_container_location extends CI_Controller {
 				
 			}
 			
-			$today_time = time();
 			$w = ["eta >" => date('Y-m-d', strtotime('-2 months', strtotime($now)))];
-			
 			$rows = array_map("unserialize", array_unique(array_map("serialize", $rows)));
 			foreach($rows as $item){
-				if (strtotime($item["picked_up"]) <= $today_time){
-					$w["container"] = $item["container"];
-					$this->gen_m->update("custom_container", $w, $item);	
-				}
+				$w["container"] = $item["container"];
+				$this->gen_m->update("lgepr_container", $w, $item);	
 				
-				
-				print_r($item); echo "<br/>";
+				//print_r($item); echo "<br/>";
 			}
 			
-			
-
-			
-			/*
-			
-			
-			for($i = 3; $i <= $max_row; $i++){
-				$row = [
-					"master_bl"				=> trim($sheet->getCell('D'.$i)->getValue()),
-					"house_bl"				=> trim($sheet->getCell('A'.$i)->getValue()),
-					"invoice"				=> trim($sheet->getCell('B'.$i)->getValue()),
-					"carrier_line"			=> trim($sheet->getCell('K'.$i)->getValue()),
-					"carrier_name"			=> trim($sheet->getCell('L'.$i)->getValue()),
-					"current_vessel"		=> trim($sheet->getCell('M'.$i)->getValue()),
-					"shipper"				=> trim($sheet->getCell('E'.$i)->getValue()),
-					"incoterms"				=> trim($sheet->getCell('J'.$i)->getValue()),
-					"ctn_size"				=> trim($sheet->getCell('I'.$i)->getValue()),
-					"container"				=> trim($sheet->getCell('C'.$i)->getValue()),
-					"product"				=> trim($sheet->getCell('F'.$i)->getValue()),
-					"transshipment"			=> trim($sheet->getCell('P'.$i)->getValue()),
-					"transshipment_op"		=> trim($sheet->getCell('Q'.$i)->getValue()),
-					"transshipment_route"	=> trim($sheet->getCell('R'.$i)->getValue()),
-					"transshipment_loc"		=> trim($sheet->getCell('S'.$i)->getValue()),
-					"transshipment_vessel"	=> trim($sheet->getCell('T'.$i)->getValue()),
-					"port_departure"		=> trim($sheet->getCell('N'.$i)->getValue()),
-					"port_terminal"			=> trim($sheet->getCell('U'.$i)->getValue()),
-					"atd"					=> $sheet->getCell('O'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('O'.$i)->getFormattedValue()))) : null,
-					"eta_initial"			=> $sheet->getCell('V'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('V'.$i)->getFormattedValue()))) : null,
-					"eta"					=> $sheet->getCell('W'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('W'.$i)->getFormattedValue()))) : null,
-					"ata"					=> $sheet->getCell('X'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('X'.$i)->getFormattedValue()))) : null,
-					"picked_up"				=> $sheet->getCell('Y'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Y'.$i)->getFormattedValue()))) : null,
-					"wh_arrival"			=> $sheet->getCell('Z'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Z'.$i)->getFormattedValue()))) : null,
-					"returned"				=> $sheet->getCell('AA'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('AA'.$i)->getFormattedValue()))) : null,
-					"return_due"			=> $sheet->getCell('AG'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('AG'.$i)->getFormattedValue()))) : null,
-					"updated_at"			=> $now,
-				];
-				
-				if ($row["ata"] or $row["picked_up"] or $row["wh_arrival"] or $row["returned"]) $row["is_received"] = true;
-				
-				//terminal information reset
-				if (stripos($row["port_terminal"], 'APM') !== false) $row["port_terminal"] = "APM";
-				elseif (stripos($row["port_terminal"], 'DP') !== false) $row["port_terminal"] = "DPW";
-				elseif (stripos($row["port_terminal"], 'DUBAI') !== false) $row["port_terminal"] = "DPW";
-				elseif (stripos($row["port_terminal"], 'PECLL') !== false) $row["port_terminal"] = "PECLL";
-				else unset($row["port_terminal"]);
-				
-				//clean null values
-				foreach($row as $k => $val) if (!$val) unset($row[$k]);
-				
-				//return due date is a formula
-				if ($row["return_due"] === "1969-12-31") $row["return_due"] = null;
-				
-				//update container information
-				if (array_key_exists('container', $row) and array_key_exists('eta', $row))
-					$this->gen_m->update("custom_container", ["eta >=" => date('Y-m-d', strtotime('-40 days', strtotime($row["eta"]))), "container" => $row["container"]], $row);
-			}
-			
-			$msg = "Container dates are updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
-			
-			*/
+			$msg = "Container data are updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		}else $msg = "File template error. Please check upload file.";
 		
-		//return $msg;
 		echo $msg;
 		echo "<br/><br/>";
 		echo 'You can close this tab now.<br/><br/><button onclick="window.close();">Close This Tab</button>';

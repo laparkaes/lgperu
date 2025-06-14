@@ -16,7 +16,7 @@ class Custom_container_manage extends CI_Controller {
 	
 	private function container_cleansing(){
 		$list = [];//remove records without container number
-		$containers = $this->gen_m->filter("custom_container", false);
+		$containers = $this->gen_m->filter("lgepr_container", false);
 		foreach($containers as $item){
 			//print_r($item);
 			if (strlen($item->container) < 5){
@@ -25,20 +25,20 @@ class Custom_container_manage extends CI_Controller {
 			}
 		}
 		
-		$this->gen_m->delete_in("custom_container", "container", $list);
+		$this->gen_m->delete_in("lgepr_container", "container", $list);
 	}
 	
 	private function set_com_div(){
-		$containers = $this->gen_m->filter("custom_container", false, ["company" => null]);
+		$containers = $this->gen_m->filter("lgepr_container", false, ["company" => null]);
 		foreach($containers as $item){
 			$rec = $this->gen_m->unique("v_lgepr_model_master_stock", "model", $item->model, false);
-			if ($rec) $this->gen_m->update("custom_container", ["model" => $item->model], ["company" => $rec->dash_company, "division" => $rec->dash_division]);
+			if ($rec) $this->gen_m->update("lgepr_container", ["model" => $item->model], ["company" => $rec->dash_company, "division" => $rec->dash_division]);
 		}
 		
-		$containers = $this->gen_m->filter("custom_container", false, ["company" => null]);
+		$containers = $this->gen_m->filter("lgepr_container", false, ["company" => null]);
 		foreach($containers as $item){
 			$rec = $this->gen_m->unique("v_lgepr_model_master", "model", $item->model, false);
-			if ($rec) $this->gen_m->update("custom_container", ["model" => $item->model], ["company" => $rec->dash_company, "division" => $rec->dash_division]);
+			if ($rec) $this->gen_m->update("lgepr_container", ["model" => $item->model], ["company" => $rec->dash_company, "division" => $rec->dash_division]);
 		}
 	}
 	
@@ -97,7 +97,7 @@ class Custom_container_manage extends CI_Controller {
 		
 		$w = ["eta >=" => $eta_from, "eta <=" => $eta_to,];
 		$o = [["eta", "desc"], ["sa_no", "asc"], ["sa_line_no", "asc"], ["container", "asc"]];
-		$containers = $this->gen_m->filter("custom_container", false, $w, null, null, $o);
+		$containers = $this->gen_m->filter("lgepr_container", false, $w, null, null, $o);
 		
 		$data = [
 			"eta_from"		=> $eta_from,
@@ -208,15 +208,15 @@ class Custom_container_manage extends CI_Controller {
 					//set status as pending
 					$row["is_received"] = false;
 				
-					$container = $this->gen_m->filter("custom_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
+					$container = $this->gen_m->filter("lgepr_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
 					if ($container){
 						//if container is in SA list, this container is not received by 3PL
 						$row["picked_up"] = null;
 						$row["wh_arrival"] = null;
 						
-						$this->gen_m->update("custom_container", ["container_id" => $container[0]->container_id], $row);//update
-					}else $this->gen_m->insert("custom_container", $row); //insert	
-				}else $this->gen_m->delete("custom_container", ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
+						$this->gen_m->update("lgepr_container", ["container_id" => $container[0]->container_id], $row);//update
+					}else $this->gen_m->insert("lgepr_container", $row); //insert	
+				}else $this->gen_m->delete("lgepr_container", ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
 			}
 			
 			$msg = "Shipment advise has been updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
@@ -326,20 +326,20 @@ class Custom_container_manage extends CI_Controller {
 					if ($transfer_flag === "Y"){
 						$row["is_received"] = true;
 						
-						$container = $this->gen_m->filter("custom_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
+						$container = $this->gen_m->filter("lgepr_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
 						if ($container){//update
 							if (!$container[0]->picked_up) $row["picked_up"] = $received[0];
 							$row["wh_arrival"] = $received[0];//wh_arrival always is received date
 							
-							$this->gen_m->update("custom_container", ["container_id" => $container[0]->container_id], $row);
+							$this->gen_m->update("lgepr_container", ["container_id" => $container[0]->container_id], $row);
 						}else{//insert
 							$row["picked_up"] = $received[0];
 							$row["wh_arrival"] = $received[0];
 							
-							$this->gen_m->insert("custom_container", $row);
+							$this->gen_m->insert("lgepr_container", $row);
 						}	
 					}
-				}else $this->gen_m->delete("custom_container", ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
+				}else $this->gen_m->delete("lgepr_container", ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
 			}
 			
 			$msg = "Shipment advise has been updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
@@ -431,7 +431,7 @@ class Custom_container_manage extends CI_Controller {
 				//date format dd/mm/yyyy > yyyy-mm-dd
 				$row["eta"] = $this->my_func->date_convert($row["eta"]);
 				
-				$this->gen_m->update("custom_container", ["sa_no" => $row["sa_no"]], $row);
+				$this->gen_m->update("lgepr_container", ["sa_no" => $row["sa_no"]], $row);
 			}
 			
 			$msg = "Shipment advise has been updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
@@ -556,7 +556,7 @@ class Custom_container_manage extends CI_Controller {
 				
 				//update container information
 				if (array_key_exists('container', $row) and array_key_exists('eta', $row))
-					$this->gen_m->update("custom_container", ["eta >=" => date('Y-m-d', strtotime('-40 days', strtotime($row["eta"]))), "container" => $row["container"]], $row);
+					$this->gen_m->update("lgepr_container", ["eta >=" => date('Y-m-d', strtotime('-40 days', strtotime($row["eta"]))), "container" => $row["container"]], $row);
 			}
 			
 			$msg = "Container dates are updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
