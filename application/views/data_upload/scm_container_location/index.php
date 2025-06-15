@@ -51,51 +51,41 @@
 					<table class="table">
 						<thead class="sticky-top" style="top:60px;">
 							<tr>
-								<th scope="col">SA #</th>
-								<th scope="col">Line</th>
 								<th scope="col">Status</th>
-								<th scope="col">House BL</th>
-								<th scope="col">Carrier</th>
 								<th scope="col">Container</th>
-								<th scope="col">Org.</th>
-								<th scope="col">Company</th>
-								<th scope="col">Division</th>
+								<th scope="col">Com.Div</th>
 								<th scope="col">Model</th>
 								<th scope="col">Qty</th>
 								<th scope="col">ETA</th>
+								<th scope="col">Pick Up Plan</th>
+								<th scope="col">WH Plan</th>
 								<th scope="col">ATA</th>
 								<th scope="col">Picked Up</th>
-								<th scope="col">Warehouse</th>
-								<th scope="col">Returned</th>
-								<th scope="col">Return Due</th>
-								<th scope="col">Dem. days</th>
-								<th scope="col">Det. days</th>
-								<th scope="col">No Data</th>
+								<th scope="col">WH Arrival</th>
+								<th scope="col">WH Temp</th>
+								<th scope="col">Destination</th>
+								<th scope="col">Org.</th>
+								<th scope="col">CTN Type</th>
 							</tr>
 						</thead>
 						<tbody>
 							<?php foreach($containers as $item){ ?>
 							<tr>
-								<td><?= $item->sa_no ?></td>
-								<td><?= $item->sa_line_no ?></td>
 								<td><?= $item->is_received == 1 ? "Received" : "Intransit" ?></td>
-								<td><?= $item->house_bl ?></td>
-								<td><?= $item->carrier_line ?></td>
 								<td><?= $item->container ?></td>
-								<td><?= $item->organization ?></td>
-								<td><?= $item->company ?></td>
-								<td><?= $item->division ?></td>
+								<td><?= $item->company ?>.<?= $item->division ?></td>
 								<td><?= $item->model ?></td>
 								<td><?= number_format($item->qty) ?></td>
 								<td><?= $item->eta ?></td>
+								<td><?= $item->picked_up_plan ?></td>
+								<td><?= $item->wh_arrival_plan ?></td>
 								<td><?= $item->ata ?></td>
 								<td><?= $item->picked_up ?></td>
 								<td><?= $item->wh_arrival ?></td>
-								<td><?= $item->return_due ?></td>
-								<td><?= $item->returned ?></td>
-								<td><?= $item->dem_days ? $item->dem_days : ""; ?></td>
-								<td><?= $item->det_days ? $item->det_days : ""; ?></td>
-								<td><?= $item->no_data ? "<span class='text-danger'>●</span>" : ""; ?></td>
+								<td><?= $item->wh_temp ?></td>
+								<td><?= $item->destination ?></td>
+								<td><?= $item->organization ?></td>
+								<td><?= $item->ctn_type ?></td>
 							</tr>
 							<?php } ?>
 						</tbody>

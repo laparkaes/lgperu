@@ -144,7 +144,7 @@ class Scm_container_location extends CI_Controller {
 					"ctn_type"			=> trim($sheet->getCell('M'.$i)->getValue()),
 					"wh_temp"			=> trim($sheet->getCell('R'.$i)->getValue()),
 					"destination"		=> trim($sheet->getCell('T'.$i)->getValue()),
-					"picked_up"			=> $sheet->getCell('Q'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Q'.$i)->getFormattedValue()))) : null,
+					"picked_up_plan"	=> $sheet->getCell('Q'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Q'.$i)->getFormattedValue()))) : null,
 					"wh_arrival_plan"	=> $sheet->getCell('S'.$i)->getValue() !== "DD" ? date("Y-m-d", strtotime(trim($sheet->getCell('S'.$i)->getFormattedValue()))) : null,
 					"updated_at"			=> $now,
 				];

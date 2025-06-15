@@ -46,3 +46,4 @@ ALTER TABLE `custom_container` ADD `wh_temp` VARCHAR(10) NULL AFTER `wh_arrival`
 
 20250613
 RENAME TABLE custom_container TO lgepr_container;
+ALTER TABLE `lgepr_container` ADD `picked_up_plan` DATE NULL AFTER `picked_up`; 
