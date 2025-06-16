@@ -33,12 +33,12 @@ class Container_plan extends CI_Controller {
 		switch($f_step){
 			case "port": 
 				$w["ata !="] = null; 
-				$w["picked_up"] = null; 
-				$w["wh_arrival"] = null; 
+				//$w["picked_up"] = null; 
+				//$w["wh_arrival"] = null; 
 				break;
 			case "temp_wh": 
 				$w["picked_up !="] = null; 
-				$w["wh_arrival"] = null; 
+				//$w["wh_arrival"] = null; 
 				break;
 			case "3pl": 
 				$w["wh_arrival !="] = null; 

@@ -62,6 +62,20 @@ class Scm_container_location extends CI_Controller {
 		return $summary;
 	}
 	
+	private function set_com_div(){
+		$containers = $this->gen_m->filter("lgepr_container", false, ["company" => null]);
+		foreach($containers as $item){
+			$rec = $this->gen_m->unique("v_lgepr_model_master_stock", "model", $item->model, false);
+			if ($rec) $this->gen_m->update("lgepr_container", ["model" => $item->model], ["company" => $rec->dash_company, "division" => $rec->dash_division]);
+		}
+		
+		$containers = $this->gen_m->filter("lgepr_container", false, ["company" => null]);
+		foreach($containers as $item){
+			$rec = $this->gen_m->unique("v_lgepr_model_master", "model", $item->model, false);
+			if ($rec) $this->gen_m->update("lgepr_container", ["model" => $item->model], ["company" => $rec->dash_company, "division" => $rec->dash_division]);
+		}
+	}
+	
 	public function index(){
 		$eta_from = $this->input->get("eta_from"); if (!$eta_from) $eta_from = date('Y-m-01', strtotime('-2 months'));
 		$eta_to = $this->input->get("eta_to"); if (!$eta_to) $eta_to = date("Y-m-t");
@@ -125,7 +139,7 @@ class Scm_container_location extends CI_Controller {
 		];
 
 		//magento report header
-		$h_validation = ["LINE", "VESSEL", "File", "MODEL", "PRODUCT"];
+		$h_validation = ["LINE", "VESSEL", "File", "PRODUCT", "MODEL"];
 
 		//header validation
 		$is_ok = true;
@@ -154,8 +168,8 @@ class Scm_container_location extends CI_Controller {
 				if ($now_time >= strtotime($pick_up)) $row["picked_up"] = $pick_up; else $row["picked_up_plan"] = $pick_up;
 				
 				//if warehouse arrival time is futre, assign to plan
-				$arrival = $sheet->getCell('S'.$i)->getValue() !== "DD" ? date("Y-m-d", strtotime(trim($sheet->getCell('S'.$i)->getFormattedValue()))) : null;
-				if ($now_time >= strtotime($arrival)) $row["wh_arrival"] = $pick_up; else $row["wh_arrival_plan"] = $pick_up;
+				$arrival = $sheet->getCell('U'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('U'.$i)->getFormattedValue()))) : null;
+				if ($now_time >= strtotime($arrival)) $row["wh_arrival"] = $arrival; else $row["wh_arrival_plan"] = $arrival;
 				
 				//just in case of container, no LCL
 				if (strlen($row["container"]) > 8){
@@ -177,6 +191,8 @@ class Scm_container_location extends CI_Controller {
 			
 			$msg = "Container data are updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		}else $msg = "File template error. Please check upload file.";
+		
+		$this->set_com_div();
 		
 		echo $msg;
 		echo "<br/><br/>";

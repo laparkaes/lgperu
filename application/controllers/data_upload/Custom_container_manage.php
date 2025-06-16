@@ -171,13 +171,7 @@ class Custom_container_manage extends CI_Controller {
 			//define now
 			$now = date('Y-m-d H:i:s', time());
 			
-			//set model master
-			$model_master = [];
-			$models = $this->gen_m->all("v_lgepr_model_master", [], "", "", false);
-			foreach($models as $item) $model_master[$item->model] = $item;
-			
 			for($i = 2; $i <= $max_row; $i++){
-				
 				$sheet->getCell('D'.$i)->setDataType(DataType::TYPE_STRING);
 				
 				$row = [
@@ -197,10 +191,6 @@ class Custom_container_manage extends CI_Controller {
 				
 				//if this SA is not container, remove
 				if ($row["container"]){
-					if (array_key_exists($row["model"], $model_master)){				
-						$row["company"] = $model_master[$row["model"]]->dash_company;
-						$row["division"] = $model_master[$row["model"]]->dash_division;	
-					}
 					
 					//date convert: 26-FEB-25 > 2025-02-26
 					$row["eta"] = $this->my_func->date_convert_4($row["eta"]);
@@ -208,14 +198,9 @@ class Custom_container_manage extends CI_Controller {
 					//set status as pending
 					$row["is_received"] = false;
 				
-					$container = $this->gen_m->filter("lgepr_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
-					if ($container){
-						//if container is in SA list, this container is not received by 3PL
-						$row["picked_up"] = null;
-						$row["wh_arrival"] = null;
-						
-						$this->gen_m->update("lgepr_container", ["container_id" => $container[0]->container_id], $row);//update
-					}else $this->gen_m->insert("lgepr_container", $row); //insert	
+					$container = $this->gen_m->filter("lgepr_container", false, ["eta >=" => date('Y-m-d', strtotime('-40 days', strtotime($row["eta"]))), "container" => $row["container"]]);
+					if ($container) $this->gen_m->update("lgepr_container", ["container" => $row["container"]], $row);//update all containers
+					else $this->gen_m->insert("lgepr_container", $row); //insert new container
 				}else $this->gen_m->delete("lgepr_container", ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
 			}
 			
@@ -293,11 +278,6 @@ class Custom_container_manage extends CI_Controller {
 			//define now
 			$now = date('Y-m-d H:i:s', time());
 			
-			//set model master
-			$model_master = [];
-			$models = $this->gen_m->all("v_lgepr_model_master", [], "", "", false);
-			foreach($models as $item) $model_master[$item->model] = $item;
-			
 			for($i = 2; $i <= $max_row; $i++){
 				$row = [
 					"sa_no" 		=> trim($sheet->getCell('D'.$i)->getCalculatedValue()),
@@ -312,11 +292,6 @@ class Custom_container_manage extends CI_Controller {
 				
 				//if this SA is not container, remove
 				if ($row["container"]){
-					if (array_key_exists($row["model"], $model_master)){				
-						$row["company"] = $model_master[$row["model"]]->dash_company;
-						$row["division"] = $model_master[$row["model"]]->dash_division;	
-					}
-					
 					//set received datetime
 					$received = explode(" ", trim($sheet->getCell('B'.$i)->getValue()));
 					$received[0] = $this->my_func->date_convert($received[0]);//dd/mm/yyyy > yyyy-mm-dd
@@ -326,7 +301,7 @@ class Custom_container_manage extends CI_Controller {
 					if ($transfer_flag === "Y"){
 						$row["is_received"] = true;
 						
-						$container = $this->gen_m->filter("lgepr_container", false, ["sa_no" => $row["sa_no"], "sa_line_no" => $row["sa_line_no"]]);
+						$container = $this->gen_m->filter("lgepr_container", false, ["eta >=" => date('Y-m-d', strtotime('-40 days', strtotime($received[0]))), "container" => $row["container"]]);
 						if ($container){//update
 							if (!$container[0]->picked_up) $row["picked_up"] = $received[0];
 							$row["wh_arrival"] = $received[0];//wh_arrival always is received date
@@ -527,15 +502,15 @@ class Custom_container_manage extends CI_Controller {
 					"transshipment_loc"		=> trim($sheet->getCell('S'.$i)->getValue()),
 					"transshipment_vessel"	=> trim($sheet->getCell('T'.$i)->getValue()),
 					"port_departure"		=> trim($sheet->getCell('N'.$i)->getValue()),
-					"port_terminal"			=> trim($sheet->getCell('U'.$i)->getValue()),
+					"port_terminal"			=> trim($sheet->getCell('V'.$i)->getValue()),
 					"atd"					=> $sheet->getCell('O'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('O'.$i)->getFormattedValue()))) : null,
-					"eta_initial"			=> $sheet->getCell('V'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('V'.$i)->getFormattedValue()))) : null,
-					"eta"					=> $sheet->getCell('W'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('W'.$i)->getFormattedValue()))) : null,
-					"ata"					=> $sheet->getCell('X'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('X'.$i)->getFormattedValue()))) : null,
-					"picked_up"				=> $sheet->getCell('Y'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Y'.$i)->getFormattedValue()))) : null,
-					"wh_arrival"			=> $sheet->getCell('Z'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Z'.$i)->getFormattedValue()))) : null,
-					"returned"				=> $sheet->getCell('AA'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('AA'.$i)->getFormattedValue()))) : null,
-					"return_due"			=> $sheet->getCell('AG'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('AG'.$i)->getFormattedValue()))) : null,
+					"eta_initial"			=> $sheet->getCell('W'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('V'.$i)->getFormattedValue()))) : null,
+					"eta"					=> $sheet->getCell('X'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('W'.$i)->getFormattedValue()))) : null,
+					"ata"					=> $sheet->getCell('Y'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('X'.$i)->getFormattedValue()))) : null,
+					"picked_up"				=> $sheet->getCell('Z'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Y'.$i)->getFormattedValue()))) : null,
+					"wh_arrival"			=> $sheet->getCell('AA'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Z'.$i)->getFormattedValue()))) : null,
+					"returned"				=> $sheet->getCell('AB'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('AA'.$i)->getFormattedValue()))) : null,
+					"return_due"			=> $sheet->getCell('AH'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('AG'.$i)->getFormattedValue()))) : null,
 					"updated_at"			=> $now,
 				];
 				
