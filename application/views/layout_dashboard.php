@@ -23,7 +23,7 @@
 	<main id="main" class="main m-0 py-0">
 		<section class="section">
 			<div class="row">
-				<div class="col-md-12 overflow-<?= $overflow ?>" style="height: 100vh;">
+				<div id="content_canva" class="col-md-12 overflow-<?= $overflow ?>" style="height: 100vh;">
 					<?php $this->load->view($main); ?>
 				</div>
 			</div>

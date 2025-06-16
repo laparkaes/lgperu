@@ -135,23 +135,31 @@ class Scm_container_location extends CI_Controller {
 			$max_row = $sheet->getHighestRow();
 			
 			//define now
-			$now = date('Y-m-d H:i:s', time());
+			$now_time = time();
+			$now = date('Y-m-d H:i:s', $now_time);
+			
 			
 			$rows = [];
 			for($i = 2; $i <= $max_row; $i++){
 				$row = [
-					"container"			=> trim($sheet->getCell('G'.$i)->getValue()),
-					"ctn_type"			=> trim($sheet->getCell('M'.$i)->getValue()),
-					"wh_temp"			=> trim($sheet->getCell('R'.$i)->getValue()),
-					"destination"		=> trim($sheet->getCell('T'.$i)->getValue()),
-					"picked_up_plan"	=> $sheet->getCell('Q'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Q'.$i)->getFormattedValue()))) : null,
-					"wh_arrival_plan"	=> $sheet->getCell('S'.$i)->getValue() !== "DD" ? date("Y-m-d", strtotime(trim($sheet->getCell('S'.$i)->getFormattedValue()))) : null,
-					"updated_at"			=> $now,
+					"container"		=> trim($sheet->getCell('G'.$i)->getValue()),
+					"ctn_type"		=> trim($sheet->getCell('M'.$i)->getValue()),
+					"wh_temp"		=> trim($sheet->getCell('R'.$i)->getValue()),
+					"destination"	=> trim($sheet->getCell('T'.$i)->getValue()),
+					"updated_at"	=> $now,
 				];
 				
+				//if pick up time is future, assign to plan
+				$pick_up = $sheet->getCell('Q'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Q'.$i)->getFormattedValue()))) : null;
+				if ($now_time >= strtotime($pick_up)) $row["picked_up"] = $pick_up; else $row["picked_up_plan"] = $pick_up;
+				
+				//if warehouse arrival time is futre, assign to plan
+				$arrival = $sheet->getCell('S'.$i)->getValue() !== "DD" ? date("Y-m-d", strtotime(trim($sheet->getCell('S'.$i)->getFormattedValue()))) : null;
+				if ($now_time >= strtotime($arrival)) $row["wh_arrival"] = $pick_up; else $row["wh_arrival_plan"] = $pick_up;
+				
+				//just in case of container, no LCL
 				if (strlen($row["container"]) > 8){
 					if ($row["ctn_type"] !== "DD") $row["ctn_type"] = "3PL";
-					if (!$row["wh_arrival_plan"]) $row["wh_arrival_plan"] = date("Y-m-d", strtotime(trim($sheet->getCell('U'.$i)->getFormattedValue())));
 					
 					$rows[] = $row;
 				}
