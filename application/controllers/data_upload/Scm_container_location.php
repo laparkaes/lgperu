@@ -177,11 +177,10 @@ class Scm_container_location extends CI_Controller {
 					
 					$rows[] = $row;
 				}
-				
 			}
 			
 			$w = ["eta >" => date('Y-m-d', strtotime('-2 months', strtotime($now)))];
-			$rows = array_map("unserialize", array_unique(array_map("serialize", $rows)));
+			$rows = array_map("unserialize", array_unique(array_map("serialize", $rows)));//remove duplicated containers
 			foreach($rows as $item){
 				$w["container"] = $item["container"];
 				$this->gen_m->update("lgepr_container", $w, $item);	
