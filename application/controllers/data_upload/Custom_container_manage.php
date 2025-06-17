@@ -504,34 +504,35 @@ class Custom_container_manage extends CI_Controller {
 					"port_departure"		=> trim($sheet->getCell('N'.$i)->getValue()),
 					"port_terminal"			=> trim($sheet->getCell('V'.$i)->getValue()),
 					"atd"					=> $sheet->getCell('O'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('O'.$i)->getFormattedValue()))) : null,
-					"eta_initial"			=> $sheet->getCell('W'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('V'.$i)->getFormattedValue()))) : null,
-					"eta"					=> $sheet->getCell('X'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('W'.$i)->getFormattedValue()))) : null,
-					"ata"					=> $sheet->getCell('Y'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('X'.$i)->getFormattedValue()))) : null,
-					"picked_up"				=> $sheet->getCell('Z'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Y'.$i)->getFormattedValue()))) : null,
-					"wh_arrival"			=> $sheet->getCell('AA'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Z'.$i)->getFormattedValue()))) : null,
-					"returned"				=> $sheet->getCell('AB'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('AA'.$i)->getFormattedValue()))) : null,
-					"return_due"			=> $sheet->getCell('AH'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('AG'.$i)->getFormattedValue()))) : null,
+					"eta_initial"			=> $sheet->getCell('W'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('W'.$i)->getFormattedValue()))) : null,
+					"eta"					=> $sheet->getCell('X'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('X'.$i)->getFormattedValue()))) : null,
+					"ata"					=> $sheet->getCell('Y'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Y'.$i)->getFormattedValue()))) : null,
+					"picked_up"				=> $sheet->getCell('Z'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('Z'.$i)->getFormattedValue()))) : null,
+					"wh_arrival"			=> $sheet->getCell('AA'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('AA'.$i)->getFormattedValue()))) : null,
+					"returned"				=> $sheet->getCell('AB'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('AB'.$i)->getFormattedValue()))) : null,
+					"return_due"			=> $sheet->getCell('AH'.$i)->getValue() ? date("Y-m-d", strtotime(trim($sheet->getCell('AH'.$i)->getFormattedValue()))) : null,
 					"updated_at"			=> $now,
 				];
 				
-				if ($row["ata"] or $row["picked_up"] or $row["wh_arrival"] or $row["returned"]) $row["is_received"] = true;
-				
-				//terminal information reset
-				if (stripos($row["port_terminal"], 'APM') !== false) $row["port_terminal"] = "APM";
-				elseif (stripos($row["port_terminal"], 'DP') !== false) $row["port_terminal"] = "DPW";
-				elseif (stripos($row["port_terminal"], 'DUBAI') !== false) $row["port_terminal"] = "DPW";
-				elseif (stripos($row["port_terminal"], 'PECLL') !== false) $row["port_terminal"] = "PECLL";
-				else unset($row["port_terminal"]);
-				
-				//clean null values
-				foreach($row as $k => $val) if (!$val) unset($row[$k]);
-				
-				//return due date is a formula
-				if ($row["return_due"] === "1969-12-31") $row["return_due"] = null;
-				
 				//update container information
-				if (array_key_exists('container', $row) and array_key_exists('eta', $row))
+				if (array_key_exists('container', $row) and array_key_exists('eta', $row)){
+					if ($row["wh_arrival"] or $row["returned"]) $row["is_received"] = true;
+					
+					//terminal information reset
+					if (stripos($row["port_terminal"], 'APM') !== false) $row["port_terminal"] = "APM";
+					elseif (stripos($row["port_terminal"], 'DPW') !== false) $row["port_terminal"] = "DPW";
+					elseif (stripos($row["port_terminal"], 'DP') !== false) $row["port_terminal"] = "DPW";
+					elseif (stripos($row["port_terminal"], 'DUBAI') !== false) $row["port_terminal"] = "DPW";
+					elseif (stripos($row["port_terminal"], 'PECLL') !== false) $row["port_terminal"] = "PECLL";
+					else unset($row["port_terminal"]);
+					
+					//empty key, date cleansing
+					if ($row["return_due"] === "1969-12-31") $row["return_due"] = null;
+					if ($row["eta_initial"] === "1969-12-31") $row["eta_initial"] = null;
+					
+					//update record
 					$this->gen_m->update("lgepr_container", ["eta >=" => date('Y-m-d', strtotime('-40 days', strtotime($row["eta"]))), "container" => $row["container"]], $row);
+				}	
 			}
 			
 			$msg = "Container dates are updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
