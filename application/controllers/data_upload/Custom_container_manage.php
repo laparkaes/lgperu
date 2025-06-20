@@ -518,7 +518,7 @@ class Custom_container_manage extends CI_Controller {
 				if (array_key_exists('container', $row) and array_key_exists('eta', $row)){
 					
 					if ($row["eta"]){
-						print_r($row); echo "<br/><br/>";
+						//print_r($row); echo "<br/><br/>";
 						
 						if ($row["wh_arrival"] or $row["returned"]) $row["is_received"] = true;
 						
