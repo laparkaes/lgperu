@@ -424,7 +424,7 @@ class Utility_func extends CI_Controller {
 		$to = [
 			/* CFO */ "wonshik.woo@lge.com", "mariela.carbajal@lge.com", "bion.hwang@lge.com", "mario.rosazza@lge.com", "enrique.salazar@lge.com", "angella.castro@lge.com", "melisa.carbajal@lge.com",
 			"juan.gonzales@lge.com", "nicolas.nigro@lgepartner.com", "georgio.park@lge.com", "ricardo.alvarez@lge.com",
-			/* DP */ "renato.freundt@lge.com", "dario.vargas@lge.com", "wagner.rojas@lge.com",
+			/* DP */ "renato.freundt@lge.com", "dario.vargas@lge.com", "wagner.rojas@lge.com", "victorj.sanchez@lge.com", "mauricio.meza@lge.com", 
 			/* CEO, PM */ "andre.cho@lge.com", "raul.oh@lge.com", "minaalicia.park@lge.com", "muhyun.han@lge.com", "sanguk.jeong@lge.com", "rony.cortez@lge.com", "seongmin1.lee@lge.com", "patrick.lee@lge.com", "patricia.pandolfi@lge.com", 
 		];
 		//$to = ["georgio.park@lge.com"];
@@ -432,7 +432,7 @@ class Utility_func extends CI_Controller {
 		$subject = "[Custom] Container aging auto-report";
 		$content = $this->load->view('email/custom_container_aging', $data, true);
 		
-		echo $this->my_func->send_email("rpa.espr@lgepartner.com", $to, $subject, $content, $filePath);
+		//echo $this->my_func->send_email("rpa.espr@lgepartner.com", $to, $subject, $content, $filePath);
 		echo $content;
 		echo "<br/><br/><br/>////////////////////// Aging report sent. ////////////////////// ";
 		

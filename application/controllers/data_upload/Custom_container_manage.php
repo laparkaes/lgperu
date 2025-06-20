@@ -516,22 +516,27 @@ class Custom_container_manage extends CI_Controller {
 				
 				//update container information
 				if (array_key_exists('container', $row) and array_key_exists('eta', $row)){
-					if ($row["wh_arrival"] or $row["returned"]) $row["is_received"] = true;
 					
-					//terminal information reset
-					if (stripos($row["port_terminal"], 'APM') !== false) $row["port_terminal"] = "APM";
-					elseif (stripos($row["port_terminal"], 'DPW') !== false) $row["port_terminal"] = "DPW";
-					elseif (stripos($row["port_terminal"], 'DP') !== false) $row["port_terminal"] = "DPW";
-					elseif (stripos($row["port_terminal"], 'DUBAI') !== false) $row["port_terminal"] = "DPW";
-					elseif (stripos($row["port_terminal"], 'PECLL') !== false) $row["port_terminal"] = "PECLL";
-					else unset($row["port_terminal"]);
-					
-					//empty key, date cleansing
-					if ($row["return_due"] === "1969-12-31") $row["return_due"] = null;
-					if ($row["eta_initial"] === "1969-12-31") $row["eta_initial"] = null;
-					
-					//update record
-					$this->gen_m->update("lgepr_container", ["eta >=" => date('Y-m-d', strtotime('-40 days', strtotime($row["eta"]))), "container" => $row["container"]], $row);
+					if ($row["eta"]){
+						print_r($row); echo "<br/><br/>";
+						
+						if ($row["wh_arrival"] or $row["returned"]) $row["is_received"] = true;
+						
+						//terminal information reset
+						if (stripos($row["port_terminal"], 'APM') !== false) $row["port_terminal"] = "APM";
+						elseif (stripos($row["port_terminal"], 'DPW') !== false) $row["port_terminal"] = "DPW";
+						elseif (stripos($row["port_terminal"], 'DP') !== false) $row["port_terminal"] = "DPW";
+						elseif (stripos($row["port_terminal"], 'DUBAI') !== false) $row["port_terminal"] = "DPW";
+						elseif (stripos($row["port_terminal"], 'PECLL') !== false) $row["port_terminal"] = "PECLL";
+						else unset($row["port_terminal"]);
+						
+						//empty key, date cleansing
+						if ($row["return_due"] === "1969-12-31") $row["return_due"] = null;
+						if ($row["eta_initial"] === "1969-12-31") $row["eta_initial"] = null;
+						
+						//update record
+						$this->gen_m->update("lgepr_container", ["eta >=" => date('Y-m-d', strtotime('-40 days', strtotime($row["eta"]))), "container" => $row["container"]], $row);	
+					}
 				}	
 			}
 			
