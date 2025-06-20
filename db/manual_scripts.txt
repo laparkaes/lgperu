@@ -47,3 +47,11 @@ ALTER TABLE `custom_container` ADD `wh_temp` VARCHAR(10) NULL AFTER `wh_arrival`
 20250613
 RENAME TABLE custom_container TO lgepr_container;
 ALTER TABLE `lgepr_container` ADD `picked_up_plan` DATE NULL AFTER `picked_up`; 
+
+20250620
+ALTER TABLE `lgepr_sales_order` ADD `so_status` VARCHAR(50) NULL AFTER `line_status`;
+ALTER TABLE `lgepr_sales_order` CHANGE `scm_status` `order_status_detail` VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
+ALTER TABLE `lgepr_sales_order` DROP `order_status_detail`;
+ALTER TABLE `lgepr_sales_order` ADD `line_status_detail` VARCHAR(50) NULL AFTER `line_status`;
+ALTER TABLE `lgepr_sales_order` ADD `customer_po_no` VARCHAR(100) NULL AFTER `ship_to_name`, ADD `customer_po_date` DATE NULL AFTER `customer_po_no`;
+UPDATE `lgepr_sales_order` SET `order_category` = NULL WHERE `lgepr_sales_order`.`order_category` = "Standard";

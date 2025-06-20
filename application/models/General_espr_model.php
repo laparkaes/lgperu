@@ -27,7 +27,7 @@ class General_espr_model extends CI_Model{
 		}
 		if ($orders) foreach($orders as $o) $this->db->order_by($o[0], $o[1]);
 		$query = $this->db->get($tablename, $limit, $offset);
-		$result = $query->result();
+		$result = $query->result_array();
 		return $result;
 	}
 	
@@ -77,23 +77,21 @@ class General_espr_model extends CI_Model{
 		if ($orders) foreach($orders as $o) $this->db->order_by($o[0], $o[1]);
 		if ($group_by) $this->db->group_by($group_by);
 		$query = $this->db->get($tablename, $limit, $offset);
-		$result = $query->result();
+		$result = $query->result_array();
 		return $result;
 	}
 
-	function unique($tablename, $field, $value, $check_valid = true){
+	function unique($tablename, $field, $value){
 		$this->db->where($field, $value);
-		if ($check_valid) $this->db->where("valid", true);
 		$query = $this->db->get($tablename, 1, 0);
-		$result = $query->result();
+		$result = $query->result_array();
 		if ($result) return $result[0]; else return null;
 	}
 	
-	function all($tablename, $orders = [], $limit = "", $offset = "", $check_valid = true){
-		if ($check_valid) $this->db->where("valid", true);
+	function all($tablename, $orders = [], $limit = "", $offset = ""){
 		if ($orders) foreach($orders as $o) $this->db->order_by($o[0], $o[1]);
 		$query = $this->db->get($tablename, $limit, $offset);
-		$result = $query->result();
+		$result = $query->result_array();
 		return $result;
 	}
 	
@@ -137,7 +135,7 @@ class General_espr_model extends CI_Model{
 		$this->db->group_by($field);
 		$this->db->order_by($field, "asc");
 		$query = $this->db->get($tablename);
-		$result = $query->result();
+		$result = $query->result_array();
 		return $result;
 	}
 	
@@ -148,7 +146,7 @@ class General_espr_model extends CI_Model{
 		foreach($groups as $g) $this->db->group_by($g);
 		$this->db->order_by($fields[0], "asc");
 		$query = $this->db->get($tablename);
-		$result = $query->result();
+		$result = $query->result_array();
 		return $result;
 	}
 	
@@ -161,7 +159,7 @@ class General_espr_model extends CI_Model{
 			$this->db->group_end();
 		}
 		$query = $this->db->get($tablename);
-		$result = $query->result();
+		$result = $query->result_array();
 		return $result[0];
 	}
 		
@@ -174,7 +172,7 @@ class General_espr_model extends CI_Model{
 			$this->db->group_end();
 		}
 		$query = $this->db->get($tablename);
-		$result = $query->result();
+		$result = $query->result_array();
 		return $result[0];
 	}
 	
@@ -184,7 +182,7 @@ class General_espr_model extends CI_Model{
 		$this->db->group_by($groups);
 		$this->db->order_by($groups[0], "asc");
 		$query = $this->db->get($tablename);
-		return $query->result();
+		return $query->result_array();
 	}
 
 	function structure($tablename){

@@ -334,12 +334,15 @@ class Lgepr_sales_order extends CI_Controller {
 					'bill_to_name' 			=> trim($sheet->getCell('A'.$i)->getValue()),
 					'ship_to' 				=> trim($sheet->getCell('AL'.$i)->getValue()),
 					'ship_to_name' 			=> trim($sheet->getCell('B'.$i)->getValue()),
+					'customer_po_no' 		=> trim($sheet->getCell('AQ'.$i)->getValue()),
+					'customer_po_date' 		=> trim($sheet->getCell('AR'.$i)->getValue()),
 					'order_type' 			=> trim($sheet->getCell('F'.$i)->getValue()),
 					'order_no' 				=> trim($sheet->getCell('D'.$i)->getValue()),
 					'line_no' 				=> trim($sheet->getCell('E'.$i)->getValue()),
 					'line_status' 			=> trim($sheet->getCell('G'.$i)->getValue()),
+					'so_status' 			=> trim($sheet->getCell('EW'.$i)->getValue()),
 					'order_status' 			=> trim($sheet->getCell('BE'.$i)->getValue()),
-					'order_category'		=> trim($sheet->getCell('BC'.$i)->getValue()),
+					'order_category'		=> trim($sheet->getCell('BF'.$i)->getValue()),
 					'model' 				=> trim($sheet->getCell('C'.$i)->getValue()),
 					'ordered_qty' 			=> trim($sheet->getCell('L'.$i)->getValue()),
 					'cbm' 					=> trim($sheet->getCell('CM'.$i)->getValue()),
@@ -400,7 +403,8 @@ class Lgepr_sales_order extends CI_Controller {
 				//date convert: 28-OCT-2021 > 2021-10-28
 				$row["appointment_date"] = $this->my_func->date_convert_5($row["appointment_date"]);
 				
-				//date convert: 28-OCT-21 > 2021-10-28
+				//date convert: dd/mm/yyyy > yyyy-mm-dd
+				$row["customer_po_date"] = $this->my_func->date_convert($row["customer_po_date"]);
 				$row["create_date"] = $this->my_func->date_convert($row["create_date"]);
 				$row["booked_date"] = $this->my_func->date_convert($row["booked_date"]);
 				$row["req_arrival_date_to"] = $this->my_func->date_convert($row["req_arrival_date_to"]);
@@ -434,7 +438,7 @@ class Lgepr_sales_order extends CI_Controller {
 				$order_lines[] = $row["order_line"];
 				$records++;
 				
-				print_r($row); echo "<br/><br/>";
+				//print_r($row); echo "<br/><br/>";
 			}
 			
 			//all sales orders in closed order > delete
