@@ -21,7 +21,7 @@ class Warehouse_cbm extends CI_Controller {
 		$to = $arrivals[count($arrivals)-1]->eta;
 		
 		//define basic array
-		$arr_detail = ["arrival" => 0, "sales" => 0, "actual" => 0];
+		$arr_detail = ["arrival" => 0, "sales" => 0, "actual" => 0, "progress" => 0];
 		
 		$arr_division = [
 			"HS" => $arr_detail,
@@ -31,7 +31,6 @@ class Warehouse_cbm extends CI_Controller {
 		];
 		
 		$arr_basic = [];
-		
 		
 		$pivot = strtotime($from);
 		$until = strtotime($to);
@@ -51,10 +50,14 @@ class Warehouse_cbm extends CI_Controller {
 			$pivot = strtotime("+1 day", $pivot);
 		}
 		
-		echo $from." ".$to."<br/><br/><br/><br/><br/><br/>";
+		//echo $from." ".$to."<br/><br/><br/><br/><br/><br/>";
 		//print_r($arr_basic); echo "<br/><br/><br/><br/>";
 		
 		$by_org = [];
+		$by_3pl = [
+			"APM" => $arr_basic,
+			"KLO" => $arr_basic,
+		];
 		
 		//set initial CBM
 		foreach($inventory as $item){
@@ -78,54 +81,155 @@ class Warehouse_cbm extends CI_Controller {
 				*/
 				
 				$by_org[$item->org][$y][$m][$d]["Total"]["actual"] += $item->on_hand_cbm;
-				$by_org[$item->org][$y][$m][$d][$item->dash_company]["actual"] += $item->on_hand_cbm;	
+				$by_org[$item->org][$y][$m][$d][$item->dash_company]["actual"] += $item->on_hand_cbm;
+				
+				if ($item->org === "N4M"){//APM	
+					$by_3pl["APM"][$y][$m][$d]["Total"]["actual"] += $item->on_hand_cbm;
+					$by_3pl["APM"][$y][$m][$d][$item->dash_company]["actual"] += $item->on_hand_cbm;
+				}elseif ($item->org === "N4E"){//APM
+					$by_3pl["APM"][$y][$m][$d]["Total"]["actual"] += $item->on_hand_cbm;
+					$by_3pl["APM"][$y][$m][$d][$item->dash_company]["actual"] += $item->on_hand_cbm;
+				}else{//KLO
+					$by_3pl["KLO"][$y][$m][$d]["Total"]["actual"] += $item->on_hand_cbm;
+					$by_3pl["KLO"][$y][$m][$d][$item->dash_company]["actual"] += $item->on_hand_cbm;
+				}
 			}
 		}
 		
-		foreach($by_org as $org => $div){
-			echo $org."<br/>";
-			print_r($div);
-			echo "<br/><br/>";
-		}
-		echo "<br/><br/><br/><br/>";
+		$from_t = strtotime($from);
+		$to_t = strtotime($to);
 		
 		//normal arrival to warehouse is 2 days after eta => sum to current CBM
 		foreach($arrivals as $item){
-			//print_r($item); echo "<br/><br/>";
-			
 			if ($item->eta){
 				//echo $item->eta." ... ".$item->organization." ... ".$item->company." ... ".$item->cbm." cbm<br/>";
 				
 				$item->ref_date = date("Y-m-d", strtotime("+2 day", strtotime($item->eta)));
-				
-				if (!array_key_exists($item->organization, $cbm_matrix)) $cbm_matrix[$item->organization] = [];
-				
-				$year = date("Y", strtotime($item->ref_date));
-				if (!array_key_exists($year, $cbm_matrix[$item->organization])) $cbm_matrix[$item->organization][$year] = [];
-				
-				$month = date("m", strtotime($item->ref_date));
-				if (!array_key_exists($month, $cbm_matrix[$item->organization][$year])) $cbm_matrix[$item->organization][$year][$month] = [];
-				
-				$day = date("d", strtotime($item->ref_date));
-				if (!array_key_exists($day, $cbm_matrix[$item->organization][$year][$month])) $cbm_matrix[$item->organization][$year][$month][$day] = $row;
-				
-				$cbm_matrix[$item->organization][$year][$month][$day]["Total"]["arrival"] += $item->cbm;
-				$cbm_matrix[$item->organization][$year][$month][$day][$item->company]["arrival"] += $item->cbm;	
+				if ($item->company) if (($from_t <= strtotime($item->ref_date)) and (strtotime($item->ref_date) <= $to_t) and ($item->cbm < 500)){
+					//echo $item->organization." /// ".$item->ref_date." /// ".$item->cbm."<br/>";
+					//print_r($item); echo "<br/><br/>";
+					
+					if (!array_key_exists($item->organization, $by_org)) $by_org[$item->organization] = $arr_basic;
+					
+					$y = date("Y", strtotime($item->ref_date));
+					$m = date("m", strtotime($item->ref_date));
+					$d = date("d", strtotime($item->ref_date));
+					
+					$by_org[$item->organization][$y][$m][$d]["Total"]["arrival"] += $item->cbm;
+					$by_org[$item->organization][$y][$m][$d][$item->company]["arrival"] += $item->cbm;
+					
+					if ($item->organization === "N4M"){//APM	
+						$by_3pl["APM"][$y][$m][$d]["Total"]["arrival"] += $item->cbm;
+						$by_3pl["APM"][$y][$m][$d][$item->company]["arrival"] += $item->cbm;
+					}elseif ($item->organization === "N4E"){//APM
+						$by_3pl["APM"][$y][$m][$d]["Total"]["arrival"] += $item->cbm;
+						$by_3pl["APM"][$y][$m][$d][$item->company]["arrival"] += $item->cbm;
+					}else{//KLO
+						$by_3pl["KLO"][$y][$m][$d]["Total"]["arrival"] += $item->cbm;
+						$by_3pl["KLO"][$y][$m][$d][$item->company]["arrival"] += $item->cbm;
+					}
+				}
 			}
-			
 		}
 		
+		//sales cbm is negative volumes
+		foreach($sales as $item){
+			$item->ref_date = $item->booked_date;
+			if ($item->booked_date) $item->ref_date = $item->booked_date;
+			if ($item->req_arrival_date_to) $item->ref_date = $item->req_arrival_date_to;
+			if ($item->appointment_date) $item->ref_date = $item->appointment_date;
+			if ($item->shipment_date) $item->ref_date = $item->shipment_date;
+			
+			
+			if ($item->dash_company) if (($from_t <= strtotime($item->ref_date)) and (strtotime($item->ref_date) <= $to_t)){
+				//echo $item->ref_date." /// ".$item->inventory_org." /// ".$item->cbm."<br/>";
+				//print_r($item); echo "<br/><br/>";
+			
+				if (!array_key_exists($item->inventory_org, $by_org)) $by_org[$item->inventory_org] = $arr_basic;
+				
+				$y = date("Y", strtotime($item->ref_date));
+				$m = date("m", strtotime($item->ref_date));
+				$d = date("d", strtotime($item->ref_date));
+			
+				$by_org[$item->inventory_org][$y][$m][$d]["Total"]["sales"] -= $item->cbm;
+				$by_org[$item->inventory_org][$y][$m][$d][$item->dash_company]["sales"] -= $item->cbm;
+				
+				if ($item->inventory_org === "N4M"){//APM	
+					$by_3pl["APM"][$y][$m][$d]["Total"]["sales"] -= $item->cbm;
+					$by_3pl["APM"][$y][$m][$d][$item->dash_company]["sales"] -= $item->cbm;
+				}elseif ($item->inventory_org === "N4E"){//APM
+					$by_3pl["APM"][$y][$m][$d]["Total"]["sales"] -= $item->cbm;
+					$by_3pl["APM"][$y][$m][$d][$item->dash_company]["sales"] -= $item->cbm;
+				}else{//KLO
+					$by_3pl["KLO"][$y][$m][$d]["Total"]["sales"] -= $item->cbm;
+					$by_3pl["KLO"][$y][$m][$d][$item->dash_company]["sales"] -= $item->cbm;
+				}
+			}
+		}
 		
+		foreach($by_org as $org => $years){
+			//echo "Org: ".$org."<br/>";
+			$progress_hs = $progress_ms = $progress_es = $progress_total = 0;
+			
+			foreach($years as $year => $months){
+				//echo "Year: ".$year."<br/>";
+				foreach($months as $month => $days){
+					//echo "Month: ".$month."<br/>";
+					foreach($days as $day => $divisions){
+						//echo "Day: ".$day."<br/>";
+						
+						$progress_hs = $progress_hs + $divisions["HS"]["actual"] + $divisions["HS"]["arrival"] + $divisions["HS"]["sales"];
+						$progress_ms = $progress_ms + $divisions["MS"]["actual"] + $divisions["MS"]["arrival"] + $divisions["MS"]["sales"];
+						$progress_es = $progress_es + $divisions["ES"]["actual"] + $divisions["ES"]["arrival"] + $divisions["ES"]["sales"];
+						$progress_total = $progress_total + $divisions["Total"]["actual"] + $divisions["Total"]["arrival"] + $divisions["Total"]["sales"];
+						
+						$by_org[$org][$year][$month][$day]["HS"]["progress"] = $progress_hs;
+						$by_org[$org][$year][$month][$day]["MS"]["progress"] = $progress_ms;
+						$by_org[$org][$year][$month][$day]["ES"]["progress"] = $progress_es;
+						$by_org[$org][$year][$month][$day]["Total"]["progress"] = $progress_total;
+					}
+				}
+			}
+		}
 		
+		foreach($by_3pl as $ware => $years){
+			//echo "Org: ".$org."<br/>";
+			$progress_hs = $progress_ms = $progress_es = $progress_total = 0;
+			
+			foreach($years as $year => $months){
+				//echo "Year: ".$year."<br/>";
+				foreach($months as $month => $days){
+					//echo "Month: ".$month."<br/>";
+					foreach($days as $day => $divisions){
+						//echo "Day: ".$day."<br/>";
+						
+						$progress_hs = $progress_hs + $divisions["HS"]["actual"] + $divisions["HS"]["arrival"] + $divisions["HS"]["sales"];
+						$progress_ms = $progress_ms + $divisions["MS"]["actual"] + $divisions["MS"]["arrival"] + $divisions["MS"]["sales"];
+						$progress_es = $progress_es + $divisions["ES"]["actual"] + $divisions["ES"]["arrival"] + $divisions["ES"]["sales"];
+						$progress_total = $progress_total + $divisions["Total"]["actual"] + $divisions["Total"]["arrival"] + $divisions["Total"]["sales"];
+						
+						$by_3pl[$ware][$year][$month][$day]["HS"]["progress"] = $progress_hs;
+						$by_3pl[$ware][$year][$month][$day]["MS"]["progress"] = $progress_ms;
+						$by_3pl[$ware][$year][$month][$day]["ES"]["progress"] = $progress_es;
+						$by_3pl[$ware][$year][$month][$day]["Total"]["progress"] = $progress_total;
+					}
+				}
+			}
+		}
 		
-		
+		/*
 		echo "<br/><br/><br/><br/>";
-		foreach($cbm_matrix as $org => $item){
+		foreach($by_org as $org => $item){
 			echo $org." ............ "; print_r($item); echo "<br/><br/>";
 		}
 		
 		return;
+		*/
 		
+		$data["from"] = $from;
+		$data["to"] = $to;
+		$data["by_org"] = $by_org;
+		$data["by_3pl"] = $by_3pl;
 		$data["overflow"] = "scroll";
 		$data["main"] = "lgepr/warehouse_cbm";
 		

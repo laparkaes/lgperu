@@ -5,114 +5,237 @@
 				<div class="d-flex justify-content-between align-items-center">
 					<div class="d-flex justify-content-start align-items-center">
 						<a type="button" class="btn btn-primary me-3 d-none" href="<?= base_url() ?>lgepr/reports"><i class="bi bi-arrow-left"></i></a>
-						<h5 class="card-title py-3 my-0">LGEPR Container Plan</h5>
+						<h5 class="card-title py-3 my-0">Warehouse CBM Simulation . <?= $from ?> ~ <?= $to ?></h5>
 					</div>
 					<div class="d-flex justify-content-end align-items-center">
-						<form class="input-group">
-							<select class="form-select" name="f_company" style="width: 200px;">
-								<option value="">All Companies</option>
-								<option value="HS" <?= $f_com === "HS" ? "selected" : "" ?>>HS</option>
-								<option value="MS" <?= $f_com === "MS" ? "selected" : "" ?>>MS</option>
-								<option value="ES" <?= $f_com === "ES" ? "selected" : "" ?>>ES</option>
-							</select>
-							<select class="form-select" name="f_ctn_step" style="width: 200px;">
-								<option value="">All Steps</option>
-								<option value="port" <?= $f_step === "port" ? "selected" : "" ?>>Arrived to port</option>
-								<option value="temp_wh" <?= $f_step === "temp_wh" ? "selected" : "" ?>>Temporary WH</option>
-								<option value="3pl" <?= $f_step === "3pl" ? "selected" : "" ?>>Entered to 3PL</option>
-							</select>
-							<input type="text" class="form-control" placeholder="Container" name="f_container" style="width: 200px;" value="<?= $f_ctn ?>">
-							<button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
-						</form>
+						<ul class="nav nav-pills" role="tablist">
+							<li class="nav-item" role="presentation">
+								<button class="nav-link active" id="by_3pl-tab" data-bs-toggle="tab" data-bs-target="#by_3pl" type="button" role="tab" aria-controls="by_3pl" aria-selected="true">By 3PL</button>
+							</li>
+							<li class="nav-item" role="presentation">
+								<button class="nav-link" id="by_org-tab" data-bs-toggle="tab" data-bs-target="#by_org" type="button" role="tab" aria-controls="by_org" aria-selected="false" tabindex="-1">By ORG</button>
+							</li>
+						</ul>
 					</div>
 				</div>
-			</div>
-		</div>
-	</div>
-	<div class="col-12">
-		<div class="card">
-			<div class="card-body pt-3">
-				<table class="table table-bordered text-center">
-					<thead id="thead_container">
-						<tr class="align-middle">
-							<th scope="col" rowspan="2">GERP</th>
-							<th scope="col" rowspan="2">Container</th>
-							<th scope="col" rowspan="2">Company</th>
-							<th scope="col" rowspan="2">Division</th>
-							<th scope="col" rowspan="2">Model</th>
-							<th scope="col" rowspan="2">Qty</th>
-							<th scope="col" colspan="3">Plan</th>
-							<th scope="col" colspan="3">Real</th>
-							<th scope="col" rowspan="2">WH Temp</th>
-							<th scope="col" rowspan="2">Destination</th>
-							<th scope="col" rowspan="2">ORG</th>
-							<th scope="col" rowspan="2">Type</th>
-							<th scope="col" rowspan="2">Updated</th>
-						</tr>
-						<tr>
-							<th scope="col">ETA</th>
-							<th scope="col">Pick up</th>
-							<th scope="col">Warehouse</th>
-							<th scope="col">ATA</th>
-							<th scope="col">Pick up</th>
-							<th scope="col">warehouse</th>
-						</tr>
-					</thead>
-					<tbody class="table-group-divider">
-						<?php foreach($containers as $ctn){ ?>
-						<tr>
-							<td><?= $ctn->is_received ? "Received" : "Intransit" ?></td>
-							<td><?= $ctn->container ?></td>
-							<td><?= $ctn->company ?></td>
-							<td><?= $ctn->division ?></td>
-							<td><?= $ctn->model ?></td>
-							<td><?= $ctn->qty ?></td>
-							<td><?= $ctn->eta ?></td>
-							<td><?= $ctn->picked_up_plan ?></td>
-							<td><?= $ctn->wh_arrival_plan ?></td>
-							<td><?= $ctn->ata ?></td>
-							<td><?= $ctn->picked_up ?></td>
-							<td><?= $ctn->wh_arrival ?></td>
-							<td><?= $ctn->wh_temp ?></td>
-							<td><?= $ctn->destination ?></td>
-							<td><?= $ctn->organization ?></td>
-							<td><?= $ctn->ctn_type ?></td>
-							<td><?= $ctn->updated_at ?></td>
-						</tr>
+				<div class="tab-content pt-2">
+					<div class="tab-pane fade show active" id="by_3pl" role="tabpanel" aria-labelledby="by_3pl-tab">
+						<?php foreach($by_3pl as $ware => $years){ ?>
+						<div class="card">
+							<div class="card-body">
+								<h5 class="card-title"><?= $ware ?></h5>
+								<table class="table table-sm table-bordered">
+									<thead id="thead_container">
+										<tr class="align-middle">
+											<th scope="col">Year</th>
+											<?php foreach($years as $year => $months){ $total_col = count($months); foreach($months as $month => $days) $total_col += count($days); ?>
+											<th scope="col" colspan="<?= $total_col ?>"><?= $year ?></th>
+											<?php } ?>
+										</tr>
+										<tr class="align-middle">
+											<th scope="col">Month</th>
+											<?php foreach($years as $year => $months){ foreach($months as $month => $days){ ?>
+											<th scope="col" colspan="<?= count($days) ?>"><?= $month ?></th>
+											<?php }} ?>
+										</tr>
+										<tr class="align-middle">
+											<th scope="col">Day</th>
+											<?php foreach($years as $year => $months){ foreach($months as $month => $days){ foreach($days as $day => $divs){ ?>
+											<th scope="col"><div style="width:60px;"><?= $day ?></div></th>
+											<?php }}} ?>
+										</tr>
+									</thead>
+									<tbody class="table-group-divider">
+										<tr>
+											<td>
+												<div>Total</div>
+												<div><small class="text-danger">Arrival</small></div>
+												<div><small class="text-primary">Sales</small></div>
+											</td>
+											<?php 
+											foreach($years as $year => $months){ 
+												foreach($months as $month => $days){ 
+													foreach($days as $day => $divs){ ?>
+											<td class="text-end">
+												<div><?= $divs["Total"]["progress"] ? number_format($divs["Total"]["progress"]) : "&nbsp;" ?></div>
+												<div><small class="text-danger"><?= $divs["Total"]["arrival"] ? number_format($divs["Total"]["arrival"]) : "&nbsp;" ?></small></div>
+												<div><small class="text-primary"><?= $divs["Total"]["sales"] ? number_format($divs["Total"]["sales"]) : "&nbsp;" ?></small></div>
+											</td>
+											<?php }}} ?>
+										</tr>
+										<tr>
+											<td>
+												<div>HS</div>
+												<div><small class="text-danger">Arrival</small></div>
+												<div><small class="text-primary">Sales</small></div>
+											</td>
+											<?php 
+											foreach($years as $year => $months){ 
+												foreach($months as $month => $days){ 
+													foreach($days as $day => $divs){ ?>
+											<td class="text-end">
+												<div><?= $divs["HS"]["progress"] ? number_format($divs["HS"]["progress"]) : "&nbsp;" ?></div>
+												<div><small class="text-danger"><?= $divs["HS"]["arrival"] ? number_format($divs["HS"]["arrival"]) : "&nbsp;" ?></small></div>
+												<div><small class="text-primary"><?= $divs["HS"]["sales"] ? number_format($divs["HS"]["sales"]) : "&nbsp;" ?></small></div>
+											</td>
+											<?php }}} ?>
+										</tr>
+										<tr>
+											<td>
+												<div>MS</div>
+												<div><small class="text-danger">Arrival</small></div>
+												<div><small class="text-primary">Sales</small></div>
+											</td>
+											<?php 
+											foreach($years as $year => $months){ 
+												foreach($months as $month => $days){ 
+													foreach($days as $day => $divs){ ?>
+											<td class="text-end">
+												<div><?= $divs["MS"]["progress"] ? number_format($divs["MS"]["progress"]) : "&nbsp;" ?></div>
+												<div><small class="text-danger"><?= $divs["MS"]["arrival"] ? number_format($divs["MS"]["arrival"]) : "&nbsp;" ?></small></div>
+												<div><small class="text-primary"><?= $divs["MS"]["sales"] ? number_format($divs["MS"]["sales"]) : "&nbsp;" ?></small></div>
+											</td>
+											<?php }}} ?>
+										</tr>
+										<tr>
+											<td>
+												<div>ES</div>
+												<div><small class="text-danger">Arrival</small></div>
+												<div><small class="text-primary">Sales</small></div>
+											</td>
+											<?php 
+											foreach($years as $year => $months){ 
+												foreach($months as $month => $days){ 
+													foreach($days as $day => $divs){ ?>
+											<td class="text-end">
+												<div><?= $divs["ES"]["progress"] ? number_format($divs["ES"]["progress"]) : "&nbsp;" ?></div>
+												<div><small class="text-danger"><?= $divs["ES"]["arrival"] ? number_format($divs["ES"]["arrival"]) : "&nbsp;" ?></small></div>
+												<div><small class="text-primary"><?= $divs["ES"]["sales"] ? number_format($divs["ES"]["sales"]) : "&nbsp;" ?></small></div>
+											</td>
+											<?php }}} ?>
+										</tr>
+										
+									</tbody>
+								</table>
+							</div>
+						</div>
 						<?php } ?>
-					</tbody>
-				</table>
+					</div>
+					<div class="tab-pane fade" id="by_org" role="tabpanel" aria-labelledby="by_org-tab">
+						<?php foreach($by_org as $org => $years){ ?>
+						<div class="card">
+							<div class="card-body">
+								<h5 class="card-title"><?= $org ?></h5>
+								<table class="table table-sm table-bordered">
+									<thead id="thead_container">
+										<tr class="align-middle">
+											<th scope="col">Year</th>
+											<?php foreach($years as $year => $months){ $total_col = count($months); foreach($months as $month => $days) $total_col += count($days); ?>
+											<th scope="col" colspan="<?= $total_col ?>"><?= $year ?></th>
+											<?php } ?>
+										</tr>
+										<tr class="align-middle">
+											<th scope="col">Month</th>
+											<?php foreach($years as $year => $months){ foreach($months as $month => $days){ ?>
+											<th scope="col" colspan="<?= count($days) ?>"><?= $month ?></th>
+											<?php }} ?>
+										</tr>
+										<tr class="align-middle">
+											<th scope="col">Day</th>
+											<?php foreach($years as $year => $months){ foreach($months as $month => $days){ foreach($days as $day => $divs){ ?>
+											<th scope="col"><div style="width:60px;"><?= $day ?></div></th>
+											<?php }}} ?>
+										</tr>
+									</thead>
+									<tbody class="table-group-divider">
+										<tr>
+											<td>
+												<div>Total</div>
+												<div><small class="text-danger">Arrival</small></div>
+												<div><small class="text-primary">Sales</small></div>
+											</td>
+											<?php 
+											foreach($years as $year => $months){ 
+												foreach($months as $month => $days){ 
+													foreach($days as $day => $divs){ ?>
+											<td class="text-end">
+												<div><?= $divs["Total"]["progress"] ? number_format($divs["Total"]["progress"]) : "&nbsp;" ?></div>
+												<div><small class="text-danger"><?= $divs["Total"]["arrival"] ? number_format($divs["Total"]["arrival"]) : "&nbsp;" ?></small></div>
+												<div><small class="text-primary"><?= $divs["Total"]["sales"] ? number_format($divs["Total"]["sales"]) : "&nbsp;" ?></small></div>
+											</td>
+											<?php }}} ?>
+										</tr>
+										<tr>
+											<td>
+												<div>HS</div>
+												<div><small class="text-danger">Arrival</small></div>
+												<div><small class="text-primary">Sales</small></div>
+											</td>
+											<?php 
+											foreach($years as $year => $months){ 
+												foreach($months as $month => $days){ 
+													foreach($days as $day => $divs){ ?>
+											<td class="text-end">
+												<div><?= $divs["HS"]["progress"] ? number_format($divs["HS"]["progress"]) : "&nbsp;" ?></div>
+												<div><small class="text-danger"><?= $divs["HS"]["arrival"] ? number_format($divs["HS"]["arrival"]) : "&nbsp;" ?></small></div>
+												<div><small class="text-primary"><?= $divs["HS"]["sales"] ? number_format($divs["HS"]["sales"]) : "&nbsp;" ?></small></div>
+											</td>
+											<?php }}} ?>
+										</tr>
+										<tr>
+											<td>
+												<div>MS</div>
+												<div><small class="text-danger">Arrival</small></div>
+												<div><small class="text-primary">Sales</small></div>
+											</td>
+											<?php 
+											foreach($years as $year => $months){ 
+												foreach($months as $month => $days){ 
+													foreach($days as $day => $divs){ ?>
+											<td class="text-end">
+												<div><?= $divs["MS"]["progress"] ? number_format($divs["MS"]["progress"]) : "&nbsp;" ?></div>
+												<div><small class="text-danger"><?= $divs["MS"]["arrival"] ? number_format($divs["MS"]["arrival"]) : "&nbsp;" ?></small></div>
+												<div><small class="text-primary"><?= $divs["MS"]["sales"] ? number_format($divs["MS"]["sales"]) : "&nbsp;" ?></small></div>
+											</td>
+											<?php }}} ?>
+										</tr>
+										<tr>
+											<td>
+												<div>ES</div>
+												<div><small class="text-danger">Arrival</small></div>
+												<div><small class="text-primary">Sales</small></div>
+											</td>
+											<?php 
+											foreach($years as $year => $months){ 
+												foreach($months as $month => $days){ 
+													foreach($days as $day => $divs){ ?>
+											<td class="text-end">
+												<div><?= $divs["ES"]["progress"] ? number_format($divs["ES"]["progress"]) : "&nbsp;" ?></div>
+												<div><small class="text-danger"><?= $divs["ES"]["arrival"] ? number_format($divs["ES"]["arrival"]) : "&nbsp;" ?></small></div>
+												<div><small class="text-primary"><?= $divs["ES"]["sales"] ? number_format($divs["ES"]["sales"]) : "&nbsp;" ?></small></div>
+											</td>
+											<?php }}} ?>
+										</tr>
+										
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<?php } ?>
+					</div>
+				</div>
+				
 			</div>
 		</div>
 	</div>
 </div>
+<div class="row">
+	<div class="col-12">
+	</div>
+</div>
 
 <script>
-function table_header_sticky(){
-	const thead = $('#thead_container');
-	const scrollThreshold = 100; // 스크롤이 100px 내려갔을 때
-
-	$("#content_canva").on('scroll', function() {
-		// 현재 스크롤 위치 가져오기
-		const scrollY = $("#content_canva").scrollTop();
-
-		if (scrollY > scrollThreshold) {
-			// 스크롤이 100px 이상 내려갔을 때 sticky-top 클래스 추가
-			if (!thead.hasClass('sticky-top')) {
-				thead.addClass('sticky-top');
-				thead.addClass('sticky-header-active'); // 추가 스타일 (선택 사항)
-			}
-		} else {
-			// 스크롤이 100px 미만일 때 sticky-top 클래스 제거
-			if (thead.hasClass('sticky-top')) {
-				thead.removeClass('sticky-top');
-				thead.removeClass('sticky-header-active'); // 추가 스타일 제거
-			}
-		}
-	});
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-	table_header_sticky();
+	
 });
 </script>
