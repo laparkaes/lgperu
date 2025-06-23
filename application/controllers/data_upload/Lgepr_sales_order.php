@@ -325,9 +325,8 @@ class Lgepr_sales_order extends CI_Controller {
 			
 			$rows = $order_lines = [];
 			$records = 0;
+			$updated_at = date("Y-m-d H:i:s");
 			
-			//$this->gen_m->truncate("lgepr_sales_order");
-			$rows_update = $rows_insert = [];
 			for($i = 2; $i <= $max_row; $i++){
 				$row = [
 					'bill_to' 				=> trim($sheet->getCell('AJ'.$i)->getValue()),
@@ -432,7 +431,12 @@ class Lgepr_sales_order extends CI_Controller {
 				1. sales in sales order > update
 				2. sales not in sales order > insert
 				*/
-				if ($this->gen_m->filter("lgepr_sales_order", false, ["order_line" => $row["order_line"]])) $this->gen_m->update("lgepr_sales_order", ["order_line" => $row["order_line"]], $row);
+				
+				$row["updated_at"] = $updated_at;
+				
+				$w = ["order_line" => $row["order_line"]];
+				
+				if ($this->gen_m->filter("lgepr_sales_order", false, $w)) $this->gen_m->update("lgepr_sales_order", $w, $row);
 				else $this->gen_m->insert("lgepr_sales_order", $row);
 				
 				$order_lines[] = $row["order_line"];
@@ -441,7 +445,7 @@ class Lgepr_sales_order extends CI_Controller {
 				//print_r($row); echo "<br/><br/>";
 			}
 			
-			//all sales orders in closed order > delete
+			//remove sales orders in closed order
 			$order_lines_split = array_chunk($order_lines, 500);
 			foreach($order_lines_split as $items){
 				$closed_orders = $this->gen_m->filter_select("lgepr_closed_order", false, ["order_line"], null, null, [["field" => "order_line", "values" => $items]]);
@@ -452,6 +456,9 @@ class Lgepr_sales_order extends CI_Controller {
 					$this->gen_m->delete_in("lgepr_sales_order", "order_line", $aux);
 				}
 			}
+			
+			//remove all sales orders not updated_at
+			$this->gen_m->delete("lgepr_sales_order", ["updated_at" => null]);
 			
 			$this->update_model_category();
 			

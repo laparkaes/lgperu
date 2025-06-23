@@ -226,8 +226,13 @@ class Warehouse_cbm extends CI_Controller {
 		return;
 		*/
 		
+		$updated_at_sales = $this->gen_m->filter("lgepr_sales_order", false, null, null, null, [["updated_at", "desc"]], 1)[0]->updated_at;
+		$updated_at_arrival = $this->gen_m->filter("lgepr_container", false, null, null, null, [["updated_at", "desc"]], 1)[0]->updated_at;
+		
 		$data["from"] = $from;
 		$data["to"] = $to;
+		$data["updated_at_sales"] = $updated_at_sales;
+		$data["updated_at_arrival"] = $updated_at_arrival;
 		$data["by_org"] = $by_org;
 		$data["by_3pl"] = $by_3pl;
 		$data["overflow"] = "scroll";

@@ -55,3 +55,7 @@ ALTER TABLE `lgepr_sales_order` DROP `order_status_detail`;
 ALTER TABLE `lgepr_sales_order` ADD `line_status_detail` VARCHAR(50) NULL AFTER `line_status`;
 ALTER TABLE `lgepr_sales_order` ADD `customer_po_no` VARCHAR(100) NULL AFTER `ship_to_name`, ADD `customer_po_date` DATE NULL AFTER `customer_po_no`;
 UPDATE `lgepr_sales_order` SET `order_category` = NULL WHERE `lgepr_sales_order`.`order_category` = "Standard";
+
+20250622
+ALTER TABLE `lgepr_sales_order` ADD `updated` TIMESTAMP NULL AFTER `insurance_hold`; 
+ALTER TABLE `lgepr_sales_order` CHANGE `updated` `updated_at` TIMESTAMP NULL DEFAULT NULL; 

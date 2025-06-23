@@ -17,6 +17,17 @@
 			</div>
 		</div>
 	</a>
+	<a href="<?= base_url() ?>lgepr/warehouse_cbm" class="col-md-3">
+		<div class="card">
+			<div class="card-body">
+				<div class="d-flex justify-content-between align-items-center">
+					<h5 class="card-title">Warehouse CBM Simulation</h5>
+					<button type="button" class="btn btn-primary"><i class="bi bi-boxes"></i></button>
+				</div>
+				<div>3PL warehouse occupancy simulator in CBM based on container arrivals and LGEPR sales</div>
+			</div>
+		</div>
+	</a>
 </div>
 
 <script>
