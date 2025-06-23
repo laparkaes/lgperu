@@ -100,4 +100,8 @@ class Ar_exchange_rate extends CI_Controller {
 		echo json_encode(["type" => "success", "msg" => "Exchage rate USD > PEN has been updated."]);
 	}
 	
+	public function test(){
+		$ex = $this->my_func->load_exchange_rate_sbs("2025-06-17");
+		print_r($ex);
+	}
 }
