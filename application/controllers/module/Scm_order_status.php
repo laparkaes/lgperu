@@ -13,15 +13,15 @@ class Scm_order_status extends CI_Controller {
 	}
 	
 	public function index(){
-		$line_status_detail = [
+		$line_status_detail_list = [
 			"CLOSED", 
-			"CON CITA", 
 			"PICK", 
-			"POR CANCELAR PEDIDO", 
+			"CON CITA", 
 			"POR CONFIRMAR CITA", 
 			"POR SOLICITAR CITA", 
 			"REFACTURACION", 
 			"REGULARIZACION", 
+			"POR CANCELAR PEDIDO", 
 			"SIN DISTRIBUCION", 
 			"SIN LINEA DE CREDITO", 
 			"SIN STOCK", 
@@ -32,6 +32,7 @@ class Scm_order_status extends CI_Controller {
 		$sales = $this->gen_m->filter("lgepr_sales_order", false, $w, null, null, $o);
 		
 		$data = [
+			"line_status_detail_list"	=> $line_status_detail_list,
 			"sales"	=> $sales,
 			"main" 	=> "module/scm_order_status/index",
 		];

@@ -27,11 +27,11 @@
 								<th scope="col">Qty</th>
 								<th scope="col">Flags</th>
 								<th scope="col">Status</th>
-								<th scope="col">Dashboard</th>
+								<th scope="col">OM Status</th>
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach($sales as $item){ ?>
+							<?php foreach($sales as $item){ /* if (!in_array($item->so_status, ["AWAITING_FULFILLMENT"])){ */ ?>
 							<tr>
 								<td><?= $item->order_no ?></td>
 								<td><?= $item->line_no ?></td>
@@ -41,26 +41,15 @@
 								<td><?= $item->ordered_qty ?></td>
 								<td><?= $item->so_status ?></td>
 								<td>
-									<select name="line_status_detail">
+									<select class="form-select" name="line_status_detail" sales_order_id="<?= $item->sales_order_id ?>">
 										<option value="">---</option>
-										<option value="" <?= $item->line_status_detail === "CLOSED" ? "selected" : "" ?>>CLOSED</option>
-										<option value="">PICK</option>
-										<option value="">CON CITA</option>
-										<option value="">POR CANCELAR PEDIDO</option>
-										<option value="">POR CONFIRMAR CITA</option>
-										<option value="">POR SOLICITAR CITA</option>
-										<option value="">REFACTURACION</option>
-										<option value="">REGULARIZACION</option>
-										<option value="">SIN DISTRIBUCION</option>
-										<option value="">SIN LINEA DE CREDITO</option>
-										<option value="">SIN STOCK</option>
+										<?php foreach($line_status_detail_list as $op){ ?>
+										<option value="<?= $op ?>" <?= trim($item->line_status_detail) === $op ? "selected" : "" ?>><?= $op ?></option>
+										<?php } ?>
 									</select>
-
-								
-									<?= $item->line_status_detail ?>
 								</td>
 							</tr>
-							<?php } ?>
+							<?php /* } */ } ?>
 						</tbody>
 					</table>
 					

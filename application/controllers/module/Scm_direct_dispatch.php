@@ -19,7 +19,7 @@ class Scm_direct_dispatch extends CI_Controller {
 		$model_containers = [];//containers by model
 		
 		$w = ["eta >=" => date("Y-m-01"), "eta <=" => date("Y-m-t")];
-		$containers = $this->gen_m->filter("custom_container", false, $w, null, null, [["eta", "asc"], ["sa_no", "asc"], ["sa_line_no", "asc"]]);
+		$containers = $this->gen_m->filter("lgepr_container", false, $w, null, null, [["eta", "asc"], ["sa_no", "asc"], ["sa_line_no", "asc"]]);
 		foreach($containers as $ctn){
 			
 			$appointment = date("Y-m-d", strtotime(($ctn->ata ? $ctn->ata : $ctn->eta)." +3 days"));
