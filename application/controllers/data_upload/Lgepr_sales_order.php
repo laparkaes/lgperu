@@ -410,6 +410,7 @@ class Lgepr_sales_order extends CI_Controller {
 				$row["shipment_date"] = $this->my_func->date_convert($row["shipment_date"]);
 				
 				//usd calculation
+				$er = 3.7;
 				switch($row['currency']){
 					case "BRL": $er = 3.25; break;
 					case "USD": $er = 1; break;
