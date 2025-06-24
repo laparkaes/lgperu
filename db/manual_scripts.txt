@@ -59,3 +59,6 @@ UPDATE `lgepr_sales_order` SET `order_category` = NULL WHERE `lgepr_sales_order`
 20250622
 ALTER TABLE `lgepr_sales_order` ADD `updated` TIMESTAMP NULL AFTER `insurance_hold`; 
 ALTER TABLE `lgepr_sales_order` CHANGE `updated` `updated_at` TIMESTAMP NULL DEFAULT NULL; 
+
+20250623
+ALTER TABLE `lgepr_sales_order` ADD `partial_flag` CHAR(1) NULL AFTER `insurance_hold`, ADD `load_hold_flag` CHAR(1) NULL AFTER `partial_flag`; 

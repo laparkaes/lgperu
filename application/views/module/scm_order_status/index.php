@@ -38,7 +38,7 @@
 								<td><?= $item->bill_to_name ?></td>
 								<td><?= $item->model ?></td>
 								<td><?= $item->ordered_qty ?></td>
-								<td><?= $item->ordered_qty ?></td>
+								<td>hold_flag 	instock_flag 	back_order_hold 	credit_hold 	overdue_hold 	customer_hold 	payterm_term_hold 	fp_hold 	minimum_hold 	future_hold 	reserve_hold 	manual_hold 	auto_pending_hold 	sa_hold 	form_hold 	bank_collateral_hold 	insurance_hold 	partial_flag 	load_hold_flag </td>
 								<td><?= $item->so_status ?></td>
 								<td>
 									<select class="form-select" name="line_status_detail" sales_order_id="<?= $item->sales_order_id ?>">

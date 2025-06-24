@@ -385,6 +385,8 @@ class Lgepr_sales_order extends CI_Controller {
 					'form_hold' 			=> trim($sheet->getCell('DC'.$i)->getValue()),
 					'bank_collateral_hold' 	=> trim($sheet->getCell('DD'.$i)->getValue()),
 					'insurance_hold' 		=> trim($sheet->getCell('DE'.$i)->getValue()),
+					'partial_flag' 			=> trim($sheet->getCell('DF'.$i)->getValue()),
+					'load_hold_flag' 		=> trim($sheet->getCell('DG'.$i)->getValue()),
 				];
 				
 				//apply trim
