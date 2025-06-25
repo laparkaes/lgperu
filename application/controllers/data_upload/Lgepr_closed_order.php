@@ -245,6 +245,8 @@ class Lgepr_closed_order extends CI_Controller {
 					$rows[] = $row;
 					$order_lines[] = $row["order_line"];
 				}
+				
+				print_r($row); echo "<br/><br/>";
 			}
 			
 			//insert closed orders
