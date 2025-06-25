@@ -65,3 +65,6 @@ ALTER TABLE `lgepr_sales_order` ADD `partial_flag` CHAR(1) NULL AFTER `insurance
 
 20250624
 ALTER TABLE `lgepr_sales_order` ADD `customer_name` VARCHAR(100) NULL AFTER `ship_to_name`; 
+
+20250625
+ALTER TABLE `lgepr_closed_order` ADD `customer_name` VARCHAR(100) NULL AFTER `ship_to_name`; 
