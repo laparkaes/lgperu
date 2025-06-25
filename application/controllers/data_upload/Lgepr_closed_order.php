@@ -172,6 +172,7 @@ class Lgepr_closed_order extends CI_Controller {
 					'category'				=> trim($sheet->getCell('A'.$i)->getValue()),
 					'bill_to_name'			=> trim($sheet->getCell('C'.$i)->getValue()),
 					'ship_to_name'			=> trim($sheet->getCell('D'.$i)->getValue()),
+					'customer_name'			=> trim($sheet->getCell('AA'.$i)->getValue()),
 					'model'					=> trim($sheet->getCell('E'.$i)->getValue()),
 					'order_qty'				=> trim($sheet->getCell('F'.$i)->getValue()),
 					'total_amount_usd'		=> trim($sheet->getCell('I'.$i)->getValue()),
