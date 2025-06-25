@@ -333,6 +333,7 @@ class Lgepr_sales_order extends CI_Controller {
 					'bill_to_name' 			=> trim($sheet->getCell('A'.$i)->getValue()),
 					'ship_to' 				=> trim($sheet->getCell('AL'.$i)->getValue()),
 					'ship_to_name' 			=> trim($sheet->getCell('B'.$i)->getValue()),
+					'customer_name' 		=> trim($sheet->getCell('AI'.$i)->getValue()),
 					'customer_po_no' 		=> trim($sheet->getCell('AQ'.$i)->getValue()),
 					'customer_po_date' 		=> trim($sheet->getCell('AR'.$i)->getValue()),
 					'order_type' 			=> trim($sheet->getCell('F'.$i)->getValue()),

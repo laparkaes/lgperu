@@ -62,3 +62,6 @@ ALTER TABLE `lgepr_sales_order` CHANGE `updated` `updated_at` TIMESTAMP NULL DEF
 
 20250623
 ALTER TABLE `lgepr_sales_order` ADD `partial_flag` CHAR(1) NULL AFTER `insurance_hold`, ADD `load_hold_flag` CHAR(1) NULL AFTER `partial_flag`; 
+
+20250624
+ALTER TABLE `lgepr_sales_order` ADD `customer_name` VARCHAR(100) NULL AFTER `ship_to_name`; 
