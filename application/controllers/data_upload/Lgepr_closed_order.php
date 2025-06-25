@@ -151,7 +151,7 @@ class Lgepr_closed_order extends CI_Controller {
 		];
 		
 		//magento report header
-		$h_gerp = ["Category", "AU", "Bill To Name", "Ship To Name", "Model", "Order Qty", "Unit List  Price", "Unit Selling  Price", "Total Amount (USD)", "Total Amount", "Order Amount (USD)", "Order Amount", "Line Charge Amount", ];
+		$h_gerp = ["Category", "AU", "Bill To Name", "Ship To Name", "Model", "Order Qty", "Unit List  Price", "Unit Selling  Price", "Total Amount (USD)", "Total Amount", "Order Amount (USD)", "Order Amount", "Line Charge Amount"];
 		
 		//header validation
 		$is_gerp = true;
