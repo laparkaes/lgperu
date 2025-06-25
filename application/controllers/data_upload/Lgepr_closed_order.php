@@ -246,8 +246,14 @@ class Lgepr_closed_order extends CI_Controller {
 					$order_lines[] = $row["order_line"];
 				}
 				
-				print_r($row); echo "<br/><br/>";
+				//codigo update customer name
+				elseif($this->gen_m->filter("lgepr_closed_order", false, ["order_line" => $row["order_line"]])){
+					$rows_eq[] = $row;
+				}
 			}
+			$rows_split_eq = array_chunk($rows_eq, 1000);
+			foreach($rows_split_eq as $items) $this->gen_m->update_multi("lgepr_closed_order", $items, 'order_line');
+			////// termina codigo update customer Name
 			
 			//insert closed orders
 			$rows_split = array_chunk($rows, 1000);
