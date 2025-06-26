@@ -350,7 +350,10 @@ class Obs_magento extends CI_Controller {
 					
 					//address working
 					$address_aux = explode(",", $row["shipping_address"]);
-					$row["zipcode"] = $address_aux[count($address_aux)-1];
+					if (!is_numeric($address_aux[count($address_aux)-1])){
+						$row["zipcode"] = 0;
+					} else $row["zipcode"] = $address_aux[count($address_aux)-1];
+					//$row["zipcode"] = $address_aux[count($address_aux)-1];
 					$row["department"] = $address_aux[count($address_aux)-2];
 					$row["province"] = $address_aux[count($address_aux)-3];
 					
