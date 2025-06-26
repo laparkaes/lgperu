@@ -463,8 +463,9 @@ class Lgepr_sales_order extends CI_Controller {
 				}
 			}
 			
-			//remove all sales orders not updated_at
+			//remove all sales orders not updated
 			$this->gen_m->delete("lgepr_sales_order", ["updated_at" => null]);
+			$this->gen_m->delete("lgepr_sales_order", ["updated_at <" => $updated_at]);
 			
 			$this->update_model_category();
 			
