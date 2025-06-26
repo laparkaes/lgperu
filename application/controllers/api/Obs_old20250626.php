@@ -84,7 +84,7 @@ class Obs extends CI_Controller {
 			$w = ["closed_date >=" => date("Y-m-01")];
 			$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			
-			$res = $this->gen_m->filter("v_obs_closed_order_magento_v3", false, $w, null, null, $o);
+			$res = $this->gen_m->filter("v_obs_closed_order_magento_v2", false, $w, null, null, $o);
 			//print_r($res);
 			foreach($res as $item) if (!$item->customer_group) $item->customer_group = $item->bill_to_name;
 		}else $res = ["Key error"];
@@ -102,7 +102,7 @@ class Obs extends CI_Controller {
 			$w = ["req_arrival_date_to <=" => date("Y-m-t")];
 			$o = [["create_date", "desc"], ["req_arrival_date_to", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			
-			$res = $this->gen_m->filter("v_obs_sales_order_magento_v3", false, $w, null, null, $o);
+			$res = $this->gen_m->filter("v_obs_sales_order_magento_v2", false, $w, null, null, $o);
 			foreach($res as $item){
 				if (strtotime($item->req_arrival_date_to) < $today) $item->req_arrival_date_to = date("Y-m-t");
 				
@@ -222,13 +222,11 @@ class Obs extends CI_Controller {
 
 		$from = date("Y-m-1"); // Primer día del mes actual
 		$res = [];
-		//$where_string_c = "(inventory_org = 'N4E' OR (inventory_org = 'N4S' AND sub_inventory = 'GOODSET-OB')) AND order_date >= '$from'";
-		//$where_string_s = "(inventory_org = 'N4E' OR (inventory_org = 'N4S' AND sub_inventory = 'GOODSET-OB')) AND create_date >= '$from'";
-		$where_string_c = "customer_name = 'One time_OBS' AND order_date >= '$from'";
-		$where_string_s = "customer_name = 'One time_OBS' AND create_date >= '$from'";
+		$where_string_c = "(inventory_org = 'N4E' OR (inventory_org = 'N4S' AND sub_inventory = 'GOODSET-OB')) AND order_date >= '$from'";
+		$where_string_s = "(inventory_org = 'N4E' OR (inventory_org = 'N4S' AND sub_inventory = 'GOODSET-OB')) AND create_date >= '$from'";
 		// Obtiene todas las órdenes cerradas y de ventas de Magento en una sola consulta
-		$all_magento_orders = $this->gen_m->filter("v_obs_closed_order_magento_v3", false,["order_date >=" => $from]);
-		$all_magento_sales = $this->gen_m->filter("v_obs_sales_order_magento_v3", false,["create_date >=" => $from]);
+		$all_magento_orders = $this->gen_m->filter("v_obs_closed_order_magento", false,["order_date >=" => $from]);
+		$all_magento_sales = $this->gen_m->filter("v_obs_sales_order_magento", false,["create_date >=" => $from]);
 
 		// Combina ambas consultas en un solo mapa para reducir búsquedas
 		$magento_map = [];
