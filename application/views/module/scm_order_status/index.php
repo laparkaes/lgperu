@@ -44,7 +44,7 @@
 										<?php } ?>
 									</select>
 									<input type="date" class="form-control in_appointment_om_date" name="appointment_om_date" order_id="<?= $item->sales_order_id ?>">
-									<input type="time" class="form-control in_appointment_om_time" name="appointment_om_time" order_id="<?= $item->sales_order_id ?>">
+									<input type="time" class="form-control in_appointment_om_time" name="appointment_om_time" order_id="<?= $item->sales_order_id ?>" value="00:00">
 								</td>
 								<td><textarea class="form-control tx_appointment_remark" rows="4" name="appointment_remark" order_id="<?= $item->sales_order_id ?>"></textarea></td>
 								<td><?= str_replace("_", " ", $item->so_status) ?></td>
@@ -92,6 +92,10 @@
 </section>
 
 <script>
+function update_appointment_om(field, order_id, value){
+	
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 	$('.sl_line_status_detail').change(function() {
 		var val = $(this).val();
@@ -99,19 +103,19 @@ document.addEventListener("DOMContentLoaded", () => {
 		alert(order_id + ' ' + val);
 	});
 	
-	$('.in_appointment_om_date').blur(function() {
+	$('.in_appointment_om_date').focusout(function() {
         var val = $(this).val();
 		var order_id = $(this).attr("order_id");
         alert(order_id + ' ' + val);
     });
 	
-	$('.in_appointment_om_time').blur(function() {
+	$('.in_appointment_om_time').focusout(function() {
         var val = $(this).val();
 		var order_id = $(this).attr("order_id");
         alert(order_id + ' ' + val);
     });
 	
-	$('.tx_appointment_remark').blur(function() {
+	$('.tx_appointment_remark').focusout(function() {
         var val = $(this).val();
 		var order_id = $(this).attr("order_id");
         alert(order_id + ' ' + val);
