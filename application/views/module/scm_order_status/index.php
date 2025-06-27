@@ -20,8 +20,8 @@
 					<table class="table">
 						<thead>
 							<tr>
-								<th scope="col">OM</th>
-								<th scope="col">Remark</th>
+								<th scope="col" style="width:200px;">OM</th>
+								<th scope="col" style="width:200px;">Remark</th>
 								<th scope="col">Status</th>
 								<th scope="col">Order</th>
 								<th scope="col">Line</th>
@@ -37,23 +37,21 @@
 							<?php foreach($sales as $item){ /* if (!in_array($item->so_status, ["AWAITING_FULFILLMENT"])){ */ ?>
 							<tr>
 								<td>
-									<select class="form-select" name="line_status_detail" sales_order_id="<?= $item->sales_order_id ?>">
+									<select class="form-select sl_line_status_detail" name="line_status_detail" order_id="<?= $item->sales_order_id ?>">
 										<option value="">---</option>
 										<?php foreach($line_status_detail_list as $op){ ?>
 										<option value="<?= $op ?>" <?= trim($item->line_status_detail) === $op ? "selected" : "" ?>><?= $op ?></option>
 										<?php } ?>
 									</select>
-									<input type="date" class="form-control">
-									<div class="input-group">
-										<input type="time" class="form-control">
-									</div>
+									<input type="date" class="form-control in_appointment_om_date" name="appointment_om_date" order_id="<?= $item->sales_order_id ?>">
+									<input type="time" class="form-control in_appointment_om_time" name="appointment_om_time" order_id="<?= $item->sales_order_id ?>">
 								</td>
-								<td><textarea class="form-control"></textarea></td>
+								<td><textarea class="form-control tx_appointment_remark" rows="4" name="appointment_remark" order_id="<?= $item->sales_order_id ?>"></textarea></td>
 								<td><?= str_replace("_", " ", $item->so_status) ?></td>
 								<td><?= $item->order_no ?></td>
 								<td><?= $item->line_no ?></td>
 								<td><?= $item->bill_to_name ?></td>
-								<td><?= $item->dash_company ?><br/><?= $item->dash_division ?><br/><?= $item->model ?></td>
+								<td><?= $item->model ?><br/><?= $item->dash_division ?><br/><?= $item->dash_company ?></td>
 								<td><?= $item->ordered_qty ?></td>
 								<td><?= $item->instock_flag === "Y" ? $item->instock_flag : "" ?></td>
 								<td><?= $item->hold_flag === "Y" ? $item->hold_flag : "" ?></td>
@@ -95,6 +93,37 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+	$('.sl_line_status_detail').change(function() {
+		var val = $(this).val();
+		var order_id = $(this).attr("order_id");
+		alert(order_id + ' ' + val);
+	});
+	
+	$('.in_appointment_om_date').blur(function() {
+        var val = $(this).val();
+		var order_id = $(this).attr("order_id");
+        alert(order_id + ' ' + val);
+    });
+	
+	$('.in_appointment_om_time').blur(function() {
+        var val = $(this).val();
+		var order_id = $(this).attr("order_id");
+        alert(order_id + ' ' + val);
+    });
+	
+	$('.tx_appointment_remark').blur(function() {
+        var val = $(this).val();
+		var order_id = $(this).attr("order_id");
+        alert(order_id + ' ' + val);
+    });
+	
+	/*
+	sl_line_status_detail
+	in_appointment_om_date
+	in_appointment_om_time
+	tx_appointment_remark
+	*/
+	
 	$("#form_upload").submit(function(e) {
 		e.preventDefault();
 		$("#form_upload .sys_msg").html("");

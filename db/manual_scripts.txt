@@ -68,3 +68,7 @@ ALTER TABLE `lgepr_sales_order` ADD `customer_name` VARCHAR(100) NULL AFTER `shi
 
 20250625
 ALTER TABLE `lgepr_closed_order` ADD `customer_name` VARCHAR(100) NULL AFTER `ship_to_name`; 
+
+20250626
+ALTER TABLE `lgepr_sales_order` ADD `appointment_om` TIMESTAMP NULL AFTER `appointment_date`; 
+ALTER TABLE `lgepr_sales_order` ADD `appointment_remark` TEXT NULL AFTER `appointment_om`; 
