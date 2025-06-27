@@ -92,33 +92,38 @@
 </section>
 
 <script>
-function update_appointment_om(field, order_id, value){
+function update_appointment_om(field, order_id, val){
 	
+	alert(field + ' ' + order_id + ' ' + val);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
 	$('.sl_line_status_detail').change(function() {
 		var val = $(this).val();
 		var order_id = $(this).attr("order_id");
-		alert(order_id + ' ' + val);
+		
+		update_appointment_om("line_status_detail", order_id, val);
 	});
 	
 	$('.in_appointment_om_date').focusout(function() {
         var val = $(this).val();
 		var order_id = $(this).attr("order_id");
-        alert(order_id + ' ' + val);
+        
+		update_appointment_om("appointment_om_date", order_id, val);
     });
 	
 	$('.in_appointment_om_time').focusout(function() {
         var val = $(this).val();
 		var order_id = $(this).attr("order_id");
-        alert(order_id + ' ' + val);
+        
+		update_appointment_om("appointment_om_time", order_id, val);
     });
 	
 	$('.tx_appointment_remark').focusout(function() {
         var val = $(this).val();
 		var order_id = $(this).attr("order_id");
-        alert(order_id + ' ' + val);
+        
+		update_appointment_om("appointment_remark", order_id, val);
     });
 	
 	/*
