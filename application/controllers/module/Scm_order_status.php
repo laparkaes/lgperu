@@ -13,7 +13,7 @@ class Scm_order_status extends CI_Controller {
 	}
 	
 	public function index(){
-		$line_status_detail_list = [
+		$om_line_status_list = [
 			"CLOSED", 
 			"PICK", 
 			"CON CITA", 
@@ -32,12 +32,21 @@ class Scm_order_status extends CI_Controller {
 		$sales = $this->gen_m->filter("lgepr_sales_order", false, $w, null, null, $o);
 		
 		$data = [
-			"line_status_detail_list"	=> $line_status_detail_list,
+			"om_line_status_list"	=> $om_line_status_list,
 			"sales"	=> $sales,
 			"main" 	=> "module/scm_order_status/index",
 		];
 		
 		$this->load->view('layout', $data);
+	}
+	
+	public function load_sales_order(){
+		$order_id = $this->input->post("order_id");
+		$order = $this->gen_m->unique("lgepr_sales_order", "sales_order_id", $order_id, false);
+		
+		echo $order_id;
+		echo "<br/><br/>";
+		print_r($order);
 	}
 	
 	public function espr(){
@@ -63,7 +72,7 @@ class Scm_order_status extends CI_Controller {
 		foreach($open_order_status as $item){
 			print_r($item); echo "<br/>";
 			
-			if ($item["ESTATUS"]) $this->gen_m->update("lgepr_sales_order", ["order_no" => $item["SO NO"], "line_no" => $item["SO Line NO"]], ["line_status_detail" => $item["ESTATUS"]]);
+			if ($item["ESTATUS"]) $this->gen_m->update("lgepr_sales_order", ["order_no" => $item["SO NO"], "line_no" => $item["SO Line NO"]], ["om_line_status" => $item["ESTATUS"]]);
 		}
 		
 		echo "<br/>//////////////////////////////////////////////<br/><br/>";

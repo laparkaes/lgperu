@@ -20,11 +20,10 @@
 					<table class="table">
 						<thead>
 							<tr>
-								<th scope="col" style="width:200px;">OM</th>
-								<th scope="col" style="width:200px;">Remark</th>
-								<th scope="col">Status</th>
+								<th scope="col">Action</th>
+								<th scope="col">Order Mng</th>
 								<th scope="col">Order</th>
-								<th scope="col">Line</th>
+								<th scope="col">Status</th>
 								<th scope="col">Customer</th>
 								<th scope="col">Model</th>
 								<th scope="col">Qty</th>
@@ -37,19 +36,20 @@
 							<?php foreach($sales as $item){ /* if (!in_array($item->so_status, ["AWAITING_FULFILLMENT"])){ */ ?>
 							<tr>
 								<td>
-									<select class="form-select sl_line_status_detail" name="line_status_detail" order_id="<?= $item->sales_order_id ?>">
-										<option value="">---</option>
-										<?php foreach($line_status_detail_list as $op){ ?>
-										<option value="<?= $op ?>" <?= trim($item->line_status_detail) === $op ? "selected" : "" ?>><?= $op ?></option>
-										<?php } ?>
-									</select>
-									<input type="date" class="form-control in_appointment_om_date" name="appointment_om_date" order_id="<?= $item->sales_order_id ?>">
-									<input type="time" class="form-control in_appointment_om_time" name="appointment_om_time" order_id="<?= $item->sales_order_id ?>" value="00:00">
+									<button type="button" class="btn btn-primary btn_om_update" data-bs-toggle="modal" data-bs-target="#md_om_mng" value="<?= $item->sales_order_id ?>">Update</button>
 								</td>
-								<td><textarea class="form-control tx_appointment_remark" rows="4" name="appointment_remark" order_id="<?= $item->sales_order_id ?>"></textarea></td>
+								<td>
+									<?php
+									$aux = [];
+									if ($item->om_line_status) $aux[] = $item->om_line_status;
+									if ($item->om_appointment) $aux[] = $item->om_appointment;
+									if ($item->om_appointment_remark) $aux[] = $item->om_appointment_remark;
+									
+									echo implode("<br/>", $aux);
+									?>
+								</td>
+								<td><?= $item->order_no ?><br/><?= $item->line_no ?></td>
 								<td><?= str_replace("_", " ", $item->so_status) ?></td>
-								<td><?= $item->order_no ?></td>
-								<td><?= $item->line_no ?></td>
 								<td><?= $item->bill_to_name ?></td>
 								<td><?= $item->model ?><br/><?= $item->dash_division ?><br/><?= $item->dash_company ?></td>
 								<td><?= $item->ordered_qty ?></td>
@@ -91,6 +91,24 @@
 	</div>
 </section>
 
+<div class="modal fade" id="md_om_mng" tabindex="-1" style="display: none;" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Basic Modal</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+			Non omnis incidunt qui sed occaecati magni asperiores est mollitia. Soluta at et reprehenderit. Placeat autem numquam et fuga numquam. Tempora in facere consequatur sit dolor ipsum. Consequatur nemo amet incidunt est facilis. Dolorem neque recusandae quo sit molestias sint dignissimos.
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary">Save changes</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 <script>
 function update_appointment_om(field, order_id, val){
 	
@@ -98,11 +116,11 @@ function update_appointment_om(field, order_id, val){
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-	$('.sl_line_status_detail').change(function() {
+	$('.sl_line_status_om').change(function() {
 		var val = $(this).val();
 		var order_id = $(this).attr("order_id");
 		
-		update_appointment_om("line_status_detail", order_id, val);
+		update_appointment_om("line_status_om", order_id, val);
 	});
 	
 	$('.in_appointment_om_date').focusout(function() {
@@ -127,11 +145,26 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 	
 	/*
-	sl_line_status_detail
+	sl_line_status_om
 	in_appointment_om_date
 	in_appointment_om_time
 	tx_appointment_remark
 	*/
+	
+	$('.btn_om_update').click(function() {
+        var val = $(this).val();
+        
+		$.ajax({
+			url: base_url + "module/scm_order_status/load_sales_order",
+			type: "POST",
+			data: {order_id: val},
+			success:function(res){
+				console.log(res);
+			}
+		});
+		//alert(val);
+		//update_appointment_om("appointment_remark", order_id, val);
+    });
 	
 	$("#form_upload").submit(function(e) {
 		e.preventDefault();
