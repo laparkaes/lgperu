@@ -20,10 +20,10 @@
 					<table class="table">
 						<thead>
 							<tr>
-								<th scope="col">Action</th>
+								<th scope="col"></th>
 								<th scope="col">Order Mng</th>
-								<th scope="col">Order</th>
 								<th scope="col">Status</th>
+								<th scope="col">Order</th>
 								<th scope="col">Customer</th>
 								<th scope="col">Model</th>
 								<th scope="col">Qty</th>
@@ -36,7 +36,9 @@
 							<?php foreach($sales as $item){ /* if (!in_array($item->so_status, ["AWAITING_FULFILLMENT"])){ */ ?>
 							<tr>
 								<td>
-									<button type="button" class="btn btn-primary btn_om_update" data-bs-toggle="modal" data-bs-target="#md_om_mng" value="<?= $item->sales_order_id ?>">Update</button>
+									<button type="button" class="btn btn-primary btn-sm btn_om_update_modal" data-bs-toggle="modal" data-bs-target="#md_om_mng" value="<?= $item->sales_order_id ?>">
+										<i class="bi bi-pencil-square"></i>
+									</button>
 								</td>
 								<td>
 									<?php
@@ -48,8 +50,8 @@
 									echo implode("<br/>", $aux);
 									?>
 								</td>
-								<td><?= $item->order_no ?><br/><?= $item->line_no ?></td>
 								<td><?= str_replace("_", " ", $item->so_status) ?></td>
+								<td><?= $item->order_no ?><br/><?= $item->line_no ?></td>
 								<td><?= $item->bill_to_name ?></td>
 								<td><?= $item->model ?><br/><?= $item->dash_division ?><br/><?= $item->dash_company ?></td>
 								<td><?= $item->ordered_qty ?></td>
@@ -95,82 +97,96 @@
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title">Basic Modal</h5>
+				<h5 class="modal-title">Order Management</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
-			Non omnis incidunt qui sed occaecati magni asperiores est mollitia. Soluta at et reprehenderit. Placeat autem numquam et fuga numquam. Tempora in facere consequatur sit dolor ipsum. Consequatur nemo amet incidunt est facilis. Dolorem neque recusandae quo sit molestias sint dignissimos.
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-				<button type="button" class="btn btn-primary">Save changes</button>
+				<form class="row g-3" id="form_update_order_status">
+					<input type="hidden" name="order_id" id="md_om_order_id">
+					<div class="col-md-12">
+						<label class="form-label">OM Line Status</label>
+						<select class="form-select" id="sl_om_line_status" name="om_line_status">
+							<option value="">Choose...</option>
+							<?php foreach($om_line_status_list as $item){ ?>
+							<option value="<?= $item ?>"><?= $item ?></option>
+							<?php } ?>
+						</select>
+					</div>
+					<div class="col-md-6">
+						<label class="form-label">Appointment Date</label>
+						<input type="date" class="form-control" id="ip_om_appointment_date" name="om_appointment_date">
+					</div>
+					<div class="col-md-6">
+						<label class="form-label">Time</label>
+						<div class="input-group">
+							<select class="form-select" id="ip_om_appointment_time_hh" name="om_appointment_time_hh">
+								<?php for($i = 0; $i < 24; $i++){ ?>
+								<option value="<?= $i ?>"><?= $i ?></option>
+								<?php } ?>
+							</select>
+							<span class="input-group-text">:</span>
+							<select class="form-select" id="ip_om_appointment_time_mm" name="om_appointment_time_mm">
+								<option value="00">00</option>
+								<option value="30">30</option>
+							</select>
+						</div>
+					</div>
+					<div class="col-md-12">
+						<label class="form-label">Remark</label>
+						<textarea class="form-control" id="tx_om_appointment_remark" name="om_appointment_remark" style="height: 200px"></textarea>
+					</div>
+					<div class="pt-3">
+						<button type="submit" class="btn btn-primary">Update</button>
+						<button type="reset" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+					</div>
+              </form>
 			</div>
 		</div>
 	</div>
 </div>
 
 <script>
-function update_appointment_om(field, order_id, val){
-	
-	alert(field + ' ' + order_id + ' ' + val);
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-	$('.sl_line_status_om').change(function() {
-		var val = $(this).val();
-		var order_id = $(this).attr("order_id");
+	
+	$('.btn_om_update_modal').click(function() {
 		
-		update_appointment_om("line_status_om", order_id, val);
-	});
-	
-	$('.in_appointment_om_date').focusout(function() {
-        var val = $(this).val();
-		var order_id = $(this).attr("order_id");
-        
-		update_appointment_om("appointment_om_date", order_id, val);
-    });
-	
-	$('.in_appointment_om_time').focusout(function() {
-        var val = $(this).val();
-		var order_id = $(this).attr("order_id");
-        
-		update_appointment_om("appointment_om_time", order_id, val);
-    });
-	
-	$('.tx_appointment_remark').focusout(function() {
-        var val = $(this).val();
-		var order_id = $(this).attr("order_id");
-        
-		update_appointment_om("appointment_remark", order_id, val);
-    });
-	
-	/*
-	sl_line_status_om
-	in_appointment_om_date
-	in_appointment_om_time
-	tx_appointment_remark
-	*/
-	
-	$('.btn_om_update').click(function() {
-        var val = $(this).val();
-        
+		$("#md_om_order_id").val($(this).val());
+		
 		$.ajax({
 			url: base_url + "module/scm_order_status/load_sales_order",
 			type: "POST",
-			data: {order_id: val},
+			data: {order_id: $(this).val()},
 			success:function(res){
-				console.log(res);
+				//console.log(res);
+				if (res.om_line_status != null) $("#sl_om_line_status").val(res.om_line_status);
+				if (res.om_appointment_date != null) $("#ip_om_appointment_date").val(res.om_appointment_date);
+				if (res.om_appointment_time_hh != null) $("#ip_om_appointment_time_hh").val(res.om_appointment_time_hh);
+				if (res.om_appointment_time_mm != null) $("#ip_om_appointment_time_mm").val(res.om_appointment_time_mm);
+				if (res.om_appointment_remark != null) $("#tx_om_appointment_remark").val(res.om_appointment_remark);
 			}
 		});
-		//alert(val);
-		//update_appointment_om("appointment_remark", order_id, val);
     });
 	
-	$("#form_upload").submit(function(e) {
+	$("#form_update_order_status").submit(function(e) {
 		e.preventDefault();
-		$("#form_upload .sys_msg").html("");
-		ajax_form_warning(this, "module/scm_sku_management/upload", "Do you upload data?").done(function(res) {
-			swal_redirection(res.type, res.msg, "module/scm_sku_management");
+		ajax_form_warning(this, "module/scm_order_status/om_update", "Do you update data?").done(function(res) {
+			
+			console.log(res);
+			
+			/*
+			Swal.fire({
+				title: type.toUpperCase() + " !!!",
+				icon: type,
+				html: msg,
+				confirmButtonText: "Confirm",
+				cancelButtonText: "Cancel",
+			}).then((result) => {
+				if (result.isConfirmed) if (type == "success") {
+					const currentUrl = window.location.href;
+					window.location.href = currentUrl;
+				}
+			});	
+			*/
 		});
 	});
 });

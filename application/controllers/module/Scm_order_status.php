@@ -44,9 +44,27 @@ class Scm_order_status extends CI_Controller {
 		$order_id = $this->input->post("order_id");
 		$order = $this->gen_m->unique("lgepr_sales_order", "sales_order_id", $order_id, false);
 		
-		echo $order_id;
-		echo "<br/><br/>";
-		print_r($order);
+		if ($order->om_appointment){
+			$order->om_appointment_date = date("Y-m-d", strtotime($order->om_appointment));
+			$order->om_appointment_time_hh = date("h", strtotime($order->om_appointment));
+			$order->om_appointment_time_mm = date("m", strtotime($order->om_appointment));	
+		}else{
+			$order->om_appointment_date = null;
+			$order->om_appointment_time_hh = null;
+			$order->om_appointment_time_mm = null;
+		}
+		
+		
+		//echo $order_id; echo "<br/><br/>"; print_r($order);
+		
+		header('Content-Type: application/json');
+		echo json_encode($order);
+	}
+	
+	public function om_update(){
+		$data = $this->input->post();
+		print_r($data);
+		
 	}
 	
 	public function espr(){
