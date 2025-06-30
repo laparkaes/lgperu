@@ -13,7 +13,28 @@ class Scm_order_status extends CI_Controller {
 	}
 	
 	public function index(){
-		$om_line_status_list = [
+		
+		$f = $this->input->get();
+		print_r($f);
+		
+		//return;
+		
+		$w = ["order_category" => "ORDER", "line_status !=" => null, "so_status !=" => "CANCELLED"];
+		$l = [];
+		$o = [["bill_to_name", "asc"], ["order_no", "asc"], ["line_no", "asc"]];
+		
+		if ($f){
+			if ($f["f_company"]) $w["dash_company"] = $f["f_company"];
+			if ($f["f_division"]) $w["dash_division"] = $f["f_division"];
+			if ($f["f_om_status"]) $w["om_line_status"] = $f["f_om_status"];
+			if ($f["f_so_status"]) $w["so_status"] = $f["f_so_status"];
+			
+			if ($f["f_customer"]) $l[] = ["field" => "bill_to_name", "values" => [$f["f_customer"]]];
+		}
+		
+		$sales = $this->gen_m->filter("lgepr_sales_order", false, $w, $l, null, $o);
+		
+		$om_status_list = [
 			"CLOSED", 
 			"PICK", 
 			"CON CITA", 
@@ -27,14 +48,18 @@ class Scm_order_status extends CI_Controller {
 			"SIN STOCK", 
 		];
 		
-		$w = ["order_category" => "ORDER", "line_status !=" => null, "so_status !=" => "CANCELLED"];
-		$o = [["order_no", "asc"], ["line_no", "asc"]];
-		$sales = $this->gen_m->filter("lgepr_sales_order", false, $w, null, null, $o);
+		$so_status_list = $this->gen_m->only("lgepr_sales_order", "so_status", ["order_category" => "ORDER", "line_status !=" => null, "so_status !=" => "CANCELLED"]);
+		$company_list = $this->gen_m->only("lgepr_sales_order", "dash_company", ["order_category" => "ORDER", "line_status !=" => null, "so_status !=" => "CANCELLED"]);
+		$division_list = $this->gen_m->only("lgepr_sales_order", "dash_division", ["order_category" => "ORDER", "line_status !=" => null, "so_status !=" => "CANCELLED"]);
 		
 		$data = [
-			"om_line_status_list"	=> $om_line_status_list,
-			"sales"	=> $sales,
-			"main" 	=> "module/scm_order_status/index",
+			"filter"		 => $f,
+			"company_list"	 => $company_list,
+			"division_list"	 => $division_list,
+			"om_status_list" => $om_status_list,
+			"so_status_list" => $so_status_list,
+			"sales"			 => $sales,
+			"main" 			 => "module/scm_order_status/index",
 		];
 		
 		$this->load->view('layout', $data);
@@ -54,7 +79,6 @@ class Scm_order_status extends CI_Controller {
 			$order->om_appointment_time_mm = null;
 		}
 		
-		
 		//echo $order_id; echo "<br/><br/>"; print_r($order);
 		
 		header('Content-Type: application/json');
@@ -63,8 +87,35 @@ class Scm_order_status extends CI_Controller {
 	
 	public function om_update(){
 		$data = $this->input->post();
-		print_r($data);
 		
+		$appointment_aux = "";
+		if ($data["om_appointment_date"]){
+			$appointment_aux = $appointment_aux.$data["om_appointment_date"];
+			if ($data["om_appointment_time_hh"]){
+				$appointment_aux = $appointment_aux." ".$data["om_appointment_time_hh"];
+				if ($data["om_appointment_time_mm"]){
+					$appointment_aux = $appointment_aux.":".$data["om_appointment_time_mm"].":00";
+				}else $appointment_aux = $appointment_aux." :00:00";
+			}else $appointment_aux = $appointment_aux." 00:00:00";
+		}
+		
+		$om = [
+			"om_line_status" 	=> $data["om_line_status"],
+			"om_appointment" 	=> $appointment_aux === "" ? null : $appointment_aux,
+			"om_appointment_remark" => $data["om_appointment_remark"],
+			"om_updated_at" 	=> date("Y-m-d H:i:s"),
+		];
+		
+		if ($this->gen_m->update("lgepr_sales_order", ["sales_order_id" => $data["order_id"]], $om)){
+			$type = "success";
+			$msg = "Appointment information has been updated.";
+		}else{
+			$type = "danger";
+			$msg = "An error occured. Try again.";
+		}
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
 	
 	public function espr(){

@@ -125,8 +125,6 @@ class Scm_shipping_status extends CI_Controller {
 				$row["from_ship"] = $this->convert_date($row["from_ship"]);
 				$row["to_ship"] = $this->convert_date($row["to_ship"]);
 				
-				
-				
 				$batch_data[] = $row;
 				
 				if (count($batch_data) >= $batch_size) {

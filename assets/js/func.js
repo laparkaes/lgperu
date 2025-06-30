@@ -210,13 +210,6 @@ const warning_msg = {
 	},
 }
 
-//disable form enter submit
-$('form input').each(function(index, element) {
-	if (!$(element).hasClass("enter_on")) $(element).on('keydown', function(event) {
-		//enter key code
-		if (event.keyCode === 13) event.preventDefault();
-	});
-});
 
 //form valid, invalid msg reset
 $('form input, form select, form textarea').on('change', function(event) {

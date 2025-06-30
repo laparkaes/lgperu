@@ -14,12 +14,67 @@
 			</div>
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Order List</h5>
-					<?php print_r($sales[0]); ?>
+					<h5 class="card-title">Filter</h5>
+					<form class="row g-3">
+						<div class="col-md-2">
+							<label class="form-label">Company</label>
+							<select class="form-select" name="f_company">
+								<option value="">All</option>
+								<?php foreach($company_list as $item){ if ($item->dash_company){ ?>
+								<option value="<?= $item->dash_company ?>" <?= $filter["f_company"] === $item->dash_company ? "selected" : "" ?>><?= $item->dash_company ?></option>
+								<?php }} ?>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">Division</label>
+							<select class="form-select" name="f_division">
+								<option value="">All</option>
+								<?php foreach($division_list as $item){ if ($item->dash_division){ ?>
+								<option value="<?= $item->dash_division ?>" <?= $filter["f_division"] === $item->dash_division ? "selected" : "" ?>><?= $item->dash_division ?></option>
+								<?php }} ?>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">OM Status</label>
+							<select class="form-select" name="f_om_status">
+								<option value="">All</option>
+								<?php foreach($om_status_list as $item){ ?>
+								<option value="<?= $item ?>" <?= $filter["f_om_status"] === $item ? "selected" : "" ?>><?= $item ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<label class="form-label">SO Status</label>
+							<select class="form-select" name="f_so_status">
+								<option value="">All</option>
+								<?php foreach($so_status_list as $item){ ?>
+								<option value="<?= $item->so_status ?>" <?= $filter["f_so_status"] === $item->so_status ? "selected" : "" ?>><?= $item->so_status ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-md-4">
+							<label class="form-label">Customer</label>
+							<input type="text" class="form-control" name="f_customer" value="<?= $filter["f_customer"] ?>">
+						</div>
+						<div class="text-center">
+							<button type="submit" class="btn btn-primary">Search</button>
+						</div>
+					</form>
+				</div>
+			</div>
+			<div class="card">
+				<div class="card-body">
+					<div class="d-flex justify-content-between align-items-center">
+						<h5 class="card-title">Order List</h5>
+						<div>
+							<a href="<?= base_url() ?>report/order_management_sales_order.xlsx" class="d-none" id="link_download">File</a>
+							<button type="button" class="btn btn-success" id="btn_download" value='<?= json_encode($filter) ?>'>Download Excel</button>
+						</div>
+					</div>
 					<div><?= number_format(count($sales)) ?> records</div>
 					<table class="table">
 						<thead>
-							<tr>
+							<tr class="sticky-top" style="top: 60px;">
 								<th scope="col"></th>
 								<th scope="col">Order Mng</th>
 								<th scope="col">Status</th>
@@ -27,20 +82,21 @@
 								<th scope="col">Customer</th>
 								<th scope="col">Model</th>
 								<th scope="col">Qty</th>
+								<th scope="col">K USD</th>
 								<th scope="col">Instock</th>
 								<th scope="col">Hold</th>
 								<th scope="col">Reason</th>
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach($sales as $item){ /* if (!in_array($item->so_status, ["AWAITING_FULFILLMENT"])){ */ ?>
+							<?php foreach($sales as $item){ if (!in_array($item->bill_to_name, ["B2B2C", "B2C"])){ ?>
 							<tr>
 								<td>
 									<button type="button" class="btn btn-primary btn-sm btn_om_update_modal" data-bs-toggle="modal" data-bs-target="#md_om_mng" value="<?= $item->sales_order_id ?>">
 										<i class="bi bi-pencil-square"></i>
 									</button>
 								</td>
-								<td>
+								<td style="max-width: 200px;">
 									<?php
 									$aux = [];
 									if ($item->om_line_status) $aux[] = $item->om_line_status;
@@ -55,6 +111,7 @@
 								<td><?= $item->bill_to_name ?></td>
 								<td><?= $item->model ?><br/><?= $item->dash_division ?><br/><?= $item->dash_company ?></td>
 								<td><?= $item->ordered_qty ?></td>
+								<td><?= round($item->sales_amount_usd/1000) ?></td>
 								<td><?= $item->instock_flag === "Y" ? $item->instock_flag : "" ?></td>
 								<td><?= $item->hold_flag === "Y" ? $item->hold_flag : "" ?></td>
 								<td>
@@ -82,7 +139,7 @@
 								?>
 								</td>
 							</tr>
-							<?php /* } */ } ?>
+							<?php }} ?>
 						</tbody>
 					</table>
 					
@@ -107,7 +164,7 @@
 						<label class="form-label">OM Line Status</label>
 						<select class="form-select" id="sl_om_line_status" name="om_line_status">
 							<option value="">Choose...</option>
-							<?php foreach($om_line_status_list as $item){ ?>
+							<?php foreach($om_status_list as $item){ ?>
 							<option value="<?= $item ?>"><?= $item ?></option>
 							<?php } ?>
 						</select>
@@ -148,6 +205,12 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 	
+	$('#btn_download').click(function() {
+		var f_json = $(this).val();
+		alert(f_json);
+	});
+	
+	
 	$('.btn_om_update_modal').click(function() {
 		
 		$("#md_om_order_id").val($(this).val());
@@ -171,22 +234,20 @@ document.addEventListener("DOMContentLoaded", () => {
 		e.preventDefault();
 		ajax_form_warning(this, "module/scm_order_status/om_update", "Do you update data?").done(function(res) {
 			
-			console.log(res);
+			//console.log(res);
 			
-			/*
 			Swal.fire({
-				title: type.toUpperCase() + " !!!",
-				icon: type,
-				html: msg,
+				title: res.type.toUpperCase() + " !!!",
+				icon: res.type,
+				html: res.msg,
 				confirmButtonText: "Confirm",
 				cancelButtonText: "Cancel",
 			}).then((result) => {
-				if (result.isConfirmed) if (type == "success") {
+				if (result.isConfirmed) if (res.type == "success") {
 					const currentUrl = window.location.href;
 					window.location.href = currentUrl;
 				}
-			});	
-			*/
+			});
 		});
 	});
 });
