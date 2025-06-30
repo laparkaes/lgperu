@@ -142,8 +142,6 @@
 							<?php }} ?>
 						</tbody>
 					</table>
-					
-					
 				</div>
 			</div>
 		</div>
@@ -206,8 +204,18 @@
 document.addEventListener("DOMContentLoaded", () => {
 	
 	$('#btn_download').click(function() {
-		var f_json = $(this).val();
-		alert(f_json);
+		//var f_json = $(this).val();
+		//alert(f_json);
+		var f = JSON.parse($(this).val());
+		console.log(f);
+		$.ajax({
+			url: base_url + "module/scm_order_status/make_report",
+			type: "POST",
+			data: f,
+			success:function(res){
+				console.log(res);
+			}
+		});
 	});
 	
 	

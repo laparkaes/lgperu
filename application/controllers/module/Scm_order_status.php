@@ -14,8 +14,13 @@ class Scm_order_status extends CI_Controller {
 	
 	public function index(){
 		
-		$f = $this->input->get();
-		print_r($f);
+		$f = [
+			"f_company"		=> $this->input->get("f_company"),
+			"f_division"	=> $this->input->get("f_division"),
+			"f_om_status"	=> $this->input->get("f_om_status"),
+			"f_so_status"	=> $this->input->get("f_so_status"),
+			"f_customer"	=> $this->input->get("f_customer"),
+		];
 		
 		//return;
 		
@@ -116,6 +121,27 @@ class Scm_order_status extends CI_Controller {
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg]);
+	}
+	
+	public function make_report(){
+		$f = $this->input->post();
+		
+		$w = ["order_category" => "ORDER", "line_status !=" => null, "so_status !=" => "CANCELLED"];
+		$l = [];
+		$o = [["bill_to_name", "asc"], ["order_no", "asc"], ["line_no", "asc"]];
+		
+		if ($f){
+			if ($f["f_company"]) $w["dash_company"] = $f["f_company"];
+			if ($f["f_division"]) $w["dash_division"] = $f["f_division"];
+			if ($f["f_om_status"]) $w["om_line_status"] = $f["f_om_status"];
+			if ($f["f_so_status"]) $w["so_status"] = $f["f_so_status"];
+			
+			if ($f["f_customer"]) $l[] = ["field" => "bill_to_name", "values" => [$f["f_customer"]]];
+		}
+		
+		$sales = $this->gen_m->filter("lgepr_sales_order", false, $w, $l, null, $o);
+		
+		print_r($sales);
 	}
 	
 	public function espr(){
