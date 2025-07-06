@@ -18,6 +18,7 @@
 	<link href="<?= base_url() ?>assets/vendor/simple-datatables/style.css" rel="stylesheet">
 	<link href="<?= base_url() ?>assets/vendor/toastr/toastr.min.css" rel="stylesheet">
 	<link href="<?= base_url() ?>assets/css/style.css" rel="stylesheet">
+	<link href="<?= base_url() ?>assets/css/style_.css" rel="stylesheet">
 </head>
 <body>
 	<header id="header" class="header fixed-top d-flex align-items-center">

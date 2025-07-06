@@ -66,20 +66,20 @@
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
 						<h5 class="card-title">Order List</h5>
-						<div>
-							<a href="<?= base_url() ?>report/order_management_sales_order.xlsx" class="d-none" id="link_download">File</a>
-							<button type="button" class="btn btn-success" id="btn_download" value='<?= json_encode($filter) ?>'>Download Excel</button>
-						</div>
+						<a class="btn btn-success" href='<?= base_url() ?>module/scm_order_status/download_report?<?= http_build_query($filter) ?>' target="_blank">Download</a>
 					</div>
 					<div><?= number_format(count($sales)) ?> records</div>
-					<table class="table">
+					<table class="table table-sm align-middle">
 						<thead>
 							<tr class="sticky-top" style="top: 60px;">
 								<th scope="col"></th>
 								<th scope="col">Order Mng</th>
 								<th scope="col">Status</th>
 								<th scope="col">Order</th>
+								<th scope="col">Line</th>
 								<th scope="col">Customer</th>
+								<th scope="col">Com</th>
+								<th scope="col">Div</th>
 								<th scope="col">Model</th>
 								<th scope="col">Qty</th>
 								<th scope="col">K USD</th>
@@ -107,9 +107,12 @@
 									?>
 								</td>
 								<td><?= str_replace("_", " ", $item->so_status) ?></td>
-								<td><?= $item->order_no ?><br/><?= $item->line_no ?></td>
+								<td><?= $item->order_no ?></td>
+								<td><?= $item->line_no ?></td>
 								<td><?= $item->bill_to_name ?></td>
-								<td><?= $item->model ?><br/><?= $item->dash_division ?><br/><?= $item->dash_company ?></td>
+								<td><?= $item->model ?></td>
+								<td><?= $item->dash_division ?></td>
+								<td><?= $item->dash_company ?></td>
 								<td><?= $item->ordered_qty ?></td>
 								<td><?= round($item->sales_amount_usd/1000) ?></td>
 								<td><?= $item->instock_flag === "Y" ? $item->instock_flag : "" ?></td>

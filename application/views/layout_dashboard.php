@@ -18,6 +18,7 @@
 	<link href="<?= base_url() ?>assets/vendor/simple-datatables/style.css" rel="stylesheet">
 	<link href="<?= base_url() ?>assets/vendor/toastr/toastr.min.css" rel="stylesheet">
 	<link href="<?= base_url() ?>assets/css/style.css" rel="stylesheet">
+	<link href="<?= base_url() ?>assets/css/style_.css" rel="stylesheet">
 </head>
 <body class="toggle-sidebar">
 	<main id="main" class="main m-0 py-0">
