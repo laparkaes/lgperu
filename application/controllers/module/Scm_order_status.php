@@ -1,6 +1,16 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Font;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
 class Scm_order_status extends CI_Controller {
 
 	public function __construct(){
@@ -124,46 +134,68 @@ class Scm_order_status extends CI_Controller {
 	}
 	
 	public function download_report(){
-		$f = $this->input->get();
+		//make excel file
+		$spreadsheet = new Spreadsheet();
+
+		//edit sheet name to 'summary'
+		$summarySheet = $spreadsheet->getActiveSheet();
+		$summarySheet->setTitle('summary');
+
+		//add 'shipping' sheet
+		$shippingSheet = $spreadsheet->createSheet();
+		$shippingSheet->setTitle('shipping');
 		
-		$w = ["order_category" => "ORDER", "line_status !=" => null, "so_status !=" => "CANCELLED"];
+		//add 'order' sheet
+		$orderSheet = $spreadsheet->createSheet();
+		$orderSheet->setTitle('order');
+
+		//make order sheet content
+		$w = ["line_status !=" => null, "so_status !=" => "CANCELLED"];
 		$l = [];
 		$o = [["bill_to_name", "asc"], ["order_no", "asc"], ["line_no", "asc"]];
 		
-		if ($f){
-			if ($f["f_company"]) $w["dash_company"] = $f["f_company"];
-			if ($f["f_division"]) $w["dash_division"] = $f["f_division"];
-			if ($f["f_om_status"]) $w["om_line_status"] = $f["f_om_status"];
-			if ($f["f_so_status"]) $w["so_status"] = $f["f_so_status"];
-			
-			if ($f["f_customer"]) $l[] = ["field" => "bill_to_name", "values" => [$f["f_customer"]]];
-		}
-		
 		$sales = $this->gen_m->filter("lgepr_sales_order", false, $w, $l, null, $o);
 		
-		$rows = [];
+		$orders = [];
 		
 		//make header
 		$header = [];
-		foreach($sales[0] as $key => $val) $header[] = $key;
+		foreach($sales[0] as $key => $val) $header[] = strtoupper(str_replace("_", " ", $key));
 		
-		$rows[] = $header;//add to array
+		$orders[] = $header;//add to array
 		
 		//make content
 		foreach($sales as $item){
 			$row = [];
 			foreach($item as $key => $val) $row[] = $val;
 			
-			$rows[] = $row;
+			$orders[] = $row;
 		}
 		
+		//$sheet->setCellValueByColumnAndRow(2, 1, '수량');
 		
-		foreach($rows as $item){
+		
+		foreach($orders as $item){
 			print_r($item);
 			echo "<br/><br/>";
 		}
 		
 		print_r($sales);
+		
+		
+		
+		//save file
+		$writer = new Xlsx($spreadsheet);
+		$filePath = 'report/oi_shipping_and_order.xlsx';
+		$writer->save($filePath);
+		
+		
+		
+		
+		
+		//if (file_exists($filePath)) unlink($filePath);
+		
+		
 	}
 	
 	public function make_report(){
