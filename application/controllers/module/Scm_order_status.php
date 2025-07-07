@@ -141,13 +141,74 @@ class Scm_order_status extends CI_Controller {
 		$summarySheet = $spreadsheet->getActiveSheet();
 		$summarySheet->setTitle('summary');
 
+		/********************
+		Shipping Status
+		********************/
+
 		//add 'shipping' sheet
-		$shippingSheet = $spreadsheet->createSheet();
-		$shippingSheet->setTitle('shipping');
+		$shipping_status_sheet = $spreadsheet->createSheet();
+		$shipping_status_sheet->setTitle('shipping status');
 		
-		//add 'order' sheet
-		$orderSheet = $spreadsheet->createSheet();
-		$orderSheet->setTitle('order');
+		//make order sheet content
+		$w = ["status !=" => "Shipped(Closed)"];
+		$l = [];
+		$o = [["bill_to_name", "asc"], ["pick_no", "asc"], ["seq", "asc"]];
+		
+		$shipping = $this->gen_m->filter("scm_shipping_status", false, $w, $l, null, $o);
+		if ($shipping){
+			//shipping need to get amount for each pick and split date and time for appointment
+			foreach($shipping as $item){
+				$item->order_no = trim($item->order_no);
+				$item->line_no = trim($item->line_no);
+				
+				$item->order_amount_usd = 0;
+				$item->dash_company = null;
+				$item->dash_division = null;
+				
+				$order = $this->gen_m->filter("lgepr_sales_order", false, ["order_no" => $item->order_no, "line_no" => $item->line_no]);
+				if ($order){
+					$item->order_amount_usd = $order[0]->sales_amount_usd;
+					$item->dash_company = $order[0]->dash_company;
+					$item->dash_division = $order[0]->dash_division;
+				}else{
+					$order = $this->gen_m->filter("lgepr_closed_order", false, ["order_no" => $item->order_no, "line_no" => $item->line_no]);
+					if ($order){
+						$item->order_amount_usd = $order[0]->order_amount_usd;
+						$item->dash_company = $order[0]->dash_company;
+						$item->dash_division = $order[0]->dash_division;
+					}
+				}
+				
+				$item->appointment_date = date("Y-m-d", strtotime($item->to_ship));
+				$item->appointment_time = date("H:i", strtotime($item->to_ship));
+			}
+
+			$shipping_status = [];
+			
+			//make header
+			$header = [];
+			foreach($shipping[0] as $key => $val) $header[] = strtoupper(str_replace("_", " ", $key));
+			
+			$shipping_status[] = $header;//add to array
+			
+			//make content
+			foreach($shipping as $item){
+				$row = [];
+				foreach($item as $key => $val) $row[] = $val;
+				
+				$shipping_status[] = $row;
+			}
+			
+			$this->write_excel($shipping_status_sheet, $shipping_status);	
+		}
+
+		/********************
+		Sales Order
+		********************/
+
+		//add 'sales order' sheet
+		$sales_order_sheet = $spreadsheet->createSheet();
+		$sales_order_sheet->setTitle('sales order');
 
 		//make order sheet content
 		$w = ["line_status !=" => null, "so_status !=" => "CANCELLED"];
@@ -155,47 +216,108 @@ class Scm_order_status extends CI_Controller {
 		$o = [["bill_to_name", "asc"], ["order_no", "asc"], ["line_no", "asc"]];
 		
 		$sales = $this->gen_m->filter("lgepr_sales_order", false, $w, $l, null, $o);
-		
-		$orders = [];
-		
-		//make header
-		$header = [];
-		foreach($sales[0] as $key => $val) $header[] = strtoupper(str_replace("_", " ", $key));
-		
-		$orders[] = $header;//add to array
-		
-		//make content
-		foreach($sales as $item){
-			$row = [];
-			foreach($item as $key => $val) $row[] = $val;
+		if ($sales){
+			$sales_orders = [];
 			
-			$orders[] = $row;
+			//make header
+			$header = [];
+			foreach($sales[0] as $key => $val) $header[] = strtoupper(str_replace("_", " ", $key));
+			
+			$sales_orders[] = $header;//add to array
+			
+			//make content
+			foreach($sales as $item){
+				$row = [];
+				foreach($item as $key => $val) $row[] = $val;
+				
+				$sales_orders[] = $row;
+			}
+			
+			$this->write_excel($sales_order_sheet, $sales_orders);	
 		}
 		
-		//$sheet->setCellValueByColumnAndRow(2, 1, '수량');
+		/********************
+		Closed Order
+		********************/
+
+		//add 'closed order' sheet
+		$closed_order_sheet = $spreadsheet->createSheet();
+		$closed_order_sheet->setTitle('closed order');
 		
+		//make order sheet content
+		$from = date("Y-m-01 00:00:00");
+		$to = date("Y-m-t 23:59:59");
 		
-		foreach($orders as $item){
-			print_r($item);
-			echo "<br/><br/>";
+		$w = ["closed_date >=" => $from, "closed_date <=" => $to];
+		$l = [];
+		$o = [["bill_to_name", "asc"], ["order_no", "asc"], ["line_no", "asc"]];
+		
+		$sales = $this->gen_m->filter("lgepr_closed_order", false, $w, $l, null, $o);
+		if ($sales){
+			$closed_orders = [];
+			
+			//make header
+			$header = [];
+			foreach($sales[0] as $key => $val) $header[] = strtoupper(str_replace("_", " ", $key));
+			
+			$closed_orders[] = $header;//add to array
+			
+			//make content
+			foreach($sales as $item){
+				$row = [];
+				foreach($item as $key => $val) $row[] = $val;
+				
+				$closed_orders[] = $row;
+			}
+			
+			$this->write_excel($closed_order_sheet, $closed_orders);	
 		}
 		
-		print_r($sales);
+		/********************
+		Shipping Status
+		********************/
+
+		//add 'shipping' sheet
+		$update_time_sheet = $spreadsheet->createSheet();
+		$update_time_sheet->setTitle('last update');
+		
+		$ss = $this->gen_m->filter("scm_shipping_status", false, null, null, null, [["updated" , "desc"]], 1);//shipping status
+		$co = $this->gen_m->filter("lgepr_closed_order", false, null, null, null, [["updated_at" , "desc"]], 1);//closed order
+		$so = $this->gen_m->filter("lgepr_sales_order", false, null, null, null, [["updated_at" , "desc"]], 1);//sales order
+		
+		//print_r($ss); echo "<br/><br/>";
+		//print_r($co); echo "<br/><br/>";
+		//print_r($so); echo "<br/><br/>";
+		
+		$update_time_sheet->setCellValueByColumnAndRow(1, 1, "Last update");
+		
+		$update_time_sheet->setCellValueByColumnAndRow(1, 3, "Shipping Status");
+		$update_time_sheet->setCellValueByColumnAndRow(1, 4, "Closed Order");
+		$update_time_sheet->setCellValueByColumnAndRow(1, 5, "Sales Order");
+		
+		$update_time_sheet->setCellValueByColumnAndRow(2, 3, $ss ? $ss[0]->updated : "");
+		$update_time_sheet->setCellValueByColumnAndRow(2, 4, $co ? $co[0]->updated_at : "");
+		$update_time_sheet->setCellValueByColumnAndRow(2, 5, $so ? $so[0]->updated_at: "");
 		
 		
-		
-		//save file
+		//save excel file
 		$writer = new Xlsx($spreadsheet);
 		$filePath = 'report/oi_shipping_and_order.xlsx';
 		$writer->save($filePath);
 		
 		
-		
-		
-		
 		//if (file_exists($filePath)) unlink($filePath);
 		
 		
+	}
+	
+	private function write_excel($sheet, $data){
+		foreach($data as $row_n => $row){
+			foreach($row as $col_n => $col){
+				//$sheet->setCellValueByColumnAndRow($col_n + 1, $row_n + 1, $col);//with sales order id
+				$sheet->setCellValueByColumnAndRow($col_n, $row_n + 1, $col);//without sales order id
+			}	
+		}
 	}
 	
 	public function make_report(){

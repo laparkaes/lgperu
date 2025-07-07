@@ -66,7 +66,7 @@
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
 						<h5 class="card-title">Order List</h5>
-						<a class="btn btn-success" href='<?= base_url() ?>module/scm_order_status/download_report?<?= http_build_query($filter) ?>' target="_blank">Download</a>
+						<a class="btn btn-success" href="<?= base_url() ?>module/scm_order_status/download_report" target="_blank">Download</a>
 					</div>
 					<div><?= number_format(count($sales)) ?> records</div>
 					<table class="table table-sm align-middle">

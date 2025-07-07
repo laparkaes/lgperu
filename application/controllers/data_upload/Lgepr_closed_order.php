@@ -166,6 +166,8 @@ class Lgepr_closed_order extends CI_Controller {
 			$rows = $order_lines = [];
 			$records = 0;
 			
+			$updated_at = date("Y-m-d H:i:s");
+			
 			for($i = 2; $i <= $max_row; $i++){
 				
 				$row = [
@@ -213,6 +215,7 @@ class Lgepr_closed_order extends CI_Controller {
 					'invoice_no'			=> trim($sheet->getCell('BW'.$i)->getValue()),
 					'invoice_date'			=> trim($sheet->getCell('BX'.$i)->getValue()),
 					'shipping_method'		=> trim($sheet->getCell('CI'.$i)->getValue()),
+					'updated_at'			=> $updated_at,
 				];
 				
 				//create order_line as key
