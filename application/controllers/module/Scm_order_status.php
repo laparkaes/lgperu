@@ -342,11 +342,14 @@ class Scm_order_status extends CI_Controller {
 		$filePath = 'report/oi_shipping_and_order.xlsx';
 		$writer->save($filePath);
 		
+		echo "Report has been generated.";
+		echo "<br/><br/>";
+		echo "You can close this tab now.";
+		echo "<br/><br/>";
+		echo '<a href="'.$filePath.'"><button>Download Report</button></a>';
+		echo '<button onclick="window.close();">Close This Tab</button>';
+		
 		redirect($filePath);
-		
-		if (file_exists($filePath)) unlink($filePath);
-		
-		
 	}
 	
 	private function write_excel($sheet, $data){
