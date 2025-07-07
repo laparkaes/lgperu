@@ -142,6 +142,40 @@ class Scm_order_status extends CI_Controller {
 		$summarySheet->setTitle('summary');
 
 		/********************
+		Container
+		********************/
+
+		//add 'container' sheet
+		$container_sheet = $spreadsheet->createSheet();
+		$container_sheet->setTitle('container');
+
+		//make order sheet content
+		$w = ["eta >=" => date("Y-m-d", strtotime("-1 month", strtotime(date("Y-m-1"))))];
+		$l = [];
+		$o = [["eta", "desc"], ["ata", "desc"], ["sa_no", "asc"], ["sa_line_no", "asc"]];
+		
+		$containers = $this->gen_m->filter("lgepr_container", false, $w, $l, null, $o);
+		if ($containers){
+			$ctns = [];
+			
+			//make header
+			$header = [];
+			foreach($containers[0] as $key => $val) $header[] = strtoupper(str_replace("_", " ", $key));
+			
+			$ctns[] = $header;//add to array
+			
+			//make content
+			foreach($containers as $item){
+				$row = [];
+				foreach($item as $key => $val) $row[] = $val;
+				
+				$ctns[] = $row;
+			}
+			
+			$this->write_excel($container_sheet, $ctns);	
+		}
+
+		/********************
 		Shipping Status
 		********************/
 
@@ -274,13 +308,14 @@ class Scm_order_status extends CI_Controller {
 		}
 		
 		/********************
-		Shipping Status
+		Updated at
 		********************/
 
-		//add 'shipping' sheet
+		//add 'last update' sheet
 		$update_time_sheet = $spreadsheet->createSheet();
 		$update_time_sheet->setTitle('last update');
 		
+		$ctn = $this->gen_m->filter("lgepr_container", false, null, null, null, [["updated_at" , "desc"]], 1);//container
 		$ss = $this->gen_m->filter("scm_shipping_status", false, null, null, null, [["updated" , "desc"]], 1);//shipping status
 		$co = $this->gen_m->filter("lgepr_closed_order", false, null, null, null, [["updated_at" , "desc"]], 1);//closed order
 		$so = $this->gen_m->filter("lgepr_sales_order", false, null, null, null, [["updated_at" , "desc"]], 1);//sales order
@@ -291,13 +326,15 @@ class Scm_order_status extends CI_Controller {
 		
 		$update_time_sheet->setCellValueByColumnAndRow(1, 1, "Last update");
 		
-		$update_time_sheet->setCellValueByColumnAndRow(1, 3, "Shipping Status");
-		$update_time_sheet->setCellValueByColumnAndRow(1, 4, "Closed Order");
-		$update_time_sheet->setCellValueByColumnAndRow(1, 5, "Sales Order");
+		$update_time_sheet->setCellValueByColumnAndRow(1, 3, "Container");
+		$update_time_sheet->setCellValueByColumnAndRow(1, 4, "Shipping Status");
+		$update_time_sheet->setCellValueByColumnAndRow(1, 5, "Closed Order");
+		$update_time_sheet->setCellValueByColumnAndRow(1, 6, "Sales Order");
 		
-		$update_time_sheet->setCellValueByColumnAndRow(2, 3, $ss ? $ss[0]->updated : "");
-		$update_time_sheet->setCellValueByColumnAndRow(2, 4, $co ? $co[0]->updated_at : "");
-		$update_time_sheet->setCellValueByColumnAndRow(2, 5, $so ? $so[0]->updated_at: "");
+		$update_time_sheet->setCellValueByColumnAndRow(2, 3, $ss ? $ctn[0]->updated_at : "");
+		$update_time_sheet->setCellValueByColumnAndRow(2, 4, $ss ? $ss[0]->updated : "");
+		$update_time_sheet->setCellValueByColumnAndRow(2, 5, $co ? $co[0]->updated_at : "");
+		$update_time_sheet->setCellValueByColumnAndRow(2, 6, $so ? $so[0]->updated_at: "");
 		
 		
 		//save excel file
@@ -305,8 +342,9 @@ class Scm_order_status extends CI_Controller {
 		$filePath = 'report/oi_shipping_and_order.xlsx';
 		$writer->save($filePath);
 		
+		redirect($filePath);
 		
-		//if (file_exists($filePath)) unlink($filePath);
+		if (file_exists($filePath)) unlink($filePath);
 		
 		
 	}
