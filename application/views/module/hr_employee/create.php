@@ -65,6 +65,56 @@
 				</div>
 			</div>
 		</div>
+		<!--<div class="col-md-4">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Worktime</h5>
+					<form class="row g-3" id="form_save_create_worktime">
+						<div class="col-12">
+							<label class="form-label">Schedule</label>
+							<select class="form-select" name="work_schedule">
+								<?php foreach($schs as $item){ ?>
+								<option value="<?= $item ?>"><?= $item ?></option>
+								<?php } ?>
+							</select>
+						</div>
+						<div class="col-12">
+							<label class="form-label">Apply From</label>
+							<input class="form-control" type="date" name="date_from">
+						</div>
+						<div class="pt-3 text-center">
+							<input type="hidden" name="employee_id">
+							<input type="hidden" name="employee_number">
+							<input type="hidden" name="name">
+							<button type="submit" class="btn btn-primary">Submit</button>
+						</div>
+					</form>
+				</div>
+			</div>
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Worktime History</h5>
+					<table class="table">
+						<thead>
+							<tr>
+								<th scope="col">From</th>
+								<th scope="col">Entrance</th>
+								<th scope="col">Leave</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach($w_schs as $item){ ?>
+							<tr>
+								<td><?= $item->date_from ?></td>
+								<td><?= $item->work_start ?></td>
+								<td><?= $item->work_end ?></td>
+							</tr>
+							<?php } ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>-->
 	</div>
 </section>
 <!--<input type="hidden" id="emp_id" value="<?= $emp->employee_id ?>"-->

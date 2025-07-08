@@ -61,6 +61,12 @@
 										<label class="form-check-label" for="active">Active</label>
 									</div>
 								</div>
+								<div class="col-md-4">
+									<div class="form-check form-switch">
+										<input class="form-check-input me-3" type="checkbox" name="working" id="working" <?= $emp->working ? "checked" : "" ?>>
+										<label class="form-check-label" for="active">Working</label>
+									</div>
+								</div>
 								<!-- div class="col-md-4">
 									<div class="form-check form-switch">
 										<input class="form-check-input me-3" type="checkbox" name="is_supervised" id="is_supervised" <?= $emp->is_supervised ? "checked" : "" ?>>

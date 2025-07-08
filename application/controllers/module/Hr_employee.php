@@ -135,7 +135,7 @@ class Hr_employee extends CI_Controller {
 			'is_leader'			=> $this->input->post('')??0,
 			'is_supervised' 	=> $this->input->post('')??0,
 			'access' 			=> $this->input->post('')??0,
-			'working' 			=> $this->input->post('')??0,
+			'working' 			=> 1,
 			'active' 			=> $this->input->post('active') ? true : false
 		);
 		$insert_id = $this->gen_m->insert("Hr_employee", $data);
@@ -158,6 +158,7 @@ class Hr_employee extends CI_Controller {
 		$data = $this->input->post();
 		$data["active"] = $this->input->post("active") ? true : false;
 		$data["is_leader"] = $this->input->post("is_leader") ? true : false;
+		$data["working"] = $this->input->post("working") ? true : false;
 		//$data["is_supervised"] = $this->input->post("is_supervised") ? true : false;
 		//$data["access"] = $this->input->post("access") ? true : false;
 		
