@@ -97,7 +97,9 @@
         <div class="content">
             <!--<p>Estimado/a <?= $info_pr['name']?>,</p>-->
 			
-			<p>Informamos que el dia de hoy <?= $current_day_format?> no ha registrado su marcacion. Si no realizaste el registro correspondiente, recuerda justificar la ausencia mediante un approval dirigido a tu superior, con copia a hans.beuermann y carlos.mego.</p>
+			<p>Informamos que el dia de hoy <?= $current_day_format?> no ha registrado su marcacion. </p>
+			
+			<p>Si no realizaste el registro correspondiente, recuerda justificar la ausencia mediante un approval dirigido a tu superior, con copia a hans.beuermann y carlos.mego.</p>
 			
             <p>A continuacion, se detalla la informacion:</p>
 

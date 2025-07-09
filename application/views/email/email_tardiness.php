@@ -99,7 +99,7 @@
 			
 			<p>Informamos que ud. registro una tardanza el dia de hoy <?=$current_day_format?> con hora de entrada <?=$info_pr['first_access']?> y un retraso de <?= $delay ?>.</p>
            
-		    <p>Si has tenido una tardanza, por favor justificarla mediante un approval dirigido a tu superior, con copia a hans.beuermann y carlos.mego.</p>
+		    <p>Si has tenido un inconveniente, por favor justificarlo mediante un approval dirigido a tu superior, con copia a hans.beuermann y carlos.mego.</p>
 		   
             <p>A continuacion, se detalla la informacion:</p>
 

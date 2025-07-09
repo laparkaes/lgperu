@@ -33,19 +33,25 @@ class Hr_email_alarm extends CI_Controller {
 		
 		$start_time = microtime(true);
 		
-		$pr_exclude = ['PR009297', // Wonshik Woo
-					   'PR009182', // Cho.Hyun(Andre)
-					   'PR009230', // Seongmin Lee	
-					   'PR009113', // Oh Sangjun
+		$pr_exclude = ['PR009182', // Cho.Hyun(Andre)
+					   'PR009297', // Wonshik Woo
 					   'PR009226', // Sangkyu Lee
 					   'PR100004', // KIM JE HEON
-					   'PR009329'  // Han Muhyun
+					   'PR009113', // Oh Sangjun
+					   'PR009329', // Han Muhyun					   
+					   'PR009230', // Seongmin Lee	
+					   'PR100017', // Ga yeon Park 
+					   'PR009224', // Sang Uk Jeong
+					   'PR008210', // Byung Seok Hwang
+					   'PR008793', // SHIM, SANG JUNE
+					   'PR008295' // SEO, BO JUNG
+					   //Add more exceptions
 					   ]; //exclude PR
 		
-		$fecha_actual = date("Y-m-d");
-		// Inciar con fecha actual para ejecucion de codigo diaria
-		//$fecha_actual = '2025-04-15';
-		$attendance_summ = $this->gen_m->filter('v_hr_attendance_summary', false, ['work_date' => $fecha_actual]);
+		$current_day = date("Y-m-d"); // Current day
+		
+		//$current_day = '2025-04-15';
+		$attendance_summ = $this->gen_m->filter('v_hr_attendance_summary', false, ['work_date' => $current_day]);
 		foreach($attendance_summ as $item) $att_summ[$item->pr] = $item;
 		
 		$att_sch = [];
@@ -53,15 +59,14 @@ class Hr_email_alarm extends CI_Controller {
 		foreach($attendance_sch as $i=>$item) $att_sch[$item->pr] = $item;
 		
 		
-		$employee_number = $this->gen_m->filter_select('hr_employee', false, ['employee_number', 'ep_mail', 'name'], ['working'=>1], null, null, [['employee_number', 'ASC']] );		
+		$employee_number = $this->gen_m->filter_select('hr_employee', false, ['employee_number', 'ep_mail', 'name'], ['working'=>1], null, null, [['employee_number', 'ASC']]);		
 		foreach($employee_number as $item) $emp_hr_info[$item->employee_number] = $item;
-		//echo "<pre>"; print_r($att_summ); echo "</pre>";
 		
 		//PR unicos
 		$employee_unique_n_exclude = [];
 		$employee_unique = [];
 		foreach ($employee_number as $item) {
-			//print_r($item); echo '<br>';
+
 			if (!in_array($item->employee_number, $employee_unique)) {
 				if(!in_array($item->employee_number, $pr_exclude)){
 					$employee_unique[] = $item->employee_number;
@@ -71,7 +76,7 @@ class Hr_email_alarm extends CI_Controller {
 		
 		//Lista de absentismos
 		$att_exc = [];
-		$att_exception = $this->gen_m->filter_select('hr_attendance_exception', false, ['pr', 'exc_date', 'type', 'remark'], ['exc_date' => $fecha_actual]);
+		$att_exception = $this->gen_m->filter_select('hr_attendance_exception', false, ['pr', 'exc_date', 'type', 'remark'], ['exc_date' => $current_day]);
 		foreach($att_exception as $item) $att_exc[$item->pr] = $item;
 		
 		$list_tardiness = [];
@@ -111,18 +116,16 @@ class Hr_email_alarm extends CI_Controller {
 	public function calcularDiferenciaTiempo($first_access, $work_start) {
 		
 		if(DateTime::createFromFormat('H:i:s', $first_access) !== false){
-			// Convertir las cadenas de tiempo a objetos DateTime
 			$first_access_dt = DateTime::createFromFormat("H:i:s", $first_access);
 			$work_start_dt = DateTime::createFromFormat("H:i:s", $work_start);
 
-			// Calcular la diferencia
 			$diff = $first_access_dt->diff($work_start_dt);
 
 			// Obtener la diferencia en horas y minutos
 			$horas = $diff->h;
 			$minutos = $diff->i;
 			$segundos = $diff->s;
-			// Formatear el resultado
+
 			$resultado = "";
 			if ($horas > 0) {
 				$resultado .= $horas . "h ";
@@ -137,8 +140,7 @@ class Hr_email_alarm extends CI_Controller {
 	public function send_email($list_tardiness, $list_no_work) {	
 		//llamasys/module/hr_email_alarm/process
 
-		$current_date = date("Ymd"); // Obtiene la fecha actual en formato YYYYMMDD
-		// Obtener los datos de la base de datos con la condición dada
+		$current_date = date("Ymd");
 		
 		$count = 1;
 		$current_day = date('Ymd');
@@ -155,12 +157,11 @@ class Hr_email_alarm extends CI_Controller {
 					'current_day_format' => date('d/m/Y'),
 					'delay' => $delay
 					];
-			// Cargar la vista con los datos combinados
+		
 			$message = $this->load->view('email/email_tardiness', $data, true);
 
-			// Enviar el correo electrónico
 			$this->my_func->send_email("rpa.espr@lgepartner.com", $to, $subject, $message);	
-		}
+		}	
 		
 		foreach($list_no_work as $item){
 			$info_total[$item['pr']][] = $item;
@@ -172,10 +173,8 @@ class Hr_email_alarm extends CI_Controller {
 					'current_day_format' => date('d/m/Y'),
 					'current_day' => $current_day,
 					];
-			// Cargar la vista con los datos combinados
 			$message = $this->load->view('email/email_absence', $data, true);
 
-			// Enviar el correo electrónico
 			$this->my_func->send_email("rpa.espr@lgepartner.com", $to, $subject, $message);
 		}
 		

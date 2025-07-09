@@ -309,40 +309,52 @@ class Lgepr extends CI_Controller {
 			
 			$from = Date('Y-m-01');
 			
+			$from_current_inventory = '';
 			$stock_cbm = [];
 			$stock = $this->gen_m->filter('lgepr_stock', false, ['on_hand_cbm !=' => 0, 'updated >=' => $from], null, null, [['updated', 'asc']]);
 			foreach($stock as $item_stock){
+				$type = 'Current Inventory';
 				$dates = explode("-", $item_stock->updated);
 				$year = $dates[0];
 				$month = $dates[1];
 				$day = $dates[2];
+				$from_current_inventory = $item_stock->updated;
 				
-				$res[] = [
-							"type" 				=> 'Current Inventory', 
+				$key = $type . "-". $item_stock->updated . "-" . $item_stock->org . "-" . $item_stock->model . "-" . $item_stock->dash_company . "-" . $item_stock->dash_division;
+				if(!isset(($data_cbm[$key]))){
+					$data_cbm[$key] = [
+							"type" 				=> $type,
 							"date"				=> $item_stock->updated,
-							"year" 				=> $year, 
-							"month" 			=> $month, 
-							"day" 				=> $day, 
+							"year" 				=> $year,
+							"month" 			=> $month,
+							"day" 				=> $day,
 							"dash_company" 		=> $item_stock->dash_company,
-							"dash_division" 	=> $item_stock->dash_division, 
+							"dash_division" 	=> $item_stock->dash_division,
 							"model" 			=> $item_stock->model,
 							"org" 				=> $item_stock->org,
-							"qty"				=> $item_stock->on_hand,
-							"cbm" 				=> $item_stock->on_hand_cbm,
-							"container" 		=> null,
+							"qty"				=> 0,
+							"container"			=> null,
+							"cbm" 				=> 0
 							];
+				}
+				
+				$data_cbm[$key]["qty"] += $item_stock->on_hand;
+				$data_cbm[$key]["cbm"] += $item_stock->on_hand_cbm;
 			}
 			
 			$sales_cbm = [];
-			$sales = $this->gen_m->filter('lgepr_sales_order', false, ['cbm !=' => 0, 'appointment_date >=' => $from, 'appointment_date !=' => null], null, null, [['appointment_date', 'asc']]);
+			$sales = $this->gen_m->filter('lgepr_sales_order', false, ['cbm !=' => 0, 'appointment_date >=' => $from_current_inventory, 'appointment_date !=' => null], null, null, [['appointment_date', 'asc']]);
 			foreach($sales as $item_sales){
+				$type = 'Sales';
 				$dates = explode("-", $item_sales->appointment_date);
 				$year = $dates[0];
 				$month = $dates[1];
 				$day = $dates[2];
 				
-				$res[] = [
-							"type" 				=> 'Sales',
+				$key = $type . "-". $item_sales->appointment_date . "-" . $item_sales->inventory_org . "-" . $item_sales->model . "-" . $item_sales->dash_company . "-" . $item_sales->dash_division;
+				if(!isset(($data_cbm[$key]))){
+					$data_cbm[$key] = [
+							"type" 				=> $type,
 							"date"				=> $item_sales->appointment_date,
 							"year" 				=> $year,
 							"month" 			=> $month,
@@ -351,80 +363,55 @@ class Lgepr extends CI_Controller {
 							"dash_division" 	=> $item_sales->dash_division, 
 							"model" 			=> $item_sales->model,
 							"org" 				=> $item_sales->inventory_org,
-							"qty"				=> $item_sales->ordered_qty,
-							"cbm" 				=> $item_sales->cbm * -1,
-							"container" 		=> null,
+							"qty"				=> 0,
+							"container"			=> null,
+							"cbm" 				=> 0
 							];
+				}
+				
+				$data_cbm[$key]["qty"] += $item_sales->ordered_qty;
+				$data_cbm[$key]["cbm"] += $item_sales->cbm * -1;	
 			}
 			
 			$container_cbm = [];
-			$container = $this->gen_m->filter('custom_container', false, ['cbm !=' => 0, 'eta >=' => $from], null, null, [['eta', 'asc']]);
+			$container = $this->gen_m->filter('lgepr_container', false, ['cbm !=' => 0, 'eta >=' => $from_current_inventory], null, null, [['eta', 'asc']]);
 			foreach($container as $item_container){
+				$type = 'Arrival';
 				$dates = explode("-", $item_container->eta);
 				$year = $dates[0];
 				$month = $dates[1];
 				$day = $dates[2];
 				
-				$res[] = [
-							"type" 				=> 'Arrival', 
+				$key = $type . "-". $item_container->eta . "-" . $item_container->organization . "-" . $item_container->model . "-" . $item_container->company . "-" . $item_container->division;
+				if(!isset(($data_cbm[$key]))){
+					$data_cbm[$key] = [
+							"type" 				=> $type, 
 							"date"				=> $item_container->eta,
 							"year" 				=> $year, 
 							"month" 			=> $month, 
 							"day" 				=> $day, 
 							"dash_company"		=> $item_container->company,
-							"dash_division" 	=> $item_container->division, 
+							"dash_division" 	=> $item_container->division,
 							"model" 			=> $item_container->model,
 							"org" 				=> $item_container->organization,
-							"qty"				=> $item_container->qty,
-							"cbm" 				=> $item_container->cbm,
+							"qty"				=> 0,
 							"container"			=> $item_container->container,
+							"cbm" 				=> 0
 							];
+				}
+				
+				$data_cbm[$key]["qty"] += $item_container->qty;
+				$data_cbm[$key]["cbm"] += $item_container->cbm;
 			}
-			
+			$res = [];
+			foreach ($data_cbm as $item){
+				$res[] = $item;
+			}
 		}else $res = ["Key error"];
 		
-		if ($this->input->get("type") === "table"){
-			echo "<table>";
-			
-			echo "<tr>";
-			echo "<td>Type</td>";
-			echo "<td>Date</td>";
-			echo "<td>Year</td>";
-			echo "<td>Month</td>";
-			echo "<td>Day</td>";
-			echo "<td>Company</td>";
-			echo "<td>Division</td>";
-			echo "<td>Model</td>";
-			echo "<td>Org</td>";
-			echo "<td>Qty</td>";
-			echo "<td>CBM</td>";
-			echo "<td>Container</td>";
-			echo "</tr>";
-			
-			foreach($res as $item){
-				//print_r($item); echo "<br/>";
-				
-				echo "<tr>";
-				echo "<td>".$item["type"]."</td>";
-				echo "<td>".$item["date"]."</td>";
-				echo "<td>".$item["year"]."</td>";
-				echo "<td>".$item["month"]."</td>";
-				echo "<td>".$item["day"]."</td>";
-				echo "<td>".$item["dash_company"]."</td>";
-				echo "<td>".$item["dash_division"]."</td>";
-				echo "<td>".$item["model"]."</td>";
-				echo "<td>".$item["org"]."</td>";
-				echo "<td>".$item["qty"]."</td>";
-				echo "<td>".$item["cbm"]."</td>";
-				echo "<td>".$item["container"]."</td>";
-				echo "</tr>";
-			}
-			
-			echo "</table>";
-		}else{
-			header('Content-Type: application/json');
-			echo json_encode($res);	
-		}
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	
 	}
 	
 	public function get_monthly_closed_order(){
