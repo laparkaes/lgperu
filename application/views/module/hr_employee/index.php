@@ -10,11 +10,11 @@
 	</div>
 	
 	<!--<div>
-		<a href="../user_manual/module/hr_employee/hr_employee_en.pptx" class="text-primary p-3">User Manual</a>
+		<a href="../user_manual/module/hr_employee/hr_employee_en.pptx" class="text-primary p-3">User Manual</a>-->
 		<a href="<?= base_url() ?>module/hr_employee/create" type="button" class="btn btn-success">
 			<i class="bi bi-plus-lg"></i>
 		</a>
-	</div>-->
+	</div>
 </div>
 <section class="section">
 	<div class="row">
