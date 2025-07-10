@@ -59,7 +59,7 @@ class Hr_email_alarm extends CI_Controller {
 		foreach($attendance_sch as $i=>$item) $att_sch[$item->pr] = $item;
 		
 		
-		$employee_number = $this->gen_m->filter_select('hr_employee', false, ['employee_number', 'ep_mail', 'name'], ['working'=>1], null, null, [['employee_number', 'ASC']]);		
+		$employee_number = $this->gen_m->filter_select('hr_employee', false, ['employee_number', 'ep_mail', 'name'], ['working'=>1, 'ep_mail !=' => null, 'ep_mail !=' => ''], null, null, [['employee_number', 'ASC']]);		
 		foreach($employee_number as $item) $emp_hr_info[$item->employee_number] = $item;
 		
 		//PR unicos
@@ -148,8 +148,9 @@ class Hr_email_alarm extends CI_Controller {
 		foreach($list_tardiness as $item){
 			$delay = $this->calcularDiferenciaTiempo($item['first_access'], $item['work_start']);
 			$info_total[$item['pr']][] = $item;
+			
 			$to = $item['ep_mail'] . '@lge.com';
-
+			
 			$subject = "[LGEPR_HR] Notificacion de tardanza {$current_day}";
 			$data = [
 					'info_pr' => $item,
@@ -165,8 +166,9 @@ class Hr_email_alarm extends CI_Controller {
 		
 		foreach($list_no_work as $item){
 			$info_total[$item['pr']][] = $item;
+			
 			$to = $item['ep_mail'] . '@lge.com';
-
+			
 			$subject = "[LGEPR_HR] Notificacion marcacion no registrada {$current_day}";
 			$data = [
 					'info_pr' => $item,
@@ -193,7 +195,7 @@ class Hr_email_alarm extends CI_Controller {
 		// Cargar la vista con los datos combinados
 		$message = $this->load->view('email/email_report', $data, true);
 		
-		$to = 'carlos.mego@lge.com'; 
+		$to = ['carlos.mego@lge.com', 'ricardo.alvarez@lge.com']; 
 		//$cc = '';
 		$subject = "[LGEPR_HR] Reporte de asistencias {$current_day}";
 		// Enviar el correo electrónico
