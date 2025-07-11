@@ -566,4 +566,42 @@ class Lgepr extends CI_Controller {
 		//T_OPEN_ORDER
 
 	}
+
+	public function get_tracking_dispatch(){
+		//llamasys/api/lgepr/get_tracking_dispatch?key=lgepr		
+			
+		
+		if ($this->input->get("key") === "lgepr") {
+			
+			$data = $this->gen_m->filter("scm_tracking_dispatch", false);
+			
+			foreach($data as $item){
+				$cloned_item = clone $item;
+				
+				// Columnas a excluir
+				$exclude_columns = ['id', 'tracking_key','updated'];
+
+				foreach ($cloned_item as $key => $value) {
+					if (in_array($key, $exclude_columns)) {
+						// Elimina la columna del objeto clonado
+						unset($cloned_item->$key);
+					} else {
+						if (is_numeric($value) && $value == 0 && $key !== 'sd_rate') {
+							$cloned_item->$key = "";
+						}
+						elseif ($value === NULL){
+							$cloned_item->$key = "";
+						}
+					}
+				}
+				$res[] = clone $cloned_item;
+			}
+		} else $res = ["Key error"];
+		
+		//if (!$res) $res = ["No this month ML data in database."];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+
 }
