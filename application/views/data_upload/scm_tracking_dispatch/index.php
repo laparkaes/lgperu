@@ -59,7 +59,7 @@
 					<div class="d-flex justify-content-between align-items-center">
 						<h5 class="card-title"><?= $count_tracking ?> records</h5>					
 					</div>
-
+					
 					<table class="table datatable">
 						<thead>
 							<tr>
@@ -77,6 +77,7 @@
 								<th scope="col">Cita To</th>
 								<th scope="col">H. LLegada</th>
 								<th scope="col">H. Descarga</th>
+								<th scope="col">Updated</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -96,6 +97,7 @@
 								<td><?= $item->to_appointment?></td>
 								<td><?= $item->arrival_time?></td>
 								<td><?= $item->download_time?></td>
+								<td><?= $item->updated?></td>
 							</tr>
 							<?php } ?>
 						</tbody>
@@ -106,120 +108,20 @@
 	</div>
 </section>
 
-<div class="modal fade" id="dataModal" tabindex="-1" aria-labelledby="dataModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable"> <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="dataModalLabel">Comparison</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="modal-data-content">
-                    <p class="text-center">Load data... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span></p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 	$("#form_klo_update").submit(function(e) {
 		e.preventDefault();
-		ajax_form_warning(this, "data_upload/scm_tracking_dispatch/upload_tracking_klo", "Do you want to upload stock KLO data?").done(function(res) {
+		ajax_form_warning(this, "data_upload/scm_tracking_dispatch/upload_tracking_klo", "Do you want to upload Tracking KLO data?").done(function(res) {
 			swal_redirection(res.type, res.msg, "data_upload/scm_tracking_dispatch");
 		});
 	});
 	
 	$("#form_apm_update").submit(function(e) {
 		e.preventDefault();
-		ajax_form_warning(this, "data_upload/scm_tracking_dispatch/upload_tracking_apm", "Do you want to upload stock APM data?").done(function(res) {
+		ajax_form_warning(this, "data_upload/scm_tracking_dispatch/upload_tracking_apm", "Do you want to upload Tracking APM data?").done(function(res) {
 			swal_redirection(res.type, res.msg, "data_upload/scm_tracking_dispatch");
 		});
 	});
 });
-</script>
-
-<script>
-// En tu vista principal (donde está el modal y tus otros scripts)
-document.addEventListener("DOMContentLoaded", () => {
-    var dataModal = document.getElementById('dataModal');
-
-    if (dataModal) {
-        dataModal.addEventListener('show.bs.modal', function (event) {
-            var modalDataContent = document.getElementById('modal-data-content');
-            modalDataContent.innerHTML = '<p class="text-center">Cargando datos... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span></p>';
-
-            fetch('<?php echo base_url("data_upload/lgepr_warehouse_stock/data_comparision"); ?>')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok ' + response.statusText);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // 'data' ahora es tu array 'final_result'
-                    let tableHtml = '<div class="table-responsive">';
-                    tableHtml += '<table class="table table-striped table-hover table-bordered table-sm">';
-                    tableHtml += '<thead class="table-dark">';
-                    tableHtml += '<tr>';
-                    tableHtml += '<th>Warehouse</th>';
-                    tableHtml += '<th>Model</th>';
-                    tableHtml += '<th>Sub Inventory</th>';
-                    tableHtml += '<th class="text-end">LG Stock</th>';
-                    tableHtml += '<th class="text-end">Warehouse Stock</th>';
-                    tableHtml += '<th class="text-end">Diff</th>';
-                    tableHtml += '</tr>';
-                    tableHtml += '</thead>';
-                    tableHtml += '<tbody>';
-
-                    if (data.length === 0) {
-                        tableHtml += '<tr><td colspan="6" class="text-center">No se encontraron datos para mostrar.</td></tr>';
-                    } else {
-                        data.forEach(row => {
-                            let diffClass = '';
-                            if (row.diff > 0) {
-                                diffClass = 'text-success fw-bold';
-                            } else if (row.diff < 0) {
-                                diffClass = 'text-danger fw-bold';
-                            }
-                            tableHtml += '<tr>';
-                            tableHtml += `<td>${escapeHtml(row.warehouse)}</td>`; // Usar escapeHtml para seguridad
-                            tableHtml += `<td>${escapeHtml(row.model)}</td>`;
-                            tableHtml += `<td>${escapeHtml(row.sub_inventory)}</td>`;
-                            tableHtml += `<td class="text-end">${escapeHtml(row.lg_stock)}</td>`;
-                            tableHtml += `<td class="text-end">${escapeHtml(row.w_stock)}</td>`;
-                            tableHtml += `<td class="text-end ${diffClass}">${escapeHtml(row.diff)}</td>`;
-                            tableHtml += '</tr>';
-                        });
-                    }
-
-                    tableHtml += '</tbody>';
-                    tableHtml += '</table>';
-                    tableHtml += '</div>';
-
-                    modalDataContent.innerHTML = tableHtml; // Inyecta el HTML generado
-                })
-                .catch(error => {
-                    modalDataContent.innerHTML = '<p class="text-danger">Error al cargar los datos: ' + error.message + '</p>';
-                    console.error("Fetch error: ", error);
-                });
-        });
-
-        dataModal.addEventListener('hidden.bs.modal', function (e) {
-            document.getElementById('modal-data-content').innerHTML = '';
-        });
-    } else {
-        console.warn("Modal con ID 'dataModal' no encontrado. Asegúrate de que el HTML esté cargado correctamente.");
-    }
-});
-
-// Función de escape HTML para prevenir XSS al construir HTML con datos del servidor
-function escapeHtml(str) {
-    var div = document.createElement('div');
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
-}
 </script>

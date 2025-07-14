@@ -20,6 +20,7 @@ class Scm_tracking_dispatch extends CI_Controller {
 	}
 	
 	public function index(){
+		
 		$tracking = $this->gen_m->filter("scm_tracking_dispatch", false);
 		$data = [
 			"tracking"		=> $tracking,
@@ -144,6 +145,7 @@ class Scm_tracking_dispatch extends CI_Controller {
         foreach ($time_only_formats as $format) {
             $tempDateTimeObj = DateTime::createFromFormat($format, $input_as_string);
             
+            // Validar que se haya parseado correctamente y que la cadena original coincida con el formato
             $formatted_back = $tempDateTimeObj ? $tempDateTimeObj->format($format) : '';
             if (
                 $tempDateTimeObj !== false &&
@@ -302,7 +304,7 @@ class Scm_tracking_dispatch extends CI_Controller {
 		$apm_track = [];
 		foreach ($apm_data as $item) $apm_track[] = $item->tracking_key;
 		$apm_track = array_filter($apm_track);
-
+		
 		//load excel file
 		$spreadsheet = IOFactory::load("./upload/".$filename);
 		$sheet = $spreadsheet->getActiveSheet();
@@ -327,9 +329,9 @@ class Scm_tracking_dispatch extends CI_Controller {
 				"customer" 					=> trim($sheet->getCell('K'.$i)->getValue()) ?? null,
 				"address" 					=> trim($sheet->getCell('L'.$i)->getValue()) ?? null,
 				"pick_order"				=> trim($sheet->getCell('M'.$i)->getValue()) ?? null,
-				"service_type"				=> trim($sheet->getCell('N'.$i)->getValue()) ?? null,				
+				"service_type"				=> trim($sheet->getCell('P'.$i)->getValue()) ?? null,	// Extract P column (zona b2c)			
 				"district"					=> trim($sheet->getCell('O'.$i)->getValue()) ?? null,			
-				"b2c_zone"					=> trim($sheet->getCell('P'.$i)->getValue()) ?? null,
+				"b2c_zone"					=> null,
 				"ot_per_point" 				=> trim($sheet->getCell('Q'.$i)->getValue()) ?? null,
 				"purchase_order" 			=> trim($sheet->getCell('R'.$i)->getValue()) ?? null,
 				"guide" 					=> trim($sheet->getCell('S'.$i)->getCalculatedValue()) ?? null,
@@ -366,7 +368,7 @@ class Scm_tracking_dispatch extends CI_Controller {
 			$row["completion_time"] = $this->convert_hour($row["completion_time"]);
 			$row["service_completion_time"] = $this->convert_hour($row["service_completion_time"]);
 			$row["waiting_time"] = $this->convert_hour($row["waiting_time"]);
-
+			
 			if ($row["date"] !== null && $row["placa"] !== null && $row["guide"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
 				$row["tracking_key"] = $row["date"] . "_" . $row["placa"] . "_" . $row["guide"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
 			} else continue;
@@ -374,17 +376,18 @@ class Scm_tracking_dispatch extends CI_Controller {
 			
 			if (in_array($row["tracking_key"], $apm_track)) $rows_req[] = $row;
 			elseif(!in_array($row["tracking_key"], $apm_track)) $rows_og[] = $row; 
+			
 		}
-
-		$rows_split_eq = array_chunk($rows_req, 10);
+		//echo '<pre>'; print_r($rows_req);
+		$rows_split_eq = array_chunk($rows_req, 5);
 		foreach($rows_split_eq as $items) $this->gen_m->update_multi("scm_tracking_dispatch", $items, 'tracking_key');
 		
-		$rows_split = array_chunk($rows_og, 10);
+		$rows_split = array_chunk($rows_og, 5);
 		foreach($rows_split as $items) $this->gen_m->insert_m('scm_tracking_dispatch', $items);
 		
 		return "Stock update has been finished. (".$updated.")";
 	}
-			
+	
 	public function upload_tracking_klo(){
 		$type = "error"; $msg = "";
 		
