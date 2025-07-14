@@ -13,14 +13,19 @@
 	}
 </style>
 </head>
-<div class="pagetitle">
-  <h1>PI - Listening to you</h1>
-  <nav>
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-      <li class="breadcrumb-item active">Listening to you</li>
-    </ol>
-  </nav>
+<div class="d-flex justify-content-between align-items-start">
+	<div class="pagetitle">	
+		<h1>PI - Listening to you</h1>
+		<nav>
+			<ol class="breadcrumb">
+				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
+				<li class="breadcrumb-item active">Listening to you</li>
+			</ol>
+		</nav>
+	</div>	
+	<div>
+		<a href="../user_manual/module/pi_listening/pi_listening_en.pptx" class="text-primary">User Manual</a>
+	</div>
 </div>
 
 <section class="section">
@@ -33,9 +38,9 @@
 				<div class="d-flex justify-content-end">					
 					<!-- Campos de fecha para filtrar -->
 					
-					<input class="form-select me-1" type="date" id="fromDate" name="fromDate" >
+					<!--<input class="form-select me-1" type="date" id="fromDate" name="fromDate">-->
 
-					<input class="form-select me-1" type="date" id="toDate" name="toDate">
+					<!--<input class="form-select me-1" type="date" id="toDate" name="toDate">-->
 
 					
 					<select class="form-select me-1" id="sl_status" style="width: 250px;">
@@ -72,7 +77,7 @@
 						?>
 					</select>
 					
-					<input type="text" id="searchInput" class="form-control w-auto" style="max-width: 300px;" placeholder="Search...">
+					<!--<input type="text" id="searchInput" class="form-control w-auto" style="max-width: 300px;" placeholder="Search...">-->
 					
 					<select class="form-select ms-1" style="width: auto; max-width: 150px;" id="global-language-selector">
 					  <option value="es">ES</option>
@@ -89,6 +94,7 @@
                 <th scope="col" style="width: 20px;text-align: center;">Updated</th>
                 <th scope="col" style="width: 20px;text-align: center;">Department</th>
                 <th scope="col" style="width: 100px;text-align: center;">Issue</th>
+				<th scope="col" style="width: 100px;text-align: center;">Proposal</th>
                 <th scope="col" style="width: 100px;text-align: center;">Progress</th>
 				<th scope="col" style="width: 20px;text-align: center;"></th>
               </tr>
@@ -140,14 +146,14 @@
 						<td class="align-top">
 							<!-- <div class="border rounded p-2 bg-light"><?= $item->issue ?> </div> -->
 								<?php
-								$maxLengthIssue = 100; // Longitud máxima para "issue"
+								$maxLengthIssue = 300; // Longitud máxima para "issue"
 								$fullTextIssue = $item->issue;
 								$truncatedTextIssue = substr($fullTextIssue, 0, $maxLengthIssue);
 								if (strlen($fullTextIssue) > $maxLengthIssue) {
 									$truncatedTextIssue .= "...";
 								}
 								?>
-								<div class="border rounded p-2 bg-light" style="display: inline-block;" id="issue-box-<?= $item->listening_id ?>">
+								<div style="display: inline-block;" id="issue-box-<?= $item->listening_id ?>">
 									<span style="font-size: 15px;" id="truncated-issue-<?= $item->listening_id ?>"><?= $truncatedTextIssue ?></span>
 									<?php if (strlen($fullTextIssue) > $maxLengthIssue): ?>
 										<a href="#" class="read-more-issue" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read more</a>
@@ -155,16 +161,33 @@
 									<?php endif; ?>
 								</div>
 								<br>
-								<strong>Proposal </strong><br>
-								<?php
-								$maxLengthProposal = 150; // Longitud máxima para "proposal"
+								<!--<strong>Proposal</strong><br> -->
+								<!--<?php
+								$maxLengthProposal = 180; // Longitud máxima para "proposal"
 								$fullTextProposal = $item->solution;
 								$truncatedTextProposal = substr($fullTextProposal, 0, $maxLengthProposal);
 								if (strlen($fullTextProposal) > $maxLengthProposal) {
 									$truncatedTextProposal .= "...";
 								}
 								?>
-								<div class="border rounded p-2 mt-1 bg-light" style="display: inline-block;" id="proposal-box-<?= $item->listening_id ?>">
+								<div style="display: inline-block;" id="proposal-box-<?= $item->listening_id ?>">
+									<span style="font-size: 15px;" id="truncated-proposal-<?= $item->listening_id ?>"><?= $truncatedTextProposal ?></span>
+									<?php if (strlen($fullTextProposal) > $maxLengthProposal): ?>
+										<a href="#" class="read-more-proposal" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read more</a>
+										<span id="full-proposal-<?= $item->listening_id ?>" style="display: none; font-size: 15px;"><?= $fullTextProposal ?> <a href="#" class="read-less-proposal" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read less</a></span>
+									<?php endif; ?>
+								</div>-->
+						</td>
+						<td class="align-top">
+							<?php
+								$maxLengthProposal = 300; // Longitud máxima para "proposal"
+								$fullTextProposal = $item->solution;
+								$truncatedTextProposal = substr($fullTextProposal, 0, $maxLengthProposal);
+								if (strlen($fullTextProposal) > $maxLengthProposal) {
+									$truncatedTextProposal .= "...";
+								}
+								?>
+								<div style="display: inline-block;" id="proposal-box-<?= $item->listening_id ?>">
 									<span style="font-size: 15px;" id="truncated-proposal-<?= $item->listening_id ?>"><?= $truncatedTextProposal ?></span>
 									<?php if (strlen($fullTextProposal) > $maxLengthProposal): ?>
 										<a href="#" class="read-more-proposal" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read more</a>
@@ -176,7 +199,7 @@
 						<td class="align-top">
 							<!--<a href="#" class="add-comment" data-id="<?= $item->listening_id ?>">Add comment</a>  -->
 						<div class="text-start" style="padding-left: 10px;">					  
-							<div id="latest-comment-<?= $item->listening_id ?>">									
+							<div id="latest-comment-<?= $item->listening_id ?>">
 									<?php
 									
 									$latestComment = "";
@@ -192,7 +215,7 @@
 										$latestCommentUser = $commentsForListening[0]->pr_user;
 										$latestCommentId = $commentsForListening[0]->comment_id;
 									}?>
-									<a class="list-group-item list-group-item-action border rounded  p-2 bg-light"> 
+									<a class="list-group-item list-group-item-action"> 
 										<div class="d-flex w-100 justify-content-between">
 											<h5 class="mb-1">												
 												<strong><?= $latestCommentUser ?: "No user" ?>: </strong>
@@ -208,7 +231,7 @@
 											<small class="text-muted"><?= $latestCommentDate ?></small>
 										</div>
 								
-										<p class="mb-1"><?=nl2br(htmlspecialchars($latestComment)) ?: "No comment" ?></p>
+										<p class="mb-1" style="font-size: 15px;"><?=nl2br(htmlspecialchars($latestComment)) ?: "No comment" ?></p>
 										
 										<?php if (!empty($latestComment)) : ?>
 											
@@ -233,7 +256,7 @@
 							});
 
 							foreach ($commentsForViewing as $comment) {
-								echo "<a href='#' class='list-group-item list-group-item-action border rounded bg-light p-2 mt-1' >
+								echo "<a href='#' class='list-group-item list-group-item-action'>
 										<div class='d-flex w-100 justify-content-between'>
 											<h5 class='mb-1'>{$comment->pr_user}:
 												<button type='button' class='btn btn-outline-primary btn-sm edit-comment' 
@@ -613,13 +636,12 @@ document.addEventListener("DOMContentLoaded", function() {
         comment_id: commentId,
         listening_id: listeningId,
         comment: commentText,
-        language: language // Enviar el idioma seleccionado
+        language: language
       },
 	 
 		success: function(response) {
-			console.log(response);  // Verifica la respuesta completa en la consola
+			console.log(response);  
 
-			// Intentar convertir la respuesta en un objeto
 			try {
 				response = JSON.parse(response);
 			} catch (e) {
@@ -627,13 +649,12 @@ document.addEventListener("DOMContentLoaded", function() {
 			}
 
 			if (response && response.success) {
-				// Cerrar el modal y mostrar un mensaje de éxito
 				$('#editCommentModal').modal('hide');
 				alert('Comentario actualizado correctamente.');
 						// Refrescar la página después de un segundo
 				setTimeout(function() {
 					location.reload();
-				}, 500);  // Espera 1 segundo antes de recargar la página
+				}, 500);
 			} else {
 				alert('Hubo un error al actualizar el comentario.');
 			}
@@ -645,27 +666,13 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
-
-<script>
-document.getElementById("searchInput").addEventListener("keyup", function() {
-    let input = this.value.toLowerCase();
-    let rows = document.querySelectorAll("#dataTable tbody tr");
-
-    rows.forEach(row => {
-        let text = row.innerText.toLowerCase();
-        row.style.display = text.includes(input) ? "" : "none";
-    });
-});
-</script>
-
-
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const deptSelect = document.getElementById('sl_dept');
     const statusSelect = document.getElementById('sl_status');
-    const searchInput = document.getElementById('searchInput'); // Suponiendo que el campo de búsqueda tiene id="search"
-    const startDateInput = document.getElementById('fromDate'); // Suponiendo que hay un input de fecha de inicio
-    const endDateInput = document.getElementById('toDate'); // Suponiendo que hay un input de fecha de fin
+    // const searchInput = document.getElementById('searchInput'); // Suponiendo que el campo de búsqueda tiene id="search"
+    // const startDateInput = document.getElementById('fromDate'); // Suponiendo que hay un input de fecha de inicio
+    // const endDateInput = document.getElementById('toDate'); // Suponiendo que hay un input de fecha de fin
     const rows = document.querySelectorAll("#dataTable tbody tr");
     const itemsPerPage = 5;
     let currentPage = 1;
@@ -674,31 +681,32 @@ document.addEventListener("DOMContentLoaded", function () {
     function applyFilters() {
         const selectedDept = deptSelect.value.toLowerCase();
         const selectedStatus = statusSelect.value.toLowerCase();
-        const searchTerm = searchInput.value.toLowerCase();
-        const startDate = startDateInput.value ? convertDateToISO(startDateInput.value) : null;
-        const endDate = endDateInput.value ? convertDateToISO(endDateInput.value) : null;
+        // const searchTerm = searchInput.value.toLowerCase();
+        // const startDate = startDateInput.value ? convertDateToISO(startDateInput.value) : null;
+        // const endDate = endDateInput.value ? convertDateToISO(endDateInput.value) : null;
 
         // Filtrar filas según los criterios seleccionados
         const filteredRows = Array.from(rows).filter(row => {
             const deptCell = row.querySelector('td:nth-child(2)'); // Suponiendo que el depto está en la segunda columna
             const statusCell = row.querySelector('td:nth-child(1) select'); // Suponiendo que el status está en la segunda columna
-            const dateCell = row.querySelector("td[id^='date-']"); // Suponiendo que la fecha está en la cuarta columna
+            //const dateCell = row.querySelector("td[id^='date-']"); // Suponiendo que la fecha está en la cuarta columna
 
             const deptText = deptCell ? deptCell.innerText.toLowerCase() : '';
             const statusText = statusCell ? statusCell.value.toLowerCase() : '';
             //const rowDate = dateCell ? new Date(dateCell.innerText) : new Date(0);
-			const rowDateText  = dateCell ? dateCell.innerText.trim() : '';
+			//const rowDateText  = dateCell ? dateCell.innerText.trim() : '';
 			
 			// Convertir la fecha de la fila a Date
-            let rowDate = rowDateText ? convertDateToISO(rowDateText) : null;
+            //let rowDate = rowDateText ? convertDateToISO(rowDateText) : null;
 			
             // Aplicar filtros: dept, status, búsqueda y fecha
             const matchesDept = selectedDept === '' || deptText.includes(selectedDept);
             const matchesStatus = selectedStatus === '' || statusText.includes(selectedStatus);
-            const matchesSearch = searchTerm === '' || deptText.includes(searchTerm) || statusText.includes(searchTerm);
-            const matchesDate = (!rowDate || (!startDate || rowDate >= startDate) && (!endDate || rowDate <= endDate));
+            //const matchesSearch = searchTerm === '' || deptText.includes(searchTerm) || statusText.includes(searchTerm);
+            //const matchesDate = (!rowDate || (!startDate || rowDate >= startDate) && (!endDate || rowDate <= endDate));
 
-            return matchesDept && matchesStatus && matchesSearch && matchesDate;
+            //return matchesDept && matchesStatus && matchesSearch && matchesDate;
+			return matchesDept && matchesStatus;
         });
 
         // Actualizar filas visibles
@@ -834,78 +842,14 @@ document.addEventListener("DOMContentLoaded", function () {
     // Escuchar cambios en los filtros
     deptSelect.addEventListener('change', applyFilters);
     statusSelect.addEventListener('change', applyFilters);
-    searchInput.addEventListener('input', applyFilters);
-    startDateInput.addEventListener('change', applyFilters);
-    endDateInput.addEventListener('change', applyFilters);
+    //searchInput.addEventListener('input', applyFilters);
+   //  startDateInput.addEventListener('change', applyFilters);
+    //endDateInput.addEventListener('change', applyFilters);
 
     // Inicializar con los filtros aplicados
     applyFilters();
 });
 </script>
-
-<script>
-// document.addEventListener("DOMContentLoaded", function () {
-    // document.querySelectorAll("[id^='languageSelect-']").forEach(select => {
-        // select.addEventListener("change", function () {
-            // const listeningId = this.id.split("-")[1]; // Extrae el ID del listening
-            // const selectedLang = this.value; // Obtiene el idioma seleccionado
-            // const commentBox = document.querySelector(`#latest-comment-${listeningId} p`); // Caja del comentario
-            // const commentUser = document.querySelector(`#latest-comment-${listeningId} h5 strong`); // Usuario del último comentario
-            // const commentList = document.querySelector(`#comment-list-${listeningId}`); // Lista de comentarios
-            // const commentItems = commentList.querySelectorAll(".list-group-item p"); // Elementos de la lista
-
-            // // Buscar los datos dentro de la tabla
-            // const commentsForListening = <?= json_encode($records_comment) ?>;
-            // const filteredComments = commentsForListening.filter(comment => comment.listening_id == listeningId);
-
-            // if (filteredComments.length > 0) {
-                // // Ordenar los comentarios por fecha
-                // filteredComments.sort((a, b) => new Date(b.updated) - new Date(a.updated));
-
-                // let latestComment = "";
-                // let latestUser = filteredComments[0].pr_user || "No user";
-
-                // // Seleccionar el comentario según el idioma
-                // switch (selectedLang) {
-                    // case "es":
-                        // latestComment = filteredComments[0].comment_es;
-                        // break;
-                    // case "en":
-                        // latestComment = filteredComments[0].comment_en;
-                        // break;
-                    // case "kr":
-                        // latestComment = filteredComments[0].comment_kr;
-                        // break;
-                // }
-
-                // // Actualizar el comentario principal
-                // commentBox.textContent = latestComment ? latestComment : "No comment";
-                // commentUser.textContent = `${latestUser}:`;
-
-                // // Actualizar los comentarios en "View more"
-                // commentItems.forEach((commentElement, index) => {
-                    // if (filteredComments[index + 1]) { // Evitamos repetir el primer comentario
-                        // let translatedComment = "";
-                        // switch (selectedLang) {
-                            // case "es":
-                                // translatedComment = filteredComments[index + 1].comment_es;
-                                // break;
-                            // case "en":
-                                // translatedComment = filteredComments[index + 1].comment_en;
-                                // break;
-                            // case "kr":
-                                // translatedComment = filteredComments[index + 1].comment_kr;
-                                // break;
-                        // }
-                        // commentElement.textContent = translatedComment ? translatedComment : "No comment";
-                    // }
-                // });
-            // }
-        // });
-    // });
-// });
-</script>
-
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -975,16 +919,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
-});
-</script>
-
-<script>
-document.getElementById("fromDate").addEventListener("focus", function () {
-    this.showPicker(); // Abre el selector de fecha automáticamente
-});
-
-document.getElementById("toDate").addEventListener("focus", function () {
-    this.showPicker(); // Abre el selector de fecha automáticamente
 });
 </script>
 

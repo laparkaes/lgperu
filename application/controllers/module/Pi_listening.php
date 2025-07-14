@@ -25,7 +25,6 @@ class Pi_listening extends CI_Controller {
 		
 		$records = $this->db->query($sql)->result();
 		
-		// Obtener los comentarios en orden descendente por updated
 		$orders = [["updated", "DESC"]];
 		$records_comment = $this->gen_m->filter("pi_listening_comment", false, null, null, null, $orders);
 		$user_name = $this->session->userdata('name');
@@ -52,7 +51,6 @@ class Pi_listening extends CI_Controller {
 			return;
 		}
 
-		// Se actualiza la columna 'registered' con el nuevo estado seleccionado
 		$data = ["status" => $status];
 
 		$updated = $this->gen_m->update("pi_listening", ["listening_id" => $listening_id], $data);
@@ -75,30 +73,6 @@ class Pi_listening extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
-	
-	// public function add() {
-		// $listening_id = $this->input->post('listening_id');
-		// $comment_es = $this->input->post('comment_es');
-		// $pr_user_name = $this->session->userdata('name');
-		// $pr_user = $this->gen_m->filter("hr_employee", false, ['name'=>$pr_user_name]);
-		// if (!$listening_id || !$comment_es) {
-			// echo json_encode(["success" => false]);
-			// return;
-		// }
-
-		// $updated = date('Y-m-d H:i:s');
-		// $data = [
-			// "pr_user" => $pr_user[0]->ep_mail,
-			// "listening_id" => $listening_id,
-			// "comment_es" => $comment_es,
-			// "updated" => $updated,
-		// ];
-
-		// $this->db->insert("pi_listening_comment", $data);
-		// $comment_id = $this->db->insert_id(); // Obtener el último ID insertado
-
-		// echo json_encode(["success" => true, "comment_id" => $comment_id, "updated" => $updated]);
-	// }
 
 	public function add() {
 		$listening_id = $this->input->post('listening_id');
@@ -138,37 +112,6 @@ class Pi_listening extends CI_Controller {
 
 		echo json_encode(["success" => true, "comment_id" => $comment_id, "updated" => $updated]);
 	}
-
-
-	
-	// public function update_comment() {
-		// $commentId = $this->input->post('comment_id');
-		// $listeningId = $this->input->post('listening_id');
-		// $pr_user_name = $this->session->userdata('name');
-		// $pr_user = $this->gen_m->filter("hr_employee", false, ['name'=>$pr_user_name]);
-		// $newComment = $this->input->post('comment_es');
-
-		// if (!$commentId || !$listeningId || !$newComment) {
-			// echo json_encode(['success' => false, 'message' => 'Datos incompletos.']);
-			// return;
-		// }
-
-		// $data = [
-			// 'comment_es' => $newComment,
-			// 'pr_user' => $pr_user[0]->ep_mail,
-			// 'updated' => date('Y-m-d H:i:s')
-		// ];
-
-		// $this->db->where('comment_id', $commentId);
-		// $this->db->where('listening_id', $listeningId);
-		// $update = $this->db->update('pi_listening_comment', $data);
-
-		// if ($update) {
-			// echo json_encode(['success' => true]);
-		// } else {
-			// echo json_encode(['success' => false, 'message' => 'No se pudo actualizar el comentario.']);
-		// }
-	// }
 	
 	public function update_comment() {
 		$commentId = $this->input->post('comment_id');
@@ -185,13 +128,11 @@ class Pi_listening extends CI_Controller {
 			return;
 		}
 
-		// Preparar los datos para actualizar
 		$data = [
 			'pr_user' => $pr_user[0]->ep_mail,
 			'updated' => date('Y-m-d H:i:s')
 		];
 
-		// Solo actualizar el campo correspondiente al idioma seleccionado
 		if ($language == 'es') {
 			$data['comment_es'] = $comment;
 		} elseif ($language == 'en') {
@@ -200,7 +141,6 @@ class Pi_listening extends CI_Controller {
 			$data['comment_kr'] = $comment;
 		}
 
-		// Realizar la actualización en la base de datos
 		$this->db->where('comment_id', $commentId);
 		$this->db->where('listening_id', $listeningId);
 		$update = $this->db->update('pi_listening_comment', $data);

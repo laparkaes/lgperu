@@ -1,25 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
 
-<head>
-<style>
-    #dataTable td:hover {
-        background-color: #def4ff; /* Cambia el color de fondo */
-        color: #00008b; /* Cambia el color del texto */
-    }
-</style>
-</head>
-<div class="pagetitle">
-  <h1><br>PI - Listening to you</h1>
-  <nav>
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-      <li class="breadcrumb-item active">Listening to you</li>
-    </ol>
-  </nav>
+<div class="d-flex justify-content-between align-items-center">
+	<div class="pagetitle">
+	  <h1><br>PI - Listening to you</h1>
+	  <nav>
+		<ol class="breadcrumb">
+		  <li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
+		  <li class="breadcrumb-item active">Listening to you</li>
+		</ol>
+	  </nav>
+	</div>
+	<div class="d-flex align-items-center">
+		<a href="../user_manual/page/pi_listening_request/pi_listening_request_en.pptx" class="text-primary">User Manual</a>
+	</div>
 </div>
-
-<div class="card overflow-scroll  w-75 mx-auto" style="height: 97vh;">
+<div class="card overflow-scroll w-100 mx-auto" style="height: 97vh;">
 <section class="section">
 
   <div class="row">
@@ -39,9 +35,9 @@
 				  			
 					<!-- Campos de fecha para filtrar -->
 
-					<input class="form-select me-1" type="date" id="fromDate" name="fromDate" >
+					<!--<input class="form-select me-1" type="date" id="fromDate" name="fromDate">-->
 
-					<input class="form-select me-1" type="date" id="toDate" name="toDate">
+					<!--<input class="form-select me-1" type="date" id="toDate" name="toDate">-->
 
 					
 					<select class="form-select me-1" id="sl_status" style="width: 250px;">
@@ -78,7 +74,7 @@
 						?>
 					</select>
 					
-					<input type="text" id="searchInput" class="form-control w-auto" style="max-width: 300px;" placeholder="Search..."> <br>
+					<!--<input type="text" id="searchInput" class="form-control w-auto" style="max-width: 300px;" placeholder="Search..."> <br>-->
 					
 					<select class="form-select ms-1" style="width: auto; max-width: 150px;" id="global-language-selector">
 					  <option value="es">ES</option>
@@ -90,7 +86,7 @@
 				</div>
 			</div>
 			
-          <table class="table align-middle border table-striped table-hover" id="dataTable" style="table-layout: fixed;">
+          <table class="table align-middle border table-striped" id="dataTable" style="table-layout: fixed;">
 			
             <thead>
               <tr class="table-dark">
@@ -98,6 +94,7 @@
                 <th scope="col" style="width: 10px; text-align: center;">Last Update</th>
                 <th scope="col" style="width: 10px; text-align: center;">Department</th>
                 <th scope="col" style="width: 50px; text-align: center;">Issue</th>
+				<th scope="col" style="width: 50px; text-align: center;">Proposal</th>
                 <th scope="col" style="width: 50px; text-align: center;">Progress</th>
 
               </tr>
@@ -136,27 +133,52 @@
 									//echo $displayHour;
 									?>
 									
-								
+									<div class="align-items-center mt-1 p-2">
+										<?php
+										if ($item->status === 'In progress') { ?>
+											<span class="badge border border-primary text-primary">
+												<?= $item->status ?>
+											</span>
+										<?php } ?>
+										<?php
+										if ($item->status === 'Refused') { ?>
+											<span class="badge border border-danger text-danger">
+												<?= $item->status ?>
+											</span>
+										<?php } ?>
+										<?php
+										if ($item->status === 'Registered') { ?>
+											<span class="badge border border-secondary text-dark">
+												<?= $item->status ?>
+											</span>
+										<?php } ?>
+										<?php
+										if ($item->status === 'Finished') { ?>
+											<span class="badge border border-success text-success">
+												<?= $item->status ?>
+											</span>
+										<?php } ?>
+									</div>
 							</td>
 						<td style="text-align: center;"><?= $item->dptTo ?></td>
 						<td class="align-top">
 							<div class="d-flex align-items-start justify-content-between">
 								<?php
-								$maxLengthIssue = 100; // Longitud máxima para "issue"
+								$maxLengthIssue = 200; // Longitud máxima para "issue"
 								$fullTextIssue = $item->issue;
 								$truncatedTextIssue = substr($fullTextIssue, 0, $maxLengthIssue);
 								if (strlen($fullTextIssue) > $maxLengthIssue) {
 									$truncatedTextIssue .= "...";
 								}
 								?>
-								<div class="border rounded p-2 bg-light" style="display: inline-block;" id="issue-box-<?= $item->listening_id ?>">
+								<div style="display: inline-block;" id="issue-box-<?= $item->listening_id ?>">
 									<span style="font-size: 15px;" id="truncated-issue-<?= $item->listening_id ?>"><?= $truncatedTextIssue ?></span>
 									<?php if (strlen($fullTextIssue) > $maxLengthIssue): ?>
 										<a href="#" class="read-more-issue" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read more</a>
 										<span id="full-issue-<?= $item->listening_id ?>" style="display: none; font-size: 15px;"><?= $fullTextIssue ?> <a href="#" class="read-less-issue" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read less</a></span>
 									<?php endif; ?>
 								</div>
-								<div class="d-flex justify-content-start align-items-center mt-1 p-2">
+								<!--<div class="d-flex justify-content-start align-items-center mt-1 p-2">
 									<?php
 									if ($item->status === 'In progress') { ?>
 										<span class="badge bg-warning text-dark">
@@ -185,9 +207,27 @@
 											<?= $item->status ?>
 										</span>
 									<?php } ?>
-								</div>
+								</div>-->
 							</div>
-							<strong style="text-align: left; display: block;">Proposal</strong>
+							<!--<strong style="text-align: left; display: block;">Proposal</strong>-->
+							<?php
+							// $maxLengthProposal = 150; // Longitud máxima para "proposal"
+							// $fullTextProposal = $item->solution;
+							// $truncatedTextProposal = substr($fullTextProposal, 0, $maxLengthProposal);
+							// if (strlen($fullTextProposal) > $maxLengthProposal) {
+								// $truncatedTextProposal .= "...";
+							// }
+							?>
+							<!--<div style="display: inline-block;" id="proposal-box-<?= $item->listening_id ?>">
+								<span style="font-size: 15px;" id="truncated-proposal-<?= $item->listening_id ?>"><?= $truncatedTextProposal ?></span>
+								<?php if (strlen($fullTextProposal) > $maxLengthProposal): ?>
+									<a href="#" class="read-more-proposal" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read more</a>
+									<span id="full-proposal-<?= $item->listening_id ?>" style="display: none; font-size: 15px;"><?= $fullTextProposal ?> <a href="#" class="read-less-proposal" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read less</a></span>
+								<?php endif; ?>
+							</div>-->
+						</td>
+						<!-- <td><?= $item->status?></td> -->
+						<td class="align-top">
 							<?php
 							$maxLengthProposal = 150; // Longitud máxima para "proposal"
 							$fullTextProposal = $item->solution;
@@ -196,7 +236,8 @@
 								$truncatedTextProposal .= "...";
 							}
 							?>
-							<div class="border rounded p-2 mt-1 bg-light" style="display: inline-block;" id="proposal-box-<?= $item->listening_id ?>">
+							
+							<div style="display: inline-block;" id="proposal-box-<?= $item->listening_id ?>">
 								<span style="font-size: 15px;" id="truncated-proposal-<?= $item->listening_id ?>"><?= $truncatedTextProposal ?></span>
 								<?php if (strlen($fullTextProposal) > $maxLengthProposal): ?>
 									<a href="#" class="read-more-proposal" style="font-size: 14px;" data-id="<?= $item->listening_id ?>">read more</a>
@@ -204,7 +245,6 @@
 								<?php endif; ?>
 							</div>
 						</td>
-						<!-- <td><?= $item->status?></td> -->
 						<td class="align-top">
 						  
 							<!--<a href="#" class="add-comment" data-id="<?= $item->listening_id ?>">Add comment</a>  -->
@@ -226,7 +266,7 @@
 										$latestCommentDate = $commentsForListening[0]->updated;
 										$latestCommentUser = $commentsForListening[0]->pr_user;
 									}?>
-									<a class="list-group-item list-group-item-action border rounded p-2 bg-light"> 
+									<a class="list-group-item list-group-item-action"> 
 										<div class="d-flex w-100 justify-content-between">
 											<h5 class="mb-1">												
 												<strong style="font-size: 16px;"><?= $latestCommentUser ?: "No user" ?>: </strong>
@@ -255,7 +295,7 @@
 							});
 
 							foreach ($commentsForViewing as $comment) {
-								echo "<a href='#' class='list-group-item list-group-item-action border rounded p-2 mt-1 bg-light'>
+								echo "<a href='#' class='list-group-item list-group-item-action border'>
 										<div class='d-flex w-100 justify-content-between'>
 											<h5 class='mb-1'>{$comment->pr_user}:</h5>
 											<small class='text-muted'>" . $comment->updated . "</small>
@@ -285,92 +325,6 @@
 
 </section>
 
-
-<script>
-// document.addEventListener("DOMContentLoaded", function () {
-    // const rowsPerPage = 5; // Cantidad de filas por página
-    // const tableBody = document.getElementById("tableBody");
-    // const rows = Array.from(tableBody.getElementsByTagName("tr"));
-    // const paginationContainer = document.getElementById("pagination");
-    // let filteredRows = rows; // Filas filtradas
-
-    // let currentPage = 1;
-    // let totalPages = Math.ceil(filteredRows.length / rowsPerPage); // Inicializar el número de páginas
-
-    // function showPage(page) {
-        // const start = (page - 1) * rowsPerPage;
-        // const end = start + rowsPerPage;
-
-        // filteredRows.forEach((row, index) => {
-            // row.style.display = (index >= start && index < end) ? "" : "none";
-        // });
-
-        // updatePaginationButtons();
-    // }
-
-    // function updatePaginationButtons() {
-        // paginationContainer.innerHTML = "";
-
-        // // Botón de "Anterior"
-        // const prevBtn = document.createElement("li");
-        // prevBtn.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
-        // prevBtn.innerHTML = ` 
-            // <a class="page-link" href="#" aria-label="Previous">
-                // <span aria-hidden="true">&laquo;</span>
-            // </a>
-        // `;
-        // prevBtn.onclick = function (e) {
-            // e.preventDefault();
-            // if (currentPage > 1) {
-                // currentPage--;
-                // showPage(currentPage);
-            // }
-        // };
-        // paginationContainer.appendChild(prevBtn);
-
-        // // Botones de Páginas
-        // for (let i = 1; i <= totalPages; i++) {
-            // const pageBtn = document.createElement("li");
-            // pageBtn.className = `page-item ${i === currentPage ? "active" : ""}`;
-            // pageBtn.innerHTML = `
-                // <a class="page-link" href="#">${i}</a>
-            // `;
-            // pageBtn.onclick = function (e) {
-                // e.preventDefault();
-                // currentPage = i;
-                // showPage(i);
-            // };
-            // paginationContainer.appendChild(pageBtn);
-        // }
-
-        // // Botón de "Siguiente"
-        // const nextBtn = document.createElement("li");
-        // nextBtn.className = `page-item ${currentPage === totalPages ? "disabled" : ""}`;
-        // nextBtn.innerHTML = ` 
-            // <a class="page-link" href="#" aria-label="Next">
-                // <span aria-hidden="true">&raquo;</span>
-            // </a>
-        // `;
-        // nextBtn.onclick = function (e) {
-            // e.preventDefault();
-            // if (currentPage < totalPages) {
-                // currentPage++;
-                // showPage(currentPage);
-            // }
-        // };
-        // paginationContainer.appendChild(nextBtn);
-    // }
-
-	
-    // // Inicializar la paginación
-    // if (rows.length > 0) {
-        // showPage(currentPage);
-    // }
-// });
-
-</script>
-
-
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -387,27 +341,13 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-
-<script>
-document.getElementById("searchInput").addEventListener("keyup", function() {
-    let input = this.value.toLowerCase();
-    let rows = document.querySelectorAll("#dataTable tbody tr");
-
-    rows.forEach(row => {
-        let text = row.innerText.toLowerCase();
-        row.style.display = text.includes(input) ? "" : "none";
-    });
-    });
-});
-</script>
-
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const deptSelect = document.getElementById('sl_dept');
     const statusSelect = document.getElementById('sl_status');
-    const searchInput = document.getElementById('searchInput'); // Suponiendo que el campo de búsqueda tiene id="search"
-    const startDateInput = document.getElementById('fromDate'); // Suponiendo que hay un input de fecha de inicio
-    const endDateInput = document.getElementById('toDate'); // Suponiendo que hay un input de fecha de fin
+    // const searchInput = document.getElementById('searchInput'); // Suponiendo que el campo de búsqueda tiene id="search"
+    // const startDateInput = document.getElementById('fromDate'); // Suponiendo que hay un input de fecha de inicio
+    // const endDateInput = document.getElementById('toDate'); // Suponiendo que hay un input de fecha de fin
     const rows = document.querySelectorAll("#dataTable tbody tr");
     const itemsPerPage = 5;
     let currentPage = 1;
@@ -416,14 +356,14 @@ document.addEventListener("DOMContentLoaded", function () {
     function applyFilters() {
         const selectedDept = deptSelect.value.toLowerCase();
         const selectedStatus = statusSelect.value.toLowerCase();
-        const searchTerm = searchInput.value.toLowerCase();
-        const startDate = startDateInput.value ? convertDateToISO(startDateInput.value) : null;
-        const endDate = endDateInput.value ? convertDateToISO(endDateInput.value) : null;
+        // const searchTerm = searchInput.value.toLowerCase();
+        // const startDate = startDateInput.value ? convertDateToISO(startDateInput.value) : null;
+        // const endDate = endDateInput.value ? convertDateToISO(endDateInput.value) : null;
 
         // Filtrar filas según los criterios seleccionados
         const filteredRows = Array.from(rows).filter(row => {
             const deptCell = row.querySelector('td:nth-child(2)'); // Suponiendo que el depto está en la segunda columna
-            const statusCell = row.querySelector('td:nth-child(3)'); // Suponiendo que el status está en la segunda columna
+            const statusCell = row.querySelector('td:nth-child(1)'); // Suponiendo que el status está en la segunda columna
             const dateCell = row.querySelector("td[id^='date-']"); // Suponiendo que la fecha está en la cuarta columna
 
             const deptText = deptCell ? deptCell.innerText.toLowerCase() : '';
@@ -437,11 +377,13 @@ document.addEventListener("DOMContentLoaded", function () {
             // Aplicar filtros: dept, status, búsqueda y fecha
             const matchesDept = selectedDept === '' || deptText.includes(selectedDept);
             const matchesStatus = selectedStatus === '' || statusText.includes(selectedStatus);
-            const matchesSearch = searchTerm === '' || deptText.includes(searchTerm) || statusText.includes(searchTerm);
-			const matchesDate = (!rowDate || (!startDate || rowDate >= startDate) && (!endDate || rowDate <= endDate));
+            // const matchesSearch = searchTerm === '' || deptText.includes(searchTerm) || statusText.includes(searchTerm);
+			// const matchesDate = (!rowDate || (!startDate || rowDate >= startDate) && (!endDate || rowDate <= endDate));
             //const matchesDate = (!startDateInput.value || rowDate >= startDate) && (!endDateInput.value || rowDate <= endDate);
 
-            return matchesDept && matchesStatus && matchesSearch && matchesDate;
+            //return matchesDept && matchesStatus && matchesSearch && matchesDate;
+			
+			return matchesDept && matchesStatus;
         });
 
         // Actualizar filas visibles
@@ -578,9 +520,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // Escuchar cambios en los filtros
     deptSelect.addEventListener('change', applyFilters);
     statusSelect.addEventListener('change', applyFilters);
-    searchInput.addEventListener('input', applyFilters);
-    startDateInput.addEventListener('change', applyFilters);
-    endDateInput.addEventListener('change', applyFilters);
+    // searchInput.addEventListener('input', applyFilters);
+    // startDateInput.addEventListener('change', applyFilters);
+    // endDateInput.addEventListener('change', applyFilters);
 
     // Inicializar con los filtros aplicados
     applyFilters();
@@ -656,16 +598,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
-});
-</script>
-
-<script>
-document.getElementById("fromDate").addEventListener("focus", function () {
-    this.showPicker(); // Abre el selector de fecha automáticamente
-});
-
-document.getElementById("toDate").addEventListener("focus", function () {
-    this.showPicker(); // Abre el selector de fecha automáticamente
 });
 </script>
 
