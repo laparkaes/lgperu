@@ -115,7 +115,22 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 			
 			// Buscar la primera aparición del valor buscado
 			$indice_encontrado = array_search($list_txn_date[0][1], $stock_list);
+			//$stock_pre = $out_map[$model_calculate][2];
+			//print_r([$indice_encontrado, $model_calculate]); echo '<br>';
+			//$stock1 = !empty($list_txn_date[0][1]) ? $list_txn_date[0][1] : $stock_pre;
+			//print_r([$stock1, $model_calculate, $out_map[$model_calculate][0]]);
 		}
+		// Valor stock coincide con primera fecha, se agarra. sino hay stock buscar en anteriores.
+		// 
+		
+		// if(!empty($sell_map[$model_calculate])){
+			// foreach($sell_map[$model_calculate] as $item){
+				// if($item[1] != $stock1){
+					// $item[1] += $item[1];
+				// }
+				// print_r($item);
+			// }
+		// }
 		return 1;
 	}
 	
@@ -132,6 +147,14 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 		// $end_date = substr($end_date, 0, 4) . "-" . substr($end_date, 4, 2) . "-" . substr($end_date, 6, 2);
 		$qty = 0;
 		if($flag_s_qty == 0){
+			// if(!empty($out_map[$model_calculate])){
+				// foreach($out_map[$model_calculate] as $item){
+					// //print_r($item); echo '<br>';
+					// if($item[0] >= $start_date && $item[0] <= $end_date && $item[3] !== 'PROMO NO APPLIED'){
+						// $qty += $item[1];
+					// }		
+				// }
+			// } else $qty = 0;
 			
 			if (!empty($out_map[$model_calculate])) {
 				foreach ($out_map[$model_calculate] as $item) {
@@ -257,7 +280,94 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 		// Finalizar transacción
 		$this->db->trans_complete();
 	}
+	
+	public function load_sell_out2($sheet){
+		//excel file header validation
+		$h = [
+			trim($sheet->getCell('A1')->getValue()),
+			trim($sheet->getCell('B1')->getValue()),
+			trim($sheet->getCell('C1')->getValue()),
+			trim($sheet->getCell('D1')->getValue()),
+			trim($sheet->getCell('E1')->getValue()),
+			trim($sheet->getCell('F1')->getValue()),
+			trim($sheet->getCell('G1')->getValue()),
+			trim($sheet->getCell('H1')->getValue()),
+			trim($sheet->getCell('I1')->getValue()),
+			trim($sheet->getCell('J1')->getValue()),
+			trim($sheet->getCell('K1')->getValue()),
+		];
 		
+		$h_origin = ["CUSTOMER", "ACCT_GTM", "CUSTOMER_MODEL", "MODEL_CODE", "TXN_DATE", "CUST_STORE_CODE", "CUST_STORE_NAME", "SELLOUT_UNIT", "SELLOUT_AMT", "STOCK", "TICKET"];
+		
+		$header_validation = true;
+		foreach($h as $i => $h_i) if ($h_i !== $h_origin[$i]) $header_validation = false;
+		
+		$max_row = $sheet->getHighestRow();
+		$batch_size = 300;
+		$rows = $date_arr = [];
+		$updated = date("Y-m-d");
+		//save file records in array
+		for ($i = 2; $i <= $max_row; $i++) {
+			//if ($is_empty_row) continue; // Si la fila está vacía, detenemos el bucle en esta hoja
+			$row = [
+				"customer" 								=> trim($sheet->getCell('A'.$i)->getValue()),
+				"acct_gtm" 								=> trim($sheet->getCell('B'.$i)->getValue()),					
+				"customer_model" 						=> trim($sheet->getCell('C'.$i)->getValue()),
+				"model_code" 							=> trim($sheet->getCell('D'.$i)->getValue()),
+				"txn_date" 								=> trim($sheet->getCell('E'.$i)->getValue()),
+				"cust_store_code" 						=> trim($sheet->getCell('F'.$i)->getValue()),
+				"cust_store_name" 						=> trim($sheet->getCell('G'.$i)->getValue()),					
+				"sellout_unit" 							=> trim($sheet->getCell('H'.$i)->getValue()),
+				"sellout_amt" 							=> trim($sheet->getCell('I'.$i)->getValue()),
+				"stock" 								=> trim($sheet->getCell('J'.$i)->getValue()),
+				"ticket" 								=> trim($sheet->getCell('K'.$i)->getValue()),
+				"promo1_price" 							=> trim($sheet->getCell('L'.$i)->getValue()),					
+				"target1_flag" 							=> trim($sheet->getCell('M'.$i)->getValue()),
+				"promo2_price" 							=> trim($sheet->getCell('N'.$i)->getValue()),
+				"target2_flag" 							=> trim($sheet->getCell('O'.$i)->getValue()),
+				"promo3_price" 							=> trim($sheet->getCell('P'.$i)->getValue()),
+				"target3_flag" 							=> trim($sheet->getCell('Q'.$i)->getValue()),					
+				"promo4_price" 							=> trim($sheet->getCell('R'.$i)->getValue()),
+				"target4_flag" 							=> trim($sheet->getCell('S'.$i)->getValue()),
+				"promo5_price" 							=> trim($sheet->getCell('T'.$i)->getValue()),
+				"target5_flag" 							=> trim($sheet->getCell('U'.$i)->getValue()),
+				"promo6_price" 							=> trim($sheet->getCell('V'.$i)->getValue()),					
+				"target6_flag" 							=> trim($sheet->getCell('W'.$i)->getValue()),
+				"promo7_price" 							=> trim($sheet->getCell('X'.$i)->getValue()),
+				"target7_flag" 							=> trim($sheet->getCell('Y'.$i)->getValue()),
+				"promo8_price" 							=> trim($sheet->getCell('Z'.$i)->getValue()),
+				"target8_flag" 							=> trim($sheet->getCell('AA'.$i)->getValue()),					
+				"promo9_price" 							=> trim($sheet->getCell('AB'.$i)->getValue()),
+				"target9_flag" 							=> trim($sheet->getCell('AC'.$i)->getValue()),
+				"promo10_price" 						=> trim($sheet->getCell('AD'.$i)->getValue()),
+				"target10_flag" 						=> trim($sheet->getCell('AE'.$i)->getValue()),					
+				"updated" 								=> $updated
+			];
+			
+			// if(empty($row['division_name']) && empty($row['bill_to_customer_code'])){
+				// break;
+			// }
+			if(!empty($row["customer"]) && !empty($row["acct_gtm"]) && !empty($row["customer_model"])){
+				$row["txn_date"] = $this->date_convert_mm_dd_yyyy($row["txn_date"]);
+			}
+			$batch_data[] = $row;
+
+			// Inserción por lotes
+			if (count($batch_data) >= $batch_size) {
+				$this->gen_m->insert_m("sa_sell_out_promotion", $batch_data);
+				$batch_data = [];
+			}
+		}
+
+		// Insertar los datos restantes en el lote
+		if (!empty($batch_data)) {
+			$this->gen_m->insert_m("sa_sell_out_promotion", $batch_data);
+		}
+		
+		// Finalizar transacción
+		$this->db->trans_complete();
+	}
+	
 	public function load_sell_in($sheet){
 		//excel file header validation
 		$h = [
@@ -370,6 +480,106 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 		//return "Records uploaded in " . number_format(microtime(true) - $start_time, 2) . " secs.";
 	}
 	
+	public function calcularStockAg_v1($out_map, $model_calculate, $start_date_conv, $end_date_conv) {
+		if (!empty($out_map[$model_calculate])) {
+			$fechas_modelo = $out_map[$model_calculate];
+
+			// Verificar si start_date_conv existe con stock != 0
+			foreach ($fechas_modelo as $item) {
+				if ($item[0] === $start_date_conv) {
+					if ($item[2] != 0) {
+						return $item[2];
+					} else {
+						break;
+					}
+				}
+			}
+
+			// Lógica pasado/futuro
+			usort($fechas_modelo, function($a, $b) {
+				return strtotime($a[0]) - strtotime($b[0]);
+			});
+
+			$indice_start_date = -1;
+			foreach ($fechas_modelo as $i => $item) {
+				if ($item[0] >= $start_date_conv && $item[0] <= $end_date_conv) {
+					$indice_start_date = $i;
+					break;
+				}
+			}
+
+			if ($indice_start_date !== -1) {
+				// Buscar hacia atrás
+				$fecha_pasada = null;
+				$stock_pasado = 0;
+				$sellout_acumulado_pasado = 0;
+				$indice_fecha_pasada = -1;
+				for ($i = $indice_start_date - 1; $i >= 0; $i--) {
+					if ($fechas_modelo[$i][2] != 0) {
+						$fecha_pasada = $fechas_modelo[$i][0];
+						$stock_pasado = $fechas_modelo[$i][2];
+						$indice_fecha_pasada = $i;
+						break;
+					}
+				}
+				if ($indice_fecha_pasada !== -1) {
+					for ($i = $indice_start_date - 1; $i > $indice_fecha_pasada; $i--) {
+						if ($fechas_modelo[$i][0] !== $fecha_pasada) {
+							$sellout_acumulado_pasado += $fechas_modelo[$i][1];
+						}
+					}
+				}
+				$stock_ag_pasado = ($fecha_pasada !== null) ? $stock_pasado - $sellout_acumulado_pasado : null;
+
+				// Buscar hacia adelante
+				$fecha_futura = null;
+				$stock_futuro = 0;
+				$sellout_acumulado_futuro = 0;
+				$indice_fecha_futura = -1;
+				for ($i = $indice_start_date; $i < count($fechas_modelo); $i++) {
+					if ($fechas_modelo[$i][2] != 0) {
+						$fecha_futura = $fechas_modelo[$i][0];
+						$stock_futuro = $fechas_modelo[$i][2];
+						$indice_fecha_futura = $i;
+						if ($fechas_modelo[$i][0] > $start_date_conv) break;
+					}
+				}
+				if ($indice_fecha_futura !== -1) {
+					for ($i = $indice_start_date; $i < $indice_fecha_futura; $i++) {
+						$sellout_acumulado_futuro += $fechas_modelo[$i][1];
+					}
+					// Incluir el sellout de start_date_conv si su stock era 0
+					foreach ($fechas_modelo as $item) {
+						if ($item[0] === $start_date_conv && $item[2] == 0) {
+							$sellout_acumulado_futuro += $item[1];
+							break;
+						}
+					}
+				}
+				$stock_ag_futuro = ($fecha_futura !== null) ? $stock_futuro + $sellout_acumulado_futuro : null;
+
+				// Selección con prioridad para stock_ag_pasado == 0
+				if ($stock_ag_pasado === 0) {
+					return 0;
+				} elseif ($fecha_pasada !== null && $fecha_futura !== null) {
+					$diff_pasado = abs(strtotime($start_date_conv) - strtotime($fecha_pasada));
+					$diff_futuro = abs(strtotime($start_date_conv) - strtotime($fecha_futura));
+
+					if ($diff_pasado <= $diff_futuro) {
+						return $stock_ag_pasado;
+					} else {
+						return $stock_ag_futuro;
+					}
+				} elseif ($fecha_pasada !== null) {
+					return $stock_ag_pasado;
+				} elseif ($fecha_futura !== null) {
+					return $stock_ag_futuro;
+				}
+			}
+		}
+		return 0;
+	}
+
 	public function calcularStockAg($out_map, $model_calculate, $start_date_conv, $end_date_conv) {
 		if (!empty($out_map[$model_calculate])) {
 			$fechas_modelo = $out_map[$model_calculate];
@@ -1192,6 +1402,7 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 							$count_stock = 0;
 							$fechas = [];
 							$stock_ag_bundle = 0;
+							$qty_bundle = 0;
 							//$model_bundle_calculate = $model_bundle[$model_calculate][$index_model_ocurrence[$model_calculate]];
 							//if(!empty($model_bundle_calculate) && $model_bundle_calculate != 0){
 							if(isset($out_map[$model_bundle])){	
@@ -1229,6 +1440,9 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 									}
 								}
 								if($flag_stock == 1){
+									$indice_up = 0;
+									$txn_date_up = 0;
+									$stock_current_up = 0;
 									foreach ($out_map[$model_bundle] as $item) $fechas[] = [$item[0], $item[2], $item[1], $item[3]]; // TXN_DATE, stock, sell_unit, target1_flag
 									//echo '<pre>'; print_r($fechas); return
 									//print_r($fechas); return;
@@ -2366,6 +2580,35 @@ class Sa_sell_in_out_promotion extends CI_Controller {
         $this->downloadSpreadsheet($spreadsheet, '[Process] '.$excel_file);
     }
 	
+	// public function download_excel($filename) {
+        // $filePath = FCPATH . './upload_file/Sales Admin/' . $filename;
+
+        // // Verifica si el archivo existe y es legible antes de intentar enviarlo
+        // if (file_exists($filePath) && is_readable($filePath)) {
+            // // --- ESTAS SON LAS CABECERAS Y LA LÓGICA DE DESCARGA DE TU FUNCIÓN ORIGINAL ---
+            // header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            // header('Content-Disposition: attachment;filename="' . $filename . '"');
+            // header('Cache-Control: max-age=0'); // Asegura que el navegador no cachee el archivo
+            // header('Pragma: public'); // Necesario para IE
+            // header('Expires: 0'); // Necesario para IE
+            // header('Content-Length: ' . filesize($filePath)); // Buena práctica: informa el tamaño del archivo
+
+            // // Lee el archivo y lo envía al navegador
+            // readfile($filePath);
+
+            // // Opcional: Elimina el archivo del servidor después de que ha sido enviado
+            // // Descomenta la siguiente línea si quieres que se elimine automáticamente.
+            // // unlink($filePath); 
+
+            // exit; // Termina la ejecución para evitar que se envíe contenido adicional
+        // } else {
+            // // Si el archivo no existe o no se puede leer, muestra un error 404
+            // log_message('error', 'Download file not found or not readable: ' . $filePath);
+            // show_404();
+        // }
+    // }
+
+	
 	public function downloadSpreadsheet($spreadsheet, $filename) {		
 
 		// Configurar cabeceras de respuesta	
@@ -2421,6 +2664,2026 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 		return $row_map;
 	}
 	
+	public function load_sell_out_v1() {
+
+		$filter_select_promo = ['start_date', 'end_date', 'customer_code', 'promotion_no', 'model', 'price_promotion', 'gift'];
+		$data_calculate = $this->gen_m->filter_select('sa_calculate_promotion', false, $filter_select_promo);
+
+		$models = array_unique(array_column($data_calculate, 'model'));
+		$models = array_filter($models);
+
+		$models_bundles = array_unique(array_column($data_calculate, 'gift'));
+		$models_bundles = array_filter($models_bundles);
+
+		$all_models = array_merge($models, $models_bundles);
+		$all_models = array_unique($all_models);
+		$all_models = array_values($all_models);
+
+		if (empty($data_calculate)) {
+			echo "No hay datos de cálculo de promoción.";
+			return;
+		}
+
+		$from_date = date('Y-m-01', strtotime($data_calculate[0]->start_date));
+		$to_date = date('Y-m-t', strtotime($data_calculate[0]->start_date));
+		$customer = $data_calculate[0]->customer_code;
+		$days_to_look_back = 30;
+		$past_start_date = date('Y-m-d', strtotime($from_date . ' -' . $days_to_look_back . ' days'));
+
+		$all_promotion_data_to_insert = [];
+
+		// 1. Obtener todos los datos relevantes de sa_sell_out_ para todos los modelos en un rango amplio
+		$where_all = [
+			'customer' => $customer,
+			'txn_date >=' => $past_start_date,
+			'txn_date <=' => $to_date,
+		];
+		$where_in_models = [
+			'field' 	=> 'model_suffix_code',
+			'values' 	=> $all_models,
+		];
+		$data_sell_out_all = $this->gen_m->filter('sa_sell_out_', false, $where_all, null, [$where_in_models], [['customer_model', 'asc'], ['txn_date', 'asc']]);
+
+		// 2. Organizar los datos por modelo y fecha para facilitar el procesamiento
+		$organized_data = [];
+		foreach ($data_sell_out_all as $item) {
+			$organized_data[$item->model_suffix_code][$item->txn_date][] = $item;
+		}
+
+		foreach ($all_models as $model) {
+			$price_prom = '';
+			$is_bundle_model = in_array($model, $models_bundles);
+			if (!$is_bundle_model) {
+				$culculate_price_promotions = $this->gen_m->filter_select('sa_calculate_promotion', false, ['price_promotion', 'model'], ['model' => $model]);
+				if (!empty($culculate_price_promotions) && $culculate_price_promotions[0]->model === $model) {
+					$price_prom = $culculate_price_promotions[0]->price_promotion;
+				}
+			}
+
+			// Procesar el periodo actual ($from_date a $to_date)
+			for ($current_date = $from_date; $current_date <= $to_date; $current_date = date('Y-m-d', strtotime($current_date . ' +1 day'))) {
+				if (isset($organized_data[$model][$current_date])) {
+					$daily_stock_sum = 0;
+					$first_item_base = null;
+					$has_nonzero_sellout = false;
+					$current_day_records = [];
+
+					foreach ($organized_data[$model][$current_date] as $item_out) {
+						$base_data = [
+							'customer' 			=> $item_out->customer,
+							'acct_gtm' 			=> $item_out->acct_gtm,
+							'customer_model'	=> $item_out->customer_model,
+							'model_code'		=> $item_out->model_suffix_code,
+							'txn_date' 			=> $item_out->txn_date,
+						];
+
+						if (isset($item_out->stock)) {
+							$daily_stock_sum += $item_out->stock;
+							if ($first_item_base === null) {
+								$first_item_base = $base_data;
+							}
+						}
+
+						if (isset($item_out->sellout_unit) && $item_out->sellout_unit != 0) {
+							$has_nonzero_sellout = true;
+							$current_day_records[] = $base_data + [
+								'cust_store_code' 	=> $item_out->cust_store_code,
+								'cust_store_name' 	=> $item_out->cust_store_name,
+								'sellout_unit' 		=> $item_out->sellout_unit ?? 0,
+								'sellout_amt' 		=> $item_out->sellout_amt ?? 0,
+								'stock' 			=> null,
+								'ticket' 			=> $item_out->ticket,
+								'promo1_price'		=> $price_prom,
+								'target1_flag'		=> $is_bundle_model ? 'BUNDLE' : 'PROMO APPLIED',
+							];
+						}
+					}
+
+					// Crear el registro de STOCK si la suma es mayor que 0
+					if ($daily_stock_sum > 0 && $first_item_base !== null) {
+						$current_day_records[] = $first_item_base + [
+							'cust_store_code' 		=> null,
+							'cust_store_name' 		=> null,
+							'sellout_unit' 			=> null,
+							'sellout_amt' 			=> null,
+							'stock' 				=> $daily_stock_sum,
+							'ticket' 				=> null,
+							'promo1_price'			=> $price_prom,
+							'target1_flag' 			=> $is_bundle_model ? 'STOCK OF BUNDLE' : 'STOCK',
+						];
+					}
+					$all_promotion_data_to_insert = array_merge($all_promotion_data_to_insert, $current_day_records);
+				}
+			}
+
+			$past_stock_sum = 0;
+			$past_sellout_data = [];
+			$found_first_nonzero_stock_date = null;
+			$first_past_item_base = null;
+
+			// Retroceder día por día
+			for ($past_date = date('Y-m-d', strtotime($from_date . ' -1 day')); strtotime($past_date) >= strtotime($past_start_date); $past_date = date('Y-m-d', strtotime($past_date . ' -1 day'))) {
+				if (isset($organized_data[$model][$past_date])) {
+					$daily_stock_sum_past = 0;
+					$has_past_nonzero_sellout_on_date = false;
+					$current_past_day_items = $organized_data[$model][$past_date];
+
+					foreach ($current_past_day_items as $item) {
+						// Sumar todos los valores de stock para la fecha actual del retroceso
+						if (isset($item->stock)) {
+							$daily_stock_sum_past += $item->stock;
+							if ($first_past_item_base === null) {
+								$first_past_item_base = [
+									'customer' 			=> $item->customer,
+									'acct_gtm' 			=> $item->acct_gtm,
+									'customer_model'	=> $item->customer_model,
+									'model_code' 		=> $item->model_suffix_code,
+								];
+							}
+							if ($item->stock != 0 && $found_first_nonzero_stock_date === null) {
+								$found_first_nonzero_stock_date = $past_date;
+							}
+						}
+
+						// Guardar registros de sellout != 0
+						if (isset($item->sellout_unit) && $item->sellout_unit != 0) {
+							$has_past_nonzero_sellout_on_date = true;
+							$past_sellout_data[] = [
+								'customer' 			=> $item->customer,
+								'acct_gtm' 			=> $item->acct_gtm,
+								'customer_model'	=> $item->customer_model,
+								'model_code' 		=> $item->model_suffix_code,
+								'txn_date'			=> $past_date,
+								'cust_store_code' 	=> $item->cust_store_code,
+								'cust_store_name' 	=> $item->cust_store_name,
+								'sellout_unit' 		=> $item->sellout_unit ?? 0,
+								'sellout_amt' 		=> $item->sellout_amt ?? 0,
+								'stock' 			=> null,
+								'ticket' 			=> $item->ticket,
+								'promo1_price'		=> $price_prom,
+								'target1_flag' 		=> $is_bundle_model ? 'BUNDLE' : 'SELLOUT BEFORE PROMO',
+							];
+						}
+					}
+					$past_stock_sum += $daily_stock_sum_past;
+					if ($found_first_nonzero_stock_date !== null) {
+						break; // Detener el retroceso al encontrar la primera fecha con stock != 0
+					}
+				}
+			}
+
+			// Insertar el registro de STOCK del pasado si se encontró stock != 0
+			if ($found_first_nonzero_stock_date !== null && $past_stock_sum > 0 && $first_past_item_base !== null) {
+				array_unshift($all_promotion_data_to_insert, [
+					'customer' 			=> $customer,
+					'acct_gtm' 			=> $first_past_item_base['acct_gtm'] ?? null,
+					'customer_model'	=> $first_past_item_base['customer_model'] ?? null,
+					'model_code' 		=> $model,
+					'txn_date' 			=> $found_first_nonzero_stock_date, // Usar la fecha en la que se encontró el stock != 0
+					'stock' 			=> $past_stock_sum,
+					'cust_store_code' 	=> null,
+					'cust_store_name' 	=> null,
+					'sellout_unit' 		=> null,
+					'sellout_amt' 		=> null,
+					'ticket' 			=> null,
+					'promo1_price'		=> $price_prom,
+					'target1_flag' 		=> $is_bundle_model ? 'STOCK OF BUNDLE' : 'STOCK',
+				]);
+			}
+
+			// Agregar los registros de sellout != 0 del pasado
+			$all_promotion_data_to_insert = array_merge($all_promotion_data_to_insert, $past_sellout_data);
+		}
+
+		// Ordenar el resultado final por modelo y luego por txn_date
+		usort($all_promotion_data_to_insert, function ($a, $b) {
+			if ($a['model_code'] === $b['model_code']) {
+				if ($a['txn_date'] === $b['txn_date']) {
+					$a_is_stock = isset($a['target1_flag']) && (in_array($a['target1_flag'], ['STOCK', 'STOCK OF BUNDLE']));
+					$b_is_stock = isset($b['target1_flag']) && (in_array($b['target1_flag'], ['STOCK', 'STOCK OF BUNDLE']));
+
+					if ($a_is_stock && !$b_is_stock) {
+						return -1;
+					} elseif (!$a_is_stock && $b_is_stock) {
+						return 1;
+					} else {
+						return 0;
+					}
+				}
+				return strtotime($a['txn_date']) - strtotime($b['txn_date']);
+			}
+			return strcmp($a['model_code'], $b['model_code']);
+		});
+		echo '<pre>'; print_r($all_promotion_data_to_insert);
+		$batch_data = $all_promotion_data_to_insert;
+		// Verificar dias previos para modelos de bundles mal mapeado
+		// Falta agregar para las demas columnas de la hoja sellout como las colmnas de target1flag  y ver logica para las otras columnas
+		// Inserción por lotes
+		// Tener en cuenta para los casos de promo no applied cuando ticket es mayor a promo1_price (cuidado, se puede redondear y aun cumplicar con ser menor o sea 400 a 399 masimo 2 numeros mas)
+		//$this->gen_m->insert_m("sa_sell_out_promotion", $batch_data);
+	}
+	
+	public function load_sell_out_v2() {
+
+		$filter_select_promo = ['start_date', 'end_date', 'customer_code', 'promotion_no', 'model', 'price_promotion', 'gift'];
+		$data_calculate = $this->gen_m->filter_select('sa_calculate_promotion', false, $filter_select_promo);
+
+		$models = array_unique(array_column($data_calculate, 'model'));
+		$models = array_filter($models);
+
+		$models_bundles = array_unique(array_column($data_calculate, 'gift'));
+		$models_bundles = array_filter($models_bundles);
+
+		$all_models = array_merge($models, $models_bundles);
+		$all_models = array_unique($all_models);
+		$all_models = array_values($all_models);
+
+		if (empty($data_calculate)) {
+			echo "No hay datos de cálculo de promoción.";
+			return;
+		}
+
+		$from_date = date('Y-m-01', strtotime($data_calculate[0]->start_date));
+		$to_date = date('Y-m-t', strtotime($data_calculate[0]->start_date));
+		$customer = $data_calculate[0]->customer_code;
+		$days_to_look_back = 30;
+		$past_start_date = date('Y-m-d', strtotime($from_date . ' -' . $days_to_look_back . ' days'));
+
+		$all_promotion_data_to_insert = [];
+
+		// 1. Obtener todos los datos relevantes de sa_sell_out_ para todos los modelos en un rango amplio
+		$where_all = [
+			'customer' => $customer,
+			'txn_date >=' => $past_start_date,
+			'txn_date <=' => $to_date,
+		];
+		$where_in_models = [
+			'field' 	=> 'model_suffix_code',
+			'values' 	=> $all_models,
+		];
+		$data_sell_out_all = $this->gen_m->filter('sa_sell_out_', false, $where_all, null, [$where_in_models], [['customer_model', 'asc'], ['txn_date', 'asc']]);
+
+		// 2. Organizar los datos por modelo y fecha para facilitar el procesamiento
+		$organized_data = [];
+		foreach ($data_sell_out_all as $item) {
+			$organized_data[$item->model_suffix_code][$item->txn_date][] = $item;
+		}
+
+		foreach ($all_models as $model) {
+			$price_prom = '';
+			$is_bundle_model = in_array($model, $models_bundles);
+			if (!$is_bundle_model) {
+				$culculate_price_promotions = $this->gen_m->filter_select('sa_calculate_promotion', false, ['price_promotion', 'model'], ['model' => $model]);
+				if (!empty($culculate_price_promotions) && $culculate_price_promotions[0]->model === $model) {
+					$price_prom = $culculate_price_promotions[0]->price_promotion;
+				}
+			}
+
+			// Procesar el periodo actual ($from_date a $to_date)
+			for ($current_date = $from_date; $current_date <= $to_date; $current_date = date('Y-m-d', strtotime($current_date . ' +1 day'))) {
+				if (isset($organized_data[$model][$current_date])) {
+					$daily_stock_sum = 0;
+					$first_item_base = null;
+					$has_nonzero_sellout = false;
+					$current_day_records = [];
+
+					foreach ($organized_data[$model][$current_date] as $item_out) {
+						$base_data = [
+							'customer' 			=> $item_out->customer,
+							'acct_gtm' 			=> $item_out->acct_gtm,
+							'customer_model'	=> $item_out->customer_model,
+							'model_code'		=> $item_out->model_suffix_code,
+							'txn_date' 			=> $item_out->txn_date,
+						];
+
+						$target1_flag = $is_bundle_model ? 'BUNDLE' : 'PROMO APPLIED';
+						if (stripos($item_out->cust_store_name, 'WEB') !== false || stripos($item_out->cust_store_name, 'web') !== false || stripos($item_out->cust_store_name, 'b2b2c') !== false) {
+							$target1_flag = 'PROMO APPLIED WEB';
+						}
+						//  if (isset($item_out->ticket) && isset($price_prom) && is_numeric($item_out->ticket) && is_numeric($price_prom) && $item_out->ticket > ($price_prom + 2)) {
+						// 	$target1_flag = 'PROMO NO APPLIED';
+						// }
+						$cust_store_code = $item_out->cust_store_code;
+						if (empty($cust_store_code) || $cust_store_code == 0) {
+							$names = explode(" ", $item_out->cust_store_name);
+							if (count($names) > 1) {
+								$cust_store_code = $names[1];
+								if (isset($names[2])){
+									$cust_store_code = $cust_store_code . " " . $names[2]; 
+								}
+							}
+						}
+
+						if (isset($item_out->stock)) {
+							$daily_stock_sum += $item_out->stock;
+							if ($first_item_base === null) {
+								$first_item_base = $base_data;
+							}
+						}
+
+						if (isset($item_out->sellout_unit) && $item_out->sellout_unit != 0) {
+							$has_nonzero_sellout = true;
+							$current_day_records[] = $base_data + [
+								'cust_store_code' 	=> $cust_store_code,
+								'cust_store_name' 	=> $item_out->cust_store_name,
+								'sellout_unit' 		=> $item_out->sellout_unit ?? 0,
+								'sellout_amt' 		=> $item_out->sellout_amt ?? 0,
+								'stock' 			=> null,
+								'ticket' 			=> $item_out->ticket,
+								'promo1_price'		=> $price_prom,
+								'target1_flag'		=> $target1_flag,
+							];
+						}
+					}
+
+					// Crear el registro de STOCK si la suma es mayor que 0
+					if ($daily_stock_sum > 0 && $first_item_base !== null) {
+						$current_day_records[] = $first_item_base + [
+							'cust_store_code' 		=> null,
+							'cust_store_name' 		=> null,
+							'sellout_unit' 			=> null,
+							'sellout_amt' 			=> null,
+							'stock' 				=> $daily_stock_sum,
+							'ticket' 				=> null,
+							'promo1_price'			=> $price_prom,
+							'target1_flag' 			=> $is_bundle_model ? 'STOCK OF BUNDLE' : 'STOCK',
+						];
+					}
+					$all_promotion_data_to_insert = array_merge($all_promotion_data_to_insert, $current_day_records);
+				}
+			}
+
+			$past_stock_sum = 0;
+			$past_sellout_data = [];
+			$found_first_nonzero_stock_date = null;
+			$first_past_item_base = null;
+
+			// Retroceder día por día
+			for ($past_date = date('Y-m-d', strtotime($from_date . ' -1 day')); strtotime($past_date) >= strtotime($past_start_date); $past_date = date('Y-m-d', strtotime($past_date . ' -1 day'))) {
+				if (isset($organized_data[$model][$past_date])) {
+					$daily_stock_sum_past = 0;
+					$has_past_nonzero_sellout_on_date = false;
+					$current_past_day_items = $organized_data[$model][$past_date];
+
+					foreach ($current_past_day_items as $item) {
+						// Sumar todos los valores de stock para la fecha actual del retroceso
+						if (isset($item->stock)) {
+							$daily_stock_sum_past += $item->stock;
+							if ($first_past_item_base === null) {
+								$first_past_item_base = [
+									'customer' 			=> $item->customer,
+									'acct_gtm' 			=> $item->acct_gtm,
+									'customer_model'	=> $item->customer_model,
+									'model_code' 		=> $item->model_suffix_code,
+								];
+							}
+							if ($item->stock != 0 && $found_first_nonzero_stock_date === null) {
+								$found_first_nonzero_stock_date = $past_date;
+							}
+						}
+
+						// Guardar registros de sellout != 0
+						if (isset($item->sellout_unit) && $item->sellout_unit != 0) {
+							$has_past_nonzero_sellout_on_date = true;
+							$target1_flag = $is_bundle_model ? 'BUNDLE' : 'SELLOUT BEFORE PROMO';
+							if (stripos($item->cust_store_name, 'WEB') !== false || stripos($item->cust_store_name, 'web') !== false) {
+								$target1_flag = 'PROMO APPLIED WEB';
+							}
+							// if (isset($item->ticket) && isset($price_prom) && is_numeric($item->ticket) && is_numeric($price_prom) && $item_out->ticket > ($price_prom + 2)) {
+							// 	$target1_flag = 'PROMO NO APPLIED';
+							// }
+							$cust_store_code = $item->cust_store_code;
+							if (empty($cust_store_code) || $cust_store_code == 0) {
+								$names = explode(" ", $item->cust_store_name);
+								if (count($names) > 1) {
+									$cust_store_code = $names[1];
+								}
+							}
+							$past_sellout_data[] = [
+								'customer' 			=> $item->customer,
+								'acct_gtm' 			=> $item->acct_gtm,
+								'customer_model'	=> $item->customer_model,
+								'model_code' 		=> $item->model_suffix_code,
+								'txn_date'			=> $past_date,
+								'cust_store_code' 	=> $cust_store_code,
+								'cust_store_name' 	=> $item->cust_store_name,
+								'sellout_unit' 		=> $item->sellout_unit ?? 0,
+								'sellout_amt' 		=> $item->sellout_amt ?? 0,
+								'stock' 			=> null,
+								'ticket' 			=> $item->ticket,
+								'promo1_price'		=> $price_prom,
+								'target1_flag' 		=> $target1_flag,
+							];
+						}
+					}
+					$past_stock_sum += $daily_stock_sum_past;
+					if ($found_first_nonzero_stock_date !== null) {
+						break; // Detener el retroceso al encontrar la primera fecha con stock != 0
+					}
+				}
+			}
+
+			// Insertar el registro de STOCK del pasado si se encontró stock != 0
+			if ($found_first_nonzero_stock_date !== null && $past_stock_sum > 0 && $first_past_item_base !== null) {
+				array_unshift($all_promotion_data_to_insert, [
+					'customer' 			=> $customer,
+					'acct_gtm' 			=> $first_past_item_base['acct_gtm'] ?? null,
+					'customer_model'	=> $first_past_item_base['customer_model'] ?? null,
+					'model_code' 		=> $model,
+					'txn_date' 			=> $found_first_nonzero_stock_date, // Usar la fecha en la que se encontró el stock != 0
+					'stock' 			=> $past_stock_sum,
+					'cust_store_code' 	=> null,
+					'cust_store_name' 	=> null,
+					'sellout_unit' 		=> null,
+					'sellout_amt' 		=> null,
+					'ticket' 			=> null,
+					'promo1_price'		=> $price_prom,
+					'target1_flag' 		=> $is_bundle_model ? 'STOCK OF BUNDLE' : 'STOCK',
+				]);
+			}
+
+			// Agregar los registros de sellout != 0 del pasado
+			$all_promotion_data_to_insert = array_merge($all_promotion_data_to_insert, $past_sellout_data);
+		}
+
+		// Ordenar el resultado final por modelo y luego por txn_date
+		usort($all_promotion_data_to_insert, function ($a, $b) {
+			if ($a['model_code'] === $b['model_code']) {
+				if ($a['txn_date'] === $b['txn_date']) {
+					$a_is_stock = isset($a['target1_flag']) && (in_array($a['target1_flag'], ['STOCK', 'STOCK OF BUNDLE', 'PROMO APPLIED WEB', 'PROMO NO APPLIED']));
+					$b_is_stock = isset($b['target1_flag']) && (in_array($b['target1_flag'], ['STOCK', 'STOCK OF BUNDLE', 'PROMO APPLIED WEB', 'PROMO NO APPLIED']));
+
+					if ($a_is_stock && !$b_is_stock) {
+						return -1;
+					} elseif (!$a_is_stock && $b_is_stock) {
+						return 1;
+					} else {
+						return 0;
+					}
+				}
+				return strtotime($a['txn_date']) - strtotime($b['txn_date']);
+			}
+			return strcmp($a['model_code'], $b['model_code']);
+		});
+		//echo '<pre>'; print_r($all_promotion_data_to_insert);
+		$batch_data = $all_promotion_data_to_insert;
+		// basicas , mixtas, additional, bundle
+		$this->gen_m->insert_m("sa_sell_out_promotion", $batch_data);
+	}
+	
+	public function load_sell_out_v3() {
+
+		$filter_select_promo = ['start_date', 'end_date', 'customer_code', 'promotion_no', 'model', 'price_promotion', 'gift'];
+		$data_calculate = $this->gen_m->filter_select('sa_calculate_promotion', false, $filter_select_promo);
+
+		$models = array_unique(array_column($data_calculate, 'model'));
+		$models = array_filter($models);
+
+		$models_bundles = array_unique(array_column($data_calculate, 'gift'));
+		$models_bundles = array_filter($models_bundles);
+
+		$all_models = array_merge($models, $models_bundles);
+		$all_models = array_unique($all_models);
+		$all_models = array_values($all_models);
+
+		if (empty($data_calculate)) {
+			echo "No hay datos de cálculo de promoción.";
+			return;
+		}
+
+		$from_date = date('Y-m-01', strtotime($data_calculate[0]->start_date));
+		$to_date = date('Y-m-t', strtotime($data_calculate[0]->start_date));
+		$customer = $data_calculate[0]->customer_code;
+		$days_to_look_back = 30;
+		$past_start_date = date('Y-m-d', strtotime($from_date . ' -' . $days_to_look_back . ' days'));
+
+		$all_promotion_data_to_insert = [];
+
+		// 1. Obtener todos los datos relevantes de sa_sell_out_ para todos los modelos en un rango amplio
+		$where_all = [
+			'customer' => $customer,
+			'txn_date >=' => $past_start_date,
+			'txn_date <=' => $to_date,
+		];
+		$where_in_models = [
+			'field' 	=> 'model_suffix_code',
+			'values' 	=> $all_models,
+		];
+		$data_sell_out_all = $this->gen_m->filter('sa_sell_out_', false, $where_all, null, [$where_in_models], [['customer_model', 'asc'], ['txn_date', 'asc']]);
+
+		// 2. Organizar los datos por modelo y fecha para facilitar el procesamiento
+		$organized_data = [];
+		foreach ($data_sell_out_all as $item) {
+			$organized_data[$item->model_suffix_code][$item->txn_date][] = $item;
+		}
+
+		foreach ($all_models as $model) {
+			$price_prom = '';
+			$is_bundle_model = in_array($model, $models_bundles);
+			//$priority = [];
+			$var_prom = [];
+			$current_date = '';
+			if (!$is_bundle_model) {
+				$culculate_price_promotions = $this->gen_m->filter_select('sa_calculate_promotion', false, ['price_promotion', 'model', 'start_date', 'end_date', 'seq'], ['model' => $model]);
+				if (!empty($culculate_price_promotions) && $culculate_price_promotions[0]->model === $model) {
+					$price_prom = $culculate_price_promotions[0]->price_promotion;
+				}
+			}
+			
+			//echo '<pre>'; print_r($var_promo); 
+			// Procesar el periodo actual ($from_date a $to_date)
+			for ($current_date = $from_date; $current_date <= $to_date; $current_date = date('Y-m-d', strtotime($current_date . ' +1 day'))) {
+				if (isset($organized_data[$model][$current_date])) {
+					$daily_stock_sum = 0;
+					$first_item_base = null;
+					$has_nonzero_sellout = false;
+					$current_day_records = [];
+					
+					// if ($organized_data[$model][$current_date]->model === $var_promo[$model]){
+						
+					// }
+					
+					
+					foreach ($organized_data[$model][$current_date] as $item_out) {
+						
+						$base_data = [
+							'customer' 			=> $item_out->customer,
+							'acct_gtm' 			=> $item_out->acct_gtm,
+							'customer_model'	=> $item_out->customer_model,
+							'model_code'		=> $item_out->model_suffix_code,
+							'txn_date' 			=> $item_out->txn_date,
+						];
+
+						$target1_flag = $is_bundle_model ? 'BUNDLE' : 'PROMO APPLIED';
+						if (stripos($item_out->cust_store_name, 'WEB') !== false || stripos($item_out->cust_store_name, 'web') !== false || stripos($item_out->cust_store_name, 'b2b2c') !== false || stripos($item_out->cust_store_name, 'VIRTUAL') !== false) {
+							$target1_flag = 'PROMO APPLIED WEB';
+						}
+
+						
+						$cust_store_code = $item_out->cust_store_code;
+						if (empty($cust_store_code) || $cust_store_code == 0) {
+							$names = explode(" ", $item_out->cust_store_name);
+							if (count($names) > 1) {
+								$cust_store_code = $names[1];
+							}
+						}
+
+						if (isset($item_out->stock)) {
+							$daily_stock_sum += $item_out->stock;
+							if ($first_item_base === null) {
+								$first_item_base = $base_data;
+							}
+						}
+						
+						if (isset($item_out->sellout_unit) && $item_out->sellout_unit != 0) {
+							$has_nonzero_sellout = true;
+							$current_day_records[] = $base_data + [
+								'cust_store_code' 	=> $cust_store_code,
+								'cust_store_name' 	=> $item_out->cust_store_name,
+								'sellout_unit' 		=> $item_out->sellout_unit ?? 0,
+								'sellout_amt' 		=> $item_out->sellout_amt ?? 0,
+								'stock' 			=> null,
+								'ticket' 			=> $item_out->ticket,
+								'promo1_price'		=> $price_prom,
+								'target1_flag'		=> $target1_flag,
+								'promo2_price'		=> null,
+								'target2_flag'		=> null,
+								'promo3_price'		=> null,
+								'target3_flag'		=> null,
+								'promo4_price'		=> null,
+								'target4_flag'		=> null,
+								'promo5_price'		=> null,
+								'target5_flag'		=> null,
+								'promo6_price'		=> null,
+								'target6_flag'		=> null,
+								'promo7_price'		=> null,
+								'target7_flag'		=> null,
+								'promo8_price'		=> null,
+								'target8_flag'		=> null,
+								'promo9_price'		=> null,
+								'target9_flag'		=> null,
+								'promo10_price'		=> null,
+								'target10_flag'		=> null,
+							];
+						}
+					}
+
+					// Crear el registro de STOCK si la suma es mayor que 0
+					if ($daily_stock_sum > 0 && $first_item_base !== null) {
+						$current_day_records[] = $first_item_base + [
+							'cust_store_code' 		=> null,
+							'cust_store_name' 		=> null,
+							'sellout_unit' 			=> null,
+							'sellout_amt' 			=> null,
+							'stock' 				=> $daily_stock_sum,
+							'ticket' 				=> null,
+							'promo1_price'			=> $price_prom,
+							'target1_flag' 			=> $is_bundle_model ? 'STOCK OF BUNDLE' : 'STOCK',
+							'promo2_price'			=> null,
+							'target2_flag'			=> null,
+							'promo3_price'			=> null,
+							'target3_flag'			=> null,
+							'promo4_price'			=> null,
+							'target4_flag'			=> null,
+							'promo5_price'			=> null,
+							'target5_flag'			=> null,
+							'promo6_price'			=> null,
+							'target6_flag'			=> null,
+							'promo7_price'			=> null,
+							'target7_flag'			=> null,
+							'promo8_price'			=> null,
+							'target8_flag'			=> null,
+							'promo9_price'			=> null,
+							'target9_flag'			=> null,
+							'promo10_price'			=> null,
+							'target10_flag'			=> null,
+						];
+					}
+					$all_promotion_data_to_insert = array_merge($all_promotion_data_to_insert, $current_day_records);
+				}
+			}
+
+			$past_stock_sum = 0;
+			$past_sellout_data = [];
+			$found_first_nonzero_stock_date = null;
+			$first_past_item_base = null;
+
+			// Retroceder día por día
+			for ($past_date = date('Y-m-d', strtotime($from_date . ' -1 day')); strtotime($past_date) >= strtotime($past_start_date); $past_date = date('Y-m-d', strtotime($past_date . ' -1 day'))) {
+				if (isset($organized_data[$model][$past_date])) {
+					$daily_stock_sum_past = 0;
+					$has_past_nonzero_sellout_on_date = false;
+					$current_past_day_items = $organized_data[$model][$past_date];
+
+					foreach ($current_past_day_items as $item) {
+						// Sumar todos los valores de stock para la fecha actual del retroceso
+						if (isset($item->stock)) {
+							$daily_stock_sum_past += $item->stock;
+							if ($first_past_item_base === null) {
+								$first_past_item_base = [
+									'customer' 			=> $item->customer,
+									'acct_gtm' 			=> $item->acct_gtm,
+									'customer_model'	=> $item->customer_model,
+									'model_code' 		=> $item->model_suffix_code,
+								];
+							}
+							if ($item->stock != 0 && $found_first_nonzero_stock_date === null) {
+								$found_first_nonzero_stock_date = $past_date;
+							}
+						}
+
+						// Guardar registros de sellout != 0
+						if (isset($item->sellout_unit) && $item->sellout_unit != 0) {
+							$has_past_nonzero_sellout_on_date = true;
+							$target1_flag = $is_bundle_model ? 'BUNDLE' : 'SELLOUT BEFORE PROMO';
+							if (stripos($item->cust_store_name, 'WEB') !== false || stripos($item->cust_store_name, 'web') !== false) {
+								$target1_flag = 'PROMO APPLIED WEB';
+							}
+							// if (isset($item->ticket) && isset($price_prom) && is_numeric($item->ticket) && is_numeric($price_prom) && $item_out->ticket > ($price_prom + 2)) {
+							// 	$target1_flag = 'PROMO NO APPLIED';
+							// }
+							$cust_store_code = $item->cust_store_code;
+							if (empty($cust_store_code) || $cust_store_code == 0) {
+								$names = explode(" ", $item->cust_store_name);
+								if (count($names) > 1) {
+									$cust_store_code = $names[1];
+								}
+							}
+							$past_sellout_data[] = [
+								'customer' 			=> $item->customer,
+								'acct_gtm' 			=> $item->acct_gtm,
+								'customer_model'	=> $item->customer_model,
+								'model_code' 		=> $item->model_suffix_code,
+								'txn_date'			=> $past_date,
+								'cust_store_code' 	=> $cust_store_code,
+								'cust_store_name' 	=> $item->cust_store_name,
+								'sellout_unit' 		=> $item->sellout_unit ?? 0,
+								'sellout_amt' 		=> $item->sellout_amt ?? 0,
+								'stock' 			=> null,
+								'ticket' 			=> $item->ticket,
+								'promo1_price'		=> $price_prom,
+								'target1_flag' 		=> $target1_flag,
+								'promo2_price'		=> null,
+								'target2_flag'		=> null,
+								'promo3_price'		=> null,
+								'target3_flag'		=> null,
+								'promo4_price'		=> null,
+								'target4_flag'		=> null,
+								'promo5_price'		=> null,
+								'target5_flag'		=> null,
+								'promo6_price'		=> null,
+								'target6_flag'		=> null,
+								'promo7_price'		=> null,
+								'target7_flag'		=> null,
+								'promo8_price'		=> null,
+								'target8_flag'		=> null,
+								'promo9_price'		=> null,
+								'target9_flag'		=> null,
+								'promo10_price'		=> null,
+								'target10_flag'		=> null,
+							];
+						}
+					}
+					$past_stock_sum += $daily_stock_sum_past;
+					if ($found_first_nonzero_stock_date !== null) {
+						break; // Detener el retroceso al encontrar la primera fecha con stock != 0
+					}
+				}
+			}
+
+			// Insertar el registro de STOCK del pasado si se encontró stock != 0
+			if ($found_first_nonzero_stock_date !== null && $past_stock_sum > 0 && $first_past_item_base !== null) {
+				array_unshift($all_promotion_data_to_insert, [
+					'customer' 			=> $customer,
+					'acct_gtm' 			=> $first_past_item_base['acct_gtm'] ?? null,
+					'customer_model'	=> $first_past_item_base['customer_model'] ?? null,
+					'model_code' 		=> $model,
+					'txn_date' 			=> $found_first_nonzero_stock_date, // Usar la fecha en la que se encontró el stock != 0
+					'stock' 			=> $past_stock_sum,
+					'cust_store_code' 	=> null,
+					'cust_store_name' 	=> null,
+					'sellout_unit' 		=> null,
+					'sellout_amt' 		=> null,
+					'ticket' 			=> null,
+					'promo1_price'		=> $price_prom,
+					'target1_flag' 		=> $is_bundle_model ? 'STOCK OF BUNDLE' : 'STOCK',
+					'promo2_price'		=> null,
+					'target2_flag'		=> null,
+					'promo3_price'		=> null,
+					'target3_flag'		=> null,
+					'promo4_price'		=> null,
+					'target4_flag'		=> null,
+					'promo5_price'		=> null,
+					'target5_flag'		=> null,
+					'promo6_price'		=> null,
+					'target6_flag'		=> null,
+					'promo7_price'		=> null,
+					'target7_flag'		=> null,
+					'promo8_price'		=> null,
+					'target8_flag'		=> null,
+					'promo9_price'		=> null,
+					'target9_flag'		=> null,
+					'promo10_price'		=> null,
+					'target10_flag'		=> null,
+				]);
+			}
+
+			// Agregar los registros de sellout != 0 del pasado
+			$all_promotion_data_to_insert = array_merge($all_promotion_data_to_insert, $past_sellout_data);
+		}
+
+		// Ordenar el resultado final por modelo y luego por txn_date
+		usort($all_promotion_data_to_insert, function ($a, $b) {
+			if ($a['model_code'] === $b['model_code']) {
+				if ($a['txn_date'] === $b['txn_date']) {
+					$a_is_stock = isset($a['target1_flag']) && (in_array($a['target1_flag'], ['STOCK', 'STOCK OF BUNDLE', 'PROMO APPLIED WEB', 'PROMO NO APPLIED']));
+					$b_is_stock = isset($b['target1_flag']) && (in_array($b['target1_flag'], ['STOCK', 'STOCK OF BUNDLE', 'PROMO APPLIED WEB', 'PROMO NO APPLIED']));
+
+					if ($a_is_stock && !$b_is_stock) {
+						return -1;
+					} elseif (!$a_is_stock && $b_is_stock) {
+						return 1;
+					} else {
+						return 0;
+					}
+				}
+				return strtotime($a['txn_date']) - strtotime($b['txn_date']);
+			}
+			return strcmp($a['model_code'], $b['model_code']);
+		});
+		//echo '<pre>'; print_r($all_promotion_data_to_insert);
+		$batch_data = $all_promotion_data_to_insert;
+		// Verificar dias previos para modelos de bundles mal mapeado
+		// Falta agregar para las demas columnas de la hoja sellout como las colmnas de target1flag  y ver logica para las otras columnas
+		// Inserción por lotes
+		// Tener en cuenta para los casos de promo no applied cuando ticket es mayor a promo1_price (cuidado, se puede redondear y aun cumplicar con ser menor o sea 400 a 399 masimo 2 numeros mas)
+		$this->gen_m->insert_m("sa_sell_out_promotion", $batch_data);
+	}
+
+	public function load_sell_out_v4() {
+
+		$filter_select_promo = ['start_date', 'end_date', 'customer_code', 'promotion_no', 'model', 'price_promotion', 'gift'];
+		$data_calculate = $this->gen_m->filter_select('sa_calculate_promotion', false, $filter_select_promo);
+
+		$models = array_unique(array_column($data_calculate, 'model'));
+		$models = array_filter($models);
+
+		$models_bundles = array_unique(array_column($data_calculate, 'gift'));
+		$models_bundles = array_filter($models_bundles);
+
+		$all_models = array_merge($models, $models_bundles);
+		$all_models = array_unique($all_models);
+		$all_models = array_values($all_models);
+
+		if (empty($data_calculate)) {
+			echo "No hay datos de cálculo de promoción.";
+			return;
+		}
+
+		$from_date = date('Y-m-01', strtotime($data_calculate[0]->start_date));
+		$to_date = date('Y-m-t', strtotime($data_calculate[0]->start_date));
+		$customer = $data_calculate[0]->customer_code;
+		$days_to_look_back = 30;
+		$past_start_date = date('Y-m-d', strtotime($from_date . ' -' . $days_to_look_back . ' days'));
+
+		$all_promotion_data_to_insert = [];
+
+		// 1. Obtener todos los datos relevantes de sa_sell_out_ para todos los modelos en un rango amplio
+		$where_all = [
+			'customer' => $customer,
+			'txn_date >=' => $past_start_date,
+			'txn_date <=' => $to_date,
+		];
+		$where_in_models = [
+			'field' 	=> 'model_suffix_code',
+			'values' 	=> $all_models,
+		];
+		$data_sell_out_all = $this->gen_m->filter('sa_sell_out_', false, $where_all, null, [$where_in_models], [['customer_model', 'asc'], ['txn_date', 'asc']]);
+
+		// 2. Organizar los datos por modelo y fecha para facilitar el procesamiento
+		$organized_data = [];
+		foreach ($data_sell_out_all as $item) {
+			$organized_data[$item->model_suffix_code][$item->txn_date][] = $item;
+		}
+
+		foreach ($all_models as $model) {
+			$price_prom = '';
+			$is_bundle_model = in_array($model, $models_bundles);
+			$promotions_by_type = [
+				'basica' => [],
+				'adicional' => [],
+				'mixta' => [],
+				'bundle' => [],
+			];
+
+			if (!$is_bundle_model) {
+				$culculate_price_promotions = $this->gen_m->filter_select('sa_calculate_promotion', false, ['price_promotion', 'model', 'start_date', 'end_date'], ['model' => $model]);
+
+				if (!empty($culculate_price_promotions)) {
+					$basic_ranges = [];
+					$first_basic_found = false;
+					$second_basic_found = false;
+
+					// Identificar promociones básicas
+					foreach ($culculate_price_promotions as $promotion) {
+						$mes_inicio = date('Y-m-01', strtotime($promotion->start_date));
+						$mes_fin = date('Y-m-t', strtotime($promotion->start_date));
+
+						if (date('d', strtotime($promotion->start_date)) == '01' && !$first_basic_found) {
+							$promotions_by_type['basica'][] = $promotion;
+							$basic_ranges[] = ['start' => $promotion->start_date, 'end' => $promotion->end_date];
+							$first_basic_found = true;
+						} elseif (date('d', strtotime($promotion->end_date)) == date('t', strtotime($promotion->start_date)) && !$second_basic_found) {
+							$promotions_by_type['basica'][] = $promotion;
+							$basic_ranges[] = ['start' => $promotion->start_date, 'end' => $promotion->end_date];
+							$second_basic_found = true;
+						}
+					}
+
+					// Identificar las demás promociones
+					foreach ($culculate_price_promotions as $promotion) {
+						if (!in_array($promotion, $promotions_by_type['basica'])) {
+							$is_additional = false;
+							$is_mixta = false;
+							$is_bundle = false;
+							$mes_inicio_promo = date('Y-m-01', strtotime($promotion->start_date));
+							$mes_fin_promo = date('Y-m-t', strtotime($promotion->start_date));
+
+							// Es bundle?
+							if ($promotion->start_date == $mes_inicio_promo && $promotion->end_date == $mes_fin_promo) {
+								$is_bundle = true;
+							} else {
+								// Es adicional?
+								foreach ($basic_ranges as $range) {
+									if (strtotime($promotion->start_date) >= strtotime($range['start']) && strtotime($promotion->end_date) <= strtotime($range['end'])) {
+										$is_additional = true;
+										break;
+									}
+								}
+
+								// Es mixta?
+								if (!$is_additional && count($basic_ranges) == 2) {
+									$start_in_basic1 = strtotime($promotion->start_date) >= strtotime($basic_ranges[0]['start']) && strtotime($promotion->start_date) <= strtotime($basic_ranges[0]['end']);
+									$end_in_basic2 = strtotime($promotion->end_date) >= strtotime($basic_ranges[1]['start']) && strtotime($promotion->end_date) <= strtotime($basic_ranges[1]['end']);
+									$start_in_basic2 = strtotime($promotion->start_date) >= strtotime($basic_ranges[1]['start']) && strtotime($promotion->start_date) <= strtotime($basic_ranges[1]['end']);
+									$end_in_basic1 = strtotime($promotion->end_date) >= strtotime($basic_ranges[0]['start']) && strtotime($promotion->end_date) <= strtotime($basic_ranges[0]['end']);
+
+									if (($start_in_basic1 && $end_in_basic2) || ($start_in_basic2 && $end_in_basic1)) {
+										$is_mixta = true;
+									}
+								}
+							}
+
+							if ($is_bundle) {
+								$promotions_by_type['bundle'][] = $promotion;
+							} elseif ($is_mixta) {
+								$promotions_by_type['mixta'][] = $promotion;
+							} elseif ($is_additional) {
+								$promotions_by_type['adicional'][] = $promotion;
+							}
+						}
+					}
+				}
+			}
+
+			// Procesar el periodo actual ($from_date a $to_date)
+			for ($current_date = $from_date; $current_date <= $to_date; $current_date = date('Y-m-d', strtotime($current_date . ' +1 day'))) {
+				if (isset($organized_data[$model][$current_date])) {
+					$daily_stock_sum = 0;
+					$first_item_base = null;
+					$has_nonzero_sellout = false;
+					$current_day_records = [];
+
+					foreach ($organized_data[$model][$current_date] as $item_out) {
+						$base_data = [
+							'customer' => $item_out->customer,
+							'acct_gtm' => $item_out->acct_gtm,
+							'customer_model' => $item_out->customer_model,
+							'model_code' => $item_out->model_suffix_code,
+							'txn_date' => $item_out->txn_date,
+						];
+
+						$target_flag_base = $is_bundle_model ? 'BUNDLE' : 'PROMO APPLIED';
+						if (stripos($item_out->cust_store_name, 'WEB') !== false || stripos($item_out->cust_store_name, 'web') !== false || stripos($item_out->cust_store_name, 'b2b2c') !== false || stripos($item_out->cust_store_name, 'VIRTUAL') !== false) {
+							$target_flag_base = 'PROMO APPLIED WEB';
+						}
+
+						$cust_store_code = $item_out->cust_store_code;
+						if (empty($cust_store_code) || $cust_store_code == 0) {
+							$names = explode(" ", $item_out->cust_store_name);
+							if (count($names) > 1) {
+								$cust_store_code = $names[1];
+							}
+						}
+
+						// Inicializar arrays para promo prices y target flags
+						$promo_prices = array_fill_keys(range(1, 10), null);
+						$target_flags = array_fill_keys(range(1, 10), null);
+
+						$promo_index = 1;
+						// Primero las básicas
+						if (!empty($promotions_by_type['basica'])) {
+							$promo_prices[$promo_index] = $promotions_by_type['basica'][0]->price_promotion ?? null;
+							$target_flags[$promo_index] = $target_flag_base;
+							$promo_index++;
+						}
+
+						// Agrupar y tomar un representante de adicional, mixta y bundle por price_promotion
+						$other_promotions = array_merge(
+							$promotions_by_type['adicional'],
+							$promotions_by_type['mixta'],
+							$promotions_by_type['bundle']
+						);
+
+						$unique_other_promotions = [];
+						$seen_prices = [];
+						foreach ($other_promotions as $promotion) {
+							if (!in_array($promotion->price_promotion, $seen_prices)) {
+								$unique_other_promotions[] = $promotion;
+								$seen_prices[] = $promotion->price_promotion;
+							}
+						}
+
+						foreach ($unique_other_promotions as $promotion) {
+							if ($promo_index <= 10) {
+								$promo_prices[$promo_index] = $promotion->price_promotion;
+								$target_flags[$promo_index] = $target_flag_base;
+								$promo_index++;
+							} else {
+								break;
+							}
+						}
+
+						if (isset($item_out->stock)) {
+							$daily_stock_sum += $item_out->stock;
+							if ($first_item_base === null) {
+								$first_item_base = $base_data;
+							}
+						}
+
+						if (isset($item_out->sellout_unit) && $item_out->sellout_unit != 0) {
+							$has_nonzero_sellout = true;
+							$current_day_record = $base_data + [
+								'cust_store_code' => $cust_store_code,
+								'cust_store_name' => $item_out->cust_store_name,
+								'sellout_unit' => $item_out->sellout_unit ?? 0,
+								'sellout_amt' => $item_out->sellout_amt ?? 0,
+								'stock' => null,
+								'ticket' => $item_out->ticket,
+							];
+							// Merge promo prices and target flags
+							for ($i = 1; $i <= 10; $i++) {
+								$current_day_record['promo' . $i . '_price'] = $promo_prices[$i];
+								$current_day_record['target' . $i . '_flag'] = $target_flags[$i];
+							}
+							$current_day_records[] = $current_day_record;
+						}
+					}
+
+					// Crear el registro de STOCK si la suma es mayor que 0
+					if ($daily_stock_sum > 0 && $first_item_base !== null) {
+						$stock_record = $first_item_base + [
+							'cust_store_code' => null,
+							'cust_store_name' => null,
+							'sellout_unit' => null,
+							'sellout_amt' => null,
+							'stock' => $daily_stock_sum,
+							'ticket' => null,
+						];
+						for ($i = 1; $i <= 10; $i++) {
+							$stock_record['promo' . $i . '_price'] = null;
+							$stock_record['target' . $i . '_flag'] = ($i == 1) ? ($is_bundle_model ? 'STOCK OF BUNDLE' : 'STOCK') : null;
+						}
+						$current_day_records[] = $stock_record;
+					}
+					$all_promotion_data_to_insert = array_merge($all_promotion_data_to_insert, $current_day_records);
+				}
+			}
+
+			// ... (resto del código para el retroceso en fechas)
+
+
+
+		
+
+			$past_stock_sum = 0;
+			$past_sellout_data = [];
+			$found_first_nonzero_stock_date = null;
+			$first_past_item_base = null;
+
+			// Retroceder día por día
+			for ($past_date = date('Y-m-d', strtotime($from_date . ' -1 day')); strtotime($past_date) >= strtotime($past_start_date); $past_date = date('Y-m-d', strtotime($past_date . ' -1 day'))) {
+				if (isset($organized_data[$model][$past_date])) {
+					$daily_stock_sum_past = 0;
+					$has_past_nonzero_sellout_on_date = false;
+					$current_past_day_items = $organized_data[$model][$past_date];
+
+					foreach ($current_past_day_items as $item) {
+						// Sumar todos los valores de stock para la fecha actual del retroceso
+						if (isset($item->stock)) {
+							$daily_stock_sum_past += $item->stock;
+							if ($first_past_item_base === null) {
+								$first_past_item_base = [
+									'customer' 			=> $item->customer,
+									'acct_gtm' 			=> $item->acct_gtm,
+									'customer_model'	=> $item->customer_model,
+									'model_code' 		=> $item->model_suffix_code,
+								];
+							}
+							if ($item->stock != 0 && $found_first_nonzero_stock_date === null) {
+								$found_first_nonzero_stock_date = $past_date;
+							}
+						}
+
+						// Guardar registros de sellout != 0
+						if (isset($item->sellout_unit) && $item->sellout_unit != 0) {
+							$has_past_nonzero_sellout_on_date = true;
+							$target1_flag = $is_bundle_model ? 'BUNDLE' : 'SELLOUT BEFORE PROMO';
+							if (stripos($item->cust_store_name, 'WEB') !== false || stripos($item->cust_store_name, 'web') !== false) {
+								$target1_flag = 'PROMO APPLIED WEB';
+							}
+							// if (isset($item->ticket) && isset($price_prom) && is_numeric($item->ticket) && is_numeric($price_prom) && $item_out->ticket > ($price_prom + 2)) {
+							// 	$target1_flag = 'PROMO NO APPLIED';
+							// }
+							$cust_store_code = $item->cust_store_code;
+							if (empty($cust_store_code) || $cust_store_code == 0) {
+								$names = explode(" ", $item->cust_store_name);
+								if (count($names) > 1) {
+									$cust_store_code = $names[1];
+								}
+							}
+							$past_sellout_data[] = [
+								'customer' 			=> $item->customer,
+								'acct_gtm' 			=> $item->acct_gtm,
+								'customer_model'	=> $item->customer_model,
+								'model_code' 		=> $item->model_suffix_code,
+								'txn_date'			=> $past_date,
+								'cust_store_code' 	=> $cust_store_code,
+								'cust_store_name' 	=> $item->cust_store_name,
+								'sellout_unit' 		=> $item->sellout_unit ?? 0,
+								'sellout_amt' 		=> $item->sellout_amt ?? 0,
+								'stock' 			=> null,
+								'ticket' 			=> $item->ticket,
+								'promo1_price'		=> $price_prom,
+								'target1_flag' 		=> $target1_flag,
+								'promo2_price'		=> null,
+								'target2_flag'		=> null,
+								'promo3_price'		=> null,
+								'target3_flag'		=> null,
+								'promo4_price'		=> null,
+								'target4_flag'		=> null,
+								'promo5_price'		=> null,
+								'target5_flag'		=> null,
+								'promo6_price'		=> null,
+								'target6_flag'		=> null,
+								'promo7_price'		=> null,
+								'target7_flag'		=> null,
+								'promo8_price'		=> null,
+								'target8_flag'		=> null,
+								'promo9_price'		=> null,
+								'target9_flag'		=> null,
+								'promo10_price'		=> null,
+								'target10_flag'		=> null,
+							];
+						}
+					}
+					$past_stock_sum += $daily_stock_sum_past;
+					if ($found_first_nonzero_stock_date !== null) {
+						break; // Detener el retroceso al encontrar la primera fecha con stock != 0
+					}
+				}
+			}
+
+			// Insertar el registro de STOCK del pasado si se encontró stock != 0
+			if ($found_first_nonzero_stock_date !== null && $past_stock_sum > 0 && $first_past_item_base !== null) {
+				array_unshift($all_promotion_data_to_insert, [
+					'customer' 			=> $customer,
+					'acct_gtm' 			=> $first_past_item_base['acct_gtm'] ?? null,
+					'customer_model'	=> $first_past_item_base['customer_model'] ?? null,
+					'model_code' 		=> $model,
+					'txn_date' 			=> $found_first_nonzero_stock_date, // Usar la fecha en la que se encontró el stock != 0
+					'stock' 			=> $past_stock_sum,
+					'cust_store_code' 	=> null,
+					'cust_store_name' 	=> null,
+					'sellout_unit' 		=> null,
+					'sellout_amt' 		=> null,
+					'ticket' 			=> null,
+					'promo1_price'		=> $price_prom,
+					'target1_flag' 		=> $is_bundle_model ? 'STOCK OF BUNDLE' : 'STOCK',
+					'promo2_price'		=> null,
+					'target2_flag'		=> null,
+					'promo3_price'		=> null,
+					'target3_flag'		=> null,
+					'promo4_price'		=> null,
+					'target4_flag'		=> null,
+					'promo5_price'		=> null,
+					'target5_flag'		=> null,
+					'promo6_price'		=> null,
+					'target6_flag'		=> null,
+					'promo7_price'		=> null,
+					'target7_flag'		=> null,
+					'promo8_price'		=> null,
+					'target8_flag'		=> null,
+					'promo9_price'		=> null,
+					'target9_flag'		=> null,
+					'promo10_price'		=> null,
+					'target10_flag'		=> null,
+				]);
+			}
+
+			// Agregar los registros de sellout != 0 del pasado
+			$all_promotion_data_to_insert = array_merge($all_promotion_data_to_insert, $past_sellout_data);
+		}
+
+		// Ordenar el resultado final por modelo y luego por txn_date
+		usort($all_promotion_data_to_insert, function ($a, $b) {
+			if ($a['model_code'] === $b['model_code']) {
+				if ($a['txn_date'] === $b['txn_date']) {
+					$a_is_stock = isset($a['target1_flag']) && (in_array($a['target1_flag'], ['STOCK', 'STOCK OF BUNDLE', 'PROMO APPLIED WEB', 'PROMO NO APPLIED']));
+					$b_is_stock = isset($b['target1_flag']) && (in_array($b['target1_flag'], ['STOCK', 'STOCK OF BUNDLE', 'PROMO APPLIED WEB', 'PROMO NO APPLIED']));
+
+					if ($a_is_stock && !$b_is_stock) {
+						return -1;
+					} elseif (!$a_is_stock && $b_is_stock) {
+						return 1;
+					} else {
+						return 0;
+					}
+				}
+				return strtotime($a['txn_date']) - strtotime($b['txn_date']);
+			}
+			return strcmp($a['model_code'], $b['model_code']);
+		});
+		//echo '<pre>'; print_r($all_promotion_data_to_insert);
+		$batch_data = $all_promotion_data_to_insert;
+		// Verificar dias previos para modelos de bundles mal mapeado
+		// Falta agregar para las demas columnas de la hoja sellout como las colmnas de target1flag  y ver logica para las otras columnas
+		// Inserción por lotes
+		// Tener en cuenta para los casos de promo no applied cuando ticket es mayor a promo1_price (cuidado, se puede redondear y aun cumplicar con ser menor o sea 400 a 399 masimo 2 numeros mas)
+		$this->gen_m->insert_m("sa_sell_out_promotion", $batch_data);
+	}
+
+	public function load_sell_out_v5() {
+
+		$filter_select_promo = ['start_date', 'end_date', 'customer_code', 'promotion_no', 'model', 'price_promotion', 'gift'];
+		$data_calculate = $this->gen_m->filter_select('sa_calculate_promotion', false, $filter_select_promo);
+
+		$models = array_unique(array_column($data_calculate, 'model'));
+		$models = array_filter($models);
+
+		$models_bundles = array_unique(array_column($data_calculate, 'gift'));
+		$models_bundles = array_filter($models_bundles);
+
+		$all_models = array_merge($models, $models_bundles);
+		$all_models = array_unique($all_models);
+		$all_models = array_values($all_models);
+
+		if (empty($data_calculate)) {
+			echo "No hay datos de cálculo de promoción.";
+			return;
+		}
+
+		$from_date = date('Y-m-01', strtotime($data_calculate[0]->start_date));
+		$to_date = date('Y-m-t', strtotime($data_calculate[0]->start_date));
+		$customer = $data_calculate[0]->customer_code;
+		$days_to_look_back = 30;
+		$past_start_date = date('Y-m-d', strtotime($from_date . ' -' . $days_to_look_back . ' days'));
+
+		$all_promotion_data_to_insert = [];
+
+		// 1. Obtener todos los datos relevantes de sa_sell_out_ para todos los modelos en un rango amplio
+		$where_all = [
+			'customer' => $customer,
+			'txn_date >=' => $past_start_date,
+			'txn_date <=' => $to_date,
+		];
+		$where_in_models = [
+			'field'     => 'model_suffix_code',
+			'values'    => $all_models,
+		];
+		$data_sell_out_all = $this->gen_m->filter('sa_sell_out_', false, $where_all, null, [$where_in_models], [['customer_model', 'asc'], ['txn_date', 'asc']]);
+
+		// 2. Organizar los datos por modelo y fecha para facilitar el procesamiento
+		$organized_data = [];
+		foreach ($data_sell_out_all as $item) {
+			$organized_data[$item->model_suffix_code][$item->txn_date][] = $item;
+		}
+
+		foreach ($all_models as $model) {
+			$price_prom = '';
+			$is_bundle_model = in_array($model, $models_bundles);
+			$promotions_by_type = [
+				'basica' => [],
+				'adicional' => [],
+				'mixta' => [],
+				'bundle' => [],
+			];
+
+			if (!$is_bundle_model) {
+				$culculate_price_promotions = $this->gen_m->filter_select('sa_calculate_promotion', false, ['price_promotion', 'model', 'start_date', 'end_date'], ['model' => $model]);
+
+				if (!empty($culculate_price_promotions)) {
+					$basic_ranges = [];
+					$first_basic_found = false;
+					$second_basic_found = false;
+
+					// Identificar promociones básicas
+					foreach ($culculate_price_promotions as $promotion) {
+						$mes_inicio = date('Y-m-01', strtotime($promotion->start_date));
+						$mes_fin = date('Y-m-t', strtotime($promotion->start_date));
+
+						if (date('d', strtotime($promotion->start_date)) == '01' && !$first_basic_found) {
+							$promotions_by_type['basica'][] = $promotion;
+							$basic_ranges[] = ['start' => $promotion->start_date, 'end' => $promotion->end_date];
+							$first_basic_found = true;
+						} elseif (date('d', strtotime($promotion->end_date)) == date('t', strtotime($promotion->start_date)) && !$second_basic_found) {
+							$promotions_by_type['basica'][] = $promotion;
+							$basic_ranges[] = ['start' => $promotion->start_date, 'end' => $promotion->end_date];
+							$second_basic_found = true;
+						}
+					}
+
+					// Identificar las demás promociones
+					foreach ($culculate_price_promotions as $promotion) {
+						if (!in_array($promotion, $promotions_by_type['basica'])) {
+							$is_additional = false;
+							$is_mixta = false;
+							$is_bundle = false;
+							$mes_inicio_promo = date('Y-m-01', strtotime($promotion->start_date));
+							$mes_fin_promo = date('Y-m-t', strtotime($promotion->start_date));
+
+							// Es bundle?
+							if ($promotion->start_date == $mes_inicio_promo && $promotion->end_date == $mes_fin_promo) {
+								$is_bundle = true;
+							} else {
+								// Es adicional?
+								foreach ($basic_ranges as $range) {
+									if (strtotime($promotion->start_date) >= strtotime($range['start']) && strtotime($promotion->end_date) <= strtotime($range['end'])) {
+										$is_additional = true;
+										break;
+									}
+								}
+
+								// Es mixta?
+								if (!$is_additional && count($basic_ranges) == 2) {
+									$start_in_basic1 = strtotime($promotion->start_date) >= strtotime($basic_ranges[0]['start']) && strtotime($promotion->start_date) <= strtotime($basic_ranges[0]['end']);
+									$end_in_basic2 = strtotime($promotion->end_date) >= strtotime($basic_ranges[1]['start']) && strtotime($promotion->end_date) <= strtotime($basic_ranges[1]['end']);
+									$start_in_basic2 = strtotime($promotion->start_date) >= strtotime($basic_ranges[1]['start']) && strtotime($promotion->start_date) <= strtotime($basic_ranges[1]['end']);
+									$end_in_basic1 = strtotime($promotion->end_date) >= strtotime($basic_ranges[0]['start']) && strtotime($promotion->end_date) <= strtotime($basic_ranges[0]['end']);
+
+									if (($start_in_basic1 && $end_in_basic2) || ($start_in_basic2 && $end_in_basic1)) {
+										$is_mixta = true;
+									}
+								}
+							}
+
+							if ($is_bundle) {
+								$promotions_by_type['bundle'][] = $promotion;
+							} elseif ($is_mixta) {
+								$promotions_by_type['mixta'][] = $promotion;
+							} elseif ($is_additional) {
+								$promotions_by_type['adicional'][] = $promotion;
+							}
+						}
+					}
+				}
+			}
+
+			// Procesar el periodo actual ($from_date a $to_date)
+			for ($current_date = $from_date; $current_date <= $to_date; $current_date = date('Y-m-d', strtotime($current_date . ' +1 day'))) {
+				if (isset($organized_data[$model][$current_date])) {
+					$daily_stock_sum = 0;
+					$first_item_base = null;
+					$has_nonzero_sellout = false;
+					$current_day_records = [];
+
+					foreach ($organized_data[$model][$current_date] as $item_out) {
+						$base_data = [
+							'customer' => $item_out->customer,
+							'acct_gtm' => $item_out->acct_gtm,
+							'customer_model' => $item_out->customer_model,
+							'model_code' => $item_out->model_suffix_code,
+							'txn_date' => $item_out->txn_date,
+						];
+
+						$target_flag_base = $is_bundle_model ? 'BUNDLE' : 'PROMO APPLIED';
+						if (stripos($item_out->cust_store_name, 'WEB') !== false || stripos($item_out->cust_store_name, 'web') !== false || stripos($item_out->cust_store_name, 'b2b2c') !== false || stripos($item_out->cust_store_name, 'VIRTUAL') !== false) {
+							$target_flag_base = 'PROMO APPLIED WEB';
+						}
+
+						$cust_store_code = $item_out->cust_store_code;
+						if (empty($cust_store_code) || $cust_store_code == 0) {
+							$names = explode(" ", $item_out->cust_store_name);
+							if (count($names) > 1) {
+								$cust_store_code = $names[1];
+							}
+						}
+
+						// Inicializar arrays para promo prices y target flags
+						$promo_prices = array_fill_keys(range(1, 10), null);
+						$target_flags = array_fill_keys(range(1, 10), null);
+
+						$promo_index = 1;
+						// Primero las básicas
+						if (!empty($promotions_by_type['basica'])) {
+							$promo_prices[$promo_index] = $promotions_by_type['basica'][0]->price_promotion ?? null;
+							$target_flags[$promo_index] = $target_flag_base;
+							$promo_index++;
+						}
+
+						// Llenar para adicional, mixta y bundle
+						$adicionales = $promotions_by_type['adicional'];
+						$mixtas = $promotions_by_type['mixta'];
+						$bundles = $promotions_by_type['bundle'];
+						$num_adicionales = count($adicionales);
+						$num_mixtas = count($mixtas);
+						$num_bundles = count($bundles);
+						$max_promos = max($num_adicionales, $num_mixtas, $num_bundles);
+
+						for ($i = 0; $i < $max_promos; $i++) {
+							 if ($promo_index <= 10) {
+								if (isset($adicionales[$i])) {
+									$promo_prices[$promo_index] = $adicionales[$i]->price_promotion;
+									 if (isset($item_out->ticket) && isset($adicionales[$i]->price_promotion)) {
+										$relacion = round($item_out->ticket / $adicionales[$i]->price_promotion, 2);
+										$target_flags[$promo_index] = ($relacion <= 1) ? $target_flag_base : 'PROMO NO APPLIED';
+									} else {
+										 $target_flags[$promo_index] = $target_flag_base;
+									}
+									$promo_index++;
+								}
+							}
+							if ($promo_index <= 10) {
+								if (isset($mixtas[$i])) {
+									 $promo_prices[$promo_index] = $mixtas[$i]->price_promotion;
+									  if (isset($item_out->ticket) && isset($mixtas[$i]->price_promotion)) {
+											$relacion = round($item_out->ticket / $mixtas[$i]->price_promotion, 2);
+											$target_flags[$promo_index] = ($relacion <= 1) ? $target_flag_base : 'PROMO NO APPLIED';
+										} else {
+											 $target_flags[$promo_index] = $target_flag_base;
+										}
+									$promo_index++;
+								}
+							}
+							if ($promo_index <= 10) {
+								if (isset($bundles[$i])) {
+									$promo_prices[$promo_index] = $bundles[$i]->price_promotion;
+									 if (isset($item_out->ticket) && isset($bundles[$i]->price_promotion)) {
+										$relacion = round($item_out->ticket / $bundles[$i]->price_promotion, 2);
+										$target_flags[$promo_index] = ($relacion <= 1) ? $target_flag_base : 'PROMO NO APPLIED';
+									} else {
+										 $target_flags[$promo_index] = $target_flag_base;
+									}
+									$promo_index++;
+								}
+							}
+						}
+
+						if (isset($item_out->stock)) {
+							$daily_stock_sum += $item_out->stock;
+							if ($first_item_base === null) {
+								$first_item_base = $base_data;
+							}
+						}
+
+						if (isset($item_out->sellout_unit) && $item_out->sellout_unit != 0) {
+							$has_nonzero_sellout = true;
+							$current_day_record = $base_data + [
+								'cust_store_code' => $cust_store_code,
+								'cust_store_name' => $item_out->cust_store_name,
+								'sellout_unit' => $item_out->sellout_unit ?? 0,
+								'sellout_amt' => $item_out->sellout_amt ?? 0,
+								'stock' => null,
+								'ticket' => $item_out->ticket,
+							];
+							// Merge promo prices and target flags
+							for ($i = 1; $i <= 10; $i++) {
+								$current_day_record['promo' . $i . '_price'] = $promo_prices[$i];
+								$current_day_record['target' . $i . '_flag'] = $target_flags[$i];
+							}
+							$current_day_records[] = $current_day_record;
+						}
+					}
+
+					// Crear el registro de STOCK si la suma es mayor que 0
+					if ($daily_stock_sum > 0 && $first_item_base !== null) {
+						$stock_record = $first_item_base + [
+							'cust_store_code' => null,
+							'cust_store_name' => null,
+							'sellout_unit' => null,
+							'sellout_amt' => null,
+							'stock' => $daily_stock_sum,
+							'ticket' => null,
+						];
+						for ($i = 1; $i <= 10; $i++) {
+							$stock_record['promo' . $i . '_price'] = null;
+							$stock_record['target' . $i . '_flag'] = ($i == 1) ? ($is_bundle_model ? 'STOCK OF BUNDLE' : 'STOCK') : null;
+						}
+						$current_day_records[] = $stock_record;
+					}
+					$all_promotion_data_to_insert = array_merge($all_promotion_data_to_insert, $current_day_records);
+				}
+			}
+
+			// ... (resto del código para el retroceso en fechas)
+
+
+
+
+			$past_stock_sum = 0;
+			$past_sellout_data = [];
+			$found_first_nonzero_stock_date = null;
+			$first_past_item_base = null;
+
+			// Retroceder día por día
+			for ($past_date = date('Y-m-d', strtotime($from_date . ' -1 day')); strtotime($past_date) >= strtotime($past_start_date); $past_date = date('Y-m-d', strtotime($past_date . ' -1 day'))) {
+				if (isset($organized_data[$model][$past_date])) {
+					$daily_stock_sum_past = 0;
+					$has_past_nonzero_sellout_on_date = false;
+					$current_past_day_items = $organized_data[$model][$past_date];
+
+					foreach ($current_past_day_items as $item) {
+						// Sumar todos los valores de stock para la fecha actual del retroceso
+						if (isset($item->stock)) {
+							$daily_stock_sum_past += $item->stock;
+							if ($first_past_item_base === null) {
+								$first_past_item_base = [
+									'customer'             => $item->customer,
+									'acct_gtm'             => $item->acct_gtm,
+									'customer_model'    => $item->customer_model,
+									'model_code'         => $item->model_suffix_code,
+								];
+							}
+							if ($item->stock != 0 && $found_first_nonzero_stock_date === null) {
+								$found_first_nonzero_stock_date = $past_date;
+							}
+						}
+
+						// Guardar registros de sellout != 0
+						if (isset($item->sellout_unit) && $item->sellout_unit != 0) {
+							$has_past_nonzero_sellout_on_date = true;
+							$target1_flag = $is_bundle_model ? 'BUNDLE' : 'SELLOUT BEFORE PROMO';
+							if (stripos($item->cust_store_name, 'WEB') !== false || stripos($item->cust_store_name, 'web') !== false) {
+								$target1_flag = 'PROMO APPLIED WEB';
+							}
+							$cust_store_code = $item->cust_store_code;
+							if (empty($cust_store_code) || $cust_store_code == 0) {
+								$names = explode(" ", $item->cust_store_name);
+								if (count($names) > 1) {
+									$cust_store_code = $names[1];
+								}
+							}
+							$past_sellout_data[] = [
+								'customer'             => $item->customer,
+								'acct_gtm'             => $item->acct_gtm,
+								'customer_model'    => $item->customer_model,
+								'model_code'         => $item->model_suffix_code,
+								'txn_date'            => $past_date,
+								'cust_store_code'     => $cust_store_code,
+								'cust_store_name'     => $item->cust_store_name,
+								'sellout_unit'         => $item->sellout_unit ?? 0,
+								'sellout_amt'         => $item->sellout_amt ?? 0,
+								'stock'             => null,
+								'ticket'             => $item->ticket,
+								'promo1_price'        => $price_prom,
+								'target1_flag'         => $target1_flag,
+								'promo2_price'        => null,
+								'target2_flag'        => null,
+								'promo3_price'        => null,
+								'target3_flag'        => null,
+								'promo4_price'        => null,
+								'target4_flag'        => null,
+								'promo5_price'        => null,
+								'target5_flag'        => null,
+								'promo6_price'        => null,
+								'target6_flag'        => null,
+								'promo7_price'        => null,
+								'target7_flag'        => null,
+								'promo8_price'        => null,
+								'target8_flag'        => null,
+								'promo9_price'        => null,
+								'target9_flag'        => null,
+								'promo10_price'        => null,
+								'target10_flag'        => null,
+							];
+						}
+					}
+					$past_stock_sum += $daily_stock_sum_past;
+					if ($found_first_nonzero_stock_date !== null) {
+						break; // Detener el retroceso al encontrar la primera fecha con stock != 0
+					}
+				}
+			}
+
+			// Insertar el registro de STOCK del pasado si se encontró stock != 0
+			if ($found_first_nonzero_stock_date !== null && $past_stock_sum > 0 && $first_past_item_base !== null) {
+				array_unshift($all_promotion_data_to_insert, [
+					'customer'             => $customer,
+					'acct_gtm'             => $first_past_item_base['acct_gtm'] ?? null,
+					'customer_model'    => $first_past_item_base['customer_model'] ?? null,
+					'model_code'         => $model,
+					'txn_date'             => $found_first_nonzero_stock_date, // Usar la fecha en la que se encontró el stock != 0
+					'stock'             => $past_stock_sum,
+					'cust_store_code'     => null,
+					'cust_store_name'     => null,
+					'sellout_unit'         => null,
+					'sellout_amt'         => null,
+					'ticket'             => null,
+					'promo1_price'        => $price_prom,
+					'target1_flag'         => $is_bundle_model ? 'STOCK OF BUNDLE' : 'STOCK',
+					'promo2_price'        => null,
+					'target2_flag'        => null,
+					'promo3_price'        => null,
+					'target3_flag'        => null,
+					'promo4_price'        => null,
+					'target4_flag'        => null,
+					'promo5_price'        => null,
+					'target5_flag'        => null,
+					'promo6_price'        => null,
+					'target6_flag'        => null,
+					'promo7_price'        => null,
+					'target7_flag'        => null,
+					'promo8_price'        => null,
+					'target8_flag'        => null,
+					'promo9_price'        => null,
+					'target9_flag'        => null,
+					'promo10_price'        => null,
+					'target10_flag'        => null,
+				]);
+			}
+
+			// Agregar los registros de sellout != 0 del pasado
+			$all_promotion_data_to_insert = array_merge($all_promotion_data_to_insert, $past_sellout_data);
+		}
+
+		// Ordenar el resultado final por modelo y luego por txn_date
+		usort($all_promotion_data_to_insert, function ($a, $b) {
+			if ($a['model_code'] === $b['model_code']) {
+				if ($a['txn_date'] === $b['txn_date']) {
+					$a_is_stock = isset($a['target1_flag']) && (in_array($a['target1_flag'], ['STOCK', 'STOCK OF BUNDLE', 'PROMO APPLIED WEB', 'PROMO NO APPLIED']));
+					$b_is_stock = isset($b['target1_flag']) && (in_array($b['target1_flag'], ['STOCK', 'STOCK OF BUNDLE', 'PROMO APPLIED WEB', 'PROMO NO APPLIED']));
+
+					if ($a_is_stock && !$b_is_stock) {
+						return -1;
+					} elseif (!$a_is_stock && $b_is_stock) {
+						return 1;
+					} else {
+						return 0;
+					}
+				}
+				return strtotime($a['txn_date']) - strtotime($b['txn_date']);
+			}
+			return strcmp($a['model_code'], $b['model_code']);
+		});
+		//echo '<pre>'; print_r($all_promotion_data_to_insert);
+		$batch_data = $all_promotion_data_to_insert;
+		// Verificar dias previos para modelos de bundles mal mapeado
+		// Falta agregar para las demas columnas de la hoja sellout como las colmnas de target1flag     y ver logica para las otras columnas
+		// Inserción por lotes
+		// Tener en cuenta para los casos de promo no applied cuando ticket es mayor a promo1_price (cuidado, se puede redondear y aun cumplicar con ser menor o sea 400 a 399 masimo 2 numeros mas)
+		$this->gen_m->insert_m("sa_sell_out_promotion", $batch_data);
+	}
+
+	public function load_sell_out_v6() {
+
+		$filter_select_promo = ['start_date', 'end_date', 'customer_code', 'promotion_no', 'model', 'price_promotion', 'gift'];
+		$data_calculate = $this->gen_m->filter_select('sa_calculate_promotion', false, $filter_select_promo);
+
+		$models = array_unique(array_column($data_calculate, 'model'));
+		$models = array_filter($models);
+
+		$models_bundles = array_unique(array_column($data_calculate, 'gift'));
+		$models_bundles = array_filter($models_bundles);
+
+		$all_models = array_merge($models, $models_bundles);
+		$all_models = array_unique($all_models);
+		$all_models = array_values($all_models);
+
+		if (empty($data_calculate)) {
+			echo "No hay datos de cálculo de promoción.";
+			return;
+		}
+
+		$from_date = date('Y-m-01', strtotime($data_calculate[0]->start_date));
+		$to_date = date('Y-m-t', strtotime($data_calculate[0]->start_date));
+		$customer = $data_calculate[0]->customer_code;
+		$days_to_look_back = 30;
+		$past_start_date = date('Y-m-d', strtotime($from_date . ' -' . $days_to_look_back . ' days'));
+
+		$all_promotion_data_to_insert = [];
+
+		// 1. Obtener todos los datos relevantes de sa_sell_out_ para todos los modelos en un rango amplio
+		$where_all = [
+			'customer' => $customer,
+			'txn_date >=' => $past_start_date,
+			'txn_date <=' => $to_date,
+		];
+		$where_in_models = [
+			'field'     => 'model_suffix_code',
+			'values'    => $all_models,
+		];
+		$data_sell_out_all = $this->gen_m->filter('sa_sell_out_', false, $where_all, null, [$where_in_models], [['customer_model', 'asc'], ['txn_date', 'asc']]);
+
+		// 2. Organizar los datos por modelo y fecha para facilitar el procesamiento
+		$organized_data = [];
+		foreach ($data_sell_out_all as $item) {
+			$organized_data[$item->model_suffix_code][$item->txn_date][] = $item;
+		}
+
+		foreach ($all_models as $model) {
+			$price_prom = '';
+			$is_bundle_model = in_array($model, $models_bundles);
+			$promotions_by_type = [
+				'basica' => [],
+				'adicional' => [],
+				'mixta' => [],
+				'bundle' => [],
+			];
+
+			if (!$is_bundle_model) {
+				$culculate_price_promotions = $this->gen_m->filter_select('sa_calculate_promotion', false, ['price_promotion', 'model', 'start_date', 'end_date'], ['model' => $model]);
+
+				if (!empty($culculate_price_promotions)) {
+					$basic_ranges = [];
+					$first_basic_found = false;
+					$second_basic_found = false;
+
+					// Identificar promociones básicas
+					foreach ($culculate_price_promotions as $promotion) {
+						$mes_inicio = date('Y-m-01', strtotime($promotion->start_date));
+						$mes_fin = date('Y-m-t', strtotime($promotion->start_date));
+
+						if (date('d', strtotime($promotion->start_date)) == '01' && !$first_basic_found) {
+							$promotions_by_type['basica'][] = $promotion;
+							$basic_ranges[] = ['start' => $promotion->start_date, 'end' => $promotion->end_date];
+							$first_basic_found = true;
+						} elseif (date('d', strtotime($promotion->end_date)) == date('t', strtotime($promotion->start_date)) && !$second_basic_found) {
+							$promotions_by_type['basica'][] = $promotion;
+							$basic_ranges[] = ['start' => $promotion->start_date, 'end' => $promotion->end_date];
+							$second_basic_found = true;
+						}
+					}
+
+					// Identificar las demás promociones
+					foreach ($culculate_price_promotions as $promotion) {
+						if (!in_array($promotion, $promotions_by_type['basica'])) {
+							$is_additional = false;
+							$is_mixta = false;
+							$is_bundle = false;
+							$mes_inicio_promo = date('Y-m-01', strtotime($promotion->start_date));
+							$mes_fin_promo = date('Y-m-t', strtotime($promotion->start_date));
+
+							// Es bundle?
+							if ($promotion->start_date == $mes_inicio_promo && $promotion->end_date == $mes_fin_promo) {
+								$is_bundle = true;
+							} else {
+								// Es adicional?
+								foreach ($basic_ranges as $range) {
+									if (strtotime($promotion->start_date) >= strtotime($range['start']) && strtotime($promotion->end_date) <= strtotime($range['end'])) {
+										$is_additional = true;
+										break;
+									}
+								}
+
+								// Es mixta?
+								if (!$is_additional && count($basic_ranges) == 2) {
+									$start_in_basic1 = strtotime($promotion->start_date) >= strtotime($basic_ranges[0]['start']) && strtotime($promotion->start_date) <= strtotime($basic_ranges[0]['end']);
+									$end_in_basic2 = strtotime($promotion->end_date) >= strtotime($basic_ranges[1]['start']) && strtotime($promotion->end_date) <= strtotime($basic_ranges[1]['end']);
+									$start_in_basic2 = strtotime($promotion->start_date) >= strtotime($basic_ranges[1]['start']) && strtotime($promotion->start_date) <= strtotime($basic_ranges[1]['end']);
+									$end_in_basic1 = strtotime($promotion->end_date) >= strtotime($basic_ranges[0]['start']) && strtotime($promotion->end_date) <= strtotime($basic_ranges[0]['end']);
+
+									if (($start_in_basic1 && $end_in_basic2) || ($start_in_basic2 && $end_in_basic1)) {
+										$is_mixta = true;
+									}
+								}
+							}
+
+							if ($is_bundle) {
+								$promotions_by_type['bundle'][] = $promotion;
+							} elseif ($is_mixta) {
+								$promotions_by_type['mixta'][] = $promotion;
+							} elseif ($is_additional) {
+								$promotions_by_type['adicional'][] = $promotion;
+							}
+						}
+					}
+				}
+			}
+
+			// Procesar el periodo actual ($from_date a $to_date)
+			for ($current_date = $from_date; $current_date <= $to_date; $current_date = date('Y-m-d', strtotime($current_date . ' +1 day'))) {
+				if (isset($organized_data[$model][$current_date])) {
+					$daily_stock_sum = 0;
+					$first_item_base = null;
+					$has_nonzero_sellout = false;
+					$current_day_records = [];
+
+					foreach ($organized_data[$model][$current_date] as $item_out) {
+						$base_data = [
+							'customer' => $item_out->customer,
+							'acct_gtm' => $item_out->acct_gtm,
+							'customer_model' => $item_out->customer_model,
+							'model_code' => $item_out->model_suffix_code,
+							'txn_date' => $item_out->txn_date,
+						];
+
+						$target_flag_base = $is_bundle_model ? 'BUNDLE' : 'PROMO APPLIED';
+						if (stripos($item_out->cust_store_name, 'WEB') !== false || stripos($item_out->cust_store_name, 'web') !== false || stripos($item_out->cust_store_name, 'b2b2c') !== false || stripos($item_out->cust_store_name, 'VIRTUAL') !== false) {
+							$target_flag_base = 'PROMO APPLIED WEB';
+						}
+
+						$cust_store_code = $item_out->cust_store_code;
+						if (empty($cust_store_code) || $cust_store_code == 0) {
+							$names = explode(" ", $item_out->cust_store_name);
+							if (count($names) > 1) {
+								$cust_store_code = $names[1];
+							}
+						}
+
+						// Inicializar arrays para promo prices y target flags
+						$promo_prices = array_fill_keys(range(1, 10), null);
+						$target_flags = array_fill_keys(range(1, 10), null);
+
+						$promo_index = 1;
+						// Primero las básicas
+						if (!empty($promotions_by_type['basica'])) {
+							$promo_prices[$promo_index] = $promotions_by_type['basica'][0]->price_promotion ?? null;
+							$target_flags[$promo_index] = $target_flag_base;
+							$promo_index++;
+						}
+
+						// Agrupar promociones por precio para adicional, mixta y bundle
+						$other_promotions = array_merge(
+							$promotions_by_type['adicional'],
+							$promotions_by_type['mixta'],
+							$promotions_by_type['bundle']
+						);
+
+						$unique_prices = [];
+						$unique_promotions = [];
+						foreach ($other_promotions as $promotion) {
+							if (!in_array($promotion->price_promotion, $unique_prices)) {
+								$unique_prices[] = $promotion->price_promotion;
+								$unique_promotions[] = $promotion; // Guarda la primera promo con ese precio
+							}
+						}
+
+						// Asignar precios y flags
+						foreach ($unique_promotions as $promotion) {
+							if ($promo_index <= 10) {
+								$promo_prices[$promo_index] = $promotion->price_promotion;
+								if (isset($item_out->ticket) && isset($promotion->price_promotion)) {
+									$relacion = round($item_out->ticket / $promotion->price_promotion, 2);
+									$target_flags[$promo_index] = ($relacion <= 1) ? $target_flag_base : 'PROMO NO APPLIED';
+								} else {
+									$target_flags[$promo_index] = $target_flag_base;
+								}
+								$promo_index++;
+							} else {
+								break;
+							}
+						}
+
+						if (isset($item_out->stock)) {
+							$daily_stock_sum += $item_out->stock;
+							if ($first_item_base === null) {
+								$first_item_base = $base_data;
+							}
+						}
+
+						if (isset($item_out->sellout_unit) && $item_out->sellout_unit != 0) {
+							$has_nonzero_sellout = true;
+							$current_day_record = $base_data + [
+								'cust_store_code' => $cust_store_code,
+								'cust_store_name' => $item_out->cust_store_name,
+								'sellout_unit' => $item_out->sellout_unit ?? 0,
+								'sellout_amt' => $item_out->sellout_amt ?? 0,
+								'stock' => null,
+								'ticket' => $item_out->ticket,
+							];
+							// Merge promo prices and target flags
+							for ($i = 1; $i <= 10; $i++) {
+								$current_day_record['promo' . $i . '_price'] = $promo_prices[$i];
+								$current_day_record['target' . $i . '_flag'] = $target_flags[$i];
+							}
+							$current_day_records[] = $current_day_record;
+						}
+					}
+
+					// Crear el registro de STOCK si la suma es mayor que 0
+					if ($daily_stock_sum > 0 && $first_item_base !== null) {
+						$stock_record = $first_item_base + [
+							'cust_store_code' => null,
+							'cust_store_name' => null,
+							'sellout_unit' => null,
+							'sellout_amt' => null,
+							'stock' => $daily_stock_sum,
+							'ticket' => null,
+						];
+						for ($i = 1; $i <= 10; $i++) {
+							$stock_record['promo' . $i . '_price'] = null;
+							$stock_record['target' . $i . '_flag'] = ($i == 1) ? ($is_bundle_model ? 'STOCK OF BUNDLE' : 'STOCK') : null;
+						}
+						$current_day_records[] = $stock_record;
+					}
+					$all_promotion_data_to_insert = array_merge($all_promotion_data_to_insert, $current_day_records);
+				}
+			}
+
+			$past_stock_sum = 0;
+			$past_sellout_data = [];
+			$found_first_nonzero_stock_date = null;
+			$first_past_item_base = null;
+
+			// Retroceder día por día
+			for ($past_date = date('Y-m-d', strtotime($from_date . ' -1 day')); strtotime($past_date) >= strtotime($past_start_date); $past_date = date('Y-m-d', strtotime($past_date . ' -1 day'))) {
+				if (isset($organized_data[$model][$past_date])) {
+					$daily_stock_sum_past = 0;
+					$has_past_nonzero_sellout_on_date = false;
+					$current_past_day_items = $organized_data[$model][$past_date];
+
+					foreach ($current_past_day_items as $item) {
+						// Sumar todos los valores de stock para la fecha actual del retroceso
+						if (isset($item->stock)) {
+							$daily_stock_sum_past += $item->stock;
+							if ($first_past_item_base === null) {
+								$first_past_item_base = [
+									'customer'             => $item->customer,
+									'acct_gtm'             => $item->acct_gtm,
+									'customer_model'    => $item->customer_model,
+									'model_code'         => $item->model_suffix_code,
+								];
+							}
+							if ($item->stock != 0 && $found_first_nonzero_stock_date === null) {
+								$found_first_nonzero_stock_date = $past_date;
+							}
+						}
+
+						// Guardar registros de sellout != 0
+						if (isset($item->sellout_unit) && $item->sellout_unit != 0) {
+							$has_past_nonzero_sellout_on_date = true;
+							$target1_flag = $is_bundle_model ? 'BUNDLE' : 'SELLOUT BEFORE PROMO';
+							if (stripos($item->cust_store_name, 'WEB') !== false || stripos($item->cust_store_name, 'web') !== false) {
+								$target1_flag = 'PROMO APPLIED WEB';
+							}
+							$cust_store_code = $item->cust_store_code;
+							if (empty($cust_store_code) || $cust_store_code == 0) {
+								$names = explode(" ", $item->cust_store_name);
+								if (count($names) > 1) {
+									$cust_store_code = $names[1];
+								}
+							}
+							$past_sellout_data[] = [
+								'customer'             => $item->customer,
+								'acct_gtm'             => $item->acct_gtm,
+								'customer_model'    => $item->customer_model,
+								'model_code'         => $item->model_suffix_code,
+								'txn_date'            => $past_date,
+								'cust_store_code'     => $cust_store_code,
+								'cust_store_name'     => $item->cust_store_name,
+								'sellout_unit'         => $item->sellout_unit ?? 0,
+								'sellout_amt'         => $item->sellout_amt ?? 0,
+								'stock'             => null,
+								'ticket'             => $item->ticket,
+								'promo1_price'        => $price_prom,
+								'target1_flag'         => $target1_flag,
+								'promo2_price'        => null,
+								'target2_flag'        => null,
+								'promo3_price'        => null,
+								'target3_flag'        => null,
+								'promo4_price'        => null,
+								'target4_flag'        => null,
+								'promo5_price'        => null,
+								'target5_flag'        => null,
+								'promo6_price'        => null,
+								'target6_flag'        => null,
+								'promo7_price'        => null,
+								'target7_flag'        => null,
+								'promo8_price'        => null,
+								'target8_flag'        => null,
+								'promo9_price'        => null,
+								'target9_flag'        => null,
+								'promo10_price'        => null,
+								'target10_flag'        => null,
+							];
+						}
+					}
+					$past_stock_sum += $daily_stock_sum_past;
+					if ($found_first_nonzero_stock_date !== null) {
+						break; // Detener el retroceso al encontrar la primera fecha con stock != 0
+					}
+				}
+			}
+
+			// Insertar el registro de STOCK del pasado si se encontró stock != 0
+			if ($found_first_nonzero_stock_date !== null && $past_stock_sum > 0 && $first_past_item_base !== null) {
+				array_unshift($all_promotion_data_to_insert, [
+					'customer'             => $customer,
+					'acct_gtm'             => $first_past_item_base['acct_gtm'] ?? null,
+					'customer_model'    => $first_past_item_base['customer_model'] ?? null,
+					'model_code'         => $model,
+					'txn_date'             => $found_first_nonzero_stock_date, // Usar la fecha en la que se encontró el stock != 0
+					'stock'             => $past_stock_sum,
+					'cust_store_code'     => null,
+					'cust_store_name'     => null,
+					'sellout_unit'         => null,
+					'sellout_amt'         => null,
+					'ticket'             => null,
+					'promo1_price'        => $price_prom,
+					'target1_flag'         => $is_bundle_model ? 'STOCK OF BUNDLE' : 'STOCK',
+					'promo2_price'        => null,
+					'target2_flag'        => null,
+					'promo3_price'        => null,
+					'target3_flag'        => null,
+					'promo4_price'        => null,
+					'target4_flag'        => null,
+					'promo5_price'        => null,
+					'target5_flag'        => null,
+					'promo6_price'        => null,
+					'target6_flag'        => null,
+					'promo7_price'        => null,
+					'target7_flag'        => null,
+					'promo8_price'        => null,
+					'target8_flag'        => null,
+					'promo9_price'        => null,
+					'target9_flag'        => null,
+					'promo10_price'        => null,
+					'target10_flag'        => null,
+				]);
+			}
+
+			// Agregar los registros de sellout != 0 del pasado
+			$all_promotion_data_to_insert = array_merge($all_promotion_data_to_insert, $past_sellout_data);
+		}
+
+		// Ordenar el resultado final por modelo y luego por txn_date
+		usort($all_promotion_data_to_insert, function ($a, $b) {
+			if ($a['model_code'] === $b['model_code']) {
+				if ($a['txn_date'] === $b['txn_date']) {
+					$a_is_stock = isset($a['target1_flag']) && (in_array($a['target1_flag'], ['STOCK', 'STOCK OF BUNDLE', 'PROMO APPLIED WEB', 'PROMO NO APPLIED']));
+					$b_is_stock = isset($b['target1_flag']) && (in_array($b['target1_flag'], ['STOCK', 'STOCK OF BUNDLE', 'PROMO APPLIED WEB', 'PROMO NO APPLIED']));
+
+					if ($a_is_stock && !$b_is_stock) {
+						return -1;
+					} elseif (!$a_is_stock && $b_is_stock) {
+						return 1;
+					} else {
+						return 0;
+					}
+				}
+				return strtotime($a['txn_date']) - strtotime($b['txn_date']);
+			}
+			return strcmp($a['model_code'], $b['model_code']);
+		});
+		//echo '<pre>'; print_r($all_promotion_data_to_insert);
+		$batch_data = $all_promotion_data_to_insert;
+		// Verificar dias previos para modelos de bundles mal mapeado
+		// Falta agregar para las demas columnas de la hoja sellout como las colmnas de target1flag     y ver logica para las otras columnas
+		// Inserción por lotes
+		// Tener en cuenta para los casos de promo no applied cuando ticket es mayor a promo1_price (cuidado, se puede redondear y aun cumplicar con ser menor o sea 400 a 399 masimo 2 numeros mas)
+		$this->gen_m->insert_m("sa_sell_out_promotion", $batch_data);
+	}
+
 	public function load_sell_out() {
 
 		$filter_select_promo = ['start_date', 'end_date', 'customer_code', 'promotion_no', 'model', 'price_promotion', 'gift'];
@@ -2901,7 +5164,238 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 		// Tener en cuenta para los casos de promo no applied cuando ticket es mayor a promo1_price (cuidado, se puede redondear y aun cumplicar con ser menor o sea 400 a 399 masimo 2 numeros mas)
 		$this->gen_m->insert_m("sa_sell_out_promotion", $batch_data);
 	}
+	
+	public function load_sell_out_vfuncional() {
+
+		$filter_select_promo = ['start_date', 'end_date', 'customer_code', 'promotion_no', 'model', 'price_promotion', 'gift'];
+		$data_calculate = $this->gen_m->filter_select('sa_calculate_promotion', false, $filter_select_promo);
+			
+		$models = array_unique(array_column($data_calculate, 'model'));
+		$models = array_filter($models);
 		
+		$models_bundles = array_unique(array_column($data_calculate, 'gift'));
+		$models_bundles = array_filter($models_bundles);
+		// $models = $models + $models_bundles;
+		// $models = array_values($models);
+		// echo '<pre>'; print_r($models);
+		
+		$all_models = array_merge($models, $models_bundles);
+		$all_models = array_unique($all_models);
+		$all_models = array_values($all_models);
+		
+		if (empty($data_calculate)) {
+			echo "No hay datos de cálculo de promoción.";
+			return;
+		}
+
+		$from_date = date('Y-m-01', strtotime($data_calculate[0]->start_date));
+		$to_date = date('Y-m-t', strtotime($data_calculate[0]->start_date));
+		$customer = $data_calculate[0]->customer_code;
+		$days_to_look_back = 30;
+		$past_start_date = date('Y-m-d', strtotime($from_date . ' -' . $days_to_look_back . ' days'));
+
+		$all_promotion_data_to_insert = [];
+
+		// 1. Obtener todos los datos relevantes de sa_sell_out_ para todos los modelos en un rango amplio
+		$where_all = [
+			'customer' => $customer,
+			'txn_date >=' => $past_start_date,
+			'txn_date <=' => $to_date,
+		];
+		$where_in_models = [
+			'field' 	=> 'model_suffix_code',
+			'values' 	=> $all_models,
+		];
+		$data_sell_out_all = $this->gen_m->filter('sa_sell_out_', false, $where_all, null, [$where_in_models], [['customer_model', 'asc'], ['txn_date', 'asc']]);
+
+		// 2. Organizar los datos por modelo y fecha para facilitar el procesamiento
+		$organized_data = [];
+		foreach ($data_sell_out_all as $item) {
+			$organized_data[$item->model_suffix_code][$item->txn_date][] = $item;
+		}
+		$sum_price_prom = [];
+		foreach ($all_models as $model) {
+			$accumulated_stock = 0;
+			$previous_txn_date = null;
+			$past_first_stock_date = null;
+			$past_first_stock_sum = 0;
+			$zero_stock_past_data = [];
+			
+			$culculate_price_promotions = $this->gen_m->filter_select('sa_calculate_promotion', false, ['price_promotion', 'model', 'gift'], ['model' => $model]);
+			$price_prom = '';
+			if (!empty($culculate_price_promotions) && $culculate_price_promotions[0]->model === $model) {
+				$price_prom = $culculate_price_promotions[0]->price_promotion;
+			}
+			// foreach ($culculate_price_promotions as $item){
+				// $sum_price_prom[$item->model][] = $item->price_promotion;
+			// }
+			// if (in_array($model, $models_bundles)) $price_prom = '';
+			// else $price_prom = $culculate_price_promotions[0]->price_promotion;
+			//$price_prom = $culculate_price_promotions[0]->price_promotion;
+			// Procesar el periodo actual ($from_date a $to_date)
+			for ($current_date = $from_date; $current_date <= $to_date; $current_date = date('Y-m-d', strtotime($current_date . ' +1 day'))) {
+				if (isset($organized_data[$model][$current_date])) {
+					$stock_record = null; // Para el registro con target1_flag == 'STOCK'
+					$non_stock_records = []; // Para los registros sin target1_flag == 'STOCK'
+					$daily_stock_sum = 0;
+					$first_stock_item_base = null;
+
+					foreach ($organized_data[$model][$current_date] as $item_out) {
+						$base_data = [
+							'customer' 			=> $item_out->customer,
+							'acct_gtm' 			=> $item_out->acct_gtm,
+							'customer_model'	=> $item_out->customer_model,
+							'model_code'		=> $item_out->model_suffix_code,
+							'txn_date' 			=> $item_out->txn_date,
+						];
+
+						if (isset($item_out->sellout_unit)) {
+							if ($item_out->sellout_unit == 0) {
+								$daily_stock_sum += $item_out->stock;
+								if ($first_stock_item_base === null) {
+									$first_stock_item_base = $base_data;
+								}
+							} else {
+								$non_stock_records[] = $base_data + [								
+									'cust_store_code' 	=> $item_out->cust_store_code,
+									'cust_store_name' 	=> $item_out->cust_store_name,
+									'sellout_unit' 		=> $item_out->sellout_unit ?? 0,
+									'sellout_amt' 		=> $item_out->sellout_amt ?? 0,
+									'stock' 			=> null,
+									'ticket' 			=> $item_out->ticket,
+									'promo1_price'		=> $price_prom,
+									'target1_flag'		=> 'PROMO APPLIED',
+								];
+							}
+						}
+					}
+
+					// Crear el registro para target1_flag == 'STOCK'
+					if ($first_stock_item_base !== null) {
+						$stock_record = $first_stock_item_base + [						
+							'cust_store_code' 		=> null,
+							'cust_store_name' 		=> null,
+							'sellout_unit' 			=> null,
+							'sellout_amt' 			=> null,
+							'stock' 				=> $daily_stock_sum,
+							'ticket' 				=> null,
+							'promo1_price'			=> $price_prom,
+							'target1_flag' 			=> 'STOCK',
+						];
+					}
+
+					// Agregar primero el registro de target1_flag == 'STOCK' si existe
+					if ($stock_record !== null) {
+						$all_promotion_data_to_insert[] = $stock_record;
+					}
+
+					// Agregar todos los demás registros del día
+					$all_promotion_data_to_insert = array_merge($all_promotion_data_to_insert, $non_stock_records);
+				}
+			}
+
+			$past_first_stock_data = null;
+			$zero_stock_past_data = [];
+			$found_first_stock_day = false;
+
+			// Retroceder día por día
+			for ($past_date = date('Y-m-d', strtotime($from_date . ' -1 day')); strtotime($past_date) >= strtotime($past_start_date) && !$found_first_stock_day; $past_date = date('Y-m-d', strtotime($past_date . ' -1 day'))) {
+				if (isset($organized_data[$model][$past_date])) {
+					$daily_stock_sum = 0;
+					$has_nonzero_stock = false;
+					$daily_zero_stock = [];
+
+					foreach ($organized_data[$model][$past_date] as $item) {
+						if (isset($item->stock)) {
+							if ($item->sellout_unit == 0) {
+								$daily_stock_sum += $item->stock;
+								$has_nonzero_stock = true;
+							} else {
+								$daily_zero_stock[] = [
+									'customer' 			=> $item->customer,
+									'acct_gtm' 			=> $item->acct_gtm,
+									'customer_model'	=> $item->customer_model,
+									'model_code' 		=> $item->model_suffix_code,
+									'txn_date'			=> $item->txn_date,									
+									'cust_store_code' 	=> $item->cust_store_code,
+									'cust_store_name' 	=> $item->cust_store_name,
+									'sellout_unit' 		=> $item->sellout_unit ?? 0,
+									'sellout_amt' 		=> $item->sellout_amt ?? 0,
+									'stock' 			=> null,
+									'ticket' 			=> $item->ticket,
+									'promo1_price'		=> $price_prom,
+									'target1_flag' 		=> 'SELLOUT BEFORE PROMO',
+								];
+							}
+						}
+					}
+
+					// Si encontramos stock != 0 en este día, guardamos la suma y detenemos el retroceso
+					if ($has_nonzero_stock) {
+						$found_first_stock_day = true;
+						$past_first_stock_data = [
+							'customer' 			=> $customer,
+							'acct_gtm' 			=> $organized_data[$model][$past_date][0]->acct_gtm ?? null,
+							'customer_model'	=> $organized_data[$model][$past_date][0]->customer_model ?? null,
+							'model_code' 		=> $model,
+							'txn_date' 			=> $past_date,						
+							'cust_store_code' 	=> null,
+							'cust_store_name' 	=> null,
+							'sellout_unit' 		=> null,
+							'sellout_amt' 		=> null,
+							'stock' 			=> $daily_stock_sum,
+							'ticket' 			=> null,
+							'promo1_price'		=> $price_prom,
+							'target1_flag' 		=> 'STOCK',
+						];
+					}
+
+					// Guardamos los registros de stock cero de este día (se guardarán en orden inverso)
+					$zero_stock_past_data = array_merge($daily_zero_stock, $zero_stock_past_data);
+				}
+			}
+
+			// Insertar el primer registro de stock != 0 del pasado (si existe) al principio
+			if ($past_first_stock_data) {
+				array_unshift($all_promotion_data_to_insert, $past_first_stock_data);
+			}
+
+			// Agregar la data de stock cero del pasado (en el orden correcto debido a la concatenación)
+			$all_promotion_data_to_insert = array_merge($zero_stock_past_data, $all_promotion_data_to_insert);
+		}
+
+		// Ordenar el resultado final por modelo y luego por txn_date (como en el código original)
+		usort($all_promotion_data_to_insert, function ($a, $b) {
+			if ($a['model_code'] === $b['model_code']) {
+				if ($a['txn_date'] === $b['txn_date']) {
+					// Ordenar dentro de la misma fecha: target1_flag == 'STOCK' primero
+					$a_is_stock = isset($a['target1_flag']) && $a['target1_flag'] === 'STOCK';
+					$b_is_stock = isset($b['target1_flag']) && $b['target1_flag'] === 'STOCK';
+
+					if ($a_is_stock && !$b_is_stock) {
+						return -1; // a va primero
+					} elseif (!$a_is_stock && $b_is_stock) {
+						return 1; // b va primero
+					} else {
+						return 0; // Mantener el orden relativo si ambos son STOCK o ambos no lo son
+					}
+				}
+				return strtotime($a['txn_date']) - strtotime($b['txn_date']);
+			}
+			return strcmp($a['model_code'], $b['model_code']);
+		});
+		//echo '<pre>'; print_r($sum_price_prom);
+		echo '<pre>'; print_r($all_promotion_data_to_insert); 
+		$batch_data = $all_promotion_data_to_insert;
+
+		// Inserción por lotes
+		//if (count($batch_data) >= $batch_size) {
+			$this->gen_m->insert_m("sa_sell_out_promotion", $batch_data);
+			//$batch_data = [];
+		//}
+	}
+
+	
 	public function process($file_ext){	
 		set_time_limit(0);
 		ini_set("memory_limit", -1);
