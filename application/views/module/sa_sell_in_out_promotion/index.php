@@ -6,6 +6,8 @@
 			<li class="breadcrumb-item active">Sa Promotion</li>
 		</ol>
 	</nav>
+	
+	<!--<a href="../user_manual/module/sa_promotion_calculate/sa_promotion_calculate_en.pptx" class="text-primary">User Manual</a>-->
 </div>
 
 <section class="section">
@@ -16,7 +18,8 @@
       <!-- Formulario para Subir Excel -->
 		<div class="card">
 			<div class="card-body">
-			  <h5 class="card-title text-center">Upload Sell In</h5>			  
+			 
+			  <h5 class="card-title text-center">Upload Excel File</h5>			  
 				<form class="row g-3" id="form_ar_promotion_update" href="<?= base_url() ?>" enctype="multipart/form-data">
 					<div class="col-md-12">
 					  <label class="form-label">Select File</label>
@@ -165,7 +168,7 @@ document.addEventListener("DOMContentLoaded", function() {
 			form.submit();
 			form.remove();
 		} else {
-			alert("Select at least one file to upload.");
+			alert("Seleccione al menos un archivo para exportar.");
 		}
 	});
 

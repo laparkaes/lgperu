@@ -115,22 +115,7 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 			
 			// Buscar la primera aparición del valor buscado
 			$indice_encontrado = array_search($list_txn_date[0][1], $stock_list);
-			//$stock_pre = $out_map[$model_calculate][2];
-			//print_r([$indice_encontrado, $model_calculate]); echo '<br>';
-			//$stock1 = !empty($list_txn_date[0][1]) ? $list_txn_date[0][1] : $stock_pre;
-			//print_r([$stock1, $model_calculate, $out_map[$model_calculate][0]]);
 		}
-		// Valor stock coincide con primera fecha, se agarra. sino hay stock buscar en anteriores.
-		// 
-		
-		// if(!empty($sell_map[$model_calculate])){
-			// foreach($sell_map[$model_calculate] as $item){
-				// if($item[1] != $stock1){
-					// $item[1] += $item[1];
-				// }
-				// print_r($item);
-			// }
-		// }
 		return 1;
 	}
 	
@@ -147,14 +132,6 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 		// $end_date = substr($end_date, 0, 4) . "-" . substr($end_date, 4, 2) . "-" . substr($end_date, 6, 2);
 		$qty = 0;
 		if($flag_s_qty == 0){
-			// if(!empty($out_map[$model_calculate])){
-				// foreach($out_map[$model_calculate] as $item){
-					// //print_r($item); echo '<br>';
-					// if($item[0] >= $start_date && $item[0] <= $end_date && $item[3] !== 'PROMO NO APPLIED'){
-						// $qty += $item[1];
-					// }		
-				// }
-			// } else $qty = 0;
 			
 			if (!empty($out_map[$model_calculate])) {
 				foreach ($out_map[$model_calculate] as $item) {
@@ -280,7 +257,7 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 		// Finalizar transacción
 		$this->db->trans_complete();
 	}
-	
+		
 	public function load_sell_in($sheet){
 		//excel file header validation
 		$h = [
@@ -515,7 +492,7 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 		}
 		return 0;
 	}
-	
+
 	public function generate_excel() {
 		set_time_limit(0);
 		ini_set("memory_limit", -1);
@@ -2086,7 +2063,7 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 		
 		if ($calculate_sheet) {
 			//echo '<pre>'; print_r($vars_global);
-			//$diff = 0;
+			$diff = 0;
 			$calculate_data = $calculate_sheet->toArray();
 			$start_row = 2;
 			// Índice de la columna del modelo en CALCULATE
@@ -2363,9 +2340,32 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 		}
 		//echo '<pre>'; print_r($vars_global);
 		// Guardar y descargar archivo
+		// Directorio temporal para guardar los archivos generados
+		// $outputDir = FCPATH . './upload_file/Sales Admin/';
+		// if (!is_dir($outputDir)) {
+			// mkdir($outputDir, 0755, true); // Crea la carpeta si no existe
+		// }
+
+		// // Nombre único para el archivo, incluyendo un uniqid() para evitar colisiones
+		// //$filename = 'report_promotion_' . date('Ymd_His') . '_' . uniqid() . '.xlsx';
+		// $filename = '[Process]' . $excel_file;
+		// $filePath = $outputDir . $filename;
+
+		// // --- ESTA PARTE REEMPLAZA TU $writer->save('php://output'); ---
+		// // Ahora, el escritor guarda el archivo en el disco.
+		// $writer = new Xlsx($spreadsheet);
+		// $writer->save($filePath);
+
+		// // Responde al frontend con la URL de descarga
+		// echo json_encode([
+			// 'type' => 'success',
+			// 'msg' => 'Excel file generated successfully!',
+			// 'downloadUrl' => base_url('module/sa_sell_in_out_promotion/download_excel/' . $filename)
+		// ]);
+		
         $this->downloadSpreadsheet($spreadsheet, '[Process] '.$excel_file);
     }
-
+	
 	public function downloadSpreadsheet($spreadsheet, $filename) {		
 
 		// Configurar cabeceras de respuesta	
@@ -2375,25 +2375,6 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 
 		$writer = new Xlsx($spreadsheet);
 		$writer->save('php://output');
-		
-		// $tempFile = tempnam(sys_get_temp_dir(), 'excel');	
-		// // Escribir directamente al output
-		// $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
-		
-		// $writer->setPreCalculateFormulas(false);
-		// $writer->setUseDiskCaching(true); // Activa el uso de caché en disco
-
-		// $writer->save($tempFile);
-		// //$writer->save('php://output'); // Enviar directamente sin archivo temporal
-		// readfile($tempFile);
-		
-		// // Limpiar la memoria
-		// $spreadsheet->disconnectWorksheets();
-		// unset($spreadsheet);
-		// // Recolectar ciclos de basura
-		// gc_collect_cycles();
-	
-		// ob_end_clean();
 
 	}
 	
@@ -2920,8 +2901,8 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 		// Tener en cuenta para los casos de promo no applied cuando ticket es mayor a promo1_price (cuidado, se puede redondear y aun cumplicar con ser menor o sea 400 a 399 masimo 2 numeros mas)
 		$this->gen_m->insert_m("sa_sell_out_promotion", $batch_data);
 	}
-	
-	public function process(){	
+		
+	public function process($file_ext){	
 		set_time_limit(0);
 		ini_set("memory_limit", -1);
 		
@@ -2932,7 +2913,7 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 		$this->gen_m->truncate("sa_sell_in_promotion");
 		$this->gen_m->truncate("sa_sell_out_promotion");
 		//load excel file
-		$spreadsheet = IOFactory::load("./upload/sa_sell_in_out_promotion.xlsx");
+		$spreadsheet = IOFactory::load("./upload/sa_sell_in_out_promotion." . $file_ext);
 		
 		// Funcion para carga hoja CALCULATE  a la DB
 		$this->load_calculate($spreadsheet->getSheetByName("CALCULATE"));
@@ -2954,7 +2935,8 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 		$tempFilePath = './upload_file/Sales Admin/' . $originalFileName;
 
 		// Guardar el archivo Excel en la carpeta temporal con el nombre original
-		$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+		$file_ext = ucfirst($file_ext);
+		$writer = IOFactory::createWriter($spreadsheet, $file_ext);
 		$writer->save($tempFilePath);
 
 		// Devolver la ruta del archivo temporal y el tiempo de ejecución
@@ -2993,8 +2975,11 @@ class Sa_sell_in_out_promotion extends CI_Controller {
 			$this->load->library('upload', $config);
 
 			if ($this->upload->do_upload('attach')){
+				$result = $this->upload->data();
 				$type = "success";
-				$msg = $this->process();
+				if ($result['file_ext'] === '.xlsx') $file_ext = 'xlsx';
+				elseif ($result['file_ext'] === '.xls') $file_ext = 'xls';
+				$msg = $this->process($file_ext);
 				$url = base_url()."upload/sa_sell_in_out_promotion.xlsx";
 			}else $msg = "Error occured.";
 		}else{
