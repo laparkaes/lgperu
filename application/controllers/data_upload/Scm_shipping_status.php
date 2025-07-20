@@ -161,7 +161,8 @@ class Scm_shipping_status extends CI_Controller {
 			$this->load->library('upload', $config);
 
 			if ($this->upload->do_upload('attach')){
-				$msg = $this->process();
+				//$msg = $this->process();
+				$msg = "File has been uploaded to server. Processing is started.";
 				
 				if ($msg) $type = "success";
 				else $msg = "Wrong file.";

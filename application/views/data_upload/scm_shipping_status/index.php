@@ -75,7 +75,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	$("#form_shipping_status_upload").submit(function(e) {
 		e.preventDefault();
 		ajax_form_warning(this, "data_upload/scm_shipping_status/upload", "Do you want to update sales order data?").done(function(res) {
-			swal_redirection(res.type, res.msg, "data_upload/scm_shipping_status");
+			//swal_redirection(res.type, res.msg, "data_upload/scm_shipping_status");
+			swal_open_tab(res.type, res.msg, "scm_shipping_status/process");
 		});
 	});
 });
