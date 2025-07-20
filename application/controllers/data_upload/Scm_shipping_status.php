@@ -149,9 +149,16 @@ class Scm_shipping_status extends CI_Controller {
 			}
 
 			
-			$msg = " record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";;
-			return $msg;
-		} else return "Error: Header validation failed.";
+			$msg = " record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
+			//return $msg;
+		} else $msg = "Error: Header validation failed."; //return "Error: Header validation failed.";
+		
+		
+		//return $msg;
+		echo $msg;
+		echo "<br/><br/>";
+		echo 'You can close this tab now.<br/><br/><button onclick="window.close();">Close This Tab</button>';
+		
 	}
 	
 	public function upload(){
