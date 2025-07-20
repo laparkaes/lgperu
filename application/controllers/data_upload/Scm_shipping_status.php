@@ -25,10 +25,17 @@ class Scm_shipping_status extends CI_Controller {
 	}
 	
 	public function convert_date ($date){
+		/*
 		$date_object = DateTime::createFromFormat('d-M-Y H:i:s', $date);
 		$final_date = $date_object->format('Y-m-d H:i:s');
 		
 		return $final_date;
+		*/
+		
+		$aux = explode(" ", $date);
+		$aux[0] = $this->my_func->date_convert_5($aux[0]);
+		
+		return $aux[0]." ".$aux[1];
 	}
 	
 	public function process(){
