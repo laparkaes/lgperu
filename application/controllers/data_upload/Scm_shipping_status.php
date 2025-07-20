@@ -32,10 +32,12 @@ class Scm_shipping_status extends CI_Controller {
 		return $final_date;
 		*/
 		
-		$aux = explode(" ", $date);
-		$aux[0] = $this->my_func->date_convert_5($aux[0]);
-		
-		return $aux[0]." ".$aux[1];
+		if ($date) {
+			$aux = explode(" ", $date);
+			$aux[0] = $this->my_func->date_convert_5($aux[0]);
+			
+			return $aux[0]." ".$aux[1];	
+		}else return null;
 	}
 	
 	public function process(){
