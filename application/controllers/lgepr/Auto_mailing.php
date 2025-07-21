@@ -482,7 +482,7 @@ class Auto_mailing extends CI_Controller {
 			unset($item->order_id);
 			unset($item->order_table);
 			unset($item->updated_at);
-			print_r($item); echo "<br/><br/>";
+			//print_r($item); echo "<br/><br/>";
 		}
 		
 		
