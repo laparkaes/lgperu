@@ -459,7 +459,7 @@ class Auto_mailing extends CI_Controller {
 		//print_r($shippings_arr);
 		
 		//load orders
-		$w_in_order = ["field" => "order_type", "values" => ["REGULAR_OMD_PR", "REINVOICE_CM_DM_OMD_PR", "RESALE_OMD_PR", "GOODSET_RETURN_OMD_PR"]];
+		$w_in_order = [["field" => "order_type", "values" => ["REGULAR_OMD_PR", "REINVOICE_CM_DM_OMD_PR", "RESALE_OMD_PR", "GOODSET_RETURN_OMD_PR"]]];
 		
 		$closed_orders = $this->gen_m->filter("v_lgepr_adjusted_closed_order", false, ["closed_date >=" => $from], null, $w_in_order, [["closed_date", "desc"]]);
 		$sales_orders = $this->gen_m->filter("v_lgepr_adjusted_sales_order", false, null, null, $w_in_order, [["order_date", "desc"]]);
