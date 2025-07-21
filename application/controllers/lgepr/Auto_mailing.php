@@ -439,31 +439,98 @@ class Auto_mailing extends CI_Controller {
 		$from = date("Y-m-01");
 		$to = date("Y-m-t");
 		
-		
-		/*
-		*/
-		echo "Closed orders ========================== <br/><br/><br/><br/>";
-		$closed_orders = $this->gen_m->filter("v_lgepr_adjusted_closed_order", false, ["closed_date >=" => $from], null, null, [["closed_date", "desc"]]);
-		foreach($closed_orders as $item){
-			print_r($item); echo "<br/><br/>";
-		}
-		
-		/*
-		*/
-		echo "Sales orders ========================== <br/><br/><br/><br/>";
-		$sales_orders = $this->gen_m->filter("v_lgepr_adjusted_sales_order", false, null, null, null, [["order_date", "desc"]]);
-		foreach($sales_orders as $item){
-			print_r($item); echo "<br/><br/>";
-		}
-		
-		/*
-		*/
 		echo "Shipping status ========================== <br/><br/><br/><br/>";
+		$shippings_arr = [];
 		$shippings = $this->gen_m->filter("scm_shipping_status", false, ["to_ship >=" => $from." 00:00:00"], null, null, [["to_ship", "desc"]]);
 		foreach($shippings as $item){
+			$shippings_arr[$item->order_no."_".$item->line_no] = $item;
+			//print_r($item); echo "<br/><br/>";
+		}
+		
+		//print_r($shippings_arr);
+		
+		
+		//load orders
+		$closed_orders = $this->gen_m->filter("v_lgepr_adjusted_closed_order", false, ["closed_date >=" => $from], null, null, [["closed_date", "desc"]]);
+		$sales_orders = $this->gen_m->filter("v_lgepr_adjusted_sales_order", false, null, null, null, [["order_date", "desc"]]);
+		
+		$orders = array_merge($closed_orders, $sales_orders);
+		foreach($orders as $item){
+			$pick_key = $item->order_no."_".$item->line_no;
+			if (array_key_exists($pick_key, $shippings_arr)){
+				$item->pick_no = $shippings_arr[$pick_key]->pick_no;
+				$item->pick_seq = $shippings_arr[$pick_key]->seq;
+				
+				$aux = explode(" ", $shippings_arr[$pick_key]->to_ship);
+				$item->appointment_d = $aux[0];
+				$item->appointment_h = $aux[1];
+			}else{
+				$item->pick_no = null;
+				$item->pick_seq = null;
+				$item->appointment_d = null;
+				$item->appointment_h = null;
+			}
+			
 			print_r($item); echo "<br/><br/>";
 		}
 		
+		
+		
+		
+		$spreadsheet = new Spreadsheet();
+		
+		/********************
+		Container
+		********************/
+
+		/*
+
+		//add 'container' sheet
+		$container_sheet = $spreadsheet->createSheet();
+		$container_sheet->setTitle('container');
+
+		//make order sheet content
+		$w = ["eta >=" => date("Y-m-d", strtotime("-1 month", strtotime(date("Y-m-1"))))];
+		$l = [];
+		$o = [["eta", "desc"], ["ata", "desc"], ["sa_no", "asc"], ["sa_line_no", "asc"]];
+		
+		$containers = $this->gen_m->filter("lgepr_container", false, $w, $l, null, $o);
+		if ($containers){
+			$ctns = [];
+			
+			//make header
+			$header = [];
+			foreach($containers[0] as $key => $val) $header[] = strtoupper(str_replace("_", " ", $key));
+			
+			$ctns[] = $header;//add to array
+			
+			//make content
+			foreach($containers as $item){
+				$row = [];
+				foreach($item as $key => $val) $row[] = $val;
+				
+				$ctns[] = $row;
+			}
+			
+			$this->write_excel($container_sheet, $ctns);	
+		}
+		
+		*/
+		
+		
+		//save excel file
+		$writer = new Xlsx($spreadsheet);
+		$filePath = 'report/oi_order_progress.xlsx';
+		$writer->save($filePath);
+		
+		echo "Report has been generated.";
+		echo "<br/><br/>";
+		echo "You can close this tab now.";
+		echo "<br/><br/>";
+		echo '<a href="'.$filePath.'"><button>Download Report</button></a>';
+		echo '<button onclick="window.close();">Close This Tab</button>';
+		
+		redirect($filePath);
 		
 	}
 }
