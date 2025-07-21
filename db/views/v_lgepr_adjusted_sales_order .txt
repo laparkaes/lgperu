@@ -59,10 +59,4 @@ SELECT
     load_hold_flag AS load_hold_flag,
     updated_at AS updated_at
 FROM
-    lgepr_sales_order so
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM lgepr_closed_order co
-    WHERE co.order_no = so.order_no
-      AND co.line_no = so.line_no
-);
+    lgepr_sales_order;

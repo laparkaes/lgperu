@@ -440,24 +440,32 @@ class Auto_mailing extends CI_Controller {
 		$to = date("Y-m-t");
 		
 		
+		/*
+		*/
 		echo "Closed orders ========================== <br/><br/><br/><br/>";
-		
 		$closed_orders = $this->gen_m->filter("v_lgepr_adjusted_closed_order", false, ["closed_date >=" => $from], null, null, [["closed_date", "desc"]]);
 		foreach($closed_orders as $item){
 			print_r($item); echo "<br/><br/>";
 		}
 		
+		/*
+		*/
 		echo "Sales orders ========================== <br/><br/><br/><br/>";
 		$sales_orders = $this->gen_m->filter("v_lgepr_adjusted_sales_order", false, null, null, null, [["order_date", "desc"]]);
-		foreach($sales_orders as $item){
-			print_r($item); echo "<br/><br/>";
-		}
+		print_r($sales_orders);
 		
+		//foreach($sales_orders as $item){
+		//	print_r($item); echo "<br/><br/>";
+		//}
+		
+		/*
+		*/
 		echo "Shipping status ========================== <br/><br/><br/><br/>";
-		
-		$shippings = $this->gen_m->filter("scm_shipping_status", false, ["to_ship >=" => $from], null, null, [["to_ship", "desc"]]);
+		$shippings = $this->gen_m->filter("scm_shipping_status", false, ["to_ship >=" => $from." 00:00:00"], null, null, [["to_ship", "desc"]]);
 		foreach($shippings as $item){
 			print_r($item); echo "<br/><br/>";
 		}
+		
+		
 	}
 }
