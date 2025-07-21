@@ -168,6 +168,8 @@ class Lgepr_closed_order extends CI_Controller {
 			
 			$updated_at = date("Y-m-d H:i:s");
 			
+			$rows_eq = [];
+			
 			for($i = 2; $i <= $max_row; $i++){
 				
 				$row = [
@@ -206,6 +208,7 @@ class Lgepr_closed_order extends CI_Controller {
 					'ship_to_city'			=> trim($sheet->getCell('AT'.$i)->getValue()),
 					'sales_channel'			=> trim($sheet->getCell('AX'.$i)->getValue()),
 					'order_source'			=> trim($sheet->getCell('AY'.$i)->getValue()),
+					'order_type'			=> trim($sheet->getCell('AZ'.$i)->getValue()),
 					'order_no'				=> trim($sheet->getCell('BA'.$i)->getValue()),
 					'line_no'				=> trim($sheet->getCell('BB'.$i)->getValue()),
 					'customer_po_no'		=> trim($sheet->getCell('BE'.$i)->getValue()),
@@ -244,6 +247,14 @@ class Lgepr_closed_order extends CI_Controller {
 				$row["closed_date"] = $this->my_func->date_convert($row["closed_date"]);
 				$row["invoice_date"] = $this->my_func->date_convert($row["invoice_date"]);
 				
+				
+				//print_r($row); echo "<br/><br/>";
+				
+				$closed_order = $this->gen_m->filter("lgepr_closed_order", false, ["order_line" => $row["order_line"]]);
+				if ($closed_order) $this->gen_m->update("lgepr_closed_order", ["order_id" => $closed_order[0]->order_id], $row);
+				else $this->gen_m->insert("lgepr_closed_order", $row);
+				
+				/* removed by code performance
 				if (!$this->gen_m->filter("lgepr_closed_order", false, ["order_line" => $row["order_line"]])){
 					$rows[] = $row;
 					$order_lines[] = $row["order_line"];
@@ -253,7 +264,10 @@ class Lgepr_closed_order extends CI_Controller {
 				elseif($this->gen_m->filter("lgepr_closed_order", false, ["order_line" => $row["order_line"]])){
 					$rows_eq[] = $row;
 				}
+				*/
 			}
+			
+			/* removed by code performance
 			$rows_split_eq = array_chunk($rows_eq, 1000);
 			foreach($rows_split_eq as $items) $this->gen_m->update_multi("lgepr_closed_order", $items, 'order_line');
 			////// termina codigo update customer Name
@@ -265,6 +279,8 @@ class Lgepr_closed_order extends CI_Controller {
 			//remove closed orders in sales order table
 			$order_lines_split = array_chunk($order_lines, 500);
 			foreach($order_lines_split as $items) $this->gen_m->delete_in("lgepr_sales_order", "order_line", $items);
+			
+			*/
 			
 			$this->update_model_category();
 			

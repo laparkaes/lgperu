@@ -1,2 +1,5 @@
 20250706
 ALTER TABLE `lgepr_closed_order` ADD `updated_at` TIMESTAMP NULL AFTER `shipping_method`; 
+
+20250720
+ALTER TABLE `lgepr_closed_order` ADD `order_type` VARCHAR(50) NULL AFTER `order_source`; 
