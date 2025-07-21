@@ -452,11 +452,9 @@ class Auto_mailing extends CI_Controller {
 		*/
 		echo "Sales orders ========================== <br/><br/><br/><br/>";
 		$sales_orders = $this->gen_m->filter("v_lgepr_adjusted_sales_order", false, null, null, null, [["order_date", "desc"]]);
-		print_r($sales_orders);
-		
-		//foreach($sales_orders as $item){
-		//	print_r($item); echo "<br/><br/>";
-		//}
+		foreach($sales_orders as $item){
+			print_r($item); echo "<br/><br/>";
+		}
 		
 		/*
 		*/
