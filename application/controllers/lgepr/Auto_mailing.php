@@ -22,6 +22,15 @@ class Auto_mailing extends CI_Controller {
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
 	}
+
+	private function write_excel($sheet, $data){
+		foreach($data as $row_n => $row){
+			foreach($row as $col_n => $col){
+				$sheet->setCellValueByColumnAndRow($col_n + 1, $row_n + 1, $col);//with sales order id
+				//$sheet->setCellValueByColumnAndRow($col_n, $row_n + 1, $col);//without sales order id
+			}	
+		}
+	}
 	
 	public function container_aging(){
 		//llamasys/lgepr/auto_mailing/container_aging_report
@@ -439,7 +448,7 @@ class Auto_mailing extends CI_Controller {
 		$from = date("Y-m-01");
 		$to = date("Y-m-t");
 		
-		echo "Shipping status ========================== <br/><br/><br/><br/>";
+		//echo "Shipping status ========================== <br/><br/><br/><br/>";
 		$shippings_arr = [];
 		$shippings = $this->gen_m->filter("scm_shipping_status", false, ["to_ship >=" => $from." 00:00:00"], null, null, [["to_ship", "desc"]]);
 		foreach($shippings as $item){
@@ -448,7 +457,6 @@ class Auto_mailing extends CI_Controller {
 		}
 		
 		//print_r($shippings_arr);
-		
 		
 		//load orders
 		$closed_orders = $this->gen_m->filter("v_lgepr_adjusted_closed_order", false, ["closed_date >=" => $from], null, null, [["closed_date", "desc"]]);
@@ -462,26 +470,51 @@ class Auto_mailing extends CI_Controller {
 				$item->pick_seq = $shippings_arr[$pick_key]->seq;
 				
 				$aux = explode(" ", $shippings_arr[$pick_key]->to_ship);
-				$item->appointment_d = $aux[0];
-				$item->appointment_h = $aux[1];
+				$item->appt_date = $aux[0];
+				$item->appt_hour = $aux[1];
 			}else{
 				$item->pick_no = null;
 				$item->pick_seq = null;
-				$item->appointment_d = null;
-				$item->appointment_h = null;
+				$item->appt_date = null;
+				$item->appt_hour = null;
 			}
 			
+			unset($item->order_id);
+			unset($item->order_table);
+			unset($item->updated_at);
 			print_r($item); echo "<br/><br/>";
 		}
 		
 		
-		
-		
+		//make excel file
 		$spreadsheet = new Spreadsheet();
 		
 		/********************
-		Container
+		Orders
 		********************/
+		
+		$sheet = $spreadsheet->getActiveSheet();
+		$sheet->setTitle('orders');
+
+		if ($orders){
+			$ods = [];
+			
+			//make header
+			$header = [];
+			foreach($orders[0] as $key => $val) $header[] = strtoupper(str_replace("_", " ", $key));
+			
+			$ods[] = $header;//add to array
+			
+			//make content
+			foreach($orders as $item){
+				$row = [];
+				foreach($item as $key => $val) $row[] = $val;
+				
+				$ods[] = $row;
+			}
+			
+			$this->write_excel($sheet, $ods);	
+		}
 
 		/*
 
@@ -531,6 +564,5 @@ class Auto_mailing extends CI_Controller {
 		echo '<button onclick="window.close();">Close This Tab</button>';
 		
 		redirect($filePath);
-		
 	}
 }
