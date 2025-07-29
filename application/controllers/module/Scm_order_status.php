@@ -316,7 +316,10 @@ class Scm_order_status extends CI_Controller {
 		$update_time_sheet->setTitle('last update');
 		
 		$ctn = $this->gen_m->filter("lgepr_container", false, null, null, null, [["updated_at" , "desc"]], 1);//container
-		$ss = $this->gen_m->filter("scm_shipping_status", false, null, null, null, [["updated" , "desc"]], 1);//shipping status
+		$ss_n4m = $this->gen_m->filter("scm_shipping_status", false, ["inventory_org" => "N4M"], null, null, [["updated" , "desc"]], 1);//shipping status N4M
+		$ss_n4j = $this->gen_m->filter("scm_shipping_status", false, ["inventory_org" => "N4J"], null, null, [["updated" , "desc"]], 1);//shipping status N4J
+		$ss_n4e = $this->gen_m->filter("scm_shipping_status", false, ["inventory_org" => "N4E"], null, null, [["updated" , "desc"]], 1);//shipping status N4E
+		$ss_n4s = $this->gen_m->filter("scm_shipping_status", false, ["inventory_org" => "N4S"], null, null, [["updated" , "desc"]], 1);//shipping status N4S
 		$co = $this->gen_m->filter("lgepr_closed_order", false, null, null, null, [["updated_at" , "desc"]], 1);//closed order
 		$so = $this->gen_m->filter("lgepr_sales_order", false, null, null, null, [["updated_at" , "desc"]], 1);//sales order
 		
@@ -327,14 +330,25 @@ class Scm_order_status extends CI_Controller {
 		$update_time_sheet->setCellValueByColumnAndRow(1, 1, "Last update");
 		
 		$update_time_sheet->setCellValueByColumnAndRow(1, 3, "Container");
-		$update_time_sheet->setCellValueByColumnAndRow(1, 4, "Shipping Status");
-		$update_time_sheet->setCellValueByColumnAndRow(1, 5, "Closed Order");
-		$update_time_sheet->setCellValueByColumnAndRow(1, 6, "Sales Order");
+		$update_time_sheet->setCellValueByColumnAndRow(2, 3, $ctn ? $ctn[0]->updated_at : "");
 		
-		$update_time_sheet->setCellValueByColumnAndRow(2, 3, $ss ? $ctn[0]->updated_at : "");
-		$update_time_sheet->setCellValueByColumnAndRow(2, 4, $ss ? $ss[0]->updated : "");
-		$update_time_sheet->setCellValueByColumnAndRow(2, 5, $co ? $co[0]->updated_at : "");
-		$update_time_sheet->setCellValueByColumnAndRow(2, 6, $so ? $so[0]->updated_at: "");
+		$update_time_sheet->setCellValueByColumnAndRow(1, 4, "Shipping Status (N4M)");
+		$update_time_sheet->setCellValueByColumnAndRow(2, 4, $ss_n4m ? $ss_n4m[0]->updated : "");
+		
+		$update_time_sheet->setCellValueByColumnAndRow(1, 5, "Shipping Status (N4J)");
+		$update_time_sheet->setCellValueByColumnAndRow(2, 5, $ss_n4j ? $ss_n4j[0]->updated : "");
+		
+		$update_time_sheet->setCellValueByColumnAndRow(1, 6, "Shipping Status (N4E)");
+		$update_time_sheet->setCellValueByColumnAndRow(2, 6, $ss_n4e ? $ss_n4e[0]->updated : "");
+		
+		$update_time_sheet->setCellValueByColumnAndRow(1, 7, "Shipping Status (N4S)");
+		$update_time_sheet->setCellValueByColumnAndRow(2, 7, $ss_n4s ? $ss_n4s[0]->updated : "");
+		
+		$update_time_sheet->setCellValueByColumnAndRow(1, 8, "Closed Order");
+		$update_time_sheet->setCellValueByColumnAndRow(2, 8, $co ? $co[0]->updated_at : "");
+		
+		$update_time_sheet->setCellValueByColumnAndRow(1, 9, "Sales Order");
+		$update_time_sheet->setCellValueByColumnAndRow(2, 9, $so ? $so[0]->updated_at: "");
 		
 		
 		//save excel file
