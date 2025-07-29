@@ -36,7 +36,7 @@ class Scm_shipping_status extends CI_Controller {
 			$aux = explode(" ", $date);
 			$aux[0] = $this->my_func->date_convert_5($aux[0]);
 			
-			return $aux[0]." ".$aux[1];	
+			return $aux[0].(array_key_exists(1, $aux) ? " ".$aux[1], "");
 		}else return null;
 	}
 	
