@@ -32,7 +32,9 @@ class Scm_container_reception extends CI_Controller {
 	}
 	
 	public function date_convert_dd_mm_yyyy($date) {
+    // Intentamos convertir con la lógica del valor numérico (excel date)
 		if (is_numeric($date)) {
+			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
 			return $date->format('Y-m-d');
 		}
@@ -200,7 +202,7 @@ class Scm_container_reception extends CI_Controller {
 		ini_set("memory_limit", -1);
 		
 		$start_time = microtime(true);
-		
+		$count = 0;
 		
 		$data = $this->gen_m->filter_select('scm_container_reception', false, ['tracking_key']);
 
@@ -245,7 +247,10 @@ class Scm_container_reception extends CI_Controller {
 				$row["tracking_key"] = $row["_3pl"] . "_" . $row["arrival_date"] . "_" . $row["placa"] . "_" . $row["received_container"] . "_" . $row["order_no"];
 			} else continue;
 			
-			if (in_array($row["tracking_key"], $track)) $rows_req[] = $row;
+			if (in_array($row["tracking_key"], $track)) {
+				$rows_req[] = $row;
+				$count++;
+			} 
 			elseif (!in_array($row["tracking_key"], $track)) $rows_og[] = $row; 
 		}
 		
@@ -255,7 +260,7 @@ class Scm_container_reception extends CI_Controller {
 		$rows_split = array_chunk($rows_og, 50);
 		foreach($rows_split as $items) $this->gen_m->insert_m('scm_container_reception', $items);
 		
-		return "Stock update has been finished. (".$updated.")";
+		return "Data update has been finished. (".$updated.")" . " " . number_format($count) . " updated values.";
 	}
 	
 	public function upload_container(){

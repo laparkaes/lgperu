@@ -76,8 +76,8 @@
 document.addEventListener("DOMContentLoaded", () => {	
 	$("#form_container_update").submit(function(e) {
 		e.preventDefault();
-		ajax_form_warning(this, "data_upload/scm_container_status/upload_container", "Do you want to upload Container Reception data?").done(function(res) {
-			swal_redirection(res.type, res.msg, "data_upload/scm_container_status");
+		ajax_form_warning(this, "data_upload/scm_container_reception/upload_container", "Do you want to upload Container Reception data?").done(function(res) {
+			swal_redirection(res.type, res.msg, "data_upload/scm_container_reception");
 		});
 	});
 });

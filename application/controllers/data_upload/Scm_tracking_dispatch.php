@@ -32,14 +32,11 @@ class Scm_tracking_dispatch extends CI_Controller {
 	}
 	
 	public function date_convert_dd_mm_yyyy($date) {
-    // Intentamos convertir con la lógica del valor numérico (excel date)
 		if (is_numeric($date)) {
-			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
 			return $date->format('Y-m-d');
 		}
 
-		// Si no es un número, intentamos convertir con la lógica de fecha en formato dd/mm/yyyy
 		$aux = explode("/", $date);
 		if (count($aux) > 2) return $aux[2]."-".$aux[1]."-".$aux[0];
 		else return null;
@@ -264,20 +261,41 @@ class Scm_tracking_dispatch extends CI_Controller {
 			];
 			
 			// Convert Dates
-			$row["date"] = $this->date_convert_dd_mm_yyyy($row["date"]);
-	
+			$row["date"] = $this->date_convert_dd_mm_yyyy($row["date"]);	
 			$row["client_appointment"] = $this->convertToTimeFormat($row["client_appointment"]);
 			$row["to_appointment"] = $this->convertToTimeFormat($row["to_appointment"]);
-			$row["arrival_time"] = $this->convert_hour($row["arrival_time"]);
-			$row["download_time"] = $this->convert_hour($row["download_time"]);
-			$row["completion_time"] = $this->convert_hour($row["completion_time"]);
-			$row["service_completion_time"] = $this->convert_hour($row["service_completion_time"]);
-			$row["waiting_time"] = $this->convert_hour($row["waiting_time"]);
+			// $row["arrival_time"] = $this->convertToTimeFormat($row["arrival_time"]);
+			// $row["download_time"] = $this->convertToTimeFormat($row["download_time"]);
+			// $row["completion_time"] = $this->convertToTimeFormat($row["completion_time"]);
+			// $row["service_completion_time"] = $this->convertToTimeFormat($row["service_completion_time"]);
+			// $row["waiting_time"] = $this->convertToTimeFormat($row["waiting_time"]);
 			
-			if ($row["date"] !== null && $row["placa"] !== null && $row["guide"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
-				$row["tracking_key"] = $row["date"] . "_" . $row["placa"] . "_" . $row["guide"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
+			if(strpos($row['status'], 'CANCELADO') !== false){
+				//contiene
+				$row["arrival_time"] = null;
+				$row["download_time"] = null;
+				$row["completion_time"] = null;
+				$row["service_completion_time"] = null;
+				$row["waiting_time"] = null;
+				$row["cbm_per_unit"] = null;			
+				$row["rejected_qty"] = null;
+				$row["rejected_cbm"] = null;
+				$row["delivered_cbm"] = null;
+			} else{
+				$row["arrival_time"] = $this->convertToTimeFormat($row["arrival_time"]);
+				$row["download_time"] = $this->convertToTimeFormat($row["download_time"]);
+				$row["completion_time"] = $this->convertToTimeFormat($row["completion_time"]);
+				$row["service_completion_time"] = $this->convertToTimeFormat($row["service_completion_time"]);
+				$row["waiting_time"] = $this->convertToTimeFormat($row["waiting_time"]);
+			}
+			
+			// if ($row["date"] !== null && $row["placa"] !== null && $row["guide"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
+				// $row["tracking_key"] = $row["date"] . "_" . $row["placa"] . "_" . $row["guide"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
+			// } else continue;
+			
+			if ($row["date"] !== null && $row["placa"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
+				$row["tracking_key"] = $row["date"] . "_" . $row["placa"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
 			} else continue;
-			
 			
 			if (in_array($row["tracking_key"], $klo_track)) $rows_req[] = $row;
 			elseif(!in_array($row["tracking_key"], $klo_track)) $rows_og[] = $row; 
@@ -329,9 +347,9 @@ class Scm_tracking_dispatch extends CI_Controller {
 				"customer" 					=> trim($sheet->getCell('K'.$i)->getValue()) ?? null,
 				"address" 					=> trim($sheet->getCell('L'.$i)->getValue()) ?? null,
 				"pick_order"				=> trim($sheet->getCell('M'.$i)->getValue()) ?? null,
-				"service_type"				=> trim($sheet->getCell('P'.$i)->getValue()) ?? null,	// Extract P column (zona b2c)			
+				"service_type"				=> trim($sheet->getCell('N'.$i)->getValue()) ?? null,		
 				"district"					=> trim($sheet->getCell('O'.$i)->getValue()) ?? null,			
-				"b2c_zone"					=> null,
+				"b2c_zone"					=> trim($sheet->getCell('P'.$i)->getValue()) ?? null,	// Extract P column (zona b2c)
 				"ot_per_point" 				=> trim($sheet->getCell('Q'.$i)->getValue()) ?? null,
 				"purchase_order" 			=> trim($sheet->getCell('R'.$i)->getValue()) ?? null,
 				"guide" 					=> trim($sheet->getCell('S'.$i)->getCalculatedValue()) ?? null,
@@ -357,22 +375,39 @@ class Scm_tracking_dispatch extends CI_Controller {
 				"updated"					=> $updated,
 			];
 			
-
-			// Convert Dates
-			$row["date"] = $this->date_convert_dd_mm_yyyy($row["date"]);
 			
+			// Convert Dates
+			$row["date"] = $this->date_convert_dd_mm_yyyy($row["date"]);			
 			$row["client_appointment"] = $this->convertToTimeFormat($row["client_appointment"]);
 			$row["to_appointment"] = $this->convertToTimeFormat($row["to_appointment"]);
-			$row["arrival_time"] = $this->convert_hour($row["arrival_time"]);
-			$row["download_time"] = $this->convert_hour($row["download_time"]);
-			$row["completion_time"] = $this->convert_hour($row["completion_time"]);
-			$row["service_completion_time"] = $this->convert_hour($row["service_completion_time"]);
-			$row["waiting_time"] = $this->convert_hour($row["waiting_time"]);
 			
-			if ($row["date"] !== null && $row["placa"] !== null && $row["guide"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
-				$row["tracking_key"] = $row["date"] . "_" . $row["placa"] . "_" . $row["guide"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
-			} else continue;
+			
+			if(strpos($row['status'], 'CANCELADO') !== false){
+				//contiene
+				$row["arrival_time"] = null;
+				$row["download_time"] = null;
+				$row["completion_time"] = null;
+				$row["service_completion_time"] = null;
+				$row["waiting_time"] = null;
+				$row["cbm_per_unit"] = null;			
+				$row["rejected_qty"] = null;
+				$row["rejected_cbm"] = null;
+				$row["delivered_cbm"] = null;
+			} else{
+				$row["arrival_time"] = $this->convertToTimeFormat($row["arrival_time"]);
+				$row["download_time"] = $this->convertToTimeFormat($row["download_time"]);
+				$row["completion_time"] = $this->convertToTimeFormat($row["completion_time"]);
+				$row["service_completion_time"] = $this->convertToTimeFormat($row["service_completion_time"]);
+				$row["waiting_time"] = $this->convertToTimeFormat($row["waiting_time"]);
+			}
+			//echo '<pre>'; print_r($row);
+			// if ($row["date"] !== null && $row["placa"] !== null && $row["guide"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
+				// $row["tracking_key"] = $row["date"] . "_" . $row["placa"] . "_" . $row["guide"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
+			// } else continue;
 
+			if ($row["date"] !== null && $row["placa"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
+				$row["tracking_key"] = $row["date"] . "_" . $row["placa"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
+			} else continue;
 			
 			if (in_array($row["tracking_key"], $apm_track)) $rows_req[] = $row;
 			elseif(!in_array($row["tracking_key"], $apm_track)) $rows_og[] = $row; 

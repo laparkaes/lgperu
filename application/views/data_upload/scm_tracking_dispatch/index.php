@@ -57,9 +57,34 @@
 			<div class="card">
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
-						<h5 class="card-title"><?= $count_tracking ?> records</h5>					
+						<h5 class="card-title"><?= $count_tracking ?> records</h5>
+						
+						<!--<form id="form_stock_update">
+							<div class="input-group">
+								<a class="btn btn-success" href="<?= base_url() ?>template/lgepr_warehouse_stock_template.xlsx" download="lgepr_warehouse_stock_template"><i class="bi bi-file-earmark-spreadsheet"></i></a>
+								<input class="form-control" type="file" name="attach"  multiple accept=".xls,.xlsx">
+								<button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i></button>
+							</div>
+						</form>-->
+						
+						<!--<div class="col-md-6 d-flex justify-content-end">
+							<a href="<?= base_url("data_upload/lgepr_warehouse_stock/data_comparision"); ?>" target="_blank" class="btn btn-success me-2" id="openDataPageButton">
+								Comparison <i class="bi bi-bar-chart-fill"></i>
+							</a>
+							<a href="<?= base_url("data_upload/lgepr_warehouse_stock/send_email"); ?>" target="_blank" class="btn btn-outline-primary" id="sendEmail">
+								<i class="bi bi-envelope"></i>
+							</a>
+						</div>-->
+						
 					</div>
-					
+					<!--<div class="col-md-12 d-flex justify-content-end">
+						<a href="<?= base_url("data_upload/lgepr_warehouse_stock/data_comparision"); ?>" target="_blank" class="btn btn-success me-2" id="openDataPageButton">
+							Comparison <i class="bi bi-bar-chart-fill"></i>
+						</a>
+						<a href="<?= base_url("data_upload/lgepr_warehouse_stock/send_email"); ?>" target="_blank" class="btn btn-outline-primary" id="sendEmail">
+							<i class="bi bi-envelope"></i>
+						</a>
+					</div>-->
 					<table class="table datatable">
 						<thead>
 							<tr>
