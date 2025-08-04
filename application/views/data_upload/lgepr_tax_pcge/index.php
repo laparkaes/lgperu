@@ -8,6 +8,9 @@
 			</ol>
 		</nav>
 	</div>
+	<div>
+		<a href="../user_manual/data_upload/acc_pcge/acc_pcge_en.pptx" class="text-primary">User Manual</a>
+	</div>
 </div>
 <section class="section">
 	<div class="row">
@@ -26,26 +29,24 @@
 					<table class="table datatable">
 						<thead>
 							<tr>
-								<th scope="col">Legal Entity Name</th>
+								<th scope="col">Concatenado</th>
+								<th scope="col">Accounting Unit</th>
 								<th scope="col">Account</th>
 								<th scope="col">Account Desc</th>
 								<th scope="col">PCGE</th>
 								<th scope="col">PCGE Decripción</th>
-								<th scope="col">PCGE 2024</th>	
-								<th scope="col">PCGE Decripción 2024</th>									
 								<th scope="col">Updated</th>
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach($stocks as $item){ ?>
+							<?php foreach($pcge as $item){ ?>
 							<tr>
-								<td><?= $item->legal_entity_name ?></td>
+								<td><?= $item->concatenate ?></td>
+								<td><?= $item->accounting_unit ?></td>
 								<td><?= $item->account ?></td>
 								<td><?= $item->account_desc ?></td>
 								<td><?= $item->pcge ?></td>
 								<td><?= $item->pcge_decripcion ?></td>
-								<td><?= $item->pcge_2024 ?></td>
-								<td><?= $item->pcge_decripcion_2024 ?></td>
 								<td><?= $item->updated ?></td>
 							</tr>
 							<?php } ?>
@@ -61,7 +62,7 @@
 document.addEventListener("DOMContentLoaded", () => {
 	$("#form_mdms_update").submit(function(e) {
 		e.preventDefault();
-		ajax_form_warning(this, "data_upload/lgepr_tax_pcge/update", "Do you want to upload stock data?").done(function(res) {
+		ajax_form_warning(this, "data_upload/lgepr_tax_pcge/update", "Do you want to upload PCGE data?").done(function(res) {
 			swal_redirection(res.type, res.msg, "data_upload/lgepr_tax_pcge");
 		});
 	});

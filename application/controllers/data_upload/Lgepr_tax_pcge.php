@@ -16,7 +16,7 @@ class Lgepr_tax_pcge extends CI_Controller {
 	public function index(){
 		
 		$data = [
-			"stocks"	=> $this->gen_m->filter("lgepr_tax_pcge", false, null, null, null, "", 1000),
+			"pcge"	=> $this->gen_m->filter("lgepr_tax_pcge", false, null, null, null, "", 1000),
 			"main" 		=> "data_upload/lgepr_tax_pcge/index",
 		];
 		
@@ -38,16 +38,16 @@ class Lgepr_tax_pcge extends CI_Controller {
 
 		//excel file header validation
 		$h = [
-			trim($sheet->getCell('B3')->getValue()),
-			trim($sheet->getCell('C3')->getValue()),
-			trim($sheet->getCell('D3')->getValue()),
-			trim($sheet->getCell('E3')->getValue()),
-			trim($sheet->getCell('F3')->getValue()),
-			trim($sheet->getCell('I3')->getValue()),
+			trim($sheet->getCell('A1')->getValue()),
+			trim($sheet->getCell('B1')->getValue()),
+			trim($sheet->getCell('C1')->getValue()),
+			trim($sheet->getCell('D1')->getValue()),
+			trim($sheet->getCell('E1')->getValue()),
+			trim($sheet->getCell('F1')->getValue()),
 		];
 		
 		//magento report header
-		$header = ["Legal Entity Name", "Account", "Account Desc", "PCGE", "PCGE Decripción", "PCGE 2024"];
+		$header = ["Concatenado", "Accounting Unit", "Account", "Account Desc", "PCGE","PCGE Decripción"];
 		//print_r($h); echo '<br>'; return;
 		// //header validation
 		$is_ok = true;
@@ -64,19 +64,15 @@ class Lgepr_tax_pcge extends CI_Controller {
 
 			// Iniciar transacción para mejorar rendimiento
 			//$this->db->trans_start();
-			for($i = 4; $i <= $max_row; $i++){
+			for($i = 2; $i <= $max_row; $i++){
 				$row = [
-					"legal_entity_name" 				=> trim($sheet->getCell('B'.$i)->getValue()),
-					"account" 							=> trim($sheet->getCell('C'.$i)->getValue()),
-					"account_desc" 						=> trim($sheet->getCell('D'.$i)->getValue()),
-					"pcge" 								=> preg_replace('/^\s+/u', '', $sheet->getCell('E'.$i)->getValue()),
-					"pcge_decripcion" 					=> trim($sheet->getCell('F'.$i)->getValue()),
-					"pcge_2024"							=> trim($sheet->getCell('I'.$i)->getValue()),
-					"pcge_decripcion_2024" 				=> trim($sheet->getCell('J'.$i)->getValue()),
-					"validacion_l" 						=> trim($sheet->getCell('L'.$i)->getValue()),
-					"validacion_m"						=> trim($sheet->getCell('M'.$i)->getValue()),
-					"comentario_tax"					=> trim($sheet->getCell('N'.$i)->getValue()),
-					"updated"							=> $updated,
+					"concatenate" 				=> trim($sheet->getCell('A'.$i)->getValue()),
+					"accounting_unit" 			=> trim($sheet->getCell('B'.$i)->getValue()),
+					"account" 					=> trim($sheet->getCell('C'.$i)->getValue()),
+					"account_desc" 				=> trim($sheet->getCell('D'.$i)->getValue()),
+					"pcge" 						=> trim($sheet->getCell('E'.$i)->getValue()),
+					"pcge_decripcion"			=> trim($sheet->getCell('F'.$i)->getValue()),
+					"updated"					=> $updated,
 				];
 				// Manejo de valores vacios end_date_ative	
 				
