@@ -752,8 +752,8 @@ class Tax_daily_book extends CI_Controller {
 
 			if (ctype_digit(substr($vc, 0, 1))) {
 				//$vendor_chars['numbers'][] = strtok($vc, ' '); // Extraer hasta el primer espacio
-				$cleaned_number =  clean_number(strtok($vc, ' '));  // Elimina todo excepto dígitos
-				$vendor_chars['numbers'][] = $cleaned_number; 
+				$cleaned_number =  clean_number(strtok($vc, ' ')); // Elimina todo excepto dígitos
+				$vendor_chars['numbers'][] = $cleaned_number;
 				//print_r($cleaned_number); echo '<br>';
 			} elseif (stripos($vc, 'PE') === 0) {
 				$vendor_chars['pe'][] = substr($vc, 0, 8); // Extraer primeros 8 caracteres
@@ -874,13 +874,13 @@ class Tax_daily_book extends CI_Controller {
 
 		// Consultar en ar_mdms para valores que comienzan con letra (excepto PE)
 		$biz_map = [];
+		
 		if (!empty($vendor_chars['letters'])) {
-			$w_letters = "master_id IN ('" . implode("','", $vendor_chars['letters']) . "') 
-						  OR bp_code IN ('" . implode("','", $vendor_chars['letters']) . "')";
+			$w_letters = "supplier_code IN ('" . implode("','", $vendor_chars['letters']) . "')";
 			
-			$biz_numbers_letters = $this->gen_m->filter_select("ar_mdms", false, ['master_id', 'bp_code']);
+			$biz_numbers_letters = $this->gen_m->filter_select("ar_mdms", false, ['supplier_code']);
 			foreach ($biz_numbers_letters as $biz) {
-				$key = $biz->master_id ?: $biz->bp_code;
+				$key = $biz->supplier_code ?? null;
 				$biz_map[$key] = true; // Solo se usa para verificar existencia
 			}
 		}
@@ -898,19 +898,18 @@ class Tax_daily_book extends CI_Controller {
 		// Consultar en ar_mdms para valores que comienzan con "PE"
 		$biz_pe_map = [];
 		if (!empty($vendor_chars['pe'])) {
-			$w_pe = "master_id IN ('" . implode("','", $vendor_chars['pe']) . "') 
-					OR bp_code IN ('" . implode("','", $vendor_chars['pe']) . "')";
+			$w_pe = "supplier_code IN ('" . implode("','", $vendor_chars['pe']) . "')";
 						  
-			$biz_pe_numbers = $this->gen_m->filter_select("ar_mdms", false, ['master_id', 'bp_code', 'biz_registration_no'], $w_pe);
+			$biz_pe_numbers = $this->gen_m->filter_select("ar_mdms", false, ['supplier_code', 'biz_registration_no'], $w_pe);
 			//$w_pe = "biz_registration_no IN ('" . implode("','", $vendor_chars['pe']) . "')";
 			//$biz_pe_numbers = $this->gen_m->filter_select("ar_mdms", false, ['biz_registration_no']);
 			foreach ($biz_pe_numbers as $biz) {
-				$key = $biz->master_id ?: $biz->bp_code;
+				$key = $biz->supplier_code ?? null;
 				$biz_map[$key] = !empty($biz->biz_registration_no) ? substr($biz->biz_registration_no, 0, 11) : "Pendiente"; // Solo se usa para verificar existencia
 			}
 			//$biz_pe_map = array_column($biz_pe_numbers, 'biz_registration_no', 'biz_registration_no');
 		}
-
+		
 		// Construir el array final con los datos optimizados
 		return array_map(function ($vendor) use ($biz_map, $biz_numbers_map) {
 			$vc = $vendor->vendor_customer;
@@ -996,7 +995,6 @@ class Tax_daily_book extends CI_Controller {
 		
 		return $batchSpecialData;
 	}
-
 	
 	public function generate_excel() {
 		ini_set('memory_limit', -1);
@@ -1201,13 +1199,6 @@ class Tax_daily_book extends CI_Controller {
 				// Movimientos de haber - columna "CS"
 				$formulaData_cs = "=IF(V$row_num<=0,-(V$row_num),0)";
 				$batchSpecialData[] = ["CS" . $row_num, $formulaData_cs ?? 0];
-				// $batchSpecialData[] = ["CS" . $row_num, ($row->net_accounted_debit < 0) ? (float)($row->net_accounted_debit*-1) : 0];	
-				
-				//print_r($batchSpecialData[5][1]); echo '<br>'; echo '<br>'; echo '<br>';
-				//$formulaData_cs_sum_pos = "=SUM(CR$row_num:CR161262)"
-				
-				//$sum_net_accounted_debit_pos = $sum_net_accounted_debit_pos + (($row->net_accounted_debit > 0) ? $row->net_accounted_debit : 0);
-				//$sum_net_accounted_debit_ne = $sum_net_accounted_debit_ne + (($row->net_accounted_debit < 0) ? ($row->net_accounted_debit*-1) : 0); 
 				
 				// Rellenado de columna CU
 				$batchSpecialData[] = ["CU" . $row_num, 1];	
@@ -1257,11 +1248,6 @@ class Tax_daily_book extends CI_Controller {
 					if (isset($bank_code_map[$row->effective_date])) {
 						foreach($bank_code_map[$row->effective_date] as $item_date){
 							if($bank_name === 'SCOTIA'){
-								// log_message('info', "Date: " . $row->effective_date);
-								// log_message('info', "Bank Name db: " . $bank_name);
-								// log_message('info', "Bank Name bank code: " . $item_date['bank_name']);
-								// log_message('info', "net_entered_debit_db: " . $row->net_entered_debit);
-								// log_message('info', "net_entered_debit Bank Code: " . $item_date['total_amount']);
 								$bank_name = 'SCB';
 							}
 						
@@ -1327,7 +1313,6 @@ class Tax_daily_book extends CI_Controller {
 		$saveEnd = microtime(true);
 		log_message('info', "Tiempo de guardado y descarga: " . ($saveEnd - $saveStart) . " segundos");
 	}
-
 	
 	public function writeBatchToSheet($sheet, &$batchData, &$batchSpecialData, $row_num) {
 		$startRow = $row_num - count($batchData);
@@ -1348,8 +1333,6 @@ class Tax_daily_book extends CI_Controller {
 		}
 	}
 
-
-	
 	public function downloadSpreadsheet($spreadsheet, $filename) {		
 
 		// Configurar cabeceras de respuesta	
@@ -1386,23 +1369,6 @@ class Tax_daily_book extends CI_Controller {
 		// $query = $this->db->get();
 		$columns = ["legal_entity", "period_name","effective_date", "posted_date", "accounting_unit", "department", "department_name","account", "account_name","project", "affiliate", "temporary1", "temporary2", "currency", "net_entered_debit", "entered_debit", "entered_credit","net_accounted_debit","accounted_debit","accounted_credit","description_ar_comments","journal_source","journal_category","gl_batch_name","gl_journal_name","gl_document_seq_number","ap_ar_source","line_type","ap_ar_batch_name","invoice_number","transaction_number","transaction_date","check_number","receipt_number","vendor_customer","bank_name","bank_account_number","business_number","tax_payer_id","subledger_document_seq_number","tax_date","tax_code","tax_rate","created_by","create_user_name","dff_context","dff1","dff2","dff3","dff4","dff5","dff6","dff7","dff8","dff9","dff10","dff11","dff12","dff13","dff14","dff15","dff16","dff17","dff18","dff19","dff20","lease_no","asset_number","org_id","link_id","je_header_id","je_line_number","je_id","type_voucher","serie_voucher","number_voucher"];
 		
-		// while (true) {
-			// $query = $this->db->select($columns)
-							  // ->from($table)
-							  // ->limit($batchSize, $offset)
-							  // ->where($where)
-							  // ->order_by('effective_date', 'ASC')
-							  // ->get();
-			
-			// if ($query->num_rows() === 0) {
-				// break;
-			// }
-
-			// yield from array_map(fn($row) => $row, $query->result());
-
-			// $offset += $batchSize;
-			// $query->free_result();
-		// }
 
 		while (true) {
 			$query = $this->db->select($columns)

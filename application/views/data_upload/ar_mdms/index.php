@@ -26,38 +26,34 @@
 					<table class="table datatable">
 						<thead>
 							<tr>
-								<th scope="col">Class ID</th>
-								<th scope="col">BP Code</th>
-								<th scope="col">BP Group[NAME]</th>
-								<th scope="col">Country[NAME]</th>
-								<th scope="col">Name(Local)</th>
-								<th scope="col">Biz Registration No</th>
-								<th scope="col">City</th>
-								<th scope="col">State[NAME]</th>
-								<th scope="col">Tax Payer ID</th>
-								<th scope="col">Start Date Active</th>
-								<th scope="col">End Date Active</th>
-								<th scope="col">STATUS[ID]</th>
-								<th scope="col">SSTATUS[NAME]</th>
+								<th scope="col">LGEDIV</th>
+								<th scope="col">Company(Affiliate) Code[ID]</th>
+								<th scope="col">Company(Affiliate) Code[NAME]</th>
+								<th scope="col">Supplier Code</th>
+								<th scope="col">Biz Register NO</th>
+								<th scope="col">Domain Type</th>
+								<th scope="col">Currency Code[ID]</th>
+								<th scope="col">Payment Terms Name</th>
+								<th scope="col">Payterm Type</th>
+								<th scope="col">Payment Group[NAME]</th>
+								<th scope="col">Payment Method</th>
 								<th scope="col">Updated</th>
 							</tr>
 						</thead>
 						<tbody>
 							<?php foreach($stocks as $item){ ?>
 							<tr>
-								<td><?= $item->class_id ?></td>
-								<td><?= $item->bp_code ?></td>
-								<td><?= $item->bp_group_name ?></td>
-								<td><?= $item->country_name ?></td>
-								<td><?= $item->name_local ?></td>
+								<td><?= $item->lgediv_id ?></td>
+								<td><?= $item->company_affiliate_code_id ?></td>
+								<td><?= $item->company_affiliate_code_name ?></td>
+								<td><?= $item->supplier_code ?></td>
 								<td><?= $item->biz_registration_no ?></td>
-								<td><?= $item->city ?></td>
-								<td><?= $item->state_name ?></td>
-								<td><?= $item->tax_payer_id ?></td>
-								<td><?= $item->start_date_active ?></td>
-								<td><?= $item->end_date_active ?></td>
-								<td><?= $item->status_id ?></td>
-								<td><?= $item->status_name ?></td>
+								<td><?= $item->domain_type ?></td>
+								<td><?= $item->currency_code_id ?></td>
+								<td><?= $item->payment_terms_name ?></td>
+								<td><?= $item->payterm_type ?></td>
+								<td><?= $item->payment_group_id ?></td>
+								<td><?= $item->payment_method ?></td>
 								<td><?= $item->updated ?></td>
 							</tr>
 							<?php } ?>
@@ -73,7 +69,7 @@
 document.addEventListener("DOMContentLoaded", () => {
 	$("#form_mdms_update").submit(function(e) {
 		e.preventDefault();
-		ajax_form_warning(this, "data_upload/ar_mdms/update", "Do you want to upload stock data?").done(function(res) {
+		ajax_form_warning(this, "data_upload/ar_mdms/update", "Do you want to upload data?").done(function(res) {
 			swal_redirection(res.type, res.msg, "data_upload/ar_mdms");
 		});
 	});
