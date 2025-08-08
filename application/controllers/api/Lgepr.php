@@ -311,20 +311,22 @@ class Lgepr extends CI_Controller {
 			
 			$from_current_inventory = '';
 			$stock_cbm = [];
-			$stock = $this->gen_m->filter('lgepr_stock', false, ['on_hand_cbm !=' => 0, 'updated >=' => $from], null, null, [['updated', 'asc']]);
+			$stock = $this->gen_m->filter('v_cbm_history_firstload', false, ['on_hand_cbm !=' => 0, 'updated >=' => $from], null, null, [['updated', 'asc']]);
 			foreach($stock as $item_stock){
 				$type = 'Current Inventory';
 				$dates = explode("-", $item_stock->updated);
 				$year = $dates[0];
 				$month = $dates[1];
-				$day = $dates[2];
+				$day_hour = $dates[2];
+				$time_aux = explode(" ", $day_hour);
+				$day = $time_aux[0];
 				$from_current_inventory = $item_stock->updated;
 				
 				$key = $type . "-". $item_stock->updated . "-" . $item_stock->org . "-" . $item_stock->model . "-" . $item_stock->dash_company . "-" . $item_stock->dash_division;
 				if(!isset(($data_cbm[$key]))){
 					$data_cbm[$key] = [
 							"type" 				=> $type,
-							"date"				=> $item_stock->updated,
+							"date"				=> (new DateTime($item_stock->updated))->format('Y-m-d'),
 							"year" 				=> $year,
 							"month" 			=> $month,
 							"day" 				=> $day,
@@ -411,7 +413,6 @@ class Lgepr extends CI_Controller {
 		
 		header('Content-Type: application/json');
 		echo json_encode($res);
-	
 	}
 	
 	public function get_monthly_closed_order(){

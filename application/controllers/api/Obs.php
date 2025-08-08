@@ -307,11 +307,7 @@ class Obs extends CI_Controller {
 				$dates_s = [];
 
 				// Buscar la última fecha de compra en la tabla lgepr_closed_order
-				$order = $this->gen_m->filter("lgepr_closed_order", false, [
-					"model" => $item->model,
-					"inventory_org" => "N4E",
-					"order_date >=" => $from
-				], null, null, [["order_date", "DESC"]]);
+				$order = $this->gen_m->filter("lgepr_closed_order", false, ["model" => $item->model, "inventory_org" => "N4E", "order_date >=" => $from], null, null, [["order_date", "DESC"]]);
 
 				foreach ($order as $or_item) {
 					$dates[] = $or_item->order_date;
@@ -351,7 +347,7 @@ class Obs extends CI_Controller {
 
 		// Devuelve la respuesta en formato JSON
 		header('Content-Type: application/json');
-		echo json_encode($res);	
+		echo json_encode($res);
 	}
 
 	public function get_market_summary(){

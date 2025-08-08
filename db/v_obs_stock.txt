@@ -1,0 +1,48 @@
+CREATE VIEW v_obs_stock AS
+SELECT
+    `llamasys`.`lgepr_stock`.`model_description` AS `model_description`,
+    `llamasys`.`lgepr_stock`.`dash_company` AS `dash_company`,
+    `llamasys`.`lgepr_stock`.`dash_division` AS `dash_division`,
+    `llamasys`.`lgepr_stock`.`model` AS `model`,
+    SUM(
+        CASE WHEN `llamasys`.`lgepr_stock`.`org` = 'N4M' THEN `llamasys`.`lgepr_stock`.`available_qty` ELSE 0
+    END
+) AS `N4M_qty`,
+SUM(
+    CASE WHEN `llamasys`.`lgepr_stock`.`org` = 'N4E' THEN `llamasys`.`lgepr_stock`.`available_qty` ELSE 0
+END
+) AS `N4E_qty`,
+SUM(
+    `llamasys`.`lgepr_stock`.`seaStockTotal`
+) AS `seaStockTotal`,
+SUM(
+    `llamasys`.`lgepr_stock`.`seaStockW1`
+) AS `seaStockW1`,
+SUM(
+    `llamasys`.`lgepr_stock`.`seaStockW2`
+) AS `seaStockW2`,
+SUM(
+    `llamasys`.`lgepr_stock`.`seaStockW3`
+) AS `seaStockW3`,
+SUM(
+    `llamasys`.`lgepr_stock`.`seaStockW4`
+) AS `seaStockW4`,
+SUM(
+    `llamasys`.`lgepr_stock`.`seaStockW5`
+) AS `seaStockW5`
+FROM
+    `llamasys`.`lgepr_stock`
+WHERE
+    `llamasys`.`lgepr_stock`.`org` IN('N4M', 'N4E') AND `llamasys`.`lgepr_stock`.`model_status` = 'Active' AND `llamasys`.`lgepr_stock`.`updated` =(
+    SELECT
+        MAX(`llamasys`.`lgepr_stock`.`updated`)
+    FROM
+        `llamasys`.`lgepr_stock`
+)
+GROUP BY
+    `llamasys`.`lgepr_stock`.`model_description`,
+    `llamasys`.`lgepr_stock`.`model`
+HAVING
+    (
+        `N4M_qty` <> 0 OR `N4E_qty` <> 0 OR `seaStockTotal` <> 0
+    ) AND `llamasys`.`lgepr_stock`.`dash_company` IS NOT NULL AND `llamasys`.`lgepr_stock`.`dash_division` IS NOT NULL

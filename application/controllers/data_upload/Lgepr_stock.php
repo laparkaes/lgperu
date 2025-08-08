@@ -19,7 +19,7 @@ class Lgepr_stock extends CI_Controller {
 		$o = [["updated", "desc"], ["model_description", "asc"], ["model", "asc"]];
 		
 		$data = [
-			"stocks"	=> $this->gen_m->filter("lgepr_stock", false, $w, null, null, $o, 5000),
+			"stocks"	=> $this->gen_m->filter("lgepr_stock", false, $w, null, null, $o, 1000),
 			"main" 		=> "data_upload/lgepr_stock/index",
 		];
 		
@@ -115,7 +115,7 @@ class Lgepr_stock extends CI_Controller {
 		$start_time = microtime(true);
 
 		//delete all rows lgepr_stock 
-		$this->gen_m->truncate("lgepr_stock");
+		//$this->gen_m->truncate("lgepr_stock");
 		
 		//load excel file
 		$spreadsheet = IOFactory::load("./upload/".$filename);
@@ -141,15 +141,16 @@ class Lgepr_stock extends CI_Controller {
 		foreach($h as $i => $h_i) if ($h_i !== $header[$i]) $is_ok = false;
 		
 		if ($is_ok){
-			$updated = date("Y-m-d");
+			$updated = date("Y-m-d H:i:s");
 			$max_row = $sheet->getHighestRow();
+			$batch_size = 500;
 			for($i = 2; $i < $max_row; $i++){
 				$row = [
 					"org" 					=> trim($sheet->getCell('A'.$i)->getValue()),
 					"sub_inventory" 		=> trim($sheet->getCell('B'.$i)->getValue()),
 					"grade" 				=> trim($sheet->getCell('C'.$i)->getValue()),
 					"model_category_code" 	=> trim($sheet->getCell('D'.$i)->getValue()),
-					"model_Category_name" 	=> trim($sheet->getCell('E'.$i)->getValue()),
+					"model_category_name" 	=> trim($sheet->getCell('E'.$i)->getValue()),
 					"model"					=> trim($sheet->getCell('G'.$i)->getValue()),
 					"model_description" 	=> trim($sheet->getCell('H'.$i)->getValue()),
 					"model_status" 			=> trim($sheet->getCell('J'.$i)->getValue()),
@@ -175,9 +176,20 @@ class Lgepr_stock extends CI_Controller {
 					"updated"				=> $row["updated"],
 				];
 				
-				$stock = $this->gen_m->filter("lgepr_stock", false, $filter);
-				if ($stock) $this->gen_m->update("lgepr_stock", ["stock_id" => $stock[0]->stock_id], $row);
-				else $this->gen_m->insert("lgepr_stock", $row);
+				//$stock = $this->gen_m->filter("lgepr_stock", false, $filter);
+				$batch_data[] = $row;
+
+				// Inserción por lotes
+				if (count($batch_data) >= $batch_size) {
+					$this->gen_m->insert_m("lgepr_stock", $batch_data);
+					$batch_data = [];
+				}
+				//$this->gen_m->insert("lgepr_stock", $row);
+				// if ($stock) $this->gen_m->update("lgepr_stock", ["stock_id" => $stock[0]->stock_id], $row);
+				// else $this->gen_m->insert("lgepr_stock", $row);
+			}
+			if (!empty($batch_data)) {
+				$this->gen_m->insert_m("lgepr_stock", $batch_data);
 			}
 			$this->update_model_category();
 			return "Stock update has been finished. (".$updated.")";

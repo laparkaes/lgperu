@@ -1,0 +1,12 @@
+CREATE VIEW v_cbm_history_firstload AS
+SELECT T1.*
+FROM lgepr_stock AS T1
+JOIN (
+    SELECT
+        CAST(updated AS DATE) AS entry_date, -- Extracts just the date part
+        MIN(updated) AS min_updated_datetime -- Finds the earliest time for that day
+    FROM lgepr_stock
+    GROUP BY CAST(updated AS DATE)
+) AS T2
+ON CAST(T1.updated AS DATE) = T2.entry_date
+AND T1.updated = T2.min_updated_datetime;
