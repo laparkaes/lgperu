@@ -31,7 +31,7 @@ class Lgepr_stock extends CI_Controller {
 		$this->update_dash_div_cat();
 	}
 	
-	private function update_dash_div_cat($last_updated){
+	private function update_dash_div_cat(){
 		$dash_mapping = [
 			"REF" 	=> ["dash_company" => "HS"	, "dash_division" => "REF"],
 			"CVT" 	=> ["dash_company" => "HS"	, "dash_division" => "Cooking"],
@@ -43,34 +43,22 @@ class Lgepr_stock extends CI_Controller {
 			"MNT" 	=> ["dash_company" => "MS"	, "dash_division" => "MNT"],
 			"DS" 	=> ["dash_company" => "MS"	, "dash_division" => "DS"],
 			"SGN" 	=> ["dash_company" => "MS"	, "dash_division" => "MNT Signage"],
-			"LEDSGN" => ["dash_company" => "MS"	, "dash_division" => "LED Signage"],
 			"CTV" 	=> ["dash_company" => "MS"	, "dash_division" => "Commercial TV"],
-			"PC" 	=> ["dash_company" => "MS"	, "dash_division" => "PC"],		
-			"PRJ" 	=> ["dash_company" => "MS"	, "dash_division" => "MNT"],
+			"PC" 	=> ["dash_company" => "MS"	, "dash_division" => "PC"],
 			
-			"BMS" 	=> ["dash_company" => "ES"	, "dash_division" => "RAC"],			
-			"RAC" 	=> ["dash_company" => "ES"	, "dash_division" => "RAC"],			
+			"RAC" 	=> ["dash_company" => "ES"	, "dash_division" => "RAC"],
 			"SAC" 	=> ["dash_company" => "ES"	, "dash_division" => "SAC"],
 			"A/C" 	=> ["dash_company" => "ES"	, "dash_division" => "Chiller"],
-			"CHL" 	=> ["dash_company" => "ES"	, "dash_division" => "Chiller"],
 			
 			"MC" 	=> ["dash_company" => "MC"	, "dash_division" => "MC"],
-			
-			
 		];
 		
-		foreach($dash_mapping as $key => $item) $this->gen_m->update("lgepr_stock", ["model_category_code" => $key, "updated" => $last_updated], $item);
+		foreach($dash_mapping as $key => $item) $this->gen_m->update("lgepr_stock", ["model_category_code" => $key], $item);
 	}
 	
 	private function update_model_category(){
-		// Last updated
-		$this->db->select_max('updated');
-		$query_max_updated = $this->db->get('lgepr_stock');
-		$max_updated_row = $query_max_updated->row();
-		$last_updated = $max_updated_row->updated;
-		
 		//set mapping array
-		$w = ["model_category_code !=" => "". "updated" => $$last_updated];
+		$w = ["model_category_code !=" => ""];
 		$s = ["model_category_code", "product_level4"];
 		$closed_orders = $this->gen_m->filter_select("lgepr_stock", false, $s, $w, null, null, [["product_level4", "desc"]], null, null, "product_level4");
 		
@@ -96,7 +84,7 @@ class Lgepr_stock extends CI_Controller {
 		}
 		
 		//update blank model categories
-		$w = ["model_category_code" => "", "updated" => $last_updated];
+		$w = ["model_category_code" => ""];
 		$s = ["model_category_code", "product_level4"];
 		$closed_orders = $this->gen_m->filter_select("lgepr_stock", false, $s, $w, null, null, [["product_level4", "desc"]], null, null, "product_level4");
 		
@@ -117,7 +105,7 @@ class Lgepr_stock extends CI_Controller {
 		}
 		
 		//update division & category for dashboard
-		$this->update_dash_div_cat($last_updated);
+		$this->update_dash_div_cat();
 	}
 	
 	public function process($filename = "lgepr_stock_current_inventory.xls", $debug = false){
