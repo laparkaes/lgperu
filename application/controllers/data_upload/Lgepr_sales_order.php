@@ -46,6 +46,7 @@ class Lgepr_sales_order extends CI_Controller {
 			"LEDSGN" => ["dash_company" => "MS"	, "dash_division" => "LED Signage"],
 			"CTV" 	=> ["dash_company" => "MS"	, "dash_division" => "Commercial TV"],
 			"PC" 	=> ["dash_company" => "MS"	, "dash_division" => "PC"],
+			"PRJ" 	=> ["dash_company" => "MS"	, "dash_division" => "MNT"],
 			
 			"RAC" 	=> ["dash_company" => "ES"	, "dash_division" => "RAC"],
 			"SAC" 	=> ["dash_company" => "ES"	, "dash_division" => "SAC"],

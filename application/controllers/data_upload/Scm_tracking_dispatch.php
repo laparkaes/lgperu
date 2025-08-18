@@ -347,9 +347,9 @@ class Scm_tracking_dispatch extends CI_Controller {
 				"customer" 					=> trim($sheet->getCell('K'.$i)->getValue()) ?? null,
 				"address" 					=> trim($sheet->getCell('L'.$i)->getValue()) ?? null,
 				"pick_order"				=> trim($sheet->getCell('M'.$i)->getValue()) ?? null,
-				"service_type"				=> trim($sheet->getCell('N'.$i)->getValue()) ?? null,		
-				"district"					=> trim($sheet->getCell('O'.$i)->getValue()) ?? null,			
-				"b2c_zone"					=> trim($sheet->getCell('P'.$i)->getValue()) ?? null,	// Extract P column (zona b2c)
+				"service_type"				=> trim($sheet->getCell('P'.$i)->getValue()) ?? null,	 // Column P	
+				"district"					=> trim($sheet->getCell('O'.$i)->getValue()) ?? null,	 		
+				"b2c_zone"					=> null,
 				"ot_per_point" 				=> trim($sheet->getCell('Q'.$i)->getValue()) ?? null,
 				"purchase_order" 			=> trim($sheet->getCell('R'.$i)->getValue()) ?? null,
 				"guide" 					=> trim($sheet->getCell('S'.$i)->getCalculatedValue()) ?? null,
