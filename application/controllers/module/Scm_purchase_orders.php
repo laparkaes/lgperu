@@ -23,10 +23,12 @@ class Scm_purchase_orders extends CI_Controller {
 		
 		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
 		
-		$list_stores = ['IMPORTACIONES RUBI S.A.', 'SAGA FALABELLA S.A.', 'CONECTA RETAIL S.A.'];
+		$list_stores = ['IMPORTACIONES RUBI S.A.', 'SAGA FALABELLA S.A.', 'CONECTA RETAIL S.A.', 'REPRESENTACIONES VARGAS S.A.', 'REPRESENTACIONES VARGAS S.A. (Bold Format)', 'INTEGRA RETAIL S.A.C.',
+						'TIENDAS PERUANAS S.A. - OESCHLE', 'TIENDAS PERUANAS S.A. - OESCHLE (Yellow)', 'HOMECENTERS PERUANOS S.A. - PLAZA VEA', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - PROMART',
+						'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.', 'HIPERMERCADOS TOTTUS S.A.'];
 		$data = [
-			"stores"	=> $list_stores,
-			"main" 		=> "module/scm_purchase_orders/index",
+			"stores"		=> $list_stores,
+			"main" 			=> "module/scm_purchase_orders/index",
 		];
 		
 		$this->load->view('layout', $data);
@@ -43,12 +45,58 @@ class Scm_purchase_orders extends CI_Controller {
         return $text;
     }
 	
+	public function date_convert($date) {
+    // Intentamos convertir con la lógica del valor numérico (excel date)
+		if (is_numeric($date)) {
+			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
+			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
+			return $date->format('Y-m-d');
+		}
+
+		// Si no es un número, intentamos convertir con la lógica de fecha en formato mm/dd/yyyy
+		$aux = explode("/", $date);
+		if (count($aux) == 3) {
+			// Verificamos que la fecha esté en formato mm/dd/yyyy
+			return $aux[2]."-".$aux[0]."-".$aux[1]; // yyyy-mm-dd
+		}
+		
+		// Si la fecha no está en un formato esperado, devolvemos null
+		return null;
+	}
+	
 	public function models_sales_order($model_order){
 		if (strpos($model_order, '.') !== false) {
 			return $model_order;
 		} else{
 			$models = $this->gen_m->filter_select('lgepr_sales_order', false, 'model', ['model LIKE' => "%{$model_order}%"]);
-			return $models[0]->model;
+			if (!empty($models)) return $models[0]->model;
+			else {
+				$model_close = $this->gen_m->filter_select('lgepr_closed_order', false, 'model', ['model LIKE' => "%{$model_order}%"]);
+				if (!empty($model_close)) return $model_close[0]->model;
+				else {
+					$model_stock = $this->gen_m->filter_select('lgepr_stock', false, 'model', ['model LIKE' => "%{$model_order}%"]);
+					if (!empty($model_stock)) return $model_close[0]->model;
+					else return $model_order;
+				}			
+			}			
+		}
+	}
+	
+	public function models_sales_order_integra($model_order){
+		if (strpos($model_order, '.') !== false) {
+			return $model_order;
+		} else{
+			$models = $this->gen_m->filter_select('lgepr_sales_order', false, 'model', ['model LIKE' => "%{$model_order}%"]);
+			if (!empty($models)) return $models[0]->model;
+			else {
+				$model_close = $this->gen_m->filter_select('lgepr_closed_order', false, 'model', ['model LIKE' => "%{$model_order}%"]);
+				if (!empty($model_close)) return $model_close[0]->model;
+				else {
+					$model_stock = $this->gen_m->filter_select('lgepr_stock', false, 'model', ['model LIKE' => "%{$model_order}%"]);
+					if (!empty($model_stock)) return $model_stock[0]->model;
+					else return 'Not Found';
+				}			
+			}			
 		}
 	}
 	
@@ -99,12 +147,13 @@ class Scm_purchase_orders extends CI_Controller {
 		return $data;
 	}
 	
-	public function extract_rubi($text){ // ok
+	public function extract_rubi($text){ // ok rubi pdf
+		//echo '<pre>'; print_r($text);
 		$bill_to_code = 'PE000820001B';
 		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
 		$data = $this->data_initialize();
-
-        // Extracción de Número de Boleta / Orden de Compra y Fecha ---
+		$all_data = [];
+        // --- 1. Extracción de Número de Boleta / Orden de Compra y Fecha ---
         if (preg_match('/ORDEN\s+DE\s+COMPRA\s*.*?(\d{7})/is', $text, $matches)) {
              $data['customer_po_no'] = $matches[1];
         } elseif (preg_match('/(?:BOLETA|FACTURA)\s*(?:N°|No\.?|Num\.?|:)?\s*([A-Z0-9-]+)/i', $text, $matches)) {
@@ -144,9 +193,13 @@ class Scm_purchase_orders extends CI_Controller {
         }
 		
 		// Warehouse
+		
+		// $warehouse = $this->gen_m->filter_select('scm_ship_to2', false, ['warehouse'], ['bill_to_code' => $bill_to_code]);
+		// //echo '<pre>'; print_r($warehouse);
+		// $data['warehouse'] = $warehouse[0]->warehouse;
 		$data['warehouse'] = null;
 		
-        // Extracción de Ítems (Tabla) - RE-REVISADO Y OPTIMIZADO ---
+        // --- 4. Extracción de Ítems (Tabla) - RE-REVISADO Y OPTIMIZADO ---
         if (preg_match('/Telfs\.:\s*[\d\s\/\-]+/is', $text, $start_match, PREG_OFFSET_CAPTURE)) {
             $current_pos = $start_match[0][1] + strlen($start_match[0][0]);
             error_log("Tabla: Inicio de extracción de ítems después de 'Telfs.:'.");
@@ -154,8 +207,11 @@ class Scm_purchase_orders extends CI_Controller {
             $quantity_pattern = '\s*(\d{1,5}(?:\.\d{1,2})?)';
             $value_pattern = '\s*(\d{1,5}(?:,\d{3})*(?:\.\d{1,2})?|\d{1,5}(?:\.\d{1,2})?)';
             $model_pattern = '\s*(\S+)';
-  
+
+            // PATRÓN MODIFICADO AQUÍ para ser más flexible al final de la coincidencia
             $item_line_pattern = '/(.*?Lg)' . $quantity_pattern . $value_pattern . $value_pattern . $model_pattern . '(?=\s*(?:SUBTOTAL|TOTAL|IMPORTE TOTAL|[\p{L}\p{N}\s\.\-\,\/\(\)\[\]_#&%*@+\']{1,200}?Lg|.*?\n|\z))/is';
+            // CAMBIO: `.*?\n` añadido al lookahead. Esto permite que el ítem termine si hay una nueva línea
+            // que no necesariamente es el inicio de otro ítem o un total, lo cual es común para la última fila.
 
             while (preg_match($item_line_pattern, $text, $item_matches, PREG_OFFSET_CAPTURE, $current_pos)) {
                 $description = trim($item_matches[1][0]);
@@ -184,11 +240,24 @@ class Scm_purchase_orders extends CI_Controller {
         } else {
             error_log("No se encontró el patrón inicial 'Telfs.:' para comenzar la extracción de ítems de la tabla.");
         }
+		
+        // --- 5. Extracción del Monto Total General (interno, no en Excel) ---
+        // if (preg_match('/(?:TOTAL|Total a Pagar|Monto Total|Importe Total):\s*[$€S]?\s*([\d\.,]+)/i', $text, $matches)) {
+            // $data['total'] = floatval(str_replace(['.', ','], ['', '.'], $matches[1]));
+        // } elseif (empty($data['total']) && !empty($data['items'])) {
+            // $sum_total = 0;
+            // foreach ($data['items'] as $item) {
+                // $sum_total += $item['total value'];
+            // }
+            // $data['total'] = $sum_total;
+        // }
 
-        return $data;
+        //error_log("Datos extraídos: " . print_r($data, true));
+		$all_data[] = $data;
+        return $all_data;
 	}
 	
-	public function extract_saga($file_paths) { // ok
+	public function extract_saga($file_paths) { // ok saga txt
 		$bill_to_code = 'PE000968001B';
 		// Mantenemos esta lista de términos de pago
 		$payterm = [
@@ -199,8 +268,8 @@ class Scm_purchase_orders extends CI_Controller {
 			60 => 'N0060FSN1010',
 			90 => 'N0090FSN1012'
 		];
-		$data = $this->data_initialize(); 
-
+		$data = $this->data_initialize(); // Asegúrate de que esto inicializa todas las claves necesarias
+		$all_data = [];
 		error_log("Aplicando lógica de extracción para SAGA FALABELLA S.A. (Múltiples TXT).");
 
 		if (!is_array($file_paths) || count($file_paths) !== 2) {
@@ -208,7 +277,7 @@ class Scm_purchase_orders extends CI_Controller {
 			return $data; // Retorna datos iniciales si no hay 2 archivos
 		}
 
-		// Procesar el primer archivo (EOC - attach_txt1)
+		// --- Paso 1: Procesar el primer archivo (EOC - attach_txt1) ---
 		$file1_path = $file_paths[0]; 
 		$items_temp_storage = []; // Almacenará los ítems con una clave para fusión
 		$order_header_data = []; // Para almacenar datos a nivel de cabecera de la orden
@@ -235,7 +304,7 @@ class Scm_purchase_orders extends CI_Controller {
 			}
 			$item_raw1 = array_combine($headers1, $values1);
 
-			// Extracción de datos del primer TXT (EOC) para la cabecera y ítems ---
+			// --- Extracción de datos del primer TXT (EOC) para la cabecera y ítems ---
 			$customer_po_no_current = $item_raw1['NRO_OC'] ?? $item_raw1['NRO_OD'] ?? '';
 			
 			// Asumiendo que NRO_OC es consistente para toda la orden en este archivo
@@ -245,23 +314,23 @@ class Scm_purchase_orders extends CI_Controller {
 
 			// MONEDA_COSTO para currency
 			$moneda_costo = $item_raw1['MONEDA_COSTO'] ?? '';
-			if (strtoupper($moneda_costo) === 'S/') {
+			if (strpos(strtoupper($moneda_costo), 'S/.') !== false) {
 				$order_header_data['currency'] = 'PEN';
 			} else {
 				$order_header_data['currency'] = 'USD'; // O el valor por defecto que consideres
 			}
 
-			// FECHA_AUTORIZACION para request_arrival_date (último día del mes)
-			$fecha_autorizacion_raw = $item_raw1['FECHA_AUTORIZACION'] ?? '';
-			if (!empty($fecha_autorizacion_raw)) {
-				$date_obj = DateTime::createFromFormat('d/m/Y', $fecha_autorizacion_raw);
+			//FECHA_HASTA para request_arrival_date (último día del mes)
+			$fecha_date_raw = $item_raw1['FECHA_HASTA'] ?? '';
+			if (!empty($fecha_date_raw)) {
+				$date_obj = DateTime::createFromFormat('d/m/Y', $fecha_date_raw);
 				if ($date_obj) {
-					$order_header_data['request_arrival_date'] = $date_obj->format('Ym') . $date_obj->format('t'); // YYYYMMDD (último día)
+					$order_header_data['request_arrival_date'] = $date_obj->format('Ymd'); // YYYYMMDD (último día) // fecha hasta
 				} else {
-					error_log("Advertencia: Formato de FECHA_AUTORIZACION incorrecto: " . $fecha_autorizacion_raw);
+					error_log("Advertencia: Formato de fecha_date_raw incorrecto: " . $fecha_date_raw);
 				}
 			}
-			
+	
 			// customer_po_date será la fecha actual
 			$order_header_data['customer_po_date'] = date('Ymd'); 
 
@@ -287,7 +356,7 @@ class Scm_purchase_orders extends CI_Controller {
 		}
 		error_log("INFO: " . count($items_temp_storage) . " ítems procesados desde el archivo EOC.");
 
-		// Procesar el segundo archivo (EOD - attach_txt2) y fusionar la información ---
+		// --- Paso 2: Procesar el segundo archivo (EOD - attach_txt2) y fusionar la información ---
 		$file2_path = $file_paths[1]; 
 		$local_from_eod = ''; // Para almacenar el valor LOCAL del segundo archivo
 
@@ -315,10 +384,17 @@ class Scm_purchase_orders extends CI_Controller {
 
 			// Extraer LOCAL del segundo TXT (EOD)
 			$local_from_eod = $item_raw2['LOCAL'] ?? ''; 
-			if (!empty($local_from_eod)) {			
-				break; 
+			if (!empty($local_from_eod)) {
+				// Asumimos que el LOCAL es el mismo para toda la orden en este archivo.
+				// Si el archivo EOD tiene múltiples LOCALES, necesitarás una estrategia diferente.
+				// Por ahora, tomamos el primero que encontremos.
+				break; // Salir del bucle una vez que encontramos el LOCAL
 			}
 
+			// Genera la misma CLAVE ÚNICA para fusionar (si es necesario fusionar datos de ítems del EOD)
+			// Si el EOD solo tiene el campo LOCAL y no hay datos de ítems que fusionar,
+			// esta parte del bucle foreach para fusionar ítems podría no ser estrictamente necesaria.
+			// Pero la mantenemos para completitud si más campos de EOD se añaden en el futuro.
 			$order_num_2 = $item_raw2['NRO_OC'] ?? ''; 
 			$model_or_sku_2 = $item_raw2['MODELO'] ?? $item_raw2['SKU'] ?? ''; 
 			$unique_key_2 = $order_num_2 . '_' . $model_or_sku_2;
@@ -331,7 +407,7 @@ class Scm_purchase_orders extends CI_Controller {
 		}
 		error_log("INFO: Segundo archivo (EOD) procesado. LOCAL encontrado: " . $local_from_eod);
 
-		// Construir el array de datos final con la información fusionada
+		// --- Paso 3: Construir el array de datos final con la información fusionada ---
 		
 		// Asigna los datos de cabecera a $data
 		$data['customer_po_no'] = $order_header_data['customer_po_no'] ?? 'N/A';
@@ -350,6 +426,16 @@ class Scm_purchase_orders extends CI_Controller {
 				$part = trim($part);
 				if (empty($part)) continue; // Saltar partes vacías
 
+				// Ajusta la consulta LIKE para buscar la palabra en cualquier parte de la dirección
+				// Ojo: Si usas CodeIgniter 3 y no tienes query builder, podrías necesitar una consulta directa.
+				// $ship_to = $query->row();
+
+				// Usando tu función filter_select (asumo que es para CI3 Query Builder o similar)
+				// Necesitas un "LIKE" adecuado. Algunas versiones de filter_select permiten esto.
+				// Si $aux[1] es solo una palabra, tu ejemplo $aux[1] está bien, pero aquí la estamos construyendo.
+				
+				// Revisa si tu gen_m->filter_select soporta la sintaxis LIKE de esta forma o necesita ser adaptada
+				// Es crucial que esta consulta funcione. Si "address LIKE %{$aux[1]}%" es del ejemplo, es lo que usaremos.
 				
 				// Adaptando tu ejemplo de búsqueda
 				$ship_to_results = $this->gen_m->filter_select('scm_ship_to2', false, ['ship_to_code'], ['bill_to_code' => $bill_to_code, "address LIKE '%" . $this->db->escape_like_str($part) . "%'"]);
@@ -374,28 +460,31 @@ class Scm_purchase_orders extends CI_Controller {
 			//$model_saga = $item_fusionado['MODELO'] ?? ''; 
 			$model_saga = $this->models_sales_order($item_fusionado['MODELO']);
 			$description_saga = $item_fusionado['DESCRIPCION_LARGA'] ?? 'N/A'; // Del archivo EOD (fusionado)
-			$unit_value_saga = $item_fusionado['PRECIO_UNI'] ?? ''; // Del archivo EOD (fusionado)
+			$unit_value_saga = $item_fusionado['COSTO_UNI'] ?? ''; // Del archivo EOD (fusionado)
 			$total_value_saga = $item_fusionado['IMPORTE_TOTAL_LINEA'] ?? '0'; 
 
 			$data['items'][] = [
 				'qty' => $this->normalize_number($quantity_saga),
 				'modelo' => $model_saga,
 				'description' => $description_saga, 
-				'unit_selling_price' => $this->normalize_number($unit_value_saga),
+				'unit_selling_price' =>  str_replace([','], ['.'], $unit_value_saga),
 				'currency' => $data['currency'], // Toma la moneda de la cabecera
 				'total_value' => $this->normalize_number($total_value_saga) 
 			];
 		}
 
 		error_log("INFO: Extracción de SAGA FALABELLA S.A. completada. Ítems extraídos: " . count($data['items']));
-		return $data;
+		$all_data[] = $data;
+		return $all_data;
 	}
 	
-	public function extract_credivargas($text){ // not work
+	public function extract_credivargas($text){ // ok credivargas pdf | only simple format
 		$text = preg_replace('/[\r\n]+/', '', $text);
 		$bill_to_code = 'PE000952001B';
 		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
-		//echo '<pre>'; print_r($text);		
+		//echo '<pre>'; print_r($text);	
+		$all_data = [];
+		$date_dd_mm_yyyy = 0;		
 		$data = [
             // Inicializa todos los campos que tu generate_excel espera
             'customer_po_no' => '',
@@ -419,20 +508,21 @@ class Scm_purchase_orders extends CI_Controller {
 
         // 1. Fecha de Emisión (ahora busca "Fecha Preparación:")
         // Usamos una RegEx que busca "Fecha Preparación:" y captura la fecha en formato DD-MM-YYYY.
-        if (preg_match('/Fecha(?:\s*Preparación:)?\s*(\d{2}-\d{2}-\d{4})/', $text, $matches)) {
-			//echo '<pre>'; print_r($matches);
-            $date_dd_mm_yyyy = $matches[1];
-            // Convertir de DD-MM-YYYY a YYYYMMDD
-            $date_obj = DateTime::createFromFormat('d-m-Y', $date_dd_mm_yyyy);
-            if ($date_obj) {
-                $data['request_arrival_date'] = $date_obj->format('Ymd');
-                $data['customer_po_date'] = $date_obj->format('Ymd');
-                error_log("Extraída Fecha de Preparación (DD-MM-YYYY): " . $date_dd_mm_yyyy . " -> Formato YYYYMMDD: " . $data['request_arrival_date']);
-            } else {
-                error_log("No se pudo parsear la fecha de preparación: " . $date_dd_mm_yyyy);
-            }
-        }
+        if (preg_match('/Fecha\s+.*?:?\s*(\d{2}-\d{2}-\d{4})/', $text, $matches)) {
+			$date_dd_mm_yyyy = $matches[1];			
+			// Convertir de DD-MM-YYYY a un objeto DateTime.
+			$date_obj = DateTime::createFromFormat('d-m-Y', $date_dd_mm_yyyy);
 
+			if ($date_obj) {
+				// Formatear el objeto de fecha a YYYYMMDD.
+				$data['request_arrival_date'] = $date_obj->format('t');
+				$last_day_date_obj = $date_obj->setDate($date_obj->format('Y'), $date_obj->format('m'), $data['request_arrival_date']);
+				$data['request_arrival_date'] = $last_day_date_obj->format('Ymd');   
+			}
+        }		
+		
+		$data['customer_po_date'] = Date('Ymd');
+		
         // 2. Número de Boleta (Luego de "Orden de Compra + " son números)
         // Usamos una RegEx para encontrar "Orden de Compra" seguido de uno o más espacios, y luego capturamos los dígitos.
         if (preg_match('/Orden de Compra\s*[\+\#\%\*\s]+\s*([\w-]+)\s*/mi', $text, $matches)) {
@@ -442,69 +532,46 @@ class Scm_purchase_orders extends CI_Controller {
         }
         
 		// Payterm Calculate
-		if (preg_match('/Forma de Pago:(.*?)\s*Observaciones/i', $text, $matches)) {
+		if (preg_match('/Forma de Pago:(.*?)\s*Dias/i', $text, $matches)) {
              //echo '<pre>'; print_r($matches);
 			 $extracted_payment_term = trim($matches[1]);
 			 if (preg_match('/\d+/', $extracted_payment_term, $matches_number)) {
-				 $data['payterm'] = $payterm[$matches_number[0]];
+				 $data['payterm'] = $payterm[$matches_number[0]] ?? null;
 			 }
         }
-			 
 		
-		// ship to 
-		// $pattern = '/^Datos para la Entrega:Almacén:\s*(?:[^\s]+\s+){4}?([a-zA-ZáéíóúÁÉÍÓÚñÑ\s\.-]+?)\s*(?:N|\d)\*?.*$/im';
-		// if (preg_match($pattern, $text, $matches)) {
-			// $extracted_full_street = trim($matches[1]);
-			
-			// $all_parts = preg_split('/\s+/', $extracted_full_street);
-			// $common_street_abbreviations = ['jr.', 'av.', 'calle', 'cl.', 'psje.', 'blvd.', 'c.', 'prol.', 'pj.']; // Añade más si las encuentras
-			
-			// foreach ($all_parts as $part) {
-				// $part = trim($part);
-				// if (empty($part)) continue;
-
-				// // Convertir a minúsculas para comparar con las abreviaturas
-				// if (!in_array(strtolower($part), $common_street_abbreviations)) {
-					// $street_name_parts_for_search[] = $part;
-				// }
-			// }
-			// $street_name_parts_for_search = array_slice($street_name_parts_for_search, 0, 2);
-		// }
+		//	Find transport
+		$regex = '/Observaciones:\s*.*?(TRANSMAURI|LEYVA|ZAVALA)/i';
+		if (preg_match($regex, $text, $matches)) {
+             //echo '<pre>'; print_r($matches);
+			 $transport = trim($matches[1]);
+        } else $transport = "VENTANILLA";
 		
-		// if (!empty($street_name_parts_for_search)) {
-			// foreach ($street_name_parts_for_search as $search_term) {
-				// $search_term = trim($search_term);
-				// if (empty($search_term)) continue;
-
-				// $search_term_escaped = $this->db->escape_like_str($search_term);
-				// $where_condition = "LOWER(address) LIKE LOWER('%{$search_term_escaped}%')"; // Fuerza case-insensitivity
-
-				// // Simulamos la llamada a la base de datos
-				// // $ship_to_results = $this->gen_m->filter_select('scm_ship_to2', false, ['ship_to_code'], ['bill_to_code' => $bill_to_code_for_client, $where_condition]);
-				// $ship_to_results = []; // Simulación: No se encontraron resultados por defecto
-
-				// // Simulación de una coincidencia para "Coronel" o "Alameda"
-				// if (strpos(strtolower('Coronel Portillo St.'), strtolower($search_term)) !== false && $search_term == 'Coronel') {
-					// $ship_to_results = [(object)['ship_to_code' => 'SHIP_001']];
-				// } elseif (strpos(strtolower('Av. Alameda Perú 123'), strtolower($search_term)) !== false && $search_term == 'Alameda') {
-					// $ship_to_results = [(object)['ship_to_code' => 'SHIP_002']];
-				// }
-
-
-				// if (!empty($ship_to_results)) {
-					// $found_ship_to_code = $ship_to_results[0]->ship_to_code;
-					// $found_match = true;
-					// echo "Ship-to Code encontrado para parte '{$search_term}': " . $found_ship_to_code . "\n";
-					// break;
-				// }
-			// }
-
-			// if (!$found_match) {
-				// echo "No se encontró ship-to-code para las partes de la calle: " . implode(', ', $street_name_parts_for_search) . "\n";
-			// }
-		// } else {
-			// echo "  No hay partes de calle válidas para buscar.\n";
-		// }
+		// Ship To Calculate
+		
+		$extracted_street = null;
+		// Expresión regular para capturar el nombre de la calle.
+		// Ignora las palabras "01 PCL", que son variables.
+		$regex = '/(Calle|Av\.|Jr\.)\s+([\w]+\s+[\w]+)/i';
+		if (preg_match_all($regex, $text, $matches)) {
+			// La calle capturada estará en el segundo elemento de $matches
+			//echo '<pre>'; print_r($matches);
+			$extracted_street = end($matches[2]);
+			if (count($matches[2]) > 1) {
+				//$extracted_street = trim($matches[1]);
+				$ship_to = $this->gen_m->filter_select("scm_ship_to2", false, "ship_to_code", ["bill_to_code" => $bill_to_code, "address LIKE" => "%{$extracted_street}%", "transport LIKE" => "%{$transport}%"]);
+				//echo '<pre>'; print_r($ship_to);
+				$data['ship_to'] = $ship_to[0]->ship_to_code ?? null;
+			}
+		} 
+		if (preg_match('/Almacén Tienda\s*.*?(Centenario)/i', $text, $matches)){
+			$address = $matches[1];
+			$ship_to = $this->gen_m->filter_select("scm_ship_to2", false, "ship_to_code", ["bill_to_code" => $bill_to_code, "address LIKE" => "%{$address}%", "transport LIKE" => "%{$transport}%"]);
+			//echo '<pre>'; print_r($ship_to);
+			$data['ship_to'] = $ship_to[0]->ship_to_code ?? null;			
+		}
+		
+		
         // --- EXTRACCION DE ÍTEMS ---
 		$data['items'] = []; // Inicializamos el array de ítems fuera del condicional
 		$lines = explode("\n", $text); // Dividimos todo el texto OCR en líneas
@@ -546,25 +613,29 @@ class Scm_purchase_orders extends CI_Controller {
 					//echo '<pre>'; print_r($matches);
 					error_log("Total de ítems encontrados en la línea: " . count($matches));
 					foreach ($matches as $item_match) {
-						$modelo = trim($item_match[1]);          // Captura 1: El modelo
+						$model_aux = trim($item_match[1]);          // Captura 1: El modelo
+						$modelo = $this->models_sales_order($model_aux) ?? '';
 						$qty = trim($item_match[2]);          // Captura 2: Primer valor numérico (ej. Cantidad)
 						$unit_selling_price = trim($item_match[3]);          // Captura 3: Segundo valor numérico (ej. Precio Unitario)
 						$valor3 = trim($item_match[4]);          // Captura 4: Tercer valor numérico (ej. Precio Total)
 
+						if ($modelo === 'Unidad') continue;
+						else {
 						// Aquí guardamos los valores directamente sin la descripción general por ahora.
 						// Asume que la normalización de números ($this->normalize_number) se hará después.
-						$data['items'][] = [
-							'modelo' => $modelo,
-							'qty' => $this->normalize_number($qty),
-							'unit_selling_price' => $this->normalize_number($unit_selling_price),
-							'valor3' => $this->normalize_number($valor3),
-							// Puedes añadir otros campos vacíos o por defecto si tu estructura final los necesita
-							'currency' => 'PEN',
-							'description' => '', // La dejaremos vacía por ahora, o puedes decidir no incluirla
-							//'qty' => 0, // Estos los mapearás de qty, unit_selling_price, valor3 después
-							//'unit_selling_price' => 0,
-							// ... otros campos
-						];
+							$data['items'][] = [
+								'modelo' => $modelo,
+								'qty' => $this->normalize_number($qty),
+								'unit_selling_price' => $this->normalize_number($unit_selling_price),
+								'valor3' => $this->normalize_number($valor3),
+								// Puedes añadir otros campos vacíos o por defecto si tu estructura final los necesita
+								'currency' => 'PEN',
+								'description' => '', // La dejaremos vacía por ahora, o puedes decidir no incluirla
+								//'qty' => 0, // Estos los mapearás de qty, unit_selling_price, valor3 después
+								//'unit_selling_price' => 0,
+								// ... otros campos
+							];
+						}
 						error_log("Extraído ítem: Modelo='" . $modelo . "', Valores: [{$qty}, {$unit_selling_price}, {$valor3}]");
 					}
 				} else {
@@ -573,12 +644,204 @@ class Scm_purchase_orders extends CI_Controller {
         // Fin de extracción de ítems
 			}
 		}
-        return $data;
+		$all_data[] = $data;
+        return $all_data;
 	}
 	
-	public function extract_conecta($text){ // ok
-		$bill_to_code = 'PE000991001B';
+	public function extract_credivargas_bold_format($text){ // ok | credivargas bold format (falta ajustar nuevo regex)
+		$text = preg_replace('/[\r\n]+/', '', $text);
+		$bill_to_code = 'PE000952001B';
 		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
+		//echo '<pre>'; print_r($text);	
+		$date_dd_mm_yyyy = 0;		
+		$all_data = [];
+		$data = [
+            // Inicializa todos los campos que tu generate_excel espera
+            'customer_po_no' => '',
+            'ship_to' => '',
+            'request_arrival_date' => '',
+            'customer_po_date' => '',
+            'address2' => '',
+            'address4' => '',
+            'comsumer_phono_no' => '',
+            'receiver_phono_no' => '',
+            'freight_charge' => '',
+            'freight_term' => '',
+            'price_condition' => '',
+            'picking_remark' => '',
+            'shipping_method' => '',
+            'results' => '',
+            'items' => []
+        ];
+		//echo '<br>'; print_r($text);
+        // --- EXTRACCION DE DATOS DE CABECERA ---
+
+        // 1. Fecha de Emisión (ahora busca "Fecha Preparación:")
+        // Usamos una RegEx que busca "Fecha Preparación:" y captura la fecha en formato DD-MM-YYYY.
+        if (preg_match('/Fecha\s+.*?:?\s*(\d{2}-\d{2}-\d{4})/', $text, $matches)) {
+			$date_dd_mm_yyyy = $matches[1];			
+			// Convertir de DD-MM-YYYY a un objeto DateTime.
+			$date_obj = DateTime::createFromFormat('d-m-Y', $date_dd_mm_yyyy);
+
+			if ($date_obj) {
+				// Formatear el objeto de fecha a YYYYMMDD.
+				$data['request_arrival_date'] = $date_obj->format('t');
+				$last_day_date_obj = $date_obj->setDate($date_obj->format('Y'), $date_obj->format('m'), $data['request_arrival_date']);
+				$data['request_arrival_date'] = $last_day_date_obj->format('Ymd');   
+			}
+        }		
+		
+		$data['customer_po_date'] = Date('Ymd');
+		
+        // 2. Número de Boleta (Luego de "Orden de Compra + " son números)
+        // Usamos una RegEx para encontrar "Orden de Compra" seguido de uno o más espacios, y luego capturamos los dígitos.
+        if (preg_match('/Orden de Compra\s*[\+\#\%\*\s]+\s*([\w-]+)\s*/mi', $text, $matches)) {
+			//echo '<pre>'; print_r($matches);
+            $data['customer_po_no'] = $matches[1]; // El número de la orden de compra
+            error_log("Extraído Número de Boleta/Orden de Compra: " . $data['customer_po_no']);
+        }
+        
+		// Payterm Calculate
+		if (preg_match('/Forma de Pago:(.*?)\s*(Observaciones|Obs\.)/i', $text, $matches)) {
+             //echo '<pre>'; print_r($matches);
+			 $extracted_payment_term = trim($matches[1]);
+			 if (preg_match('/\d+/', $extracted_payment_term, $matches_number)) {
+				 $data['payterm'] = $payterm[$matches_number[0]];
+			 }
+        }
+		
+		//	Find transport
+		$regex = '/(Observaciones|Obs.|Obs:.):\s*.*?(TRANSMAURI|LEYVA|ZAVALA)/i';
+		if (preg_match($regex, $text, $matches)) {
+			//echo '<pre>'; print_r($matches);
+			$transport = trim($matches[2]);
+        } else $transport = "VENTANILLA";
+		
+		// Ship To Calculate
+		
+		
+		// ---------------------------------------
+
+		$last_match = null;
+
+		// --- Primera Condición: Buscar una direccion que termine en N°|n° ---
+		// Captura el texto entre la palabra clave (Av., Calle, Jr.) y el número
+		// El patrón busca la palabra clave, luego cualquier texto, luego N° o n°, y el número
+		$regex_full_address = '/(?:Calle|Av\.|Jr\.)\s*(.*?)\s*(?:N°|n°)\s*([\d-]+)/i';
+		$matches = [];
+		if (preg_match_all($regex_full_address, $text, $matches)) {
+			// Si se encuentra una coincidencia, combina el nombre de la calle y el número
+			//echo '<pre>'; print_r($matches);
+			$last_match = trim(end($matches[1])) . ' ' . trim(end($matches[2]));
+			$ship_to = $this->gen_m->filter_select("scm_ship_to2", false, "ship_to_code", ["bill_to_code" => $bill_to_code, "address LIKE" => "%{$last_match}%", "transport LIKE" => "%{$transport}%"]);
+			$data['ship_to'] = $ship_to[0]->ship_to_code ?? null;
+			//echo '<pre>'; print_r($last_match);
+			//echo "Coincidencia encontrada (con número): " . $last_match . "\n";
+		} else {
+			// --- Segunda Condición (Alternativa): Si la primera falla, buscar 2 palabras despues ---
+			// Este es el regex que proporcionaste en tu solicitud
+			$regex_two_words = '/(?:Calle|Av\.|Jr\.)\s+([\w]+\s+[\w]+)/i';
+			$matches_fallback = [];
+			if (preg_match_all($regex_two_words, $text, $matches_fallback)) {
+				//echo '<pre>'; print_r($matches_fallback);
+				// En este caso, tomamos la ultima coincidencia encontrada
+				$last_match = end($matches_fallback[1]);
+				$ship_to = $this->gen_m->filter_select("scm_ship_to2", false, "ship_to_code", ["bill_to_code" => $bill_to_code, "address LIKE" => "%{$last_match}%", "transport LIKE" => "%{$transport}%"]);
+				$data['ship_to'] = $ship_to[0]->ship_to_code ?? null;
+				//echo '<pre>'; print_r($last_match);
+				//echo "Coincidencia encontrada (alternativa): " . $last_match . "\n";
+			}
+		}
+
+		if (preg_match('/Almacén Tienda\s*.*?(Centenario)/i', $text, $matches)){
+			$address = $matches[1];
+			$ship_to = $this->gen_m->filter_select("scm_ship_to2", false, "ship_to_code", ["bill_to_code" => $bill_to_code, "address LIKE" => "%{$address}%", "transport LIKE" => "%{$transport}%"]);
+			//echo '<pre>'; print_r($ship_to);
+			$data['ship_to'] = $ship_to[0]->ship_to_code ?? null;			
+		}
+		
+        // --- EXTRACCION DE ÍTEMS ---
+		$data['items'] = []; // Inicializamos el array de ítems fuera del condicional
+		$lines = explode("\n", $text); // Dividimos todo el texto OCR en líneas
+		
+		// Patrón para encontrar una línea que contenga un modelo entre corchetes
+		// Usaremos este patrón para identificar la línea clave.
+		$model_line_pattern = '/\[(?!Unidad\])[^\s\]]+\]/';
+		
+		$found_item_line = '';
+		
+		foreach ($lines as $line_num => $line) {
+			if (preg_match($model_line_pattern, $line)) {
+				//echo '<pre>'; print_r($line);
+				$found_item_line = trim($line);
+				error_log("Línea con modelo(s) detectada (Línea " . ($line_num + 1) . "): " . $found_item_line);
+				//break;
+			//}
+		//}
+
+				if (empty($found_item_line)) {
+					error_log("ERROR: No se encontró ninguna línea que contenga un patrón de modelo de ítem.");
+					return $data;
+				}
+			
+				$item_pattern = '/' .    // Hace el prefijo opcional
+						// Captura el Modelo y los valores numéricos
+						// Usamos '.*?' para saltar de forma no codiciosa cualquier texto/número que no queremos capturar.
+						'\[([^\s\]]+)\]' .            // **Captura 1: El Modelo** (ej. WT13BPBK) - sin espacios internos
+						'.*?' .                       // Cualquier carácter, no codicioso, hasta el primer número
+						'(\d{1,3}(?:[,.\s]\d{3})*(?:[.,]\d+)?)\s*' . // **Captura 2: Primer valor numérico (Cantidad)**
+						'(?:\|\s*)?' .                // Pipe opcional (si existe)
+						'(\d{1,3}(?:[,.\s]\d{3})*(?:[.,]\d+)?)\s*' . // **Captura 3: Segundo valor numérico (Precio Unitario)**
+						'(?:\|\s*)?' .                // Pipe opcional (si existe)
+						'(\d{1,3}(?:[,.\s]\d{3})*(?:[.,]\d+)?)\s*' . // **Captura 4: Tercer valor numérico (Precio Total)**
+						'/xi';                        // 'x' para espacios en el patrón, 'i' para case-insensitive
+
+				///\[([^\s\]]+)\]/'
+				if (preg_match_all($item_pattern, $found_item_line, $matches, PREG_SET_ORDER)) {
+					//echo '<pre>'; print_r($matches);
+					error_log("Total de ítems encontrados en la línea: " . count($matches));
+					foreach ($matches as $item_match) {
+						$model_aux = trim($item_match[1]);          // Captura 1: El modelo
+						$modelo = $this->models_sales_order($model_aux) ?? '';
+						$qty = trim($item_match[2]);          // Captura 2: Primer valor numérico (ej. Cantidad)
+						$unit_selling_price = trim($item_match[3]);          // Captura 3: Segundo valor numérico (ej. Precio Unitario)
+						$valor3 = trim($item_match[4]);          // Captura 4: Tercer valor numérico (ej. Precio Total)
+						
+						//if ($modelo === "Unidad" || $modelo === "#" || $modelo === "43UM5N-E") continue;
+						if ($modelo === "Unidad" || $modelo === "#") continue;
+						else {
+						// Aquí guardamos los valores directamente sin la descripción general por ahora.
+						// Asume que la normalización de números ($this->normalize_number) se hará después.
+							$data['items'][] = [
+								'modelo' => $modelo,
+								'qty' => $this->normalize_number($qty),
+								'unit_selling_price' => $this->normalize_number($unit_selling_price),
+								'valor3' => $this->normalize_number($valor3),
+								// Puedes añadir otros campos vacíos o por defecto si tu estructura final los necesita
+								'currency' => 'PEN',
+								'description' => '', // La dejaremos vacía por ahora, o puedes decidir no incluirla
+								//'qty' => 0, // Estos los mapearás de qty, unit_selling_price, valor3 después
+								//'unit_selling_price' => 0,
+								// ... otros campos
+							];
+						}
+						error_log("Extraído ítem: Modelo='" . $modelo . "', Valores: [{$qty}, {$unit_selling_price}, {$valor3}]");
+					}
+				} else {
+					error_log("No se encontraron patrones de ítems válidos en la línea detectada.");
+				}
+        // Fin de extracción de ítems
+			}
+		}
+		$all_data[] = $data;
+        return $all_data;
+	}
+	
+	public function extract_conecta($text){ // ok conecta pdf
+		$bill_to_code_ph = 'PE000991001B'; // Conecta
+		$bill_to_code_selva = 'PE008104001B';	//Conecta selva
+		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
+		$all_data = [];
 		$data = $this->data_initialize();		
 		//echo '<pre>'; print_r($text);
         // --- 1. Extracción de Número de Boleta / Orden de Compra y Fecha ---
@@ -590,10 +853,18 @@ class Scm_purchase_orders extends CI_Controller {
             $data['customer_po_no'] = $matches[1];
         }
 	
+        // if (preg_match('/FECHA\s+DE\s+EMISION\s+:(\d{1,2}[-\/\.]\d{1,2}[-\/\.]\d{2,4})/', $text, $matches)) {
+			// //echo '<pre>'; print_r($matches);
+            // $data['customer_po_date'] = $matches[1];
+        // } elseif (preg_match('/\b(\d{1,2}[-\/\.]\d{1,2}[-\/\.]\d{4})\b/', $text, $matches)) {
+            // $data['customer_po_date'] = $matches[1];
+        // }
 		
 		$data['customer_po_date'] = Date("Ymd");
 		
 		if (preg_match('/FECHA\s+DE\s+VENCIMIENTO\s+:(\d{1,2}[-\/\.]\d{1,2}[-\/\.]\d{2,4})/', $text, $matches)) {
+			//echo '<pre>'; print_r($matches);
+            //$data['request_arrival_date'] = $matches[1];
 			$date_obj = DateTime::createFromFormat('d.m.Y', $matches[1]);
 			$data['request_arrival_date'] = $date_obj->format('Ymt'); 
         } elseif (preg_match('/\b(\d{1,2}[-\/\.]\d{1,2}[-\/\.]\d{4})\b/', $text, $matches)) {
@@ -623,6 +894,20 @@ class Scm_purchase_orders extends CI_Controller {
             $currency = $matches[1];
         }
 		
+		
+		// Selva validation
+
+		$regex = '/LUGAR ENTREGA\s*:.*? (SELVA|selva)/i';
+
+		$matches = [];
+		if (preg_match($regex, $text, $matches)) {
+			// La coincidencia se encuentra en $matches[1]
+			//echo '<pre>'; print_r($matches);
+			$selva = $matches[1];
+			$is_selva = 1;
+		} else $is_selva = 0;
+		if ($is_selva) $bill_to_code = $bill_to_code_selva;
+		else $bill_to_code = $bill_to_code_ph;
 		// Ship to 
 		$pattern = '/LUGAR\s+ENTREGA\s+:(.*?)\s*TIPO/i';
 
@@ -656,7 +941,8 @@ class Scm_purchase_orders extends CI_Controller {
 						$data['ship_to'] = $ship_to_code_found;
 						error_log("INFO: ship_to_code encontrado para lugar de entrega '{$extracted_delivery_location}' usando parte '{$part}': " . $ship_to_code_found);
 						break; // Una vez que encuentras uno, puedes salir del bucle
-					}
+					} elseif(empty($ship_to_results) && $bill_to_code === $bill_to_code_ph) $data['ship_to'] = '991VILLA-S';
+					  elseif(empty($ship_to_results) && $bill_to_code === $bill_to_code_selva) $data['ship_to'] = '8104VILLA-S';
 				}
 				if (!$found_ship_to) {
 					error_log("Advertencia: No se encontró ship_to_code para lugar de entrega: " . $extracted_delivery_location);
@@ -736,11 +1022,708 @@ class Scm_purchase_orders extends CI_Controller {
 			error_log("Terminó la extracción de ítems. Texto restante desde current_pos para depuración: '" . substr($text, $current_pos, 200) . "'");
 			
 		}
+		$all_data[] = $data;
+        return $all_data;
+	}
+	
+	public function extract_integra($text_content_for_pdf) {
+		$all_invoices_data = [];
+
+		// Nuevo patrón para encontrar el inicio de una nueva boleta/factura
+		// Usa un lookahead para dividir el texto sin eliminar el patrón de inicio.
+		$invoice_start_pattern = '/(?=CantidadUnidad Descripción TOTAL ORDEN DE COMPRA N°)/i';
+
+		// Dividir el texto completo del PDF en bloques de boletas
+		$invoice_blocks = preg_split($invoice_start_pattern, $text_content_for_pdf, -1, PREG_SPLIT_NO_EMPTY);
 		
+		if (!empty($invoice_blocks)) {
+			foreach ($invoice_blocks as $text) {
+				//echo '<pre>'; print_r($invoice_text);
+				// Procesar cada bloque de una sola boleta
+				$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
+				$data = $this->data_initialize();
+				
+				// --- 1. Extracción de Número de Boleta / Orden de Compra y Fechas ---
+				if (preg_match('/Observaciones para el Proveedor\s*.*?(\d{7})/is', $text, $matches)) {
+					$data['customer_po_no'] = $matches[1];
+				} elseif (preg_match('/(?:BOLETA|FACTURA)\s*(?:N°|No\.?|Num\.?|:)?\s*([A-Z0-9-]+)/i', $text, $matches)) {
+					$data['customer_po_no'] = $matches[1];
+				}
+				$data['request_arrival_date'] = date('Ymt');
+				$data['customer_po_date'] = date('Ymd');
+				$data['ship_to'] = '8204VESCEVA-S';
+				
+				// --- 2. Extracción de Términos de Pago ---
+				if (preg_match('/CREDITO (\d+) DIAS/', $text, $matches)) {
+					$credit = $matches[1];
+					$data['payterm'] = $payterm[$credit] ?? null;
+				}
+				
+				// --- 3. Extracción de bloques de ítems ---
+				$qty_block_pattern = '/(?:UNI\s*)+(?P<quantities>(?:\s*\d+)+)/is';
+				$prices_block_pattern = '/(?P<prices>(?:[\d\.\s,]+))\s*(?=Lugar de Entrega|Cod\. Item)/is';
+
+				$qty_block_matches = [];
+				preg_match($qty_block_pattern, $text, $qty_block_matches, PREG_OFFSET_CAPTURE);
+				$qty_block_string = $qty_block_matches['quantities'][0] ?? '';
+				$qty_block_end_pos = ($qty_block_matches[0][1] ?? 0) + strlen($qty_block_matches[0][0] ?? '');
+
+				$prices_block_matches = [];
+				preg_match($prices_block_pattern, $text, $prices_block_matches, PREG_OFFSET_CAPTURE);
+				$prices_block_string = $prices_block_matches['prices'][0] ?? '';
+				$prices_block_start_pos = $prices_block_matches['prices'][1] ?? 0;
+
+				$models_block_string = '';
+				if ($qty_block_end_pos && $prices_block_start_pos) {
+					$models_block_string = substr($text, $qty_block_end_pos, $prices_block_start_pos - $qty_block_end_pos);
+				}
+				
+				// --- 4. Procesar y construir los datos de ítems ---
+				if (!empty($qty_block_string) && !empty($models_block_string) && !empty($prices_block_string)) {
+					$qtys_raw = preg_split('/\s+/', trim($qty_block_string), -1, PREG_SPLIT_NO_EMPTY);
+					$models_words = preg_split('/\s+/', trim($models_block_string), -1, PREG_SPLIT_NO_EMPTY);
+					$models_words_index = 0;
+					
+					preg_match_all('/[\d\.]+(?:,\d{2})?/', $prices_block_string, $prices_list);
+					$num_items = count($qtys_raw);
+					$all_prices = $prices_list[0];
+					$unit_prices = array_slice($all_prices, 0, $num_items);
+
+					if ($num_items !== count($unit_prices)) {
+						 error_log("Error de consistencia en el numero de items. QTY: " . count($qtys_raw) . ", Precios: " . count($unit_prices));
+					}
+
+					for ($i = 0; $i < $num_items; $i++) {
+						$qty = $qtys_raw[$i];
+						$unit_selling_price = str_replace(',', '', $unit_prices[$i] ?? '');
+						
+						$final_model = "Modelo no encontrado";
+						
+						for ($j = $models_words_index; $j < count($models_words); $j++) {
+							$item = $models_words[$j];
+							if (strlen($item) > 3) {
+								$found_model = $this->models_sales_order_integra($item);
+								if ($found_model !== 'Not Found') {
+									$final_model = $found_model;
+									$models_words_index = $j + 1;
+									break;
+								}
+							}
+						}
+						
+						$data['items'][] = [
+							'qty' => $qty,
+							'modelo' => $final_model,
+							'currency' => 'PEN',
+							'unit_selling_price' => $unit_selling_price,
+						];
+					}
+				} else {
+					error_log("No se encontraron los bloques de datos necesarios para la extracción.");
+				}
+				//return $data;
+				//$data = $this->extract_integra_single($invoice_text);
+				
+				// Añadir el resultado al array final
+				$all_invoices_data[] = $data;
+			}
+		}
+		//echo '<pre>'; print_r($all_invoices_data);
+		return $all_invoices_data;
+	}
+
+	public function extract_integra1($text){
+		$bill_to_code = 'PE008204001B';
+		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
+		$data = $this->data_initialize();
+		echo '<pre>'; print_r($text);
+		
+		// --- 1. Extracción de Número de Boleta / Orden de Compra y Fecha ---
+        if (preg_match('/Observaciones para el Proveedor\s*.*?(\d{7})/is', $text, $matches)) {
+			//echo '<pre>'; print_r($matches);
+            $data['customer_po_no'] = $matches[1];
+        } elseif (preg_match('/(?:BOLETA|FACTURA)\s*(?:N°|No\.?|Num\.?|:)?\s*([A-Z0-9-]+)/i', $text, $matches)) {
+            $data['customer_po_no'] = $matches[1];
+        }
+
+		// Dates
+		$data['request_arrival_date'] = Date('Ymd');
+		$data['customer_po_date'] = Date('Ymd');
+		
+		// Ship to
+		$data['ship_to'] = '8204VESCEVA-S';
+		
+		// Payterm 		
+		if (preg_match('/CREDITO (\d+) DIAS/', $text, $matches)) {
+             //echo '<pre>'; print_r($matches);
+			 $credit = $matches[1];
+			 $data['payterm'] = $payterm[$credit];
+        }
+		
+		// 1. Patrón para encontrar el bloque de cantidades
+		$qty_block_pattern = '/(?:UNI\s*)+(?P<quantities>(?:\s*\d+)+)/is';
+
+		// 2. Patrón para encontrar el bloque de precios
+		$prices_block_pattern = '/(?P<prices>(?:[\d\.\s,]+))\s*(?=Lugar de Entrega|Cod\. Item)/is';
+
+		// --- Extracción del bloque de cantidades y su posición ---
+		$qty_block_matches = [];
+		preg_match($qty_block_pattern, $text, $qty_block_matches, PREG_OFFSET_CAPTURE);
+		$qty_block_string = $qty_block_matches['quantities'][0] ?? '';
+		$qty_block_end_pos = ($qty_block_matches[0][1] ?? 0) + strlen($qty_block_matches[0][0] ?? '');
+
+		// --- Extracción del bloque de precios y su posición de inicio ---
+		$prices_block_matches = [];
+		preg_match($prices_block_pattern, $text, $prices_block_matches, PREG_OFFSET_CAPTURE);
+		$prices_block_string = $prices_block_matches['prices'][0] ?? '';
+		$prices_block_start_pos = $prices_block_matches['prices'][1] ?? 0;
+
+		// --- Extraer el bloque de modelos utilizando las posiciones de los otros bloques ---
+		$models_block_string = '';
+		if ($qty_block_end_pos && $prices_block_start_pos) {
+			$models_block_string = substr($text, $qty_block_end_pos, $prices_block_start_pos - $qty_block_end_pos);
+		}
+
+		// --- Procesar y construir los datos ---
+		if (!empty($qty_block_string) && !empty($models_block_string) && !empty($prices_block_string)) {
+			// Convertir las cadenas en arrays, eliminando espacios en blanco
+			$qtys_raw = preg_split('/\s+/', trim($qty_block_string), -1, PREG_SPLIT_NO_EMPTY);
+			
+			// Convertir todo el bloque de texto de modelos en un array de palabras.
+			$models_words = preg_split('/\s+/', trim($models_block_string), -1, PREG_SPLIT_NO_EMPTY);
+			//echo '<pre>'; print_r($models_words);
+			$models_words_index = 0; // Nuevo índice para saber desde dónde buscar en la siguiente iteración
+			
+			// Extraer todos los precios del bloque
+			preg_match_all('/[\d\.]+(?:,\d{2})?/', $prices_block_string, $prices_list);
+			
+			// Normalizar precios: ahora tomamos directamente los primeros 'x' precios como los unitarios
+			$num_items = count($qtys_raw);
+			$all_prices = $prices_list[0];
+			$unit_prices = array_slice($all_prices, 0, $num_items);
+
+			// Asegurarse de que el número de items sea consistente
+			if ($num_items !== count($unit_prices)) {
+				 error_log("Error de consistencia en el numero de items. QTY: " . count($qtys_raw) . ", Precios: " . count($unit_prices));
+			}
+
+			// Iterar sobre los arrays y construir la estructura de datos
+			for ($i = 0; $i < $num_items; $i++) {
+				$qty = $qtys_raw[$i];
+				$unit_selling_price = str_replace(',', '', $unit_prices[$i]);
+				
+				$final_model = "Modelo no encontrado";
+				
+				// Lógica para buscar el modelo palabra por palabra en todo el bloque de texto
+				// a partir del índice actual.
+				for ($j = $models_words_index; $j < count($models_words); $j++) {
+					$item = $models_words[$j];
+					if (strlen($item) > 3) {
+						$found_model = $this->models_sales_order_integra($item);
+						//echo '<pre>'; print_r($found_model);
+						if ($found_model) {
+							if ($found_model !== 'Not Found') {
+								$final_model = $found_model;
+								$models_words_index = $j + 1;
+								break;
+							}
+						}
+					}
+				}
+				
+				$data['items'][] = [
+					'qty' => $qty,
+					'modelo' => $final_model,
+					'currency' => 'PEN',
+					'unit_selling_price' => $unit_selling_price,
+				];
+			}
+		} else {
+			error_log("No se encontraron los bloques de datos necesarios para la extracción.");
+		}
+		//echo '<pre>'; print_r($data);
         return $data;
 	}
+	
+	public function extract_oeschle($file_path){
+		$bill_to_code = 'PE007152001B';
+		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
+		//load excel file
+		$spreadsheet = IOFactory::load("./upload/extract_excel.xlsx");
+		$sheet = $spreadsheet->getActiveSheet();
+		//foreach ($spreadsheet->getSheetNames() as $sheetName) {
+		$all_data = [];
+		//$sheet = $spreadsheet->getSheetByName($sheetName);
 		
-	private function extract_data_from_text($text, $client_name, $file_path_for_txt = null) {
+		$data['customer_po_no'] = trim($sheet->getCell('B7')->getValue());
+		$address = trim($sheet->getCell('B10')->getValue());
+		$currency = trim($sheet->getCell('I9')->getValue());
+		
+		$aux_payterm = explode(' ', trim($sheet->getCell('I10')->getValue()));
+		$data['payterm'] = $payterm[$aux_payterm[1]];
+		
+		$aux_ship = trim($sheet->getCell('B10')->getValue());
+		$ship_to = explode(" ", $aux_ship);
+		if ($ship_to[1] === 'VES') {
+			$ship_to_code = $this->gen_m->filter_select('scm_ship_to2', false, 'ship_to_code', ['bill_to_code' => $bill_to_code]);
+			$data['ship_to'] = $ship_to_code[0]->ship_to_code;
+		}
+		
+		$date_obj = DateTime::createFromFormat('Y-m-d', $this->date_convert(trim($sheet->getCell('B9')->getValue())));
+		$data['request_arrival_date'] = $date_obj->format('Ymt');
+		
+		$data['customer_po_date'] = Date('Ymd');
+		
+		$max_row = $sheet->getHighestRow();
+		for($i = 16; $i <= $max_row; $i++){
+			$aux_model = trim($sheet->getCell('B'.$i)->getValue());
+			$model = $this->models_sales_order($aux_model);
+			$data['items'][] = [
+				"currency"				=> ($currency === 'S/.') ? 'PEN' : 'USD',
+				"modelo" 				=> $model,
+				"qty"					=> trim($sheet->getCell('H'.$i)->getValue()),
+				"unit_selling_price" 	=> trim($sheet->getCell('I'.$i)->getValue()),		
+			];	
+		}
+		//}
+		$all_data[] = $data;
+		//echo '<pre>'; print_r($all_data);
+		return $all_data;
+	}
+	
+	public function extract_oeschle_yellow($file_path){
+		$bill_to_code = 'PE007152001B';
+		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
+		//load excel file
+		$spreadsheet = IOFactory::load("./upload/extract_excel.xlsx");
+		$sheet = $spreadsheet->getActiveSheet();
+		$all_data = [];
+		//foreach ($spreadsheet->getSheetNames() as $sheetName) {
+	
+	
+		//$sheet = $spreadsheet->getSheetByName($sheetName);
+		
+		$data['customer_po_no'] = trim($sheet->getCell('A2')->getValue());
+		$address = trim($sheet->getCell('E2')->getValue());
+		$currency = trim($sheet->getCell('I2')->getValue());
+		
+		//$aux_payterm = explode(' ', trim($sheet->getCell('I10')->getValue()));
+		$data['payterm'] = null;
+		
+		$aux_ship = trim($sheet->getCell('E2')->getValue());
+		$ship_to = explode(" ", $aux_ship);
+		if ($ship_to[1] === 'VES') {
+			$ship_to_code = $this->gen_m->filter_select('scm_ship_to2', false, 'ship_to_code', ['bill_to_code' => $bill_to_code]);
+			$data['ship_to'] = $ship_to_code[0]->ship_to_code;
+		}
+		
+		$date_obj = DateTime::createFromFormat('d-m-Y', trim($sheet->getCell('H2')->getValue()));
+		$data['request_arrival_date'] = $date_obj->format('Ymt');
+		
+		$data['customer_po_date'] = Date('Ymd');
+		
+		$max_row = $sheet->getHighestRow();
+		for($i = 2; $i <= $max_row; $i++){
+			$aux_model = trim($sheet->getCell('L'.$i)->getValue());
+			$model = $this->models_sales_order($aux_model);
+			$data['items'][] = [
+				"currency"				=> ($currency === 'PEN') ? 'PEN' : 'USD',
+				"modelo" 				=> $model,
+				"qty"					=> trim($sheet->getCell('T'.$i)->getValue()) / trim($sheet->getCell('S'.$i)->getValue()),
+				"unit_selling_price" 	=> trim($sheet->getCell('S'.$i)->getValue()),		
+			];	
+		}
+		//}
+		$all_data[] = $data;
+		//echo '<pre>'; print_r($all_data);
+		return $all_data;
+	}
+	
+	public function extract_plaza_vea($file_path){
+		$bill_to_code = 'PE008158001B';
+		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
+		
+		$spreadsheet = IOFactory::load("./upload/extract_excel.xlsx");
+		$sheet = $spreadsheet->getActiveSheet();
+		//foreach ($spreadsheet->getSheetNames() as $sheetName) {
+		$all_data = [];
+	
+		//$sheet = $spreadsheet->getSheetByName($sheetName);
+		
+		$data['customer_po_no'] = trim($sheet->getCell('B7')->getValue());
+		$address = trim($sheet->getCell('B10')->getValue());
+		$currency = trim($sheet->getCell('I9')->getValue());
+		
+		$aux_payterm = explode(' ', trim($sheet->getCell('I10')->getValue()));
+		$data['payterm'] = $payterm[$aux_payterm[1]] ?? NULL;
+		
+		$aux_ship = trim($sheet->getCell('B10')->getValue());
+		$ship_to = explode(" ", $aux_ship);
+		if ($ship_to[1] === 'STOL') {
+			$ship_to_code = $this->gen_m->filter_select('scm_ship_to2', false, 'ship_to_code', ['bill_to_code' => $bill_to_code]);
+			$data['ship_to'] = $ship_to_code[0]->ship_to_code;
+		}
+		
+		$date_obj = DateTime::createFromFormat('Y-m-d', $this->date_convert(trim($sheet->getCell('B9')->getValue())));
+		$data['request_arrival_date'] = $date_obj->format('Ymt');
+		
+		$data['customer_po_date'] = Date('Ymd');
+		
+		$max_row = $sheet->getHighestRow();
+		for($i = 18; $i <= $max_row; $i++){
+			if (trim($sheet->getCell('C'.$i)->getValue()) === null || trim($sheet->getCell('C'.$i)->getValue()) === '') continue;
+			$aux_model = trim($sheet->getCell('C'.$i)->getValue());
+			$model = $this->models_sales_order($aux_model);
+			$data['items'][] = [
+				"currency"				=> ($currency === 'PEN') ? 'PEN' : 'USD',
+				"modelo" 				=> $model,
+				"qty"					=> trim($sheet->getCell('G'.$i)->getValue()),
+				"unit_selling_price" 	=> trim($sheet->getCell('I'.$i)->getValue()),		
+			];	
+		}
+		//}
+		//echo '<pre>'; print_r($data);
+		$all_data[] = $data;
+		return $all_data;
+	}
+		
+	public function extract_promart($file_path){
+		$bill_to_code = 'PE001351001B';
+		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
+		
+		//load excel file
+		$spreadsheet = IOFactory::load("./upload/extract_excel.xlsx");
+		$sheet = $spreadsheet->getActiveSheet();
+		$all_data = [];
+		
+		$data['customer_po_no'] = trim($sheet->getCell('A2')->getValue());
+		$address = trim($sheet->getCell('F2')->getValue());
+		$currency = trim($sheet->getCell('J2')->getValue());
+		
+		//$aux_payterm = explode(' ', trim($sheet->getCell('I10')->getValue()));
+		$data['payterm'] = null;
+		
+		$aux_ship = trim($sheet->getCell('F2')->getValue());
+		$ship_to = explode(" ", $aux_ship);
+		if ($ship_to[1] === 'STOL') {
+			$ship_to_code = $this->gen_m->filter_select('scm_ship_to2', false, 'ship_to_code', ['bill_to_code' => $bill_to_code]);
+			$data['ship_to'] = $ship_to_code[0]->ship_to_code;
+		}
+		
+		$date_obj = DateTime::createFromFormat('d-m-Y', trim($sheet->getCell('I2')->getValue()));
+		$data['request_arrival_date'] = $date_obj->format('Ymt');
+		
+		$data['customer_po_date'] = Date('Ymd');
+		
+		$max_row = $sheet->getHighestRow();
+		for($i = 2; $i <= $max_row; $i++){
+			$aux_model = trim($sheet->getCell('M'.$i)->getValue());
+			
+			$model_exp = explode(" ", $aux_model);
+			foreach($model_exp as $item) {
+				
+				if(strlen($item) > 2 && !is_numeric($item)) {
+					//echo '<pre>'; print_r($item);
+					$models = $this->gen_m->filter_select('lgepr_sales_order', false, 'model', ['model LIKE' => "%{$item}%"]);
+					//echo '<pre>'; print_r($models);
+					if (!empty($models)) {
+						$model = $models[0]->model;
+						break;
+					}
+					else{
+						$model_close = $this->gen_m->filter_select('lgepr_closed_order', false, 'model', ['model LIKE' => "%{$item}%"]);
+						if (!empty($model_close)) {
+							$model = $model_close[0]->model;
+							break;
+						}
+						else $model = null;
+					}
+				}
+			}		
+			
+			if ($model === '' || empty($model)){
+				$sku = trim($sheet->getCell('K'.$i)->getValue());
+				$aux = $this->gen_m->filter_select('scm_sku', false, 'sku', ['sku_customer' => $sku]);
+				$model = $aux[0]->sku;
+			} else $model = $model;
+			//$model = $this->models_sales_order($aux_model);
+			
+			$data['items'][] = [
+				"currency"				=> ($currency === 'PEN') ? 'PEN' : 'USD',
+				"modelo" 				=> $model,
+				"qty"					=> trim($sheet->getCell('R'.$i)->getValue()) / trim($sheet->getCell('Q'.$i)->getValue()),
+				"unit_selling_price" 	=> trim($sheet->getCell('Q'.$i)->getValue()),		
+			];	
+		}
+		//}
+		//echo '<pre>'; print_r($data);
+		$all_data[] = $data;
+		return $all_data;
+	}
+	
+	public function extract_ripley($file_path){
+		$bill_to_code = 'PE000966001B';
+		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
+		
+		//load excel file
+		$spreadsheet = IOFactory::load("./upload/extract_excel.xlsx");
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		$all_data = [];
+		
+		$data['customer_po_no'] = trim($sheet->getCell('C2')->getValue());
+		$address = trim($sheet->getCell('O2')->getValue());
+		$currency = trim($sheet->getCell('T2')->getValue());
+		
+		$aux_payterm = explode(' ', trim($sheet->getCell('U2')->getValue()));
+		$data['payterm'] = $payterm[$aux_payterm[1]];
+		
+		$aux_ship = trim($sheet->getCell('L2')->getValue());
+		//$ship_to = explode(" ", $aux_ship);
+		if ($aux_ship === '20026') {
+			// $ship_to_code = $this->gen_m->filter_select('scm_ship_to2', false, 'ship_to_code', ['bill_to_code' => $bill_to_code]);
+			// $data['ship_to'] = $ship_to_code[0]->ship_to_code;
+			$data['ship_to'] = '337564VES2-S';
+		} else $data['ship_to'] = '337564CD';
+		
+		$date_obj = DateTime::createFromFormat('Y-m-d', $this->date_convert(trim($sheet->getCell('Q2')->getValue())));
+		$data['request_arrival_date'] = $date_obj->format('Ymt');
+		
+		$data['customer_po_date'] = Date('Ymd');
+		
+		$max_row = $sheet->getHighestRow();
+		for($i = 2; $i <= $max_row; $i++){
+			$aux_model = trim($sheet->getCell('AB'.$i)->getValue());
+			$model = $this->models_sales_order($aux_model);		
+			
+			//$model = $this->models_sales_order($aux_model);
+			
+			$data['items'][] = [
+				"currency"				=> ($currency === 'S/') ? 'PEN' : 'USD',
+				"modelo" 				=> $model,
+				"qty"					=> trim($sheet->getCell('AD'.$i)->getValue()),
+				"unit_selling_price" 	=> trim($sheet->getCell('AE'.$i)->getValue()),		
+			];	
+		}
+		//}
+		//echo '<pre>'; print_r($data);
+		$all_data[] = $data;
+		return $all_data;
+	}
+	
+	public function extract_tottus($file_paths){
+		$bill_to_code = 'PE004467001B';
+		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
+		
+		$data = $this->data_initialize(); // Asegúrate de que esto inicializa todas las claves necesarias
+		$all_data = [];
+		error_log("Aplicando lógica de extracción para HIPERMERCADOS TOTTUS S.A. (Múltiples TXT).");
+
+		if (!is_array($file_paths) || count($file_paths) !== 2) {
+			error_log("Error: Se esperan exactamente dos rutas de archivo TXT válidas para HIPERMERCADOS TOTTUS S.A.");
+			return $data; // Retorna datos iniciales si no hay 2 archivos
+		}
+
+		// --- Paso 1: Procesar el primer archivo (EOC - attach_txt1) ---
+		$file1_path = $file_paths[0]; 
+		$items_temp_storage = []; // Almacenará los ítems con una clave para fusión
+		$order_header_data = []; // Para almacenar datos a nivel de cabecera de la orden
+
+		if (!file_exists($file1_path)) {
+			error_log("Error: Primer archivo TXT (EOC) no válido o no encontrado: " . $file1_path);
+			return $data;
+		}
+
+		$lines1 = file($file1_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+		if (empty($lines1)) {
+			error_log("Error: Primer archivo TXT (EOC) vacío: " . $file1_path);
+			return $data;
+		}
+
+		$headers1 = array_map('trim', explode('|', array_shift($lines1)));
+		error_log("HIPERMERCADOS TOTTUS S.A. - Encabezados Archivo EOC: " . implode(', ', $headers1));
+
+		foreach ($lines1 as $line1) {
+			$values1 = array_map('trim', explode('|', $line1));
+			if (count($headers1) !== count($values1)) {
+				error_log("Advertencia: Columnas no coinciden en Archivo EOC, línea: " . $line1);
+				continue;
+			}
+			$item_raw1 = array_combine($headers1, $values1);
+
+			// --- Extracción de datos del primer TXT (EOC) para la cabecera y ítems ---
+			$customer_po_no_current = $item_raw1['NRO_OC'];
+			
+			// Asumiendo que NRO_OC es consistente para toda la orden en este archivo
+			if (empty($order_header_data['customer_po_no'])) {
+				$order_header_data['customer_po_no'] = $customer_po_no_current;
+			}
+
+			// MONEDA_COSTO para currency
+			$moneda_costo = $item_raw1['MONEDA_COSTO'] ?? '';
+			if (strpos(strtoupper($moneda_costo), 'PEN') !== false) {
+				$order_header_data['currency'] = 'PEN';
+			} else {
+				$order_header_data['currency'] = 'USD';
+			}
+
+			//FECHA_HASTA para request_arrival_date (último día del mes)
+			$fecha_date_raw = $item_raw1['FECHA_HASTA'] ?? '';
+			if (!empty($fecha_date_raw)) {
+				$date_obj = DateTime::createFromFormat('d/m/Y', $fecha_date_raw);
+				if ($date_obj) {
+					$order_header_data['request_arrival_date'] = $date_obj->format('Ymd'); // YYYYMMDD (último día) // fecha hasta
+				} else {
+					error_log("Advertencia: Formato de fecha_date_raw incorrecto: " . $fecha_date_raw);				
+				}
+			} else{
+				$fecha_date_raw = $item_raw1['FECHA_DESDE'];
+				$date_obj = DateTime::createFromFormat('d/m/Y', $fecha_date_raw);
+				$order_header_data['request_arrival_date'] = $date_obj->format('Ymd');
+			}
+	
+			// customer_po_date será la fecha actual
+			$order_header_data['customer_po_date'] = date('Ymd'); 
+
+			// DIAS_PAGO para payterm
+			$dias_pago = $item_raw1['DIAS_PAGO'] ?? null;
+			if (isset($payterm[$dias_pago])) {
+				$order_header_data['payterm'] = $payterm[$dias_pago];
+			} else {
+				error_log("Advertencia: DIAS_PAGO no encontrado en lista de términos de pago: " . $dias_pago);
+				// Puedes asignar un valor por defecto o dejarlo vacío si no se encuentra
+				$order_header_data['payterm'] = ''; 
+			}
+
+			// Define la CLAVE ÚNICA para fusionar (NRO_OC + MODELO/SKU)
+			$model_or_sku = $item_raw1['MODELO'] ?? $item_raw1['SKU'] ?? ''; 
+			$unique_key = $customer_po_no_current . '_' . $model_or_sku;
+
+			if (!empty($unique_key)) {
+				$items_temp_storage[$unique_key] = $item_raw1;
+			} else {
+				error_log("Advertencia: No se pudo generar una clave única para línea en Archivo EOC: " . $line1);
+			}
+		}
+		error_log("INFO: " . count($items_temp_storage) . " ítems procesados desde el archivo EOC.");
+
+		// --- Paso 2: Procesar el segundo archivo (EOD - attach_txt2) y fusionar la información ---
+		$file2_path = $file_paths[1]; 
+		$local_from_eod = ''; // Para almacenar el valor LOCAL del segundo archivo
+
+		if (!file_exists($file2_path)) {
+			error_log("Error: Segundo archivo TXT (EOD) no válido o no encontrado: " . $file2_path);
+			return $data; // Mandatorio, así que retorna
+		}
+
+		$lines2 = file($file2_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+		if (empty($lines2)) {
+			error_log("Error: Segundo archivo TXT (EOD) vacío: " . $file2_path);
+			return $data;
+		}
+
+		$headers2 = array_map('trim', explode('|', array_shift($lines2)));
+		error_log("HIPERMERCADOS TOTTUS S.A. - Encabezados Archivo EOD: " . implode(', ', $headers2));
+
+		foreach ($lines2 as $line2) {
+			$values2 = array_map('trim', explode('|', $line2));
+			if (count($headers2) !== count($values2)) {
+				error_log("Advertencia: Columnas no coinciden en Archivo EOD, línea: " . $line2);
+				continue;
+			}
+			$item_raw2 = array_combine($headers2, $values2);
+
+			// Extraer LOCAL del segundo TXT (EOD)
+			$local_from_eod = $item_raw2['LOCAL'] ?? ''; 
+			if (!empty($local_from_eod)) {
+				// Asumimos que el LOCAL es el mismo para toda la orden en este archivo.
+				// Si el archivo EOD tiene múltiples LOCALES, necesitarás una estrategia diferente.
+				// Por ahora, tomamos el primero que encontremos.
+				break; // Salir del bucle una vez que encontramos el LOCAL
+			}
+
+			// Genera la misma CLAVE ÚNICA para fusionar (si es necesario fusionar datos de ítems del EOD)
+			// Si el EOD solo tiene el campo LOCAL y no hay datos de ítems que fusionar,
+			// esta parte del bucle foreach para fusionar ítems podría no ser estrictamente necesaria.
+			// Pero la mantenemos para completitud si más campos de EOD se añaden en el futuro.
+			$order_num_2 = $item_raw2['NRO_OC'] ?? ''; 
+			$model_or_sku_2 = $item_raw2['MODELO'] ?? $item_raw2['SKU'] ?? ''; 
+			$unique_key_2 = $order_num_2 . '_' . $model_or_sku_2;
+
+			if (isset($items_temp_storage[$unique_key_2])) {
+				$items_temp_storage[$unique_key_2] = array_merge($items_temp_storage[$unique_key_2], $item_raw2);
+			} else {
+				error_log("Advertencia: Clave única no encontrada en almacenamiento para Archivo EOD, línea: " . $line2 . " Clave: " . $unique_key_2);
+			}
+		}
+		error_log("INFO: Segundo archivo (EOD) procesado. LOCAL encontrado: " . $local_from_eod);
+
+		// --- Paso 3: Construir el array de datos final con la información fusionada ---
+		
+		// Asigna los datos de cabecera a $data
+		$data['customer_po_no'] = $order_header_data['customer_po_no'] ?? 'N/A';
+		$data['request_arrival_date'] = $order_header_data['request_arrival_date'] ?? 'N/A';
+		$data['customer_po_date'] = $order_header_data['customer_po_date'] ?? date('Ymd'); // Asegura la fecha actual si no se asignó antes
+		$data['currency'] = $order_header_data['currency'] ?? 'PEN';
+		$data['payterm'] = $order_header_data['payterm'] ?? ''; // Asigna el término de pago
+
+		// Búsqueda del ship_to_code usando el LOCAL del EOD
+		// $data['ship_to'] = 'N/A'; // Valor por defecto
+		
+		if (strpos($local_from_eod, 'BTL') !== false){
+			$data['ship_to'] = '4467LURIN2-S'; 
+		} elseif (strpos($local_from_eod, 'Huachipa') !== false){
+			$data['ship_to'] = '4467CDLURI-S'; 
+		}
+		// if (!empty($local_from_eod)) {
+			// // Divide el valor de LOCAL en palabras para buscar
+			// $local_parts = explode(' ', $local_from_eod);
+			// $found_ship_to = false;
+			// foreach ($local_parts as $part) {
+				// $part = trim($part);
+				// if (empty($part)) continue; // Saltar partes vacías
+
+				// $ship_to_results = $this->gen_m->filter_select('scm_ship_to2', false, ['ship_to_code'], ['bill_to_code' => $bill_to_code, "address LIKE '%" . $this->db->escape_like_str($part) . "%'"]);
+
+				// if (!empty($ship_to_results)) {
+					// $data['ship_to'] = $ship_to_results[0]->ship_to_code;
+					// $found_ship_to = true;
+					// error_log("INFO: ship_to_code encontrado para LOCAL '{$local_from_eod}' usando parte '{$part}': " . $data['ship_to']);
+					// break; // Una vez que encuentras uno, puedes salir
+				// }
+			// }
+			// if (!$found_ship_to) {
+				// error_log("Advertencia: No se encontró ship_to_code para LOCAL: " . $local_from_eod);
+			// }
+		// } else {
+			// error_log("Advertencia: El campo LOCAL del archivo EOD está vacío.");
+		// }
+
+		foreach ($items_temp_storage as $item_fusionado) {
+			// Mapea los campos fusionados a la estructura de tu salida
+			$quantity_saga = $item_fusionado['CANTIDAD_PROD'] ?? $item_fusionado['UNIDADES'] ?? '0';
+			//$model_saga = $item_fusionado['MODELO'] ?? ''; 
+			$model_saga = $this->models_sales_order($item_fusionado['MODELO']);
+			$description_saga = $item_fusionado['DESCRIPCION_LARGA'] ?? 'N/A'; // Del archivo EOD (fusionado)
+			$unit_value_saga = $item_fusionado['COSTO_UNI'] ?? ''; // Del archivo EOD (fusionado)
+			$total_value_saga = $item_fusionado['IMPORTE_TOTAL_LINEA'] ?? '0'; 
+
+			$data['items'][] = [
+				'qty' => $this->normalize_number($quantity_saga),
+				'modelo' => $model_saga,
+				'description' => $description_saga, 
+				'unit_selling_price' =>  str_replace([','], ['.'], $unit_value_saga),
+				'currency' => $data['currency'], // Toma la moneda de la cabecera
+				'total_value' => $this->normalize_number($total_value_saga) 
+			];
+		}
+
+		error_log("INFO: Extracción de HIPERMERCADOS TOTTUS S.A. completada. Ítems extraídos: " . count($data['items']));
+		$all_data[] = $data;
+		return $all_data;
+	}
+	
+	private function extract_data_from_text($text, $client_name, $file_path = null) {
 		$data = [
             'date' => 'N/A',
             'boleta' => 'N/A',
@@ -759,16 +1742,43 @@ class Scm_purchase_orders extends CI_Controller {
 				//$data = $this->extract_hiraoka();
 				break;
 			case 'SAGA FALABELLA S.A.':
-				$data = $this->extract_saga($file_path_for_txt); // txt 
+				$data = $this->extract_saga($file_path); // txt 
 				break;
 			case 'REPRESENTACIONES VARGAS S.A.':
 				$data = $this->extract_credivargas($text); // scan pdf
 				break;
+			case 'REPRESENTACIONES VARGAS S.A. (Bold Format)': // scan pdf bold format
+				$data = $this->extract_credivargas_bold_format($text);
+				break;
 			case 'CONECTA RETAIL S.A.':
 				$data = $this->extract_conecta($text); // editable pdf
 				break;
+			case 'INTEGRA RETAIL S.A.C.': // editable pdf
+				$data = $this->extract_integra($text);
+				break;
+			case 'TIENDAS PERUANAS S.A. - OESCHLE': // excel
+				$data = $this->extract_oeschle($file_path);
+				break;
+			case 'TIENDAS PERUANAS S.A. - OESCHLE (Yellow)': // excel
+				$data = $this->extract_oeschle_yellow($file_path);
+				break;
+			case 'HOMECENTERS PERUANOS S.A. - PLAZA VEA': // excel
+				$data = $this->extract_plaza_vea($file_path);
+				break;
+			case 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - PROMART': // excel
+				$data = $this->extract_promart($file_path);
+				break;
+			case 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.': // excel
+				$data = $this->extract_ripley($file_path);
+				break;
+			case 'HIPERMERCADOS TOTTUS S.A.':
+				$data = $this->extract_tottus($file_path); // txt 
+				break;
 			default:
                 error_log("Cliente no reconocido: " . $client_name . ". Aplicando lógica por defecto (o ninguna específica).");
+                // Puedes dejar la lógica de LG como default o lanzar un error si el cliente no es reconocido.
+                // Por ahora, si no hay caso, no se extraería nada o se intentaría con la última lógica implementada.
+                // Para evitar errores en producción, deberías manejar un caso por defecto o un error explícito.
                 break;
 		}
 		
@@ -782,7 +1792,7 @@ class Scm_purchase_orders extends CI_Controller {
         return floatval($num_str);
     }
 	
-	public function process(){
+	public function process(){ // not working in the module
 		set_time_limit(0);
 		ini_set("memory_limit", -1);
 
@@ -1005,7 +2015,7 @@ class Scm_purchase_orders extends CI_Controller {
 		$this->generate_excel($extracted_data, $client_name);
 	}
 	
-	private function generate_excel($data, $client_name = '') {
+	private function generate_excel($all_data, $client_name = '') {
 		set_time_limit(0);
 		ini_set("memory_limit", -1);
 		// Cargar plantilla vacía
@@ -1039,66 +2049,68 @@ class Scm_purchase_orders extends CI_Controller {
         // --- Llenar datos ---
         $row = 2;
 		$total_sum = 0;
-        if (!empty($data['items'])) {
-            foreach ($data['items'] as $item) {
-                $sheet->setCellValue('A' . $row, $data['customer_po_no'] ?? '');
-                $sheet->setCellValue('B' . $row, $data['ship_to'] ?? '');
-                $sheet->setCellValue('C' . $row, $item['currency'] ?? '');
-				$sheet->setCellValue('D' . $row, $data['request_arrival_date'] ?? '');
-                $sheet->setCellValue('E' . $row, $item['modelo'] ?? '');
-                $sheet->setCellValue('F' . $row, $item['qty'] ?? '');
-                $sheet->setCellValue('G' . $row, $item['unit_selling_price'] ?? '');
+		foreach ($all_data as $data){
+			if (!empty($data['items'])) {
+				foreach ($data['items'] as $item) {
+					$sheet->setCellValue('A' . $row, $data['customer_po_no'] ?? '');
+					$sheet->setCellValue('B' . $row, $data['ship_to'] ?? '');
+					$sheet->setCellValue('C' . $row, $item['currency'] ?? '');
+					$sheet->setCellValue('D' . $row, $data['request_arrival_date'] ?? '');
+					$sheet->setCellValue('E' . $row, $item['modelo'] ?? '');
+					$sheet->setCellValue('F' . $row, $item['qty'] ?? '');
+					$sheet->setCellValue('G' . $row, $item['unit_selling_price'] ?? '');
 
-                $sheet->setCellValue('H' . $row, $data['warehouse'] ?? '');
-                $sheet->setCellValue('I' . $row, $data['payterm'] ?? '');
-                $sheet->setCellValue('J' . $row, $item['shipping_remark'] ?? '');
-                $sheet->setCellValue('K' . $row, $item['invoice_remark'] ?? '');
-                $sheet->setCellValue('L' . $row, $data['request_arrival_date'] ?? '');
-				$sheet->setCellValue('M' . $row, $data['customer_po_date'] ?? '');
+					$sheet->setCellValue('H' . $row, $data['warehouse'] ?? '');
+					$sheet->setCellValue('I' . $row, $data['payterm'] ?? '');
+					$sheet->setCellValue('J' . $row, $item['shipping_remark'] ?? '');
+					$sheet->setCellValue('K' . $row, $item['invoice_remark'] ?? '');
+					$sheet->setCellValue('L' . $row, $data['request_arrival_date'] ?? '');
+					$sheet->setCellValue('M' . $row, $data['customer_po_date'] ?? '');
+					
+					$sheet->setCellValue('N' . $row, $item['h_flag'] ?? '');
+					$sheet->setCellValue('O' . $row, $item['op_code'] ??  '');
+					$sheet->setCellValue('P' . $row, $item['country'] ??  '');
+					$sheet->setCellValue('Q' . $row, $item['postal_code'] ?? '');
+					$sheet->setCellValue('R' . $row, $item['address1'] ?? '');
+					$sheet->setCellValue('S' . $row, $data['address2'] ?? '');
+					$sheet->setCellValue('T' . $row, $item['address3'] ?? '');
+					$sheet->setCellValue('U' . $row, $data['address4'] ?? '');
+					
+					$sheet->setCellValue('V' . $row, $item['city'] ?? '');
+					$sheet->setCellValue('W' . $row, $item['state'] ??  '');
+					$sheet->setCellValue('X' . $row, $item['province'] ??  '');
+					$sheet->setCellValue('Y' . $row, $item['county'] ?? '');
+					$sheet->setCellValue('Z' . $row, $item['consumer_name'] ?? '');
+					$sheet->setCellValue('AA' . $row, $data['comsumer_phono_no'] ?? '');
+					$sheet->setCellValue('AB' . $row, $item['receiver_name'] ?? '');
+					$sheet->setCellValue('AC' . $row, $data['receiver_phono_no'] ?? '');
+					$sheet->setCellValue('AD' . $row, $data['freight_charge'] ?? '');
+					$sheet->setCellValue('AE' . $row, $data['freight_term'] ?? '');
+					$sheet->setCellValue('AF' . $row, $data['price_condition'] ?? '');
+					$sheet->setCellValue('AG' . $row, $data['picking_remark'] ?? '');
+					$sheet->setCellValue('AH' . $row, $data['shipping_method'] ?? '');
+					$sheet->setCellValue('AI' . $row, $data['results'] ?? '');
+					// APLICAR BORDES A LA FILA ACTUAL
+					$sheet->getStyle('A' . $row . ':AI' . $row)->applyFromArray($dataBorderStyle);
+					
+					//$total_sum += $item['total value'];
+					$row++;
+				}
 				
-				$sheet->setCellValue('N' . $row, $item['h_flag'] ?? '');
-                $sheet->setCellValue('O' . $row, $item['op_code'] ??  '');
-                $sheet->setCellValue('P' . $row, $item['country'] ??  '');
-                $sheet->setCellValue('Q' . $row, $item['postal_code'] ?? '');
-                $sheet->setCellValue('R' . $row, $item['address1'] ?? '');
-				$sheet->setCellValue('S' . $row, $data['address2'] ?? '');
-				$sheet->setCellValue('T' . $row, $item['address3'] ?? '');
-				$sheet->setCellValue('U' . $row, $data['address4'] ?? '');
+			} else {
+				// Si no se extrajeron ítems, solo se llenan los datos de cabecera y cliente en una fila
+				$sheet->setCellValue('A' . $row, $data['date'] ?? 'N/A');
+				$sheet->setCellValue('B' . $row, $data['boleta'] ?? 'N/A');
+				$sheet->setCellValue('C' . $row, $data['ruc_proveedor'] ?? 'N/A');
+				$sheet->setCellValue('D' . $row, $data['razon_social_proveedor'] ?? 'N/A');
+				$sheet->setCellValue('E' . $row, $data['ruc_cliente'] ?? 'N/A');
+				$sheet->setCellValue('F' . $row, $data['razon_social_cliente'] ?? 'N/A');
 				
-				$sheet->setCellValue('V' . $row, $item['city'] ?? '');
-                $sheet->setCellValue('W' . $row, $item['state'] ??  '');
-                $sheet->setCellValue('X' . $row, $item['province'] ??  '');
-                $sheet->setCellValue('Y' . $row, $item['county'] ?? '');
-                $sheet->setCellValue('Z' . $row, $item['consumer_name'] ?? '');
-				$sheet->setCellValue('AA' . $row, $data['comsumer_phono_no'] ?? '');
-				$sheet->setCellValue('AB' . $row, $item['receiver_name'] ?? '');
-				$sheet->setCellValue('AC' . $row, $data['receiver_phono_no'] ?? '');
-				$sheet->setCellValue('AD' . $row, $data['freight_charge'] ?? '');
-				$sheet->setCellValue('AE' . $row, $data['freight_term'] ?? '');
-				$sheet->setCellValue('AF' . $row, $data['price_condition'] ?? '');
-				$sheet->setCellValue('AG' . $row, $data['picking_remark'] ?? '');
-				$sheet->setCellValue('AH' . $row, $data['shipping_method'] ?? '');
-				$sheet->setCellValue('AI' . $row, $data['results'] ?? '');
-				// APLICAR BORDES A LA FILA ACTUAL
-                $sheet->getStyle('A' . $row . ':AI' . $row)->applyFromArray($dataBorderStyle);
-				
-				//$total_sum += $item['total value'];
-                $row++;
-            }
-			
-        } else {
-            // Si no se extrajeron ítems, solo se llenan los datos de cabecera y cliente en una fila
-            $sheet->setCellValue('A' . $row, $data['date'] ?? 'N/A');
-            $sheet->setCellValue('B' . $row, $data['boleta'] ?? 'N/A');
-            $sheet->setCellValue('C' . $row, $data['ruc_proveedor'] ?? 'N/A');
-            $sheet->setCellValue('D' . $row, $data['razon_social_proveedor'] ?? 'N/A');
-            $sheet->setCellValue('E' . $row, $data['ruc_cliente'] ?? 'N/A');
-            $sheet->setCellValue('F' . $row, $data['razon_social_cliente'] ?? 'N/A');
-			
-            //$sheet->getStyle('A' . $row . ':K' . $row)->applyFromArray($dataBorderStyle);
-				
-            $row++;
-        }
+				//$sheet->getStyle('A' . $row . ':K' . $row)->applyFromArray($dataBorderStyle);
+					
+				$row++;
+			}
+		}
 		
 		
         foreach (range('A', 'AI') as $columnID) {
@@ -1107,10 +2119,12 @@ class Scm_purchase_orders extends CI_Controller {
 
         $writer = new Xlsx($spreadsheet);
 		
-		$customer_po_no = $data['customer_po_no'] ?? 'N/A';
+		$customer_po_no = $all_data[0]['customer_po_no'] ?? 'N/A';
 		log_message('info', "customer name: " . $client_name);
-		// Limpiar el nombre del cliente para que sea seguro en nombres de archivo (ej. reemplazar espacios y caracteres especiales)
+		
+		//Limpiar el nombre del cliente para que sea seguro en nombres de archivo (ej. reemplazar espacios y caracteres especiales)
 		$clean_client_name = preg_replace('/[^a-zA-Z0-9_]/', '', str_replace(' ', '_', strtoupper($client_name)));
+		
 		// Limpiar el customer_po_no para que sea seguro en nombres de archivo
 		$clean_po_no = preg_replace('/[^a-zA-Z0-9_]/', '', $customer_po_no);
 
@@ -1131,8 +2145,8 @@ class Scm_purchase_orders extends CI_Controller {
         $writer->save('php://output');
         exit;
     }
-	
-	public function upload_saga() {
+		
+	public function upload_saga() { // 
 		$txt1_file_name = 'extract_file_eoc_' . uniqid(); 
 		$txt2_file_name = 'extract_file_eod_' . uniqid();
 
@@ -1195,6 +2209,7 @@ class Scm_purchase_orders extends CI_Controller {
 		}
 	}
 	
+	// New version
 	public function upload(){
 		$type = "error";
 		$msg = $url = "";
@@ -1208,8 +2223,8 @@ class Scm_purchase_orders extends CI_Controller {
 		}
 
 		$client_name = $this->input->post('client');
-		$list_client_txt = ['SAGA FALABELLA S.A.']; // Puedes mover esto a una propiedad de la clase o constante
-
+		$list_client_txt = ['SAGA FALABELLA S.A.', 'HIPERMERCADOS TOTTUS S.A.'];
+		$list_client_excel = ['TIENDAS PERUANAS S.A. - OESCHLE', 'TIENDAS PERUANAS S.A. - OESCHLE (Yellow)', 'HOMECENTERS PERUANOS S.A. - PLAZA VEA', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - PROMART', 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.'];
 		if (empty($client_name)) {
 			$msg = "No se proporcionó el nombre del cliente. Por favor, seleccione un cliente.";
 			error_log("Error en upload: Client name not provided.");
@@ -1220,13 +2235,12 @@ class Scm_purchase_orders extends CI_Controller {
 
 		$process_result = ['type' => 'error', 'msg' => 'No se seleccionó ningún archivo o tipo de archivo no válido.'];
 
-		// Determinar si el cliente requiere archivos TXT o un PDF
 		if (in_array($client_name, $list_client_txt)) {
-			// Cliente TXT (ej. SAGA): Llama a la nueva función de procesamiento de TXT
 			$process_result = $this->process_saga($client_name);
+		} elseif (in_array($client_name, $list_client_excel)){
+			$process_result = $this->process_excel($client_name);
 		} elseif (!empty($_FILES['attach']['name'])) {
-			// Otros clientes (PDF): Subir y procesar PDF
-			$pdf_upload_result = $this->_do_upload_file('attach', 'pdf', 'extract_file_pdf'); // Usar nombre de archivo único o específico
+			$pdf_upload_result = $this->_do_upload_file('attach', 'pdf', 'extract_file'); // Usar nombre de archivo único o específico
 			
 			if ($pdf_upload_result['status'] === 'success') {
 				$pdf_path = $pdf_upload_result['file_path'];
@@ -1251,26 +2265,71 @@ class Scm_purchase_orders extends CI_Controller {
 		echo json_encode($process_result); // $process_result ya tiene 'type', 'msg', 'url'
 	}
 
-	private function _do_upload_file($input_name, $allowed_type, $file_name_prefix) {
-		$config = [
-			'upload_path'   => './upload/',
-			'allowed_types' => $allowed_type,
-			'max_size'      => 10000,
-			'overwrite'     => TRUE, // Esto podría ser un problema si usas nombres fijos sin uniqid()
-			'file_name'     => $file_name_prefix, // Se usará para el nombre base, uniqid se le añade en `upload_and_process_txt`
-		];
-		$this->load->library('upload', $config);
-		$this->upload->initialize($config); // Es buena práctica reinicializar
-		
-		if (!$this->upload->do_upload($input_name)) {
-			return ['status' => 'error', 'msg' => $this->upload->display_errors('', '')];
+	private function _process_pdf_content($pdf_path, $client_name) {
+		// 1. Intentar extracción con Smalot (para PDF editables)
+		$text_content_for_pdf = '';
+		$parser = new Smalot\PdfParser\Parser();
+		try {
+			$pdf = $parser->parseFile($pdf_path);
+			$text_raw_smalot = $pdf->getText();
+			$text_content_for_pdf = $this->clean_text($text_raw_smalot);
+		} catch (Exception $e) {
+			error_log("Error con Smalot\\PdfParser: " . $e->getMessage());
+			$text_content_for_pdf = "";
+		}
+
+		// 2. Si el texto de Smalot es corto, usar el script de Python para OCR
+		if (strlen(trim($text_content_for_pdf)) < 50) {
+			error_log("El texto de Smalot es demasiado corto o vacío, intentando OCR con script de Python...");
+
+			// Prepara el comando para ejecutar el script de Python
+			// NOTA: Asegúrate de que las rutas sean correctas para tu proyecto.
+			// FCPATH es la raíz de tu proyecto, por ejemplo 'C:\xampp\htdocs\llamasys\'
+			$python_executable = 'C:/xampp/htdocs/llamasys/application/venv/venv_po/Scripts/python.exe';
+			if ($client_name === 'REPRESENTACIONES VARGAS S.A.') $python_script = 'C:/xampp/htdocs/llamasys/application/venv/venv_po/ocr_script.py';
+			elseif ($client_name === 'REPRESENTACIONES VARGAS S.A. (Bold Format)') $python_script = 'C:/xampp/htdocs/llamasys/application/venv/venv_po/ocr_bold_script.py';
+			
+			$command = escapeshellcmd("$python_executable $python_script " . escapeshellarg($pdf_path));
+
+			// Ejecutar el script y capturar la salida JSON
+			$json_output = shell_exec($command);
+			$python_result = json_decode($json_output, true);
+
+			// Manejar el resultado del script de Python
+			if (isset($python_result['status']) && $python_result['status'] === 'success') {
+				$text_content_for_pdf = $this->clean_text($python_result['full_text']);
+			} else {
+				error_log("El script de Python falló: " . ($python_result['message'] ?? 'Error desconocido'));
+				return ['type' => 'error', 'msg' => 'Error al procesar el PDF con Python: ' . ($python_result['message'] ?? 'Error desconocido')];
+			}
+		}
+
+		// 3. Si no hay texto extraído en ninguno de los dos intentos, devolver un error
+		if (empty(trim($text_content_for_pdf)) || strlen(trim($text_content_for_pdf)) < 50) {
+			error_log("No se pudo extraer texto legible del PDF.");
+			return ['type' => 'error', 'msg' => 'No se pudo extraer texto legible del PDF.'];
+		}
+
+		// 4. Continuar con el flujo original: extraer datos del texto
+		$extracted_data = $this->extract_data_from_text($text_content_for_pdf, $client_name);
+
+		if (isset($extracted_data['type']) && $extracted_data['type'] === 'error') {
+			return $extracted_data;
+		}
+
+		// 5. Generar el Excel con los datos
+		$excel_file_path = $this->generate_excel($extracted_data, $client_name);
+
+		if ($excel_file_path && file_exists($excel_file_path)) {
+			return ['type' => 'success', 'msg' => 'Datos extraídos y Excel generado exitosamente.', 'url' => base_url('uploads/exports/') . basename($excel_file_path)];
 		} else {
-			$upload_data = $this->upload->data();
-			return ['status' => 'success', 'file_path' => $upload_data['full_path'], 'msg' => 'Archivo subido.'];
+			error_log("Error: generate_excel no devolvió una ruta válida o el archivo no existe para PDF.");
+			return ['type' => 'error', 'msg' => 'Error al generar el archivo Excel para PDF.'];
 		}
 	}
 
-	private function _process_pdf_content($pdf_path, $client_name) {
+	// Nueva función auxiliar para encapsular la lógica de procesamiento de PDF
+	private function _process_pdf_content_old($pdf_path, $client_name) { // si usamos smalot o script python
 		$text_content_for_pdf = '';
 		$image_files_to_clean = []; // Para limpiar imágenes temporales
 
@@ -1370,11 +2429,12 @@ class Scm_purchase_orders extends CI_Controller {
 			return ['type' => 'error', 'msg' => 'Error al generar el archivo Excel para PDF.'];
 		}
 	}
-	
+		
+	// --------------------SAGA PROCESS-------------------------
 	private function process_saga($client_name) {
 		// Definimos nombres de archivo temporales con un ID único para evitar colisiones
-		$txt1_file_name_prefix = 'extract_file_eoc_' . uniqid(); 
-		$txt2_file_name_prefix = 'extract_file_eod_' . uniqid();
+		$txt1_file_name_prefix = 'extract_file_eoc'; 
+		$txt2_file_name_prefix = 'extract_file_eod';
 
 		// 1. Subir el primer archivo TXT (attach_txt1, debería ser EOC)
 		$txt1_upload_result = $this->_do_upload_file('attach_txt1', 'txt', $txt1_file_name_prefix);
@@ -1446,7 +2506,8 @@ class Scm_purchase_orders extends CI_Controller {
 		}
 
 		// 5. Generar el archivo Excel
-		$excel_file_path = $this->generate_excel($extracted_data, "SAGA_CUSTOMER");
+		if ($client_name === 'HIPERMERCADOS TOTTUS S.A.') $excel_file_path = $this->generate_excel($extracted_data, "TOTTUS_CUSTOMER");
+		elseif ($client_name === 'SAGA FALABELLA S.A.') $excel_file_path = $this->generate_excel($extracted_data, "SAGA_CUSTOMER");
 
 		// 6. Limpiar los archivos TXT temporales después de procesar
 		if (file_exists($txt1_path)) {
@@ -1470,11 +2531,81 @@ class Scm_purchase_orders extends CI_Controller {
 		}
 	}
 	
-	private function extract_code_from_filename($filename) {
-		if (preg_match('/-(\d+)\.txt$/', $filename, $matches)) {
-			return $matches[1];
+	private function _do_upload_file($input_name, $allowed_type, $file_name_prefix) {
+		$config = [
+			'upload_path'   => './upload/',
+			'allowed_types' => $allowed_type,
+			'max_size'      => 10000,
+			'overwrite'     => TRUE, // Esto podría ser un problema si usas nombres fijos sin uniqid()
+			'file_name'     => $file_name_prefix, // Se usará para el nombre base, uniqid se le añade en `upload_and_process_txt`
+		];
+		$this->load->library('upload', $config);
+		$this->upload->initialize($config); // Es buena práctica reinicializar
+		
+		if (!$this->upload->do_upload($input_name)) {
+			return ['status' => 'error', 'msg' => $this->upload->display_errors('', '')];
+		} else {
+			$upload_data = $this->upload->data();
+			return ['status' => 'success', 'file_path' => $upload_data['full_path'], 'msg' => 'Archivo subido.'];
 		}
-		return null; 
+	}
+	
+	// --------------------EXCEL PROCESS------------------------
+	private function process_excel($client_name){
+		// 1. Subir el primer archivo TXT (attach_txt1, debería ser EOC)
+		$result = $this->upload_excel('attach');
+		if ($result['status'] !== 'success') {
+			return ['type' => 'error', 'msg' => 'Error uploading file: ' . $result['msg']];
+		}
+		$excel_path = $result['file_path'];
+		$excel_original_name = $_FILES['attach']['name']; // Capturamos el nombre original para validación
+		
+		$extracted_data = $this->extract_data_from_text('', $client_name, $excel_path);	 // function to handle data
+		
+		$excel_file_path = $this->generate_excel($extracted_data, "{$client_name}_CUSTOMER");  // generate excel
+		
+		// 7. Retornar el resultado para la función `upload` principal
+		if ($excel_file_path && file_exists($excel_file_path)) {
+			$msg = "Data extracted and Excel file generated successfully.";
+			$url = base_url('uploads/exports/') . basename($excel_file_path);
+			return ['type' => 'success', 'msg' => $msg, 'url' => $url];
+		} else {
+			$msg = "Error generating the Excel file.";
+			error_log("Error: generate_excel no devolvió una ruta válida o el archivo no existe.");
+			return ['type' => 'error', 'msg' => $msg];
+		}
+	}
+	
+	public function upload_excel($input_name){
+		$config = [
+			'upload_path'	=> './upload/',
+			'allowed_types'	=> '*',
+			'max_size'		=> 90000,
+			'overwrite'		=> TRUE,
+			'file_name'		=> 'extract_excel.xlsx',
+		];
+		$this->load->library('upload', $config);
+		$this->upload->initialize($config); // Es buena práctica reinicializar
+		
+		if (!$this->upload->do_upload($input_name)) {
+			return ['status' => 'error', 'msg' => $this->upload->display_errors('', '')];
+		} else {
+			$upload_data = $this->upload->data();
+			return ['status' => 'success', 'file_path' => $upload_data['full_path'], 'msg' => 'Archivo subido.'];
+		}
+	}
+	// ---------------------------------------------------------
+	
+	private function extract_code_from_filename($filename) {
+		// Ejemplo: "archivo-de-prueba-12345.txt" -> 12345
+		// El patrón busca:
+		// ^.*- : Cualquier cosa al inicio que termine en un guion.
+		// (\d+) : Un grupo de captura para uno o más dígitos (el código numérico).
+		// \.txt$ : La extensión .txt al final del string.
+		if (preg_match('/-(\d+)\.txt$/', $filename, $matches)) {
+			return $matches[1]; // Devuelve el primer grupo de captura (los dígitos)
+		}
+		return null; // Si no se encuentra el patrón, devuelve null
 	}
 	
 	private function extract_file_type_from_filename($filename) {

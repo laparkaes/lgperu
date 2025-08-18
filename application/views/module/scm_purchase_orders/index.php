@@ -17,7 +17,9 @@
 					<form class="row g-9" id="form_extract_pdf" action="<?= base_url('module/scm_purchase_orders/upload') ?>" method="POST" enctype="multipart/form-data">
 					
 						<div class="col-md-12 mb-3"> 
-                            <label for="client_select" class="form-label">Customer</label>
+                            <label for="client_select" class="form-label">Customer 
+								<i class="bi bi-question-circle ms-2 d-none" id="help-icon" style="cursor: pointer;"></i>
+							</label>
 							<select class="form-select" id="client_select" name="client" required>
 								<option value="">Choose customer...</option>
 								<?php foreach ($stores as $store) { ?>
@@ -27,7 +29,7 @@
 						</div>
 						
 						<div class="col-md-12 mb-3" id="pdf_upload_section">
-						    <label for="pdf_file" class="form-label">Select PDF File</label>
+						    <label for="pdf_file" class="form-label">Select File</label>
 						    <input class="form-control" type="file" name="attach" id="pdf_file" disabled>
 						</div>
 						
@@ -47,8 +49,107 @@
 				</div>
 			</div>
 		</div>
+		<div class="col-md-8 d-flex justify-content-center align-items-center">
+            <?php foreach($stores as $store) { ?>
+                <!-- Las imagenes ahora tienen un ID que coincide con el nombre de la tienda -->
+                <img src="<?= base_url() ?>template/scm_purchase_orders/<?= htmlspecialchars($store) ?>.png" 
+                     class="po_img w-100 d-none" 
+                     id="po_img_<?= htmlspecialchars($store) ?>">
+            <?php } ?>
+        </div>
 	</div>
 </section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const clientSelect = document.getElementById('client_select');
+        const poImages = document.querySelectorAll('.po_img');
+        const pdfFile = document.getElementById('pdf_file');
+        const txtFile1 = document.getElementById('txt_file1');
+        const txtFile2 = document.getElementById('txt_file2');
+        const uploadButton = document.getElementById('upload_button');
+        const pdfUploadSection = document.getElementById('pdf_upload_section');
+        const txtUploadSection = document.getElementById('txt_upload_section');
+        const helpIcon = document.getElementById('help-icon');
+        let isImageLocked = false;
+
+        function showImage() {
+            const selectedClient = clientSelect.value;
+            if (selectedClient) {
+                const targetImageId = 'po_img_' + selectedClient;
+                const targetImage = document.getElementById(targetImageId);
+                if (targetImage) {
+                    poImages.forEach(img => img.classList.add('d-none')); // Oculta todas primero
+                    targetImage.classList.remove('d-none');
+                }
+            }
+        }
+
+        function hideImage() {
+            if (!isImageLocked) {
+                poImages.forEach(img => img.classList.add('d-none'));
+            }
+        }
+
+        clientSelect.addEventListener('change', function() {
+            const selectedClient = this.value;
+
+            // Oculta todas las imagenes y resetea el estado
+            poImages.forEach(img => img.classList.add('d-none'));
+            isImageLocked = false;
+            
+            if (selectedClient) {
+                // Muestra el icono de ayuda y habilita los campos del formulario
+                helpIcon.classList.remove('d-none');
+                pdfFile.disabled = false;
+                txtFile1.disabled = false;
+                txtFile2.disabled = false;
+                uploadButton.disabled = false;
+
+                // Muestra u oculta la seccion de carga de archivos segun el cliente
+                if (selectedClient === 'EOC' || selectedClient === 'EOD') {
+                    pdfUploadSection.style.display = 'none';
+                    txtUploadSection.style.display = 'block';
+                } else {
+                    pdfUploadSection.style.display = 'block';
+                    txtUploadSection.style.display = 'none';
+                }
+
+            } else {
+                // Si no se selecciona un cliente, deshabilita los campos y oculta el icono
+                helpIcon.classList.add('d-none');
+                pdfFile.disabled = true;
+                txtFile1.disabled = true;
+                txtFile2.disabled = true;
+                uploadButton.disabled = true;
+                pdfUploadSection.style.display = 'block';
+                txtUploadSection.style.display = 'none';
+            }
+        });
+
+        // Lógica para mostrar/ocultar la imagen al pasar el ratón o hacer clic
+        helpIcon.addEventListener('mouseover', function() {
+            if (!isImageLocked) {
+                showImage();
+            }
+        });
+        
+        helpIcon.addEventListener('mouseout', function() {
+            if (!isImageLocked) {
+                hideImage();
+            }
+        });
+        
+        helpIcon.addEventListener('click', function() {
+            isImageLocked = !isImageLocked; // Alterna el estado
+            if (isImageLocked) {
+                showImage();
+            } else {
+                hideImage();
+            }
+        });
+    });
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -67,23 +168,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const formExtractPdf = document.getElementById('form_extract_pdf');
 
     // Define el nombre del cliente que requiere dos TXT
-    const specialClient = 'SAGA FALABELLA S.A.'; 
+    const specialClient = ['SAGA FALABELLA S.A.', 'HIPERMERCADOS TOTTUS S.A.']; // ¡Asegúrate de que este valor coincida con el HTML y PHP!
 
     // Función para actualizar el estado de los campos de archivo y el botón de carga
     function updateFormState() {
         const isClientSelected = clientSelect.value !== '';
         const selectedClient = clientSelect.value;
-        let isFileSelected = false; 
+        let isFileSelected = false; // Bandera para controlar si se ha seleccionado el archivo(s) correcto(s)
 
-        if (selectedClient === specialClient) {
+        // Habilitar/deshabilitar los campos de archivo según el cliente seleccionado
+        if (specialClient.includes(selectedClient)) {
+            // Cliente especial: mostrar TXT, ocultar PDF
             pdfUploadSection.style.display = 'none';
             pdfFileInput.disabled = true;
             pdfFileInput.removeAttribute('required');
-            pdfFileInput.value = ''; 
+            pdfFileInput.value = ''; // Limpiar selección previa
 
             txtUploadSection.style.display = 'block';
-            txtFileInput1.disabled = !isClientSelected; 
-            txtFileInput2.disabled = !isClientSelected; 
+            txtFileInput1.disabled = !isClientSelected; // Habilitar solo si hay cliente
+            txtFileInput2.disabled = !isClientSelected; // Habilitar solo si hay cliente
             txtFileInput1.setAttribute('required', 'required');
             txtFileInput2.setAttribute('required', 'required');
 
@@ -106,6 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
             isFileSelected = pdfFileInput.files.length > 0;
         }
         
+        // El botón de subir se habilita si un cliente Y los archivos correctos están seleccionados
         uploadButton.disabled = !(isClientSelected && isFileSelected);
     }
 
@@ -124,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Mostrar SweetAlert de carga
         Swal.fire({
-            title: 'Processing your files...',
+            title: 'Processing your files...', // Mensaje más genérico
             text: 'Please wait while we extract data and generate your Excel file.',
             icon: 'info',
             allowOutsideClick: false,
@@ -183,6 +287,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     data.msg,
                     'success'
                 );
+                // Opcional: Resetear el formulario después de una subida exitosa
                 formExtractPdf.reset();
                 updateFormState(); // Restablecer el estado de los botones y campos
             } else {
