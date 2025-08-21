@@ -7,6 +7,11 @@ class General_espr_model extends CI_Model{
 		$this->db = $this->load->database('espr_8', TRUE);
 	}
 
+	function sql_query($sql){
+		$query = $this->db->query($sql);
+		//return $query->result();
+	}
+
 	function filter($tablename, $valid = true, $w = null, $l = null, $w_in = null, $orders = [], $limit = "", $offset = ""){
 		if ($valid) $this->db->where("valid", true);
 		if ($w){ $this->db->group_start(); $this->db->where($w); $this->db->group_end(); }

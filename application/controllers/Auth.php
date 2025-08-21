@@ -18,6 +18,31 @@ class Auth extends CI_Controller {
 		$this->load->view('auth/login');
 	}
 	
+	public function test(){
+		//echo "ghjk";
+		
+		$this->load->model('general_espr_model', 'gen_e');
+		
+		//$this->gen_e->update("T_OPEN_ORDER", ["[SO NO]= " => "1000474304"], ["STATUS" => "HOLA"]);
+	
+	ini_set('sqlsrv.ClientBufferMaxKBSize', 100000); // 20MB
+
+		$orders = $this->gen_e->sql_query("SELECT * FROM T_OPEN_ORDER where [SO NO] = '1000474304'");
+		//$orders = $this->gen_e->all("T_OPEN_ORDER");
+		//echo $this->db->last_query();
+		print_r($orders);
+		
+		
+		//$this->gen_e->sql_query("update [SOM].[dbo].[T_OPEN_ORDER] set STATUS = NULL where [SO NO] = '1000474304'");
+		
+		//echo $this->db->last_query();
+		
+		//$aux=$this->gen_e->structure("T_OPEN_ORDER");
+		
+		//print_r($aux);
+
+	}
+	
 	public function login_process(){
 		$type = "error"; $msg = $url = "";
 		
