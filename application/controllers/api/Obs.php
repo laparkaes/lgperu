@@ -224,8 +224,8 @@ class Obs extends CI_Controller {
 		$res = [];
 		//$where_string_c = "(inventory_org = 'N4E' OR (inventory_org = 'N4S' AND sub_inventory = 'GOODSET-OB')) AND order_date >= '$from'";
 		//$where_string_s = "(inventory_org = 'N4E' OR (inventory_org = 'N4S' AND sub_inventory = 'GOODSET-OB')) AND create_date >= '$from'";
-		$where_string_c = "customer_name = 'One time_OBS' AND order_date >= '$from'";
-		$where_string_s = "customer_name = 'One time_OBS' AND create_date >= '$from'";
+		$where_string_c = "(customer_name = 'One time_OBS' OR customer_name = 'OBS_Marketplace_3P') AND order_date >= '$from'";
+		$where_string_s = "(customer_name = 'One time_OBS' OR customer_name = 'OBS_Marketplace_3P') AND create_date >= '$from'";
 		// Obtiene todas las órdenes cerradas y de ventas de Magento en una sola consulta
 		$all_magento_orders = $this->gen_m->filter("v_obs_closed_order_magento_v3", false,["order_date >=" => $from]);
 		$all_magento_sales = $this->gen_m->filter("v_obs_sales_order_magento_v3", false,["create_date >=" => $from]);
