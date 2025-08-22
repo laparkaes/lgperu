@@ -10,7 +10,7 @@ use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
 
 class Scm_purchase_orders extends CI_Controller {
 
-	public function __construct(){
+	public function __construct(){ 
 		parent::__construct();
 		if (!$this->session->userdata('logged_in')) redirect("/auth/login");
 		
@@ -24,7 +24,7 @@ class Scm_purchase_orders extends CI_Controller {
 		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
 		
 		$list_stores = ['IMPORTACIONES RUBI S.A.', 'SAGA FALABELLA S.A.', 'CONECTA RETAIL S.A.', 'REPRESENTACIONES VARGAS S.A.', 'REPRESENTACIONES VARGAS S.A. (Bold Format)', 'INTEGRA RETAIL S.A.C.',
-						'TIENDAS PERUANAS S.A. - OESCHLE', 'TIENDAS PERUANAS S.A. - OESCHLE (Yellow)', 'HOMECENTERS PERUANOS S.A. - PLAZA VEA', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - PROMART',
+						'TIENDAS PERUANAS S.A. - OESCHLE', 'TIENDAS PERUANAS S.A. - OESCHLE (Yellow)', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - PLAZA VEA', 'HOMECENTERS PERUANOS S.A. - PROMART',
 						'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.', 'HIPERMERCADOS TOTTUS S.A.'];
 		$data = [
 			"stores"		=> $list_stores,
@@ -1260,7 +1260,7 @@ class Scm_purchase_orders extends CI_Controller {
 		$currency = trim($sheet->getCell('I9')->getValue());
 		
 		$aux_payterm = explode(' ', trim($sheet->getCell('I10')->getValue()));
-		$data['payterm'] = $payterm[$aux_payterm[1]];
+		$data['payterm'] = $payterm[$aux_payterm[1]] ?? null;
 		
 		$aux_ship = trim($sheet->getCell('B10')->getValue());
 		$ship_to = explode(" ", $aux_ship);
@@ -1339,7 +1339,64 @@ class Scm_purchase_orders extends CI_Controller {
 		return $all_data;
 	}
 	
-	public function extract_plaza_vea($file_path){
+	public function extract_plaza_vea($file_path){ // OK
+		$bill_to_code = 'PE001351001B';
+		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
+		
+		$spreadsheet = IOFactory::load("./upload/extract_excel.xlsx");
+		$sheet = $spreadsheet->getActiveSheet();
+		//foreach ($spreadsheet->getSheetNames() as $sheetName) {
+		$all_data = [];
+	
+		//$sheet = $spreadsheet->getSheetByName($sheetName);
+		
+		$data['customer_po_no'] = trim($sheet->getCell('B2')->getValue());
+		$address = trim($sheet->getCell('E2')->getValue());
+		$currency = 'PEN';
+		
+		//$aux_payterm = explode(' ', trim($sheet->getCell('I10')->getValue()));
+		$data['payterm'] = NULL;
+		
+		$aux_ship = trim($sheet->getCell('E2')->getValue());
+		$ship_to_parts = explode(" ", $aux_ship,3);
+		$ship_to = $ship_to_parts[2];
+		if ($ship_to === 'PUNTA NEGRA') {
+			$ship_to_code = $this->gen_m->filter_select('scm_ship_to2', false, 'ship_to_code', ['bill_to_code' => $bill_to_code]);
+			$data['ship_to'] = $ship_to_code[0]->ship_to_code;
+		}
+		
+		$date_obj = DateTime::createFromFormat('d-m-Y', trim($sheet->getCell('H2')->getValue()));
+		$data['request_arrival_date'] = $date_obj->format('Ymt');
+		
+		$data['customer_po_date'] = Date('Ymd');
+		
+		$max_row = $sheet->getHighestRow();
+		for($i = 2; $i <= $max_row; $i++){
+			if (trim($sheet->getCell('B'.$i)->getValue()) === null || trim($sheet->getCell('B'.$i)->getValue()) === '') continue;
+			$aux_model = trim($sheet->getCell('L'.$i)->getValue());
+			$aux_model_part = explode("-", $aux_model);
+			foreach($aux_model_part as $part){
+				if(strlen($part) > 3){
+					$model_verify = $this->models_sales_order($part);
+					if (!empty($model_verify)) $model = $model_verify;
+					else $model = null;
+				}
+			}
+			
+			$data['items'][] = [
+				"currency"				=> ($currency === 'PEN') ? 'PEN' : 'USD',
+				"modelo" 				=> $model,
+				"qty"					=> trim($sheet->getCell('W'.$i)->getValue()),
+				"unit_selling_price" 	=> trim($sheet->getCell('T'.$i)->getValue()),		
+			];	
+		}
+		//}
+		//echo '<pre>'; print_r($data);
+		$all_data[] = $data;
+		return $all_data;
+	}
+	
+	public function extract_promart($file_path){
 		$bill_to_code = 'PE008158001B';
 		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
 		
@@ -1386,9 +1443,9 @@ class Scm_purchase_orders extends CI_Controller {
 		$all_data[] = $data;
 		return $all_data;
 	}
-		
-	public function extract_promart($file_path){
-		$bill_to_code = 'PE001351001B';
+	
+	public function extract_promart_yellow($file_path){
+		$bill_to_code = 'PE008158001B';
 		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
 		
 		//load excel file
@@ -1762,10 +1819,10 @@ class Scm_purchase_orders extends CI_Controller {
 			case 'TIENDAS PERUANAS S.A. - OESCHLE (Yellow)': // excel
 				$data = $this->extract_oeschle_yellow($file_path);
 				break;
-			case 'HOMECENTERS PERUANOS S.A. - PLAZA VEA': // excel
+			case 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - PLAZA VEA': // excel
 				$data = $this->extract_plaza_vea($file_path);
 				break;
-			case 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - PROMART': // excel
+			case 'HOMECENTERS PERUANOS S.A. - PROMART': // excel
 				$data = $this->extract_promart($file_path);
 				break;
 			case 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.': // excel
@@ -1776,9 +1833,6 @@ class Scm_purchase_orders extends CI_Controller {
 				break;
 			default:
                 error_log("Cliente no reconocido: " . $client_name . ". Aplicando lógica por defecto (o ninguna específica).");
-                // Puedes dejar la lógica de LG como default o lanzar un error si el cliente no es reconocido.
-                // Por ahora, si no hay caso, no se extraería nada o se intentaría con la última lógica implementada.
-                // Para evitar errores en producción, deberías manejar un caso por defecto o un error explícito.
                 break;
 		}
 		
@@ -2145,7 +2199,8 @@ class Scm_purchase_orders extends CI_Controller {
         $writer->save('php://output');
         exit;
     }
-		
+	
+	
 	public function upload_saga() { // 
 		$txt1_file_name = 'extract_file_eoc_' . uniqid(); 
 		$txt2_file_name = 'extract_file_eod_' . uniqid();
@@ -2224,7 +2279,7 @@ class Scm_purchase_orders extends CI_Controller {
 
 		$client_name = $this->input->post('client');
 		$list_client_txt = ['SAGA FALABELLA S.A.', 'HIPERMERCADOS TOTTUS S.A.'];
-		$list_client_excel = ['TIENDAS PERUANAS S.A. - OESCHLE', 'TIENDAS PERUANAS S.A. - OESCHLE (Yellow)', 'HOMECENTERS PERUANOS S.A. - PLAZA VEA', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - PROMART', 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.'];
+		$list_client_excel = ['TIENDAS PERUANAS S.A. - OESCHLE', 'TIENDAS PERUANAS S.A. - OESCHLE (Yellow)', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - PLAZA VEA', 'HOMECENTERS PERUANOS S.A. - PROMART', 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.'];
 		if (empty($client_name)) {
 			$msg = "No se proporcionó el nombre del cliente. Por favor, seleccione un cliente.";
 			error_log("Error en upload: Client name not provided.");
@@ -2264,6 +2319,8 @@ class Scm_purchase_orders extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode($process_result); // $process_result ya tiene 'type', 'msg', 'url'
 	}
+
+	
 
 	private function _process_pdf_content($pdf_path, $client_name) {
 		// 1. Intentar extracción con Smalot (para PDF editables)
