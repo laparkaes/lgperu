@@ -305,13 +305,28 @@ class Lgepr extends CI_Controller {
 	public function get_cbm_inventory(){
 		//llamasys/api/lgepr/get_cbm_inventory?key=lgepr&type=table
 		
+		// KLO: N4S
+		// APM: N4M, N4E
 		if ($this->input->get("key") === "lgepr"){
 			
-			$from = Date('Y-m-01');
-			
+			$klo_wh = ['N4S'];
+			$apm_wh = ['N4M', 'N4E'];
+			$start_month = Date('Y-m-01');
+			//print_r($start_month);
+			$today = Date('Y-m-d'); //current date
+
+			$dayOfWeek = date('N', strtotime($today));
+
+			if ($dayOfWeek == 1) {
+				$yesterday = date('Y-m-d', strtotime($today . ' -2 days'));
+			} else {
+				$yesterday = date('Y-m-d', strtotime($today . ' -1 day'));
+			}
+
 			$from_current_inventory = '';
 			$stock_cbm = [];
-			$stock = $this->gen_m->filter('v_cbm_history_firstload', false, ['on_hand_cbm !=' => 0, 'updated >=' => $from], null, null, [['updated', 'asc']]);
+			$stock = $this->gen_m->filter('v_cbm_history_lastload', false, ['on_hand_cbm !=' => 0, 'updated >=' => $start_month . ' 00:00:00'], null, null, [['updated', 'asc']]);
+			
 			foreach($stock as $item_stock){
 				$type = 'Current Inventory';
 				$dates = explode("-", $item_stock->updated);
@@ -320,32 +335,34 @@ class Lgepr extends CI_Controller {
 				$day_hour = $dates[2];
 				$time_aux = explode(" ", $day_hour);
 				$day = $time_aux[0];
-				$from_current_inventory = $item_stock->updated;
 				
 				$key = $type . "-". $item_stock->updated . "-" . $item_stock->org . "-" . $item_stock->model . "-" . $item_stock->dash_company . "-" . $item_stock->dash_division;
-				if(!isset(($data_cbm[$key]))){
+				if(!isset($data_cbm[$key])){
 					$data_cbm[$key] = [
-							"type" 				=> $type,
-							"date"				=> (new DateTime($item_stock->updated))->format('Y-m-d'),
-							"year" 				=> $year,
-							"month" 			=> $month,
-							"day" 				=> $day,
-							"dash_company" 		=> $item_stock->dash_company,
-							"dash_division" 	=> $item_stock->dash_division,
-							"model" 			=> $item_stock->model,
-							"org" 				=> $item_stock->org,
-							"qty"				=> 0,
-							"container"			=> null,
-							"cbm" 				=> 0
-							];
+										"type" 				=> $type,
+										"date"				=> explode(" ", $item_stock->updated)[0],
+										"year" 				=> $year,
+										"month" 			=> $month,
+										"day" 				=> $day,
+										"dash_company" 		=> $item_stock->dash_company,
+										"dash_division" 	=> $item_stock->dash_division,
+										"model" 			=> $item_stock->model,
+										"warehouse"			=> in_array($item_stock->org, $klo_wh) ? 'KLO' : (in_array($item_stock->org, $apm_wh) ? 'APM' : ''),
+										"org" 				=> $item_stock->org,
+										"qty"				=> 0,
+										"container"			=> null,
+										"cbm" 				=> 0,
+										"updated" 			=> $item_stock->updated
+										];
 				}
-				
 				$data_cbm[$key]["qty"] += $item_stock->on_hand;
 				$data_cbm[$key]["cbm"] += $item_stock->on_hand_cbm;
 			}
+		
 			
-			$sales_cbm = [];
-			$sales = $this->gen_m->filter('lgepr_sales_order', false, ['cbm !=' => 0, 'appointment_date >=' => $from_current_inventory, 'appointment_date !=' => null], null, null, [['appointment_date', 'asc']]);
+			$sales_cbm = [];		
+			$sales = $this->gen_m->filter('lgepr_sales_order', false, ['cbm !=' => 0, 'appointment_date >=' => $yesterday, 'appointment_date !=' => null], null, null, [['appointment_date', 'asc']]);
+		
 			foreach($sales as $item_sales){
 				$type = 'Sales';
 				$dates = explode("-", $item_sales->appointment_date);
@@ -354,29 +371,56 @@ class Lgepr extends CI_Controller {
 				$day = $dates[2];
 				
 				$key = $type . "-". $item_sales->appointment_date . "-" . $item_sales->inventory_org . "-" . $item_sales->model . "-" . $item_sales->dash_company . "-" . $item_sales->dash_division;
-				if(!isset(($data_cbm[$key]))){
-					$data_cbm[$key] = [
-							"type" 				=> $type,
-							"date"				=> $item_sales->appointment_date,
-							"year" 				=> $year,
-							"month" 			=> $month,
-							"day" 				=> $day,
-							"dash_company" 		=> $item_sales->dash_company,
-							"dash_division" 	=> $item_sales->dash_division, 
-							"model" 			=> $item_sales->model,
-							"org" 				=> $item_sales->inventory_org,
-							"qty"				=> 0,
-							"container"			=> null,
-							"cbm" 				=> 0
-							];
-				}
-				
-				$data_cbm[$key]["qty"] += $item_sales->ordered_qty;
-				$data_cbm[$key]["cbm"] += $item_sales->cbm * -1;	
+					
+					if((new DateTime($item_sales->appointment_date))->format('Y-m-d') === $yesterday || (new DateTime($item_sales->appointment_date))->format('Y-m-d') === $today){
+						if(!isset($data_cbm[$key])){
+							$data_cbm[$key] = [
+												"type" 				=> $type,
+												"date"				=> $item_sales->appointment_date,
+												"year" 				=> $year,
+												"month" 			=> $month,
+												"day" 				=> $day,
+												"dash_company" 		=> $item_sales->dash_company,
+												"dash_division" 	=> $item_sales->dash_division,
+												"model" 			=> $item_sales->model,
+												"warehouse"			=> in_array($item_sales->inventory_org, $klo_wh) ? 'KLO' : (in_array($item_sales->inventory_org, $apm_wh) ? 'APM' : ''),
+												"org" 				=> $item_sales->inventory_org,
+												"qty"				=> 0,
+												"container"			=> null,
+												"cbm" 				=> 0,
+												"updated" 			=> $item_sales->updated_at
+												];
+						}
+					}
+					elseif((new DateTime($item_sales->appointment_date))->format('Y-m-d') > $today){
+						if(!isset($data_cbm[$key])){
+							$data_cbm[$key] = [
+												"type" 				=> $type,
+												"date"				=> $item_sales->appointment_date,
+												"year" 				=> $year,
+												"month" 			=> $month,
+												"day" 				=> $day,
+												"dash_company" 		=> $item_sales->dash_company,
+												"dash_division" 	=> $item_sales->dash_division, 
+												"model" 			=> $item_sales->model,
+												"warehouse"			=> in_array($item_sales->inventory_org, $klo_wh) ? 'KLO' : (in_array($item_sales->inventory_org, $apm_wh) ? 'APM' : ''), 
+												"org" 				=> $item_sales->inventory_org,
+												"qty"				=> 0,
+												"container"			=> null,
+												"cbm" 				=> 0,
+												"updated" 			=> $item_sales->updated_at
+												];
+						}
+						if(!isset($data_cbm[$key]["qty"])) $data_cbm[$key]["qty"] = 0;
+						if(!isset($data_cbm[$key]["cbm"])) $data_cbm[$key]["cbm"] = 0;
+						$data_cbm[$key]["qty"] += $item_sales->ordered_qty;
+						$data_cbm[$key]["cbm"] += $item_sales->cbm * -1;		
+					}
+					
 			}
 			
 			$container_cbm = [];
-			$container = $this->gen_m->filter('lgepr_container', false, ['cbm !=' => 0, 'eta >=' => $from_current_inventory], null, null, [['eta', 'asc']]);
+			$container = $this->gen_m->filter('lgepr_container', false, ['cbm !=' => 0, 'eta >=' => $yesterday], null, null, [['eta', 'asc']]);
 			foreach($container as $item_container){
 				$type = 'Arrival';
 				$dates = explode("-", $item_container->eta);
@@ -385,8 +429,10 @@ class Lgepr extends CI_Controller {
 				$day = $dates[2];
 				
 				$key = $type . "-". $item_container->eta . "-" . $item_container->organization . "-" . $item_container->model . "-" . $item_container->company . "-" . $item_container->division;
-				if(!isset(($data_cbm[$key]))){
-					$data_cbm[$key] = [
+
+				if((new DateTime($item_container->eta))->format('Y-m-d') === $yesterday || (new DateTime($item_container->eta))->format('Y-m-d') === $today){
+					if(!isset($data_cbm[$key])){
+						$data_cbm[$key] = [
 							"type" 				=> $type, 
 							"date"				=> $item_container->eta,
 							"year" 				=> $year, 
@@ -395,16 +441,39 @@ class Lgepr extends CI_Controller {
 							"dash_company"		=> $item_container->company,
 							"dash_division" 	=> $item_container->division,
 							"model" 			=> $item_container->model,
+							"warehouse"			=> in_array($item_container->organization, $klo_wh) ? 'KLO' : (in_array($item_container->organization, $apm_wh) ? 'APM' : ''), 
 							"org" 				=> $item_container->organization,
 							"qty"				=> 0,
 							"container"			=> $item_container->container,
-							"cbm" 				=> 0
+							"cbm" 				=> 0,
+							"updated" 			=> $item_container->updated_at
 							];
+					}
 				}
-				
-				$data_cbm[$key]["qty"] += $item_container->qty;
-				$data_cbm[$key]["cbm"] += $item_container->cbm;
+				elseif((new DateTime($item_sales->appointment_date))->format('Y-m-d') > $today){
+					if(!isset($data_cbm[$key])){
+						$data_cbm[$key] = [
+								"type" 				=> $type, 
+								"date"				=> $item_container->eta,
+								"year" 				=> $year, 
+								"month" 			=> $month, 
+								"day" 				=> $day, 
+								"dash_company"		=> $item_container->company,
+								"dash_division" 	=> $item_container->division,
+								"model" 			=> $item_container->model,
+								"warehouse"			=> in_array($item_container->organization, $klo_wh) ? 'KLO' : (in_array($item_container->organization, $apm_wh) ? 'APM' : ''), 
+								"org" 				=> $item_container->organization,
+								"qty"				=> 0,
+								"container"			=> $item_container->container,
+								"cbm" 				=> 0,
+								"updated" 			=> $item_container->updated_at
+								];
+					}
+					$data_cbm[$key]["qty"] += $item_container->qty;
+					$data_cbm[$key]["cbm"] += $item_container->cbm;
+				}
 			}
+				
 			$res = [];
 			foreach ($data_cbm as $item){
 				$res[] = $item;
