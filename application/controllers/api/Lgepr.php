@@ -642,8 +642,22 @@ class Lgepr extends CI_Controller {
 			
 				if ($this->input->get("key") === "lgepr") {
 			
-			$data = $this->gen_m->filter("scm_tracking_dispatch", false);
+			//$data = $this->gen_m->filter("scm_tracking_dispatch", false);
 			
+
+			
+    // Obtener el primer y último día del mes actual
+    $first_day = date('Y-m-01');
+    $last_day = date('Y-m-t');
+
+    // Filtrar los datos solo del mes actual
+    $data = $this->gen_m->filter("scm_tracking_dispatch", false, [
+        'date >=' => $first_day,
+        'date <=' => $last_day
+    ]);
+
+    $res = []; // Asegúrate de inicializar el arreglo de respuesta
+
 			
 			foreach($data as $item){
 				$cloned_item = clone $item;
