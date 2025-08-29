@@ -29,8 +29,90 @@ class Sa_sell_out extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
+	private function process_update($msg_print = false){
+		ini_set('memory_limit', -1);
+		set_time_limit(0);
+		$start_time = microtime(true);
+		
+		$spreadsheet = IOFactory::load("./upload/sa_sell_out.xlsx");
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		$headers = [
+			trim($sheet->getCell('A1')->getValue()),
+			trim($sheet->getCell('B1')->getValue()),
+			trim($sheet->getCell('C1')->getValue()),
+			trim($sheet->getCell('D1')->getValue()),
+			trim($sheet->getCell('E1')->getValue()),
+			trim($sheet->getCell('F1')->getValue()),
+			trim($sheet->getCell('G1')->getValue()),
+			trim($sheet->getCell('H1')->getValue()),
+			trim($sheet->getCell('I1')->getValue()),
+			trim($sheet->getCell('J1')->getValue()),
+			trim($sheet->getCell('K1')->getValue()),
+		];
+		
+		$h_val = ["CUSTOMER", "ACCT_GTM", "CUSTOMER_MODEL", "MODEL_SUFFIX_CODE", "TXN_DATE", "CUST_STORE_CODE", "CUST_STORE_NAME", "SELLOUT_UNIT", "SELLOUT_AMT", "STOCK", "TICKET"];
+		
+		$is_ok = true;
+		foreach($headers as $i => $h) if ($h !== $h_val[$i]) $is_ok = false;
+		
+		if ($is_ok){
+			$max_row = $sheet->getHighestRow();
+			
+			//db fields
+			$vars = ["customer", "acct_gtm", "customer_model", "model_suffix_code", "txn_date", "cust_store_code", "cust_store_name", "sellout_unit", "sellout_amt", "stock", "ticket"];
+					
+			$dates = [];
+			$batch_size = 10000;
+			$this->db->trans_start();
+			$rows = [];
+			$row_counter = 0;
+			$from_date = null;
+			$end_date = null;
+			for($i = 2; $i <= $max_row; $i++){
+				$current_date = date("Y-m-d", strtotime(trim($sheet->getCell('E'.$i)->getFormattedValue())));
+				if (is_null($from_date) || $current_date < $from_date){
+					$from_date = $current_date;
+				}
+				if (is_null($end_date) || $current_date > $end_date){
+					$end_date = $current_date;
+				}
+			}
+			//echo '<pre>'; print_r([$from_date, $end_date]);
+			$w = ['txn_date >=' => $from_date, 'txn_date <=' => $end_date];
+			$this->gen_m->delete("sa_sell_out_", $w);
+			
+			for($i = 2; $i <= $max_row; $i++){
+				$row = [];
+				foreach($vars as $var_i => $var){
+					$row[$var] = trim($sheet->getCellByColumnAndRow(($var_i + 1), $i)->getValue());
+					//if (!$row[$var]) $row[$var] = null;
+				}
+				
+				$row["txn_date"] = date("Y-m-d", strtotime(trim($sheet->getCell('E'.$i)->getFormattedValue())));
+				$rows[] = $row;
+				
+				if (count($rows) >= $batch_size){
+					$row_counter += count($rows);
+					$this->gen_m->insert_m('sa_sell_out_', $rows);
+					$rows = [];
+				}
+			}
+			if (!empty($rows)){
+				$row_counter += count($rows);
+				$this->gen_m->insert_m('sa_sell_out_', $rows);
+				$rows = [];
+			}
+			$this->db->trans_complete();
+		}else $msg = "Wrong file.";
+		
+		$msg = "Finished.<br/><br/>Records: ".number_format($row_counter)."<br/>Time: ".number_Format(microtime(true) - $start_time, 2)." secs";
+		
+		return $msg;
+	}
+	
 	private function process($msg_print = false){
-		ini_set("memory_limit","1024M");
+		ini_set('memory_limit', -1);
 		set_time_limit(0);
 		$start_time = microtime(true);
 		
@@ -149,7 +231,7 @@ class Sa_sell_out extends CI_Controller {
 	}
 	
 	public function debug(){
-		$this->process(true);
+		$this->process_update(true);
 	}
 	
 	public function upload(){
@@ -166,7 +248,7 @@ class Sa_sell_out extends CI_Controller {
 
 		if ($this->upload->do_upload('attach')){
 			$type = "success";
-			$msg = $this->process();
+			$msg = $this->process_update();
 		}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
 		
 		header('Content-Type: application/json');

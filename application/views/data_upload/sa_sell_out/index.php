@@ -11,6 +11,9 @@
 						</ol>
 					</nav>
 				</div>
+				<div>
+					<!--<a href="../user_manual/data_upload/sa_sell_out/sa_sell_out_en.pptx" class="text-primary">User Manual</a>-->
+				</div>
 			</div>
 			<div class="card">
 				<div class="card-body">
