@@ -647,14 +647,27 @@ class Lgepr extends CI_Controller {
 
 			
     // Obtener el primer y último día del mes actual
-    $first_day = date('Y-m-01');
-    $last_day = date('Y-m-t');
+  //  $first_day = date('Y-m-01');
+  //  $last_day = date('Y-m-t');
 
     // Filtrar los datos solo del mes actual
+ //   $data = $this->gen_m->filter("scm_tracking_dispatch", false, [
+  //      'date >=' => $first_day,
+ //       'date <=' => $last_day
+ //   ]);
+
+
+
+// Obtener la fecha de hace 5 días y la fecha actual
+    $five_days_ago = date('Y-m-d', strtotime('-5 days'));
+    $today = date('Y-m-d');
+
+// Filtrar los datos desde hace 5 días hasta hoy
     $data = $this->gen_m->filter("scm_tracking_dispatch", false, [
-        'date >=' => $first_day,
-        'date <=' => $last_day
+        'date >=' => $five_days_ago,
+        'date <=' => $today
     ]);
+
 
     $res = []; // Asegúrate de inicializar el arreglo de respuesta
 
