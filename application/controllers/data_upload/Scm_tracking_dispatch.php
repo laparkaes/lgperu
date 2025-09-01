@@ -21,6 +21,8 @@ class Scm_tracking_dispatch extends CI_Controller {
 	
 	public function index(){
 		
+		//$w = ["updated >=" => date("Y-m-d", strtotime("-3 months"))];
+		//$o = [["updated", "desc"], ["model_description", "asc"], ["model", "asc"]];
 		$tracking = $this->gen_m->filter("scm_tracking_dispatch", false);
 		$data = [
 			"tracking"		=> $tracking,
@@ -32,11 +34,14 @@ class Scm_tracking_dispatch extends CI_Controller {
 	}
 	
 	public function date_convert_dd_mm_yyyy($date) {
+    // Intentamos convertir con la lógica del valor numérico (excel date)
 		if (is_numeric($date)) {
+			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
 			return $date->format('Y-m-d');
 		}
 
+		// Si no es un número, intentamos convertir con la lógica de fecha en formato dd/mm/yyyy
 		$aux = explode("/", $date);
 		if (count($aux) > 2) return $aux[2]."-".$aux[1]."-".$aux[0];
 		else return null;
@@ -294,7 +299,7 @@ class Scm_tracking_dispatch extends CI_Controller {
 			// } else continue;
 			
 			if ($row["date"] !== null && $row["placa"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
-				$row["tracking_key"] = $row["date"] . "_" . $row["placa"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
+				$row["tracking_key"] = $row["date"] . "_" . $row["pick_order"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
 			} else continue;
 			
 			if (in_array($row["tracking_key"], $klo_track)) $rows_req[] = $row;
@@ -347,8 +352,8 @@ class Scm_tracking_dispatch extends CI_Controller {
 				"customer" 					=> trim($sheet->getCell('K'.$i)->getValue()) ?? null,
 				"address" 					=> trim($sheet->getCell('L'.$i)->getValue()) ?? null,
 				"pick_order"				=> trim($sheet->getCell('M'.$i)->getValue()) ?? null,
-				"service_type"				=> trim($sheet->getCell('P'.$i)->getValue()) ?? null,	 // Column P	
-				"district"					=> trim($sheet->getCell('O'.$i)->getValue()) ?? null,	 		
+				"service_type"				=> trim($sheet->getCell('P'.$i)->getValue()) ?? null,   // Column P - Correction		
+				"district"					=> trim($sheet->getCell('O'.$i)->getValue()) ?? null,			
 				"b2c_zone"					=> null,
 				"ot_per_point" 				=> trim($sheet->getCell('Q'.$i)->getValue()) ?? null,
 				"purchase_order" 			=> trim($sheet->getCell('R'.$i)->getValue()) ?? null,
@@ -406,7 +411,7 @@ class Scm_tracking_dispatch extends CI_Controller {
 			// } else continue;
 
 			if ($row["date"] !== null && $row["placa"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
-				$row["tracking_key"] = $row["date"] . "_" . $row["placa"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
+				$row["tracking_key"] = $row["date"] . "_" . $row["pick_order"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
 			} else continue;
 			
 			if (in_array($row["tracking_key"], $apm_track)) $rows_req[] = $row;
