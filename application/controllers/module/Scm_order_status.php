@@ -304,7 +304,7 @@ class Scm_order_status extends CI_Controller {
 				$closed_orders[] = $row;
 			}
 			
-			$this->write_excel($closed_order_sheet, $closed_orders);	
+			$this->write_excel($closed_order_sheet, $closed_orders);
 		}
 		
 		/********************
@@ -437,4 +437,120 @@ class Scm_order_status extends CI_Controller {
 		
 	}
 	
+	public function date_convert($date) {
+		if (is_numeric($date)) {
+			// Si es un número (número de días desde 1900-01-01)
+			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
+			return $date->format('Y-m-d');
+		}
+
+		// Si no es un número
+		$aux = explode("/", $date);
+		if (count($aux) == 3) {
+			// Verificamos que la fecha esté en formato mm/dd/yyyy
+			return $aux[2]."-".$aux[0]."-".$aux[1]; // yyyy-mm-dd
+		}
+		
+		// Si la fecha no está en un formato esperado, devolvemos null
+		return null;
+	}
+	
+	public function upload_update(){
+		$type = "error"; $msg = "";
+		
+		$config = [
+			'upload_path'	=> './upload/',
+			'allowed_types'	=> '*',
+			'max_size'		=> 20000,
+			'overwrite'		=> TRUE,
+			'file_name'		=> 'scm_update_status',
+		];
+		$this->load->library('upload', $config);
+
+		if ($this->upload->do_upload('attach')){
+			$type = "success";
+			$msg = $this->update_status();
+		}else $msg = str_replace("p>", "div>", $this->upload->display_errors());
+		
+		header('Content-Type: application/json');
+		echo json_encode(["type" => $type, "msg" => $msg]);
+	}
+	
+	public function update_status(){ // update status in same controlle of shipping status
+		ini_set('memory_limit', -1);
+		set_time_limit(0);
+		
+		$start_time = microtime(true);
+		
+		//load excel file
+		$spreadsheet = IOFactory::load("./upload/scm_update_status.xlsx");
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		//excel file header validation
+		$h = [
+			trim($sheet->getCell('A2')->getValue()),
+			trim($sheet->getCell('B2')->getValue()),
+			trim($sheet->getCell('C2')->getValue()),
+			trim($sheet->getCell('D2')->getValue()),
+			trim($sheet->getCell('E2')->getValue()),
+			trim($sheet->getCell('F2')->getValue()),
+			trim($sheet->getCell('G2')->getValue()),
+		];
+		
+		//sales order header
+		$header = ["DIVISION", "MODELO", "Bill To Name", "Customer PO No.", "Order No.", "Line No.", "Order Qty"];
+		
+		//header validation
+		$is_ok = true;
+		foreach($h as $i => $h_i) if ($h_i !== $header[$i]) $is_ok = false;
+		
+		if ($is_ok){
+			$max_row = $sheet->getHighestRow();
+			$batch_size = 200;
+			$batch_data = [];
+			$row_counter = 0;
+			$batch_data_eq = [];
+			//define now
+			$now = date('Y-m-d H:i:s');
+
+			for($i = 3; $i <= $max_row; $i++){
+				$row = [
+					'model' 			=> trim($sheet->getCell('B'.$i)->getValue()),
+					'bill_to_name' 		=> trim($sheet->getCell('C'.$i)->getValue()),
+					'customer_po' 		=> trim($sheet->getCell('D'.$i)->getValue()),
+					'order_no' 			=> trim($sheet->getCell('E'.$i)->getValue()),
+					'line_no' 			=> trim($sheet->getCell('F'.$i)->getValue()),
+					'order_qty'			=> trim($sheet->getCell('G'.$i)->getValue()),
+					'inventory_org'		=> trim($sheet->getCell('J'.$i)->getValue()),
+					'sub_inventory'		=> trim($sheet->getCell('K'.$i)->getValue()),
+					'om_line_status'	=> trim($sheet->getCell('N'.$i)->getValue()),
+					'om_appointment'	=> trim($sheet->getCell('O'.$i)->getValue()),
+					"om_updated_at" 	=> date("Y-m-d H:i:s"),				
+				];
+				
+				if (empty($row['model']) && empty($row['bill_to_name']) && empty($row['customer_po']) && empty($row['order_no']) && empty($row['line_no'])) continue;
+				
+				// om_appointment -> timestamp format
+				$row['om_appointment'] = $this->date_convert($row['om_appointment']);
+				if (empty($row['om_appointment'])){
+					$row['om_appointment'] = null;
+				} else $row['om_appointment'] = $row['om_appointment'] . " 00:00:00";
+				
+				//$row['om_appointment'] = $row['om_appointment'] . " 00:00:00";
+				$order_line = $row['order_no'] . "_". $row['line_no'];
+				$batch_data[] = ['order_line' => $order_line, 'om_line_status' => $row['om_line_status'], 'om_appointment' => $row['om_appointment'], 'om_updated_at' => $row['om_updated_at']];
+			}	
+			
+			//echo '<pre>'; print_r($batch_data);
+			$row_counter = count($batch_data);
+			
+			// update sales order table
+			$this->gen_m->update_multi('lgepr_sales_order', $batch_data, 'order_line'); 
+			
+		} else $msg = "Wrong file.";
+		
+		$msg = "Finished.<br/><br/>Records: ".number_format($row_counter)."<br/>Time: ".number_Format(microtime(true) - $start_time, 2)." secs";
+		
+		return $msg;
+	}
 }

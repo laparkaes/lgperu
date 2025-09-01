@@ -66,7 +66,15 @@
 				<div class="card-body">
 					<div class="d-flex justify-content-between align-items-center">
 						<h5 class="card-title">Order List</h5>
-						<a class="btn btn-success" href="<?= base_url() ?>module/scm_order_status/download_report" target="_blank">Download</a>
+						<div class="d-flex justify-content-between align-items-center">
+							<form id="form_order_status_update">
+								<div class="input-group me-1">
+									<input class="form-control" type="file" name="attach">
+									<button type="submit" class="btn btn-primary me-2"><i class="bi bi-upload"></i> Update</button>
+								</div>
+							</form> 
+							<a class="btn btn-success" href="<?= base_url() ?>module/scm_order_status/download_report" target="_blank"><i class="bi bi-download"></i> Download</a>
+						</div>
 					</div>
 					<div><?= number_format(count($sales)) ?> records</div>
 					<table class="table table-sm align-middle">
@@ -259,6 +267,13 @@ document.addEventListener("DOMContentLoaded", () => {
 					window.location.href = currentUrl;
 				}
 			});
+		});
+	});
+	
+	$("#form_order_status_update").submit(function(e) {
+		e.preventDefault();
+		ajax_form_warning(this, "module/scm_order_status/upload_update", "Do you want to update data?").done(function(res) {
+			swal_redirection(res.type, res.msg, "module/scm_order_status");
 		});
 	});
 });

@@ -11,33 +11,64 @@ class Scm_shipping_status extends CI_Controller {
 		
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
-		//$this->load->model('general_espr_model', 'gen_e');
 	}
 	
 	public function index(){
 		
 		$data = [
-			"shipping_status"	=> $this->gen_m->filter("scm_shipping_status", false),
+			"shipping_status"	=> $this->gen_m->filter("scm_shipping_status", false, null, null, null, [], 1000, ""),
 			"main" 				=> "data_upload/scm_shipping_status/index",
 		];
 		
 		$this->load->view('layout', $data);
 	}
 	
-	public function convert_date ($date){
-		/*
-		$date_object = DateTime::createFromFormat('d-M-Y H:i:s', $date);
-		$final_date = $date_object->format('Y-m-d H:i:s');
+	public function convert_date($date_input) {
+		$excel_epoch_start_timestamp = strtotime('1899-12-30');
 		
-		return $final_date;
-		*/
+		if (empty($date_input)){
+			return null;
+		}
 		
-		if ($date) {
-			$aux = explode(" ", $date);
-			$aux[0] = $this->my_func->date_convert_5($aux[0]);
-			
-			return $aux[0].(array_key_exists(1, $aux) ? " ".$aux[1] : "");
-		}else return null;
+		elseif (is_numeric($date_input) && floatval($date_input) > 1) {
+			$excel_date_days = floor(floatval($date_input));
+			$excel_time_fraction = floatval($date_input) - $excel_date_days;
+
+			$timestamp = $excel_epoch_start_timestamp + ($excel_date_days * 86400) + ($excel_time_fraction * 86400);
+
+			$date_object = new DateTime();
+			$date_object->setTimestamp($timestamp);
+
+			return $date_object->format('Y-m-d H:i:s');
+		} else{
+
+            $possible_formats = [
+                'd-M-Y H:i:s', // "25-JUN-2025 15:00:00"
+                'd M Y H:i:s', // "03 JUN 2025 08:00"
+                'Y-m-d H:i:s', // Para formatos ya estándar
+                'd/m/Y H:i:s', // Otro formato común
+                'd-m-Y H:i:s', // Otro formato común
+            ];
+
+            foreach ($possible_formats as $format) {
+                // Intenta crear el objeto DateTime con la cadena normalizada
+                $date_object = DateTime::createFromFormat($format, $date_input);
+
+                if ($date_object !== false) {
+					return $date_object->format('Y-m-d H:i:s');
+                }
+            }
+        }
+
+		return null;
+	}
+		
+	public function test(){
+		$key_pick = [];
+		$key_picks = $this->gen_m->filter_select('scm_shipping_status', false, ['key_pick']);
+		foreach ($key_picks as $item) $key_pick[] = $item->key_pick;
+		$key_pick = array_values(array_unique($key_pick));
+		echo '<pre>'; print_r($key_pick);
 	}
 	
 	public function process(){
@@ -53,31 +84,37 @@ class Scm_shipping_status extends CI_Controller {
 		$spreadsheet = IOFactory::load("./upload/scm_shipping_status.xls");
 		$sheet = $spreadsheet->getActiveSheet();
 		
-		//excel file header validation
+		//excel file header validation		
 		$h = [
 			trim($sheet->getCell('A1')->getValue()),
 			trim($sheet->getCell('B1')->getValue()),
 			trim($sheet->getCell('C1')->getValue()),
 			trim($sheet->getCell('D1')->getValue()),
 			trim($sheet->getCell('E1')->getValue()),
-			trim($sheet->getCell('F1')->getValue()),
+			trim($sheet->getCell('F1')->getValue())
 		];
-		
+		//echo '<pre>'; print_r($h);
 		//sales order header
 		$header = ["Order No", "Line No", "Pick No", "Ship Set", "Seq", "Customer PO"];
-		
+		 
+		//echo '<pre>'; print_r($header);
 		//header validation
 		$is_ok = true;
 		foreach($h as $i => $h_i) if ($h_i !== $header[$i]) $is_ok = false;
 		
 		if ($is_ok){
 			$max_row = $sheet->getHighestRow();
-			$batch_size = 200;
+			$batch_size = 1000;
 			$batch_data = [];
+			$batch_data_eq = [];
 			//define now
 			$now = date('Y-m-d H:i:s');
 			
-			$rows = [];
+			$key_pick = [];
+			$key_picks = $this->gen_m->filter_select('scm_shipping_status', false, ['key_pick']);
+			foreach ($key_picks as $item) $key_pick[] = $item->key_pick;
+			$key_pick = array_values(array_unique($key_pick));
+			//echo '<pre>'; print_r($key_pick);
 			
 			for($i = 2; $i <= $max_row; $i++){
 				$row = [
@@ -120,9 +157,11 @@ class Scm_shipping_status extends CI_Controller {
 					'req_ship_date_from' 	=> trim($sheet->getCell('AJ'.$i)->getValue()),
 					'from_ship' 			=> trim($sheet->getCell('AK'.$i)->getValue()),
 					'to_ship' 				=> trim($sheet->getCell('AL'.$i)->getValue()),
+					'delivery_no'			=> trim($sheet->getCell('BQ'.$i)->getValue()),
 					'updated' 				=> $now,
 				];
 				
+				//echo '<pre>'; print_r($row);
 				//apply trim
 				$row["order_no"] = trim($row["order_no"]);
 				$row["line_no"] = trim($row["line_no"]);	
@@ -134,31 +173,47 @@ class Scm_shipping_status extends CI_Controller {
 				$row["from_ship"] = $this->convert_date($row["from_ship"]);
 				$row["to_ship"] = $this->convert_date($row["to_ship"]);
 				
-				$batch_data[] = $row;
+				if (substr($row['delivery_no'], 0, 1) !== "T"){
+					$aux = trim($sheet->getCell('BS'.$i)->getValue());
+					if (substr($aux, 0, 1) === "T") $row['delivery_no'] = $aux;
+					else $row['delivery_no'] = null;
+				}
+
+				if (in_array($row['key_pick'], $key_pick)){
+					$batch_data_eq[] = $row; 
+				}elseif(!in_array($row['key_pick'], $key_pick)) $batch_data[] = $row;
+				
+				//$batch_data[] = $row;
 				
 				if (count($batch_data) >= $batch_size) {
+					//echo '<pre>'; print_r($batch_data);
 					$this->gen_m->insert_m("scm_shipping_status", $batch_data);
 					$batch_data = [];
 				}
-				
+				if (count($batch_data_eq) >= $batch_size) {
+					//echo '<pre>'; print_r($batch_data_eq);
+					$this->gen_m->update_multi("scm_shipping_status", $batch_data_eq, 'key_pick');
+					$batch_data_eq = [];
+				}
 			}
 			
+			//echo '<pre>'; print_r($batch_data);
+			
 			if (!empty($batch_data)) {
+				//echo '<pre>'; print_r($batch_data);
 				$this->gen_m->insert_m("scm_shipping_status", $batch_data);
 				$batch_data = [];
 			}
-
+			if (!empty($batch_data_eq)) {
+				//echo '<pre>'; print_r($batch_data_eq); return;
+				$this->gen_m->update_multi("scm_shipping_status", $batch_data_eq, 'key_pick');
+				$batch_data_eq = [];
+			}
 			
 			$msg = " record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
-			//return $msg;
-		} else $msg = "Error: Header validation failed."; //return "Error: Header validation failed.";
-		
-		
-		//return $msg;
-		echo $msg;
-		echo "<br/><br/>";
-		echo 'You can close this tab now.<br/><br/><button onclick="window.close();">Close This Tab</button>';
-		
+			//print_r($msg); return;
+			return $msg;
+		} else return "";
 	}
 	
 	public function upload(){
@@ -177,8 +232,7 @@ class Scm_shipping_status extends CI_Controller {
 			$this->load->library('upload', $config);
 
 			if ($this->upload->do_upload('attach')){
-				//$msg = $this->process();
-				$msg = "File has been uploaded to server. Processing is started.";
+				$msg = $this->process();
 				
 				if ($msg) $type = "success";
 				else $msg = "Wrong file.";
