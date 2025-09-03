@@ -129,6 +129,8 @@ class Scm_order_status extends CI_Controller {
 			$msg = "An error occured. Try again.";
 		}
 		
+		
+		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
@@ -476,7 +478,7 @@ class Scm_order_status extends CI_Controller {
 		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
 	
-	public function update_status(){ // update status in same controlle of shipping status
+	public function update_status(){
 		ini_set('memory_limit', -1);
 		set_time_limit(0);
 		
@@ -512,7 +514,11 @@ class Scm_order_status extends CI_Controller {
 			$batch_data_eq = [];
 			//define now
 			$now = date('Y-m-d H:i:s');
-
+			$key_shipp = [];
+			$shipping_data = $this->gen_m->filter_select('scm_shipping_status', false, ['order_no', 'line_no', 'to_ship']);
+			foreach ($shipping_data as $item) $key_shipp[] = $item->order_no . "_" . $item->line_no;
+			$key_shipp = array_unique($key_shipp);
+			//echo '<pre>'; print_r($key_shipp);
 			for($i = 3; $i <= $max_row; $i++){
 				$row = [
 					'model' 			=> trim($sheet->getCell('B'.$i)->getValue()),
@@ -538,6 +544,11 @@ class Scm_order_status extends CI_Controller {
 				
 				//$row['om_appointment'] = $row['om_appointment'] . " 00:00:00";
 				$order_line = $row['order_no'] . "_". $row['line_no'];
+				
+				if (in_array($order_line, $key_shipp)) {
+					$to_ship = $this->gen_m->filter_select('scm_shipping_status', false, ['to_ship'], ['order_no' => $row['order_no'], 'line_no' => $row['line_no']]);
+					$row['om_appointment'] = $to_ship[0]->to_ship;
+				}
 				$batch_data[] = ['order_line' => $order_line, 'om_line_status' => $row['om_line_status'], 'om_appointment' => $row['om_appointment'], 'om_updated_at' => $row['om_updated_at']];
 			}	
 			

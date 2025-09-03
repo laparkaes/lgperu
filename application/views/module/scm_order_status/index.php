@@ -86,9 +86,9 @@
 								<th scope="col">Order</th>
 								<th scope="col">Line</th>
 								<th scope="col">Customer</th>
-								<th scope="col">Com</th>
-								<th scope="col">Div</th>
 								<th scope="col">Model</th>
+								<th scope="col">Division</th>
+								<th scope="col">Company</th>
 								<th scope="col">Qty</th>
 								<th scope="col">K USD</th>
 								<th scope="col">Instock</th>
