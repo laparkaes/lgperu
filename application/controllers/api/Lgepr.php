@@ -94,41 +94,76 @@ class Lgepr extends CI_Controller {
 		//llamasys/api/lgepr/get_closed_order?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
-			//$w = ["closed_date >=" => date("2024-12-01")];
-			$w = ["closed_date >=" => date("Y-01-01")];
+			$res = [];
+			$w = ["closed_date >=" => date("Y-m-01"), "order_no NOT LIKE" => "2000%", 'bill_to_name NOT LIKE' => "LGE%"];
+			//$w = ["closed_date >=" => date("2025-08-01"), "order_no NOT LIKE" => "2000%", 'bill_to_name NOT LIKE' => "LGE%"];
 			$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
-			
-			$res = $this->gen_m->filter("lgepr_closed_order", false, $w, null, null, $o);
-			foreach($res as $item){
-				$item->month = date("Y-m", strtotime($item->closed_date));
+			$sd_rate = [];
+			$sd_data = $this->gen_m->filter('lgepr_sales_deduction', false);
+			foreach ($sd_data as $item_sd){
+				if ($item_sd->country === 'PR') $customer_department = 'LGEPR';
+				else $customer_department = 'Branch';
+				$division = $item_sd->division;
+				$sd_rate[$customer_department][$division][$item_sd->yyyy . "_" . $item_sd->mm] = $item_sd->sd_rate; // Para branch priorizar sd_rate de PY			
 			}
+			$data = $this->gen_m->filter("lgepr_closed_order", false, $w, null, null, $o);
+			foreach ($data as $item){
+				$cloned_item = clone $item;
+				$date = $cloned_item->closed_date;
+				$aux_date = explode("-", $date);
+				$closed_period = (int)$aux_date[0] . "_" . (int)$aux_date[1];
+				if (isset($sd_rate[$cloned_item->customer_department][$cloned_item->dash_division][$closed_period])){
+					$cloned_item->sales_deduction = $sd_rate[$cloned_item->customer_department][$cloned_item->dash_division][$closed_period]*100;
+					$cloned_item->sd_order_amount_usd = $cloned_item->order_amount_usd * (1 - $sd_rate[$cloned_item->customer_department][$cloned_item->dash_division][$closed_period]);
+				} else {
+					$cloned_item->sales_deduction = "";
+					$cloned_item->sd_order_amount_usd = '';
+				}
+				$res[] = clone $cloned_item;
+			}
+				
 		}else $res = ["Key error"];
 		
 		header('Content-Type: application/json');
 		echo json_encode($res);
+		
 	}
 	
 	public function get_sales_order(){
 		//llamasys/api/lgepr/get_closed_order?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
-			$o = [["create_date", "desc"], ["req_arrival_date_to", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
-			
-			$res = $this->gen_m->filter("lgepr_sales_order", false, null, null, null, $o);
-			foreach($res as $item){
-				//set last day of month if request arrival date is past
-				if (strtotime($item->req_arrival_date_to) < strtotime(date("Y-m-01"))) $item->req_arrival_date_to = date("Y-m-t");
-				
-				if ($item->shipment_date) $item->month = date("Y-m", strtotime($item->shipment_date));
-				elseif ($item->appointment_date) $item->month = date("Y-m", strtotime($item->appointment_date));
-				elseif ($item->req_arrival_date_to) $item->month = date("Y-m", strtotime($item->req_arrival_date_to));
-				elseif ($item->booked_date) $item->month = date("Y-m", strtotime($item->booked_date));
-				else $item->month = date("Y-m", strtotime($item->create_date));
+			$res = [];
+			$sd_rate = [];
+			$sd_data = $this->gen_m->filter('lgepr_sales_deduction', false);
+			foreach ($sd_data as $item_sd){
+				if ($item_sd->country === 'PR') $customer_department = 'LGEPR';
+				else $customer_department = 'Branch';
+				$division = $item_sd->division;
+				$sd_rate[$customer_department][$division][$item_sd->yyyy . "_" . $item_sd->mm] = $item_sd->sd_rate; // Para branch priorizar sd_rate de PY			
 			}
-		}else $res = ["Key error"];
+			
+			$o = [["create_date", "desc"], ["req_arrival_date_to", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
+			$data = $this->gen_m->filter("lgepr_sales_order", false, ['so_status NOT LIKE' => 'CANCELLED', 'bill_to_name NOT LIKE' => "LGE%", "order_no NOT LIKE" => "2000%"], null, null, $o);
+			foreach ($data as $item){
+				$cloned_item = clone $item;
+				$date = $cloned_item->create_date;
+				$aux_date = explode("-", $date);
+				$sales_period = (int)$aux_date[0] . "_" . (int)$aux_date[1];
+				if (isset($sd_rate[$cloned_item->customer_department][$cloned_item->dash_division][$sales_period])){
+					$cloned_item->sales_deduction = $sd_rate[$cloned_item->customer_department][$cloned_item->dash_division][$sales_period]*100;
+					$cloned_item->sd_sales_amount_usd = $cloned_item->sales_amount_usd * (1 - $sd_rate[$cloned_item->customer_department][$cloned_item->dash_division][$sales_period]);				
+				} else {
+					$cloned_item->sales_deduction = "";
+					$cloned_item->sd_order_amount_usd = $cloned_item->sales_amount_usd;
+				}
+				$res[] = clone $cloned_item;
+			}
+		} else $res = ["Key error"];
 		
 		header('Content-Type: application/json');
 		echo json_encode($res);
+		
 	}
 	
 	public function get_sales_projection(){
