@@ -732,12 +732,8 @@ class Lgepr extends CI_Controller {
 						}
 					}
 				} else{
-					$w_c = [
-								'model'	=> $cloned_item->model,
-								];
-					$closed_data_ = $this->gen_m->filter_select('lgepr_closed_order', false, ['dash_company', 'dash_division'], $w_c);
-					$cloned_item->dash_company = $closed_data_[0]->dash_company ?? '';
-					$cloned_item->dash_division = $closed_data_[0]->dash_division ?? '';
+					$cloned_item->dash_company = '';
+					$cloned_item->dash_division = '';
 					$cloned_item->order_no = '';
 					$cloned_item->line_no = '';
 					$cloned_item->dash_amount_usd = '';
