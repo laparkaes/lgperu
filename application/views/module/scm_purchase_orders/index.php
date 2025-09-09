@@ -79,7 +79,7 @@
                 const targetImageId = 'po_img_' + selectedClient;
                 const targetImage = document.getElementById(targetImageId);
                 if (targetImage) {
-                    poImages.forEach(img => img.classList.add('d-none')); // Oculta todas primero
+					poImages.forEach(img => img.classList.add('d-none')); // Oculta todas primero
                     targetImage.classList.remove('d-none');
                 }
             }
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const formExtractPdf = document.getElementById('form_extract_pdf');
 
     // Define el nombre del cliente que requiere dos TXT
-    const specialClient = ['SAGA FALABELLA S.A.', 'HIPERMERCADOS TOTTUS S.A.']; // ¡Asegúrate de que este valor coincida con el HTML y PHP!
+    const specialClient = ['SAGA FALABELLA S.A.']; // ¡Asegúrate de que este valor coincida con el HTML y PHP!
 
     // Función para actualizar el estado de los campos de archivo y el botón de carga
     function updateFormState() {
@@ -176,9 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedClient = clientSelect.value;
         let isFileSelected = false; // Bandera para controlar si se ha seleccionado el archivo(s) correcto(s)
 
-        // Habilitar/deshabilitar los campos de archivo según el cliente seleccionado
         if (specialClient.includes(selectedClient)) {
-            // Cliente especial: mostrar TXT, ocultar PDF
             pdfUploadSection.style.display = 'none';
             pdfFileInput.disabled = true;
             pdfFileInput.removeAttribute('required');
@@ -193,9 +191,8 @@ document.addEventListener('DOMContentLoaded', function() {
             isFileSelected = txtFileInput1.files.length > 0 && txtFileInput2.files.length > 0;
 
         } else {
-            // Otros clientes: mostrar PDF, ocultar TXT
             pdfUploadSection.style.display = 'block';
-            pdfFileInput.disabled = !isClientSelected; // Habilitar solo si hay cliente
+            pdfFileInput.disabled = !isClientSelected;
             pdfFileInput.setAttribute('required', 'required');
 
             txtUploadSection.style.display = 'none';
@@ -209,26 +206,22 @@ document.addEventListener('DOMContentLoaded', function() {
             isFileSelected = pdfFileInput.files.length > 0;
         }
         
-        // El botón de subir se habilita si un cliente Y los archivos correctos están seleccionados
         uploadButton.disabled = !(isClientSelected && isFileSelected);
     }
-
-    // Event Listeners para habilitar/deshabilitar elementos
     clientSelect.addEventListener('change', updateFormState);
     pdfFileInput.addEventListener('change', updateFormState);
     txtFileInput1.addEventListener('change', updateFormState);
     txtFileInput2.addEventListener('change', updateFormState);
 
-    // Inicializar el estado al cargar la página
     updateFormState();
 
     // Manejar el envío del formulario con SweetAlert
     formExtractPdf.addEventListener('submit', function(e) {
-        e.preventDefault(); // Prevenir el envío normal del formulario
+        e.preventDefault();
 
-        // Mostrar SweetAlert de carga
+        // SweetAlert de carga
         Swal.fire({
-            title: 'Processing your files...', // Mensaje más genérico
+            title: 'Processing your files...',
             text: 'Please wait while we extract data and generate your Excel file.',
             icon: 'info',
             allowOutsideClick: false,
@@ -246,16 +239,13 @@ document.addEventListener('DOMContentLoaded', function() {
             body: formData
         })
         .then(response => {
-            // Verificar si la respuesta es un archivo (Excel) o JSON
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
-                return response.json(); // Es JSON, probablemente un error
+                return response.json();
             } else if (contentType && contentType.includes('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')) {
-                // Es un archivo Excel, manejar la descarga
                 return response.blob().then(blob => {
-                    // Obtener el nombre del archivo del encabezado Content-Disposition
                     const contentDisposition = response.headers.get('Content-Disposition');
-                    let filename = 'download.xlsx'; // Nombre por defecto
+                    let filename = 'download.xlsx';
                     if (contentDisposition) {
                         const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
                         if (filenameMatch && filenameMatch[1]) {
@@ -274,12 +264,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     return { type: 'success', msg: 'Excel file generated and downloaded successfully!' };
                 });
             } else {
-                // Tipo de contenido inesperado
                 throw new Error('Unexpected server response type or no Content-Disposition header.');
             }
         })
         .then(data => {
-            Swal.close(); // Cerrar el SweetAlert de carga
+            Swal.close();
 
             if (data.type === 'success') {
                 Swal.fire(
@@ -287,9 +276,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     data.msg,
                     'success'
                 );
-                // Opcional: Resetear el formulario después de una subida exitosa
                 formExtractPdf.reset();
-                updateFormState(); // Restablecer el estado de los botones y campos
+                updateFormState();
             } else {
                 Swal.fire(
                     'Error!',
@@ -299,7 +287,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
-            Swal.close(); // Asegurarse de cerrar el SweetAlert de carga
+            Swal.close();
             console.error('Fetch error:', error);
             Swal.fire(
                 'Error!',

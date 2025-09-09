@@ -1132,119 +1132,6 @@ class Scm_purchase_orders extends CI_Controller {
 		return $all_invoices_data;
 	}
 
-	public function extract_integra1($text){
-		$bill_to_code = 'PE008204001B';
-		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
-		$data = $this->data_initialize();
-		echo '<pre>'; print_r($text);
-		
-		// --- 1. Extracción de Número de Boleta / Orden de Compra y Fecha ---
-        if (preg_match('/Observaciones para el Proveedor\s*.*?(\d{7})/is', $text, $matches)) {
-			//echo '<pre>'; print_r($matches);
-            $data['customer_po_no'] = $matches[1];
-        } elseif (preg_match('/(?:BOLETA|FACTURA)\s*(?:N°|No\.?|Num\.?|:)?\s*([A-Z0-9-]+)/i', $text, $matches)) {
-            $data['customer_po_no'] = $matches[1];
-        }
-
-		// Dates
-		$data['request_arrival_date'] = Date('Ymd');
-		$data['customer_po_date'] = Date('Ymd');
-		
-		// Ship to
-		$data['ship_to'] = '8204VESCEVA-S';
-		
-		// Payterm 		
-		if (preg_match('/CREDITO (\d+) DIAS/', $text, $matches)) {
-             //echo '<pre>'; print_r($matches);
-			 $credit = $matches[1];
-			 $data['payterm'] = $payterm[$credit];
-        }
-		
-		// 1. Patrón para encontrar el bloque de cantidades
-		$qty_block_pattern = '/(?:UNI\s*)+(?P<quantities>(?:\s*\d+)+)/is';
-
-		// 2. Patrón para encontrar el bloque de precios
-		$prices_block_pattern = '/(?P<prices>(?:[\d\.\s,]+))\s*(?=Lugar de Entrega|Cod\. Item)/is';
-
-		// --- Extracción del bloque de cantidades y su posición ---
-		$qty_block_matches = [];
-		preg_match($qty_block_pattern, $text, $qty_block_matches, PREG_OFFSET_CAPTURE);
-		$qty_block_string = $qty_block_matches['quantities'][0] ?? '';
-		$qty_block_end_pos = ($qty_block_matches[0][1] ?? 0) + strlen($qty_block_matches[0][0] ?? '');
-
-		// --- Extracción del bloque de precios y su posición de inicio ---
-		$prices_block_matches = [];
-		preg_match($prices_block_pattern, $text, $prices_block_matches, PREG_OFFSET_CAPTURE);
-		$prices_block_string = $prices_block_matches['prices'][0] ?? '';
-		$prices_block_start_pos = $prices_block_matches['prices'][1] ?? 0;
-
-		// --- Extraer el bloque de modelos utilizando las posiciones de los otros bloques ---
-		$models_block_string = '';
-		if ($qty_block_end_pos && $prices_block_start_pos) {
-			$models_block_string = substr($text, $qty_block_end_pos, $prices_block_start_pos - $qty_block_end_pos);
-		}
-
-		// --- Procesar y construir los datos ---
-		if (!empty($qty_block_string) && !empty($models_block_string) && !empty($prices_block_string)) {
-			// Convertir las cadenas en arrays, eliminando espacios en blanco
-			$qtys_raw = preg_split('/\s+/', trim($qty_block_string), -1, PREG_SPLIT_NO_EMPTY);
-			
-			// Convertir todo el bloque de texto de modelos en un array de palabras.
-			$models_words = preg_split('/\s+/', trim($models_block_string), -1, PREG_SPLIT_NO_EMPTY);
-			//echo '<pre>'; print_r($models_words);
-			$models_words_index = 0; // Nuevo índice para saber desde dónde buscar en la siguiente iteración
-			
-			// Extraer todos los precios del bloque
-			preg_match_all('/[\d\.]+(?:,\d{2})?/', $prices_block_string, $prices_list);
-			
-			// Normalizar precios: ahora tomamos directamente los primeros 'x' precios como los unitarios
-			$num_items = count($qtys_raw);
-			$all_prices = $prices_list[0];
-			$unit_prices = array_slice($all_prices, 0, $num_items);
-
-			// Asegurarse de que el número de items sea consistente
-			if ($num_items !== count($unit_prices)) {
-				 error_log("Error de consistencia en el numero de items. QTY: " . count($qtys_raw) . ", Precios: " . count($unit_prices));
-			}
-
-			// Iterar sobre los arrays y construir la estructura de datos
-			for ($i = 0; $i < $num_items; $i++) {
-				$qty = $qtys_raw[$i];
-				$unit_selling_price = str_replace(',', '', $unit_prices[$i]);
-				
-				$final_model = "Modelo no encontrado";
-				
-				// Lógica para buscar el modelo palabra por palabra en todo el bloque de texto
-				// a partir del índice actual.
-				for ($j = $models_words_index; $j < count($models_words); $j++) {
-					$item = $models_words[$j];
-					if (strlen($item) > 3) {
-						$found_model = $this->models_sales_order_integra($item);
-						//echo '<pre>'; print_r($found_model);
-						if ($found_model) {
-							if ($found_model !== 'Not Found') {
-								$final_model = $found_model;
-								$models_words_index = $j + 1;
-								break;
-							}
-						}
-					}
-				}
-				
-				$data['items'][] = [
-					'qty' => $qty,
-					'modelo' => $final_model,
-					'currency' => 'PEN',
-					'unit_selling_price' => $unit_selling_price,
-				];
-			}
-		} else {
-			error_log("No se encontraron los bloques de datos necesarios para la extracción.");
-		}
-		//echo '<pre>'; print_r($data);
-        return $data;
-	}
-	
 	public function extract_oeschle($file_path){
 		$bill_to_code = 'PE007152001B';
 		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
@@ -1568,219 +1455,52 @@ class Scm_purchase_orders extends CI_Controller {
 		return $all_data;
 	}
 	
-	public function extract_tottus($file_paths){
+	public function extract_tottus($file_path, $file_name){
 		$bill_to_code = 'PE004467001B';
 		$payterm = [0 => 'N0000FSN1000', 10 => 'N0010FSN1708', 30 => 'N0030FSN1006', 45 => 'N0045FSN1008', 60 => 'N0060FSN1010', 90 => 'N0090FSN1012'];
 		
-		$data = $this->data_initialize(); // Asegúrate de que esto inicializa todas las claves necesarias
+		//load excel file
+		$spreadsheet = IOFactory::load("./upload/extract_excel.xlsx");
+		$sheet = $spreadsheet->getActiveSheet();
+		
 		$all_data = [];
-		error_log("Aplicando lógica de extracción para HIPERMERCADOS TOTTUS S.A. (Múltiples TXT).");
-
-		if (!is_array($file_paths) || count($file_paths) !== 2) {
-			error_log("Error: Se esperan exactamente dos rutas de archivo TXT válidas para HIPERMERCADOS TOTTUS S.A.");
-			return $data; // Retorna datos iniciales si no hay 2 archivos
+		
+		$file_name = explode(".", $file_name);
+		$data["customer_po_no"] = $file_name[0];
+		$currency = 'S/';		
+		$data['request_arrival_date'] = Date('Ymt');
+		
+		$data['customer_po_date'] = Date('Ymd');
+		
+		$aux_ship = explode(" ", trim($sheet->getCell('F2')->getValue()));
+		if (strpos($aux_ship[1], 'BTL') !== false){
+			$ship_to = '4467LURIN2-S'; 
+		} elseif (strpos($aux_ship[1], 'Huachipa') !== false){
+			$ship_to = '4467LURIN1-S'; 
 		}
-
-		// --- Paso 1: Procesar el primer archivo (EOC - attach_txt1) ---
-		$file1_path = $file_paths[0]; 
-		$items_temp_storage = []; // Almacenará los ítems con una clave para fusión
-		$order_header_data = []; // Para almacenar datos a nivel de cabecera de la orden
-
-		if (!file_exists($file1_path)) {
-			error_log("Error: Primer archivo TXT (EOC) no válido o no encontrado: " . $file1_path);
-			return $data;
-		}
-
-		$lines1 = file($file1_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-		if (empty($lines1)) {
-			error_log("Error: Primer archivo TXT (EOC) vacío: " . $file1_path);
-			return $data;
-		}
-
-		$headers1 = array_map('trim', explode('|', array_shift($lines1)));
-		error_log("HIPERMERCADOS TOTTUS S.A. - Encabezados Archivo EOC: " . implode(', ', $headers1));
-
-		foreach ($lines1 as $line1) {
-			$values1 = array_map('trim', explode('|', $line1));
-			if (count($headers1) !== count($values1)) {
-				error_log("Advertencia: Columnas no coinciden en Archivo EOC, línea: " . $line1);
-				continue;
-			}
-			$item_raw1 = array_combine($headers1, $values1);
-
-			// --- Extracción de datos del primer TXT (EOC) para la cabecera y ítems ---
-			$customer_po_no_current = $item_raw1['NRO_OC'];
+		$data['ship_to'] = $ship_to;
+		
+		$max_row = $sheet->getHighestRow();
+		for($i = 2; $i <= $max_row; $i++){
+			$aux_model = trim($sheet->getCell('C'.$i)->getValue());
+			$model = $this->models_sales_order($aux_model);		
 			
-			// Asumiendo que NRO_OC es consistente para toda la orden en este archivo
-			if (empty($order_header_data['customer_po_no'])) {
-				$order_header_data['customer_po_no'] = $customer_po_no_current;
-			}
-
-			// MONEDA_COSTO para currency
-			$moneda_costo = $item_raw1['MONEDA_COSTO'] ?? '';
-			if (strpos(strtoupper($moneda_costo), 'PEN') !== false) {
-				$order_header_data['currency'] = 'PEN';
-			} else {
-				$order_header_data['currency'] = 'USD';
-			}
-
-			//FECHA_HASTA para request_arrival_date (último día del mes)
-			$fecha_date_raw = $item_raw1['FECHA_HASTA'] ?? '';
-			if (!empty($fecha_date_raw)) {
-				$date_obj = DateTime::createFromFormat('d/m/Y', $fecha_date_raw);
-				if ($date_obj) {
-					$order_header_data['request_arrival_date'] = $date_obj->format('Ymd'); // YYYYMMDD (último día) // fecha hasta
-				} else {
-					error_log("Advertencia: Formato de fecha_date_raw incorrecto: " . $fecha_date_raw);				
-				}
-			} else{
-				$fecha_date_raw = $item_raw1['FECHA_DESDE'];
-				$date_obj = DateTime::createFromFormat('d/m/Y', $fecha_date_raw);
-				$order_header_data['request_arrival_date'] = $date_obj->format('Ymd');
-			}
-	
-			// customer_po_date será la fecha actual
-			$order_header_data['customer_po_date'] = date('Ymd'); 
-
-			// DIAS_PAGO para payterm
-			$dias_pago = $item_raw1['DIAS_PAGO'] ?? null;
-			if (isset($payterm[$dias_pago])) {
-				$order_header_data['payterm'] = $payterm[$dias_pago];
-			} else {
-				error_log("Advertencia: DIAS_PAGO no encontrado en lista de términos de pago: " . $dias_pago);
-				// Puedes asignar un valor por defecto o dejarlo vacío si no se encuentra
-				$order_header_data['payterm'] = ''; 
-			}
-
-			// Define la CLAVE ÚNICA para fusionar (NRO_OC + MODELO/SKU)
-			$model_or_sku = $item_raw1['MODELO'] ?? $item_raw1['SKU'] ?? ''; 
-			$unique_key = $customer_po_no_current . '_' . $model_or_sku;
-
-			if (!empty($unique_key)) {
-				$items_temp_storage[$unique_key] = $item_raw1;
-			} else {
-				error_log("Advertencia: No se pudo generar una clave única para línea en Archivo EOC: " . $line1);
-			}
-		}
-		error_log("INFO: " . count($items_temp_storage) . " ítems procesados desde el archivo EOC.");
-
-		// --- Paso 2: Procesar el segundo archivo (EOD - attach_txt2) y fusionar la información ---
-		$file2_path = $file_paths[1]; 
-		$local_from_eod = ''; // Para almacenar el valor LOCAL del segundo archivo
-
-		if (!file_exists($file2_path)) {
-			error_log("Error: Segundo archivo TXT (EOD) no válido o no encontrado: " . $file2_path);
-			return $data; // Mandatorio, así que retorna
-		}
-
-		$lines2 = file($file2_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-		if (empty($lines2)) {
-			error_log("Error: Segundo archivo TXT (EOD) vacío: " . $file2_path);
-			return $data;
-		}
-
-		$headers2 = array_map('trim', explode('|', array_shift($lines2)));
-		error_log("HIPERMERCADOS TOTTUS S.A. - Encabezados Archivo EOD: " . implode(', ', $headers2));
-
-		foreach ($lines2 as $line2) {
-			$values2 = array_map('trim', explode('|', $line2));
-			if (count($headers2) !== count($values2)) {
-				error_log("Advertencia: Columnas no coinciden en Archivo EOD, línea: " . $line2);
-				continue;
-			}
-			$item_raw2 = array_combine($headers2, $values2);
-
-			// Extraer LOCAL del segundo TXT (EOD)
-			$local_from_eod = $item_raw2['LOCAL'] ?? ''; 
-			if (!empty($local_from_eod)) {
-				// Asumimos que el LOCAL es el mismo para toda la orden en este archivo.
-				// Si el archivo EOD tiene múltiples LOCALES, necesitarás una estrategia diferente.
-				// Por ahora, tomamos el primero que encontremos.
-				break; // Salir del bucle una vez que encontramos el LOCAL
-			}
-
-			// Genera la misma CLAVE ÚNICA para fusionar (si es necesario fusionar datos de ítems del EOD)
-			// Si el EOD solo tiene el campo LOCAL y no hay datos de ítems que fusionar,
-			// esta parte del bucle foreach para fusionar ítems podría no ser estrictamente necesaria.
-			// Pero la mantenemos para completitud si más campos de EOD se añaden en el futuro.
-			$order_num_2 = $item_raw2['NRO_OC'] ?? ''; 
-			$model_or_sku_2 = $item_raw2['MODELO'] ?? $item_raw2['SKU'] ?? ''; 
-			$unique_key_2 = $order_num_2 . '_' . $model_or_sku_2;
-
-			if (isset($items_temp_storage[$unique_key_2])) {
-				$items_temp_storage[$unique_key_2] = array_merge($items_temp_storage[$unique_key_2], $item_raw2);
-			} else {
-				error_log("Advertencia: Clave única no encontrada en almacenamiento para Archivo EOD, línea: " . $line2 . " Clave: " . $unique_key_2);
-			}
-		}
-		error_log("INFO: Segundo archivo (EOD) procesado. LOCAL encontrado: " . $local_from_eod);
-
-		// --- Paso 3: Construir el array de datos final con la información fusionada ---
-		
-		// Asigna los datos de cabecera a $data
-		$data['customer_po_no'] = $order_header_data['customer_po_no'] ?? 'N/A';
-		$data['request_arrival_date'] = $order_header_data['request_arrival_date'] ?? 'N/A';
-		$data['customer_po_date'] = $order_header_data['customer_po_date'] ?? date('Ymd'); // Asegura la fecha actual si no se asignó antes
-		$data['currency'] = $order_header_data['currency'] ?? 'PEN';
-		$data['payterm'] = $order_header_data['payterm'] ?? ''; // Asigna el término de pago
-
-		// Búsqueda del ship_to_code usando el LOCAL del EOD
-		// $data['ship_to'] = 'N/A'; // Valor por defecto
-		
-		if (strpos($local_from_eod, 'BTL') !== false){
-			$data['ship_to'] = '4467LURIN2-S'; 
-		} elseif (strpos($local_from_eod, 'Huachipa') !== false){
-			$data['ship_to'] = '4467CDLURI-S'; 
-		}
-		// if (!empty($local_from_eod)) {
-			// // Divide el valor de LOCAL en palabras para buscar
-			// $local_parts = explode(' ', $local_from_eod);
-			// $found_ship_to = false;
-			// foreach ($local_parts as $part) {
-				// $part = trim($part);
-				// if (empty($part)) continue; // Saltar partes vacías
-
-				// $ship_to_results = $this->gen_m->filter_select('scm_ship_to2', false, ['ship_to_code'], ['bill_to_code' => $bill_to_code, "address LIKE '%" . $this->db->escape_like_str($part) . "%'"]);
-
-				// if (!empty($ship_to_results)) {
-					// $data['ship_to'] = $ship_to_results[0]->ship_to_code;
-					// $found_ship_to = true;
-					// error_log("INFO: ship_to_code encontrado para LOCAL '{$local_from_eod}' usando parte '{$part}': " . $data['ship_to']);
-					// break; // Una vez que encuentras uno, puedes salir
-				// }
-			// }
-			// if (!$found_ship_to) {
-				// error_log("Advertencia: No se encontró ship_to_code para LOCAL: " . $local_from_eod);
-			// }
-		// } else {
-			// error_log("Advertencia: El campo LOCAL del archivo EOD está vacío.");
-		// }
-
-		foreach ($items_temp_storage as $item_fusionado) {
-			// Mapea los campos fusionados a la estructura de tu salida
-			$quantity_saga = $item_fusionado['CANTIDAD_PROD'] ?? $item_fusionado['UNIDADES'] ?? '0';
-			//$model_saga = $item_fusionado['MODELO'] ?? ''; 
-			$model_saga = $this->models_sales_order($item_fusionado['MODELO']);
-			$description_saga = $item_fusionado['DESCRIPCION_LARGA'] ?? 'N/A'; // Del archivo EOD (fusionado)
-			$unit_value_saga = $item_fusionado['COSTO_UNI'] ?? ''; // Del archivo EOD (fusionado)
-			$total_value_saga = $item_fusionado['IMPORTE_TOTAL_LINEA'] ?? '0'; 
-
+			//$model = $this->models_sales_order($aux_model);
+			
 			$data['items'][] = [
-				'qty' => $this->normalize_number($quantity_saga),
-				'modelo' => $model_saga,
-				'description' => $description_saga, 
-				'unit_selling_price' =>  str_replace([','], ['.'], $unit_value_saga),
-				'currency' => $data['currency'], // Toma la moneda de la cabecera
-				'total_value' => $this->normalize_number($total_value_saga) 
+				//"customer_po_no"		=> trim($sheet->getCell('A'.$i)->getValue()),
+				"currency"				=> ($currency === 'S/') ? 'PEN' : 'USD',
+				"modelo" 				=> $model,
+				"qty"					=> trim($sheet->getCell('G'.$i)->getValue()),
+				"unit_selling_price" 	=> trim($sheet->getCell('L'.$i)->getValue()),
+				//"ship_to"				=> $ship_to
 			];
 		}
-
-		error_log("INFO: Extracción de HIPERMERCADOS TOTTUS S.A. completada. Ítems extraídos: " . count($data['items']));
 		$all_data[] = $data;
 		return $all_data;
 	}
 	
-	private function extract_data_from_text($text, $client_name, $file_path = null) {
+	private function extract_data_from_text($text, $client_name, $file_path = null, $file_name = null) {
 		$data = [
             'date' => 'N/A',
             'boleta' => 'N/A',
@@ -1829,7 +1549,7 @@ class Scm_purchase_orders extends CI_Controller {
 				$data = $this->extract_ripley($file_path);
 				break;
 			case 'HIPERMERCADOS TOTTUS S.A.':
-				$data = $this->extract_tottus($file_path); // txt 
+				$data = $this->extract_tottus($file_path, $file_name); // txt 
 				break;
 			default:
                 error_log("Cliente no reconocido: " . $client_name . ". Aplicando lógica por defecto (o ninguna específica).");
@@ -2200,7 +1920,6 @@ class Scm_purchase_orders extends CI_Controller {
         exit;
     }
 	
-	
 	public function upload_saga() { // 
 		$txt1_file_name = 'extract_file_eoc_' . uniqid(); 
 		$txt2_file_name = 'extract_file_eod_' . uniqid();
@@ -2278,8 +1997,8 @@ class Scm_purchase_orders extends CI_Controller {
 		}
 
 		$client_name = $this->input->post('client');
-		$list_client_txt = ['SAGA FALABELLA S.A.', 'HIPERMERCADOS TOTTUS S.A.'];
-		$list_client_excel = ['TIENDAS PERUANAS S.A. - OESCHLE', 'TIENDAS PERUANAS S.A. - OESCHLE (Yellow)', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - PLAZA VEA', 'HOMECENTERS PERUANOS S.A. - PROMART', 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.'];
+		$list_client_txt = ['SAGA FALABELLA S.A.'];
+		$list_client_excel = ['TIENDAS PERUANAS S.A. - OESCHLE', 'TIENDAS PERUANAS S.A. - OESCHLE (Yellow)', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - PLAZA VEA', 'HOMECENTERS PERUANOS S.A. - PROMART', 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.', 'HIPERMERCADOS TOTTUS S.A.'];
 		if (empty($client_name)) {
 			$msg = "No se proporcionó el nombre del cliente. Por favor, seleccione un cliente.";
 			error_log("Error en upload: Client name not provided.");
@@ -2385,108 +2104,6 @@ class Scm_purchase_orders extends CI_Controller {
 		}
 	}
 
-	// Nueva función auxiliar para encapsular la lógica de procesamiento de PDF
-	private function _process_pdf_content_old($pdf_path, $client_name) { // si usamos smalot o script python
-		$text_content_for_pdf = '';
-		$image_files_to_clean = []; // Para limpiar imágenes temporales
-
-		try {
-			$parser = new Parser();
-			$pdf = $parser->parseFile($pdf_path);
-			$text_raw_smalot = $pdf->getText();
-			$text_content_for_pdf = $this->clean_text($text_raw_smalot);
-		} catch (Exception $e) {
-			error_log("Error con Smalot\\PdfParser: " . $e->getMessage());
-			$text_content_for_pdf = ""; // Fallback a OCR
-		}
-
-		if (strlen(trim($text_content_for_pdf)) < 50) {
-			error_log("El texto de Smalot es demasiado corto o vacío, intentando OCR...");
-
-			$temp_dir = sys_get_temp_dir();
-			$output_image_prefix = $temp_dir . DIRECTORY_SEPARATOR . 'pdf_page_' . uniqid() . '_';
-
-			$command_convert = "magick convert -density 400 -quality 100 -flatten -alpha remove -auto-level -deskew 40% \"" . $pdf_path . "\" \"" . $output_image_prefix . "%d.png\" 2>&1";
-			exec($command_convert, $output_convert, $return_var_convert);
-
-			if ($return_var_convert != 0) {
-				$error_msg_convert = implode("\n", $output_convert);
-				error_log("Error al convertir PDF a imagen con ImageMagick. " . $error_msg_convert);
-				return ["type" => "error", "msg" => "Error al convertir PDF a imagen: " . $error_msg_convert];
-			}
-
-			$full_ocr_text = '';
-			$found_images = false;
-			$page_num = 0;
-			while (file_exists($output_image_prefix . $page_num . '.png')) {
-				$original_page_image = $output_image_prefix . $page_num . '.png';
-				$image_files_to_clean[] = $original_page_image;
-				$found_images = true;
-
-				$preprocessed_image_file = $temp_dir . DIRECTORY_SEPARATOR . 'preprocessed_' . uniqid() . '_' . $page_num . '.png';
-				$command_preprocess = "magick convert \"{$original_page_image}\" -normalize -despeckle -colorspace Gray -median 2 -lat 18x18-15% -morphology Dilate Disk:1 -morphology Erode Disk:0.5 -unsharp 0x1+0.5+0.01 \"{$preprocessed_image_file}\" 2>&1";
-				
-				//$command_preprocess = "magick convert \"{$original_page_image}\" -normalize -despeckle -colorspace Gray -median 2 -lat 15x15-30% -morphology Dilate Disk:1 -morphology Erode Disk:0.5 -unsharp 0x2+1.0+0.05 \"{$preprocessed_image_file}\" 2>&1"; // O -10%
-					
-
-				exec($command_preprocess, $output_preprocess, $return_var_preprocess);
-
-				$image_to_ocr = $original_page_image;
-				if ($return_var_preprocess == 0) {
-					$image_to_ocr = $preprocessed_image_file;
-					$image_files_to_clean[] = $preprocessed_image_file;
-				}
-				
-				try {
-					$tesseract = new TesseractOCR($image_to_ocr);
-					$tesseract->lang('spa');
-					$tesseract->psm(12);
-					$tesseract->oem(3);
-					$page_text = $tesseract->run();
-					$full_ocr_text .= $this->clean_text($page_text) . "\n";
-				} catch (Exception $e) {
-					error_log("Error con TesseractOCR en imagen " . $image_to_ocr . ": " . $e->getMessage());
-				}
-				$page_num++;
-			}
-
-			if (!$found_images) {
-				error_log("ImageMagick no generó ninguna imagen a partir del PDF: " . $pdf_path);
-				return ["type" => "error", "msg" => "Error: ImageMagick no pudo generar imágenes a partir del PDF."];
-			}
-			
-			if (!empty(trim($full_ocr_text)) && strlen(trim($full_ocr_text)) >= 50) {
-				$text_content_for_pdf = $full_ocr_text;
-			} else {
-				error_log("El texto de OCR es demasiado corto o vacío.");
-				return ["type" => "error", "msg" => "No se pudo extraer texto legible del PDF después de la conversión a imagen y OCR."];
-			}
-			
-			foreach ($image_files_to_clean as $img_file) {
-				if (file_exists($img_file)) {
-					unlink($img_file);
-				}
-			}
-		}
-		
-		// Llamar a la función de enrutamiento con el texto extraído del PDF
-		$extracted_data = $this->extract_data_from_text($text_content_for_pdf, $client_name);
-
-		if (isset($extracted_data['type']) && $extracted_data['type'] === 'error') {
-			return $extracted_data; // Propagar error si la extracción falló
-		}
-
-		// Generar el Excel
-		$excel_file_path = $this->generate_excel($extracted_data, $client_name);
-
-		if ($excel_file_path && file_exists($excel_file_path)) {
-			return ['type' => 'success', 'msg' => 'Datos extraídos y Excel generado exitosamente.', 'url' => base_url('uploads/exports/') . basename($excel_file_path)];
-		} else {
-			error_log("Error: generate_excel no devolvió una ruta válida o el archivo no existe para PDF.");
-			return ['type' => 'error', 'msg' => 'Error al generar el archivo Excel para PDF.'];
-		}
-	}
-		
 	// --------------------SAGA PROCESS-------------------------
 	private function process_saga($client_name) {
 		// Definimos nombres de archivo temporales con un ID único para evitar colisiones
@@ -2617,10 +2234,13 @@ class Scm_purchase_orders extends CI_Controller {
 		$excel_path = $result['file_path'];
 		$excel_original_name = $_FILES['attach']['name']; // Capturamos el nombre original para validación
 		
-		$extracted_data = $this->extract_data_from_text('', $client_name, $excel_path);	 // function to handle data
+		$extracted_data = $this->extract_data_from_text('', $client_name, $excel_path, $excel_original_name);	 // function to handle data
 		
-		$excel_file_path = $this->generate_excel($extracted_data, "{$client_name}_CUSTOMER");  // generate excel
+		// if ($client_name === 'HIPERMERCADOS TOTTUS S.A.') {
+			// $excel_file_path = $this->generate_excel_alter($extracted_data, "{$client_name}_CUSTOMER");
+		// } else $excel_file_path = $this->generate_excel($extracted_data, "{$client_name}_CUSTOMER");  // generate excel
 		
+		$excel_file_path = $this->generate_excel($extracted_data, "{$client_name}_CUSTOMER");
 		// 7. Retornar el resultado para la función `upload` principal
 		if ($excel_file_path && file_exists($excel_file_path)) {
 			$msg = "Data extracted and Excel file generated successfully.";
