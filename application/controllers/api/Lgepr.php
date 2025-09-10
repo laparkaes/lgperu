@@ -95,8 +95,8 @@ class Lgepr extends CI_Controller {
 		
 		if ($this->input->get("key") === "lgepr"){
 			$res = [];
-			//$w = ["closed_date >=" => date("Y-m-01"), "order_no NOT LIKE" => "2000%", 'bill_to_name NOT LIKE' => "LGE%"];
-			$w = ["closed_date >=" => date("2025-08-01"), "order_no NOT LIKE" => "2000%", 'bill_to_name NOT LIKE' => "LGE%"];
+			$w = ["closed_date >=" => date("Y-m-01"), "order_no NOT LIKE" => "2000%", 'bill_to_name NOT LIKE' => "LGE%"];
+			//$w = ["closed_date >=" => date("2025-08-01"), "order_no NOT LIKE" => "2000%", 'bill_to_name NOT LIKE' => "LGE%"];
 			$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			$sd_rate = [];
 			$sd_data = $this->gen_m->filter('lgepr_sales_deduction', false);
