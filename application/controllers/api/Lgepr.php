@@ -135,7 +135,7 @@ class Lgepr extends CI_Controller {
 	}
 	
 	public function get_sales_order(){
-		//llamasys/api/lgepr/get_closed_order?key=lgepr
+			//llamasys/api/lgepr/get_sales_order?key=lgepr
 		
 		if ($this->input->get("key") === "lgepr"){
 			$res = [];
@@ -158,10 +158,10 @@ class Lgepr extends CI_Controller {
 				if (isset($sd_rate[$cloned_item->customer_department][$cloned_item->dash_division][$sales_period])){
 					if($cloned_item->customer_name === 'OBS_Marketplace_3P' || $cloned_item->customer_name === 'One time_OBS' || $cloned_item->customer_name === 'One time_Employee') {
 						$cloned_item->sales_deduction = 0;
-						$cloned_item->sd_sales_amount_usd = $cloned_item->sales_amount_usd;
+						$cloned_item->sd_order_amount_usd = $cloned_item->sales_amount_usd;
 					} else{
 						$cloned_item->sales_deduction = $sd_rate[$cloned_item->customer_department][$cloned_item->dash_division][$sales_period]*100;
-						$cloned_item->sd_sales_amount_usd = $cloned_item->sales_amount_usd * (1 - $sd_rate[$cloned_item->customer_department][$cloned_item->dash_division][$sales_period]);				
+						$cloned_item->sd_order_amount_usd = $cloned_item->sales_amount_usd * (1 - $sd_rate[$cloned_item->customer_department][$cloned_item->dash_division][$sales_period]);				
 					}
 				} else {
 					$cloned_item->sales_deduction = "";

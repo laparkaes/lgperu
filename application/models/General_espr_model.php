@@ -7,6 +7,11 @@ class General_espr_model extends CI_Model{
 		$this->db = $this->load->database('espr_8', TRUE);
 	}
 
+	function update_srv8($tablename, $filter, $data){
+		$this->db->where($filter, NULL, FALSE);
+		return $this->db->update($tablename, $data);
+	}
+	
 	function sql_query($sql){
 		$query = $this->db->query($sql);
 		//return $query->result();

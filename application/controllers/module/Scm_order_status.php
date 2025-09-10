@@ -478,6 +478,42 @@ class Scm_order_status extends CI_Controller {
 		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
 	
+	public function update_srv8 ($data_serv8) {
+		$this->load->model('general_espr_model', 'gen_e');
+		
+		foreach($data_serv8 as $item){
+			$order_no = $item['order_no'];
+			$line_no = $item['line_no'];
+			$om_line_status = $item['om_line_status'];
+			$this->gen_e->update_srv8("T_OPEN_ORDER", "[SO NO] = '{$order_no}' AND [SO Line NO] = '{$line_no}'", ["STATUS" => $om_line_status]);
+		}
+		
+		
+		//$this->gen_e->update_srv8("T_OPEN_ORDER", [], ["STATUS" => NULL]); // Column Status NULL for all data
+		ini_set('sqlsrv.ClientBufferMaxKBSize', 100000); // 20MB
+
+		//$orders = $this->gen_e->sql_query("SELECT * FROM T_OPEN_ORDER");
+		//$orders = $this->gen_e->all("T_OPEN_ORDER");
+		//echo $this->db->last_query();
+		//echo '<pre>'; print_r($orders);
+	}
+	
+	public function update_test () {
+		$this->load->model('general_espr_model', 'gen_e');
+
+		//$this->gen_e->update("T_OPEN_ORDER", "[SO NO] = {$order_no} AND [SO Line NO] = {$line_no}", ["STATUS" => $om_line_status]);
+
+		
+		
+		//$this->gen_e->update("T_OPEN_ORDER", [], ["STATUS" => NULL]); Column Status NULL for all data
+		ini_set('sqlsrv.ClientBufferMaxKBSize', 100000); // 20MB
+
+		$orders = $this->gen_e->sql_query("SELECT * FROM T_OPEN_ORDER");
+		//$orders = $this->gen_e->all("T_OPEN_ORDER");
+		//echo $this->db->last_query();
+		echo '<pre>'; print_r($orders);
+	}
+	
 	public function update_status(){
 		ini_set('memory_limit', -1);
 		set_time_limit(0);
@@ -518,6 +554,8 @@ class Scm_order_status extends CI_Controller {
 			$shipping_data = $this->gen_m->filter_select('scm_shipping_status', false, ['order_no', 'line_no', 'to_ship']);
 			foreach ($shipping_data as $item) $key_shipp[] = $item->order_no . "_" . $item->line_no;
 			$key_shipp = array_unique($key_shipp);
+			
+			$data_serv8 = [];
 			//echo '<pre>'; print_r($key_shipp);
 			for($i = 3; $i <= $max_row; $i++){
 				$row = [
@@ -536,6 +574,7 @@ class Scm_order_status extends CI_Controller {
 				
 				if (empty($row['model']) && empty($row['bill_to_name']) && empty($row['customer_po']) && empty($row['order_no']) && empty($row['line_no'])) continue;
 				
+				
 				// om_appointment -> timestamp format
 				$row['om_appointment'] = $this->date_convert($row['om_appointment']);
 				if (empty($row['om_appointment'])){
@@ -544,7 +583,7 @@ class Scm_order_status extends CI_Controller {
 				
 				//$row['om_appointment'] = $row['om_appointment'] . " 00:00:00";
 				$order_line = $row['order_no'] . "_". $row['line_no'];
-				
+				$data_serv8[] = ['order_no' => $row['order_no'], 'line_no' => $row['line_no'], 'om_line_status' => $row['om_line_status']];
 				if (in_array($order_line, $key_shipp)) {
 					$to_ship = $this->gen_m->filter_select('scm_shipping_status', false, ['to_ship'], ['order_no' => $row['order_no'], 'line_no' => $row['line_no']]);
 					$row['om_appointment'] = $to_ship[0]->to_ship;
@@ -557,7 +596,9 @@ class Scm_order_status extends CI_Controller {
 			
 			// update sales order table
 			$this->gen_m->update_multi('lgepr_sales_order', $batch_data, 'order_line'); 
-			
+
+			// update server 8
+			$this->update_srv8($data_serv8);
 		} else $msg = "Wrong file.";
 		
 		$msg = "Finished.<br/><br/>Records: ".number_format($row_counter)."<br/>Time: ".number_Format(microtime(true) - $start_time, 2)." secs";
