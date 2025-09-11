@@ -44,7 +44,8 @@ class Utility_func extends CI_Controller {
 		$summary = [];
 		
 		$eta_from = $this->input->get("eta_from"); if (!$eta_from) $eta_from = date('Y-m-01', strtotime('-2 months'));
-		$eta_to = $this->input->get("eta_to"); if (!$eta_to) $eta_to = date("Y-m-t");
+		//$eta_to = $this->input->get("eta_to"); if (!$eta_to) $eta_to = date("Y-m-t");
+		$eta_to = $this->input->get("eta_to"); if (!$eta_to) $eta_to = date('Y-m-t', strtotime('+2 months'));
 		
 		$w = ["eta >=" => $eta_from, "eta <=" => $eta_to,];
 		$o = [["eta", "desc"], ["sa_no", "asc"], ["sa_line_no", "asc"], ["container", "asc"]];
@@ -427,7 +428,7 @@ class Utility_func extends CI_Controller {
 			/* DP */ "renato.freundt@lge.com", "dario.vargas@lge.com", "wagner.rojas@lge.com", "victorj.sanchez@lge.com", "mauricio.meza@lge.com", 
 			/* CEO, PM */ "andre.cho@lge.com", "minaalicia.park@lge.com", "muhyun.han@lge.com", "sanguk.jeong@lge.com", "rony.cortez@lge.com", "seongmin1.lee@lge.com", "patrick.lee@lge.com", "patricia.pandolfi@lge.com", 
 		];
-		//$to = ["georgio.park@lge.com", "nicolas.nigro@lgepartner.com"];
+		$to = ["georgio.park@lge.com", "nicolas.nigro@lgepartner.com"];
 		
 		$subject = "[Custom] Container aging auto-report";
 		$content = $this->load->view('email/custom_container_aging', $data, true);
