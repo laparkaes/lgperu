@@ -488,8 +488,8 @@ class Utility_func extends CI_Controller {
 			"wh_arrival", 
 			"return_due", 
 			"returned", 
+			"model", 
 		];
-		$g = [];
 		$containers = $this->gen_m->only_multi("lgepr_container", $g, $w, $g);
 		
 		foreach($containers as $item){
