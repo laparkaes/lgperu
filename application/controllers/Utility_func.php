@@ -82,6 +82,10 @@ class Utility_func extends CI_Controller {
 		$containers = $this->gen_m->only_multi("lgepr_container", $g, $w, $g);
 		
 		foreach($containers as $item){
+			
+			print_r($item);
+			echo "<br/>";
+			
 			$is_no_data = false;
 			$item->dem_reminds = $item->det_reminds = $item->dem_days = $item->det_days = $item->no_data = 0;
 			
