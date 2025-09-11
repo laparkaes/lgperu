@@ -83,8 +83,7 @@ class Utility_func extends CI_Controller {
 		
 		foreach($containers as $item){
 			
-			print_r($item);
-			echo "<br/>";
+			//print_r($item); echo "<br/>";
 			
 			$is_no_data = false;
 			$item->dem_reminds = $item->det_reminds = $item->dem_days = $item->det_days = $item->no_data = 0;
@@ -177,7 +176,9 @@ class Utility_func extends CI_Controller {
 			$item->dem_period = date("Y-m", strtotime($item->ata ? $item->ata : $today));
 			$item->det_period = date("Y-m", strtotime($item->returned ? $item->returned : $today));
 			
-			if (($now < strtotime($item->eta) and (!$item->ata))) unset($containers[$i]);
+			if (($now < strtotime($item->eta) and (!$item->ata))) {
+				//unset($containers[$i]);
+			}
 			else{
 				if ($item->no_data) $no_data_qty++;
 				
