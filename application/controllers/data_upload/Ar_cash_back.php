@@ -30,52 +30,72 @@ class Ar_cash_back extends CI_Controller {
 	}
 	
 	public function get_unique_values($tablename, $column_name) {
+		// 1. Obtener el año actual y el anterior.
 		$current_year = date('Y');
 		$previous_year = $current_year - 1;
 
+		// 2. Establecer el rango de inicio y fin para la consulta.
 		$start_period = $previous_year . '-10'; // Inicia en octubre del año anterior.
 		$end_period = $current_year . '-12'; // Termina en diciembre del año actual.
 
+		// 3. Construir la consulta con el rango y la unicidad.
 		$this->db->distinct()->select($column_name);
 
+		// 4. Excluye los valores nulos.
 		$this->db->where($column_name . ' IS NOT NULL', NULL, FALSE);
 
+		// 5. Añade la cláusula BETWEEN para el filtro de rango.
 		$this->db->where("$column_name BETWEEN '$start_period' AND '$end_period'");
 		
+		// 6. Ordenar los resultados de forma descendente (DESC).
 		$this->db->order_by($column_name, 'DESC');
+	
+		// 7. Ejecuta y devuelve el resultado.
 		return $this->db->get($tablename)->result_array();
 	}
 
 	public function date_convert_mm_dd_yyyy($date) {
+    // Intentamos convertir con la lógica del valor numérico (excel date)
 		if (is_numeric($date)) {
+			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
 			return $date->format('Y-m-d');
 		}
 
+		// Si no es un número, intentamos convertir con la lógica de fecha en formato mm/dd/yyyy
 		$aux = explode("/", $date);
 		if (count($aux) == 3) {
+			// Verificamos que la fecha esté en formato mm/dd/yyyy
 			return $aux[2]."-".$aux[0]."-".$aux[1]; // yyyy-mm-dd
 		}
 		
+		// Si la fecha no está en un formato esperado, devolvemos null
 		return null;
 	}
 
 	public function date_convert_dd_mm_yyyy($date) {
+    // Intentamos convertir con la lógica del valor numérico (excel date)
 		if (is_numeric($date)) {
+			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
 			return $date->format('Y-m-d');
 		}
 
+		// Si no es un número, intentamos convertir con la lógica de fecha en formato dd/mm/yyyy
 		$aux = explode("/", $date);
 		if (count($aux) > 2) return $aux[2]."-".$aux[1]."-".$aux[0];
 		else return null;
 	}
 	
 	function convert_date($excel_date) {
+		// Si la entrada es un número, es un número de serie de Excel
 		if (is_numeric($excel_date)) {
+			// Los números de serie de Excel cuentan los días desde 1900-01-01
+			// Se resta 25569 porque PHP y Excel tienen orígenes de fecha diferentes
+			// (Excel usa 1900-01-01, PHP usa 1970-01-01).
 			$unix_date = ($excel_date - 25569) * 86400; // 86400 segundos en un día
 			$date_object = new DateTime("@$unix_date");
-
+			// Aseguramos que la fecha sea la correcta
 			$date_object->setTimezone(new DateTimeZone('UTC'));
 			return $date_object->format('Y-m-d');
 		}
@@ -89,6 +109,7 @@ class Ar_cash_back extends CI_Controller {
 			}
 		}
 		
+		// Si ningún formato coincide, devuelve nulo o maneja el error
 		return null;
 	}
 
@@ -103,6 +124,7 @@ class Ar_cash_back extends CI_Controller {
 			$code = implode(',', $code);
 		}
 
+		// Eliminar prefijos si existen
 		foreach ($prefixes as $prefix) {
 			if (strpos($code, $prefix) === 0) {
 				$code = substr($code, strlen($prefix));
@@ -110,13 +132,16 @@ class Ar_cash_back extends CI_Controller {
 			}
 		}
 	
+		
+		 // Eliminar sufijos si existen
 		foreach ($suffixes as $suffix) {
 			if (substr($code, -strlen($suffix)) === $suffix) {
 				$code = substr($code, 0, -strlen($suffix));
 				break; // Salir después de encontrar y eliminar un sufijo
 			} 
 		}
-
+		
+		 // Retornar el código limpio
 		return $code;
 	}
 	
@@ -497,6 +522,7 @@ class Ar_cash_back extends CI_Controller {
 		
 	public function update_daily_book($data, $period) {
 		
+		// Consulta data daliy book mes acutal o elegido
 		$je_ids = [];
 		$list_update = [];
 		$list_origin = [];
@@ -535,6 +561,7 @@ class Ar_cash_back extends CI_Controller {
 			trim($sheet->getCell('E1')->getValue()),
 			trim($sheet->getCell('F1')->getValue())
 		];
+		//echo '<pre>'; print_r($h);
 		//sales order header
 		$header = ["Customer Code", "Customer Name", "Cheque/Note No", "Class", "Invoice No", "Reference No"];
 		//header validation
@@ -607,17 +634,15 @@ class Ar_cash_back extends CI_Controller {
 		
 		$file_path = './upload/ar_cash_back.xls';
 		$period = $this->input->post('date_period');
-	
-		// Leer el archivo como un TSV
-		$tab_reader = new CsvReader();
-		$tab_reader->setDelimiter("\t");
-		$spreadsheet = $tab_reader->load($file_path);
-
-		// Crear el escritor para el formato XLS
-		$xls_writer = new XlsWriter($spreadsheet);
 		
-		// Guardar el archivo en el mismo path para sobreescribirlo
-		$xls_writer->save($file_path);
+		try {
+			// Usa IOFactory::load() para detectar y cargar el archivo correctamente.
+			// No es necesario convertir el archivo de un formato a otro.
+			$spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file_path);
+		} catch (\Exception $e) {
+			// Manejo de errores si el archivo es inválido o corrupto.
+			return "Error: El archivo subido no es un formato de hoja de cálculo válido o está corrupto. Intenta con un archivo .xlsx, .xls o .csv válido.";
+		}
 		
 		$sheet = $spreadsheet->getActiveSheet();
 
@@ -651,6 +676,7 @@ class Ar_cash_back extends CI_Controller {
 		$max_row = $sheet->getHighestRow();
 		$batch_size = 1000;
 		$data = [];
+		//define now
 		$now = date('Y-m-d H:i:s');
 		
 		for($i = 2; $i <= $max_row; $i++){
@@ -684,6 +710,7 @@ class Ar_cash_back extends CI_Controller {
 			
 			
 			if (empty($row['invoice_number'])) continue;
+			//$row['apply_date'] = $this->convert_date($row['apply_date']);
 			
 			$formato_entrada = 'd-M-y';
 			$objeto_fecha = DateTime::createFromFormat($formato_entrada, $row['apply_date']);
@@ -709,6 +736,7 @@ class Ar_cash_back extends CI_Controller {
 		//echo '<pre>'; print_r($data);
 		
 		$msg = " record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
+		//print_r($msg); return;
 		return $msg;
 	}
 	
