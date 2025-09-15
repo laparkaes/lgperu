@@ -95,8 +95,8 @@ class Lgepr extends CI_Controller {
 		
 		if ($this->input->get("key") === "lgepr"){
 			$res = [];
-			//$w = ["closed_date >=" => date("Y-m-01"), "order_no NOT LIKE" => "2000%", 'bill_to_name NOT LIKE' => "LGE%"];
-			$w = ["closed_date >=" => date("2025-08-01"), "order_no NOT LIKE" => "2000%", 'bill_to_name NOT LIKE' => "LGE%"];
+			$w = ["closed_date >=" => date("Y-m-01"), "order_no NOT LIKE" => "2000%", 'bill_to_name NOT LIKE' => "LGE%"];
+			//$w = ["closed_date >=" => date("2025-08-01"), "order_no NOT LIKE" => "2000%", 'bill_to_name NOT LIKE' => "LGE%"];
 			$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			$sd_rate = [];
 			$sd_data = $this->gen_m->filter('lgepr_sales_deduction', false);
@@ -684,68 +684,68 @@ class Lgepr extends CI_Controller {
 
 	public function get_tracking_dispatch(){
 		//llamasys/api/lgepr/get_tracking_dispatch?key=lgepr		
-			
-				if ($this->input->get("key") === "lgepr") {
-			
-			//$data = $this->gen_m->filter("scm_tracking_dispatch", false);
-			
-
-			
-    // Obtener el primer y último día del mes actual
-  //  $first_day = date('Y-m-01');
-  //  $last_day = date('Y-m-t');
-
-    // Filtrar los datos solo del mes actual
- //   $data = $this->gen_m->filter("scm_tracking_dispatch", false, [
-  //      'date >=' => $first_day,
- //       'date <=' => $last_day
- //   ]);
-
-
-
-// Obtener la fecha de hace 5 días y la fecha actual
-    $five_days_ago = date('Y-m-d', strtotime('-5 days'));
-    $today = date('Y-m-d');
-
-// Filtrar los datos desde hace 5 días hasta hoy
-    $data = $this->gen_m->filter("scm_tracking_dispatch", false, [
-        'date >=' => $five_days_ago,
-        'date <=' => $today
-    ]);
-
-
-    $res = []; // Asegúrate de inicializar el arreglo de respuesta
-
-			
+		// APM: N4M, N4E
+		// KLO: N4S	
+		if ($this->input->get("key") === "lgepr") {
+			$res = [];
+			$from = date('Y-m-d', strtotime('-5 days'));
+			$data = $this->gen_m->filter("scm_tracking_dispatch", false, ['date >=' => $from]);
+					
 			foreach($data as $item){
 				$cloned_item = clone $item;
+				$warehouse = null;
 				
-				if (!empty($this->gen_m->filter_select('lgepr_sales_order', false, ['dash_company', 'dash_division'], ['model' => $cloned_item->model]))) $dash = $this->gen_m->filter_select('lgepr_sales_order', false, ['dash_company', 'dash_division'], ['model' => $cloned_item->model]);
-				else $dash = $this->gen_m->filter_select('lgepr_closed_order', false, ['dash_company', 'dash_division'], ['model' => $cloned_item->model]);
-
-				// Columnas a excluir
-				$exclude_columns = ['id', 'tracking_key'];
-
-				foreach ($cloned_item as $key => $value) {
-					if (in_array($key, $exclude_columns)) {
-						// Elimina la columna del objeto clonado
-						unset($cloned_item->$key);
-					} else {
-						if (is_numeric($value) && $value == 0 && $key !== 'sd_rate') {
-							$cloned_item->$key = "";
-						}
-						elseif ($value === NULL){
-							$cloned_item->$key = "";
+				$w = [
+						'model' 	 => $cloned_item->model,
+						'order_qty'	 => $cloned_item->qty,
+						'pick_no' 	 => $cloned_item->pick_order,
+				];
+				
+				$shipping_data = $this->gen_m->filter_select('scm_shipping_status', false, ['order_no', 'line_no'], $w);
+				if ($shipping_data) {
+				//echo '<pre>'; print_r($shipping_data);
+					foreach ($shipping_data as $item_ship){
+						$w_s = [
+								'order_no' 		=> $item_ship->order_no,
+								'line_no'		=> $item_ship->line_no,
+								];
+						$sales_data = $this->gen_m->filter_select('lgepr_sales_order', false, ['dash_company', 'dash_division', 'sales_amount_usd'], $w_s);
+						
+						if ($sales_data){
+							$cloned_item->dash_company = $sales_data[0]->dash_company;
+							$cloned_item->dash_division = $sales_data[0]->dash_division;
+							$cloned_item->order_no = $item_ship->order_no;
+							$cloned_item->line_no = $item_ship->line_no;
+							$cloned_item->dash_amount_usd = $sales_data[0]->sales_amount_usd;
+						} else {
+							$w_c = [
+								'order_no' 		=> $item_ship->order_no,
+								'line_no'		=> $item_ship->line_no,
+								];
+							$closed_data = $this->gen_m->filter_select('lgepr_closed_order', false, ['dash_company', 'dash_division', 'order_amount_usd'], $w_c);
+							
+							$cloned_item->dash_company = $closed_data[0]->dash_company ?? '';
+							$cloned_item->dash_division = $closed_data[0]->dash_division ?? '';
+							$cloned_item->order_no = $item_ship->order_no;
+							$cloned_item->line_no = $item_ship->line_no;
+							$cloned_item->dash_amount_usd = $closed_data[0]->order_amount_usd ?? '';
 						}
 					}
+				} else{
+					$w_c = [
+								'model'	=> $cloned_item->model,
+								];
+					$closed_data_ = $this->gen_m->filter_select('lgepr_closed_order', false, ['dash_company', 'dash_division'], $w_c);
+					$cloned_item->dash_company = $closed_data_[0]->dash_company ?? '';
+					$cloned_item->dash_division = $closed_data_[0]->dash_division ?? '';
+					$cloned_item->order_no = '';
+					$cloned_item->line_no = '';
+					$cloned_item->dash_amount_usd = '';
 				}
-				$cloned_item->dash_company = $dash[0]->dash_company ?? '';
-				$cloned_item->dash_division = $dash[0]->dash_division ?? '';
+				//if ($cloned_item->sales_amount_usd === '') continue;
 				$res[] = clone $cloned_item;
 			}
 		} else $res = ["Key error"];
-		
-		//if (!$res) $res = ["No this month ML data in database."];
 		
 		header('Content-Type: application/json');
 		echo json_encode($res);
