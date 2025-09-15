@@ -21,25 +21,48 @@ class Tax_daily_book extends CI_Controller {
 	
 	public function index(){
 
-		$period = $this->gen_m->filter_select('tax_daily_book', false, 'period_name', null, null, null, [['period_name', 'desc']]);
 		$net_accounted_debit = $this->gen_m->filter_select('tax_daily_book', false, ['net_accounted_debit', 'period_name', 'accounting_unit'], null, null, null, [['period_name', 'desc']]);
 		$uniquePeriods = [];
 
-		foreach ($period as $item) {
-			if (isset($item->period_name) && !in_array($item->period_name, $uniquePeriods)) {
-				$uniquePeriods[] = $item->period_name;
-			}
-		}
 
+		
+		$dates = $this->get_unique_values('tax_daily_book', 'period_name');
+		//print_r($dates);
 		$data = [
 			"net_accounted_debit" 	=> $net_accounted_debit,
-			"period" 				=> $uniquePeriods,
+			"period" 				=> $dates,
 			"tax"					=> $this->gen_m->filter("tax_daily_book", false, null, null, null, [['period_name', 'desc']], 500),
 			"main" 					=> "module/tax_daily_book/index",
 		];
 		
 		$this->load->view('layout', $data);
 	}
+	
+	public function get_unique_values($tablename, $column_name) {
+		// 1. Obtener el año actual y el anterior.
+		$current_year = date('Y');
+		$previous_year = $current_year - 1;
+
+		// 2. Establecer el rango de inicio y fin para la consulta.
+		$start_period = $previous_year . '-10'; // Inicia en octubre del año anterior.
+		$end_period = $current_year . '-12'; // Termina en diciembre del año actual.
+
+		// 3. Construir la consulta con el rango y la unicidad.
+		$this->db->distinct()->select($column_name);
+
+		// 4. Excluye los valores nulos.
+		$this->db->where($column_name . ' IS NOT NULL', NULL, FALSE);
+
+		// 5. Añade la cláusula BETWEEN para el filtro de rango.
+		$this->db->where("$column_name BETWEEN '$start_period' AND '$end_period'");
+		
+		// 6. Ordenar los resultados de forma descendente (DESC).
+		$this->db->order_by($column_name, 'DESC');
+	
+		// 7. Ejecuta y devuelve el resultado.
+		return $this->db->get($tablename)->result_array();
+	}
+	
 	// Conversion fechas
 	public function date_convert_9($original_date){
 		if (!empty($original_date)) {
@@ -874,6 +897,45 @@ class Tax_daily_book extends CI_Controller {
 
 		// Consultar en ar_mdms para valores que comienzan con letra (excepto PE)
 		$biz_map = [];
+		// ------------- Old Format  -------------  
+		
+		// if (!empty($vendor_chars['letters'])) {
+			// $w_letters = "master_id IN ('" . implode("','", $vendor_chars['letters']) . "') 
+						  // OR bp_code IN ('" . implode("','", $vendor_chars['letters']) . "')";
+			
+			// $biz_numbers_letters = $this->gen_m->filter_select("ar_mdms", false, ['master_id', 'bp_code']);
+			// foreach ($biz_numbers_letters as $biz) {
+				// $key = $biz->master_id ?: $biz->bp_code;
+				// $biz_map[$key] = true; // Solo se usa para verificar existencia
+			// }
+		// }
+
+		// // Consultar en ar_mdms para valores que comienzan con número
+		// $biz_numbers_map = [];
+		// if (!empty($vendor_chars['numbers'])) {
+			// $clean_numbers = array_map('clean_number', $vendor_chars['numbers']); // Limpiar todos los números
+			// $w_numbers = "biz_registration_no IN ('" . implode("','", $clean_numbers) . "')";
+			// //$w_numbers = "biz_registration_no IN ('" . implode("','", $vendor_chars['numbers']) . "')";
+			// $biz_numbers_numbers = $this->gen_m->filter_select("ar_mdms", false, ['biz_registration_no']);
+			// $biz_numbers_map = array_column($biz_numbers_numbers, 'biz_registration_no', 'biz_registration_no');
+		// }
+
+		// // Consultar en ar_mdms para valores que comienzan con "PE"
+		// $biz_pe_map = [];
+		// if (!empty($vendor_chars['pe'])) {
+			// $w_pe = "master_id IN ('" . implode("','", $vendor_chars['pe']) . "') 
+					// OR bp_code IN ('" . implode("','", $vendor_chars['pe']) . "')";
+						  
+			// $biz_pe_numbers = $this->gen_m->filter_select("ar_mdms", false, ['master_id', 'bp_code', 'biz_registration_no'], $w_pe);
+			// //$w_pe = "biz_registration_no IN ('" . implode("','", $vendor_chars['pe']) . "')";
+			// //$biz_pe_numbers = $this->gen_m->filter_select("ar_mdms", false, ['biz_registration_no']);
+			// foreach ($biz_pe_numbers as $biz) {
+				// $key = $biz->master_id ?: $biz->bp_code;
+				// $biz_map[$key] = !empty($biz->biz_registration_no) ? substr($biz->biz_registration_no, 0, 11) : "Pendiente"; // Solo se usa para verificar existencia
+			// }
+			// //$biz_pe_map = array_column($biz_pe_numbers, 'biz_registration_no', 'biz_registration_no');
+		// }
+		// ------------- Old Format  -------------  
 		
 		if (!empty($vendor_chars['letters'])) {
 			$w_letters = "supplier_code IN ('" . implode("','", $vendor_chars['letters']) . "')";
@@ -1199,6 +1261,13 @@ class Tax_daily_book extends CI_Controller {
 				// Movimientos de haber - columna "CS"
 				$formulaData_cs = "=IF(V$row_num<=0,-(V$row_num),0)";
 				$batchSpecialData[] = ["CS" . $row_num, $formulaData_cs ?? 0];
+				// $batchSpecialData[] = ["CS" . $row_num, ($row->net_accounted_debit < 0) ? (float)($row->net_accounted_debit*-1) : 0];	
+				
+				//print_r($batchSpecialData[5][1]); echo '<br>'; echo '<br>'; echo '<br>';
+				//$formulaData_cs_sum_pos = "=SUM(CR$row_num:CR161262)"
+				
+				//$sum_net_accounted_debit_pos = $sum_net_accounted_debit_pos + (($row->net_accounted_debit > 0) ? $row->net_accounted_debit : 0);
+				//$sum_net_accounted_debit_ne = $sum_net_accounted_debit_ne + (($row->net_accounted_debit < 0) ? ($row->net_accounted_debit*-1) : 0); 
 				
 				// Rellenado de columna CU
 				$batchSpecialData[] = ["CU" . $row_num, 1];	
@@ -1248,6 +1317,11 @@ class Tax_daily_book extends CI_Controller {
 					if (isset($bank_code_map[$row->effective_date])) {
 						foreach($bank_code_map[$row->effective_date] as $item_date){
 							if($bank_name === 'SCOTIA'){
+								// log_message('info', "Date: " . $row->effective_date);
+								// log_message('info', "Bank Name db: " . $bank_name);
+								// log_message('info', "Bank Name bank code: " . $item_date['bank_name']);
+								// log_message('info', "net_entered_debit_db: " . $row->net_entered_debit);
+								// log_message('info', "net_entered_debit Bank Code: " . $item_date['total_amount']);
 								$bank_name = 'SCB';
 							}
 						
@@ -1266,11 +1340,11 @@ class Tax_daily_book extends CI_Controller {
 				
 				
 				// Rellenado columna DC												
-				 $formulaData = "=CONCATENATE(CA$row_num,\"|\",CB$row_num,\"|\",CC$row_num,\"|\",CD$row_num,\"|\",CE$row_num,\"|\",CF$row_num,\"|\",CG$row_num,\"|\",CH$row_num,\"|\",LEFT(CI$row_num,15),\"|\",CJ$row_num,\"|\",CK$row_num,\"|\",CL$row_num,\"|\",CM$row_num,\"|\",CN$row_num,\"|\",TEXT(CO$row_num,\"DD/MM/YYYY\"),\"|\",CP$row_num,\"|\",CQ$row_num,\"|\",IF(CR$row_num>0,CR$row_num,\"0.00\"),\"|\",IF(CS$row_num>0,CS$row_num,\"0.00\"),\"|\",CT$row_num,\"|\",CU$row_num,\"|\",CV$row_num,\"|\",CW$row_num,\"|\",CX$row_num,\"|\",CY$row_num,\"|\",CZ$row_num,\"|\",DA$row_num)";
+				$formulaData = "=CONCATENATE(CA$row_num,\"|\",CB$row_num,\"|\",CC$row_num,\"|\",CD$row_num,\"|\",CE$row_num,\"|\",CF$row_num,\"|\",CG$row_num,\"|\",CH$row_num,\"|\",LEFT(CI$row_num,15),\"|\",CJ$row_num,\"|\",CK$row_num,\"|\",CL$row_num,\"|\",CM$row_num,\"|\",CN$row_num,\"|\",TEXT(CO$row_num,\"DD/MM/YYYY\"),\"|\",CP$row_num,\"|\",CQ$row_num,\"|\",IF(CR$row_num>0,CR$row_num,\"0.00\"),\"|\",IF(CS$row_num>0,CS$row_num,\"0.00\"),\"|\",CT$row_num,\"|\",CU$row_num,\"|\",CV$row_num,\"|\",CW$row_num,\"|\",CX$row_num,\"|\",CY$row_num,\"|\",CZ$row_num,\"|\",DA$row_num)";
 				 
 				
 				// Aplicar la fórmula a la celda en la columna DC
-				//print_r($formulaData);
+				// print_r($formulaData);
 				$batchSpecialData[] = ["DC" . $row_num, $formulaData ?? ""];
 				
 				$row_num++;
@@ -1368,7 +1442,6 @@ class Tax_daily_book extends CI_Controller {
 		// $this->db->select('*')->from($table)->where($where);
 		// $query = $this->db->get();
 		$columns = ["legal_entity", "period_name","effective_date", "posted_date", "accounting_unit", "department", "department_name","account", "account_name","project", "affiliate", "temporary1", "temporary2", "currency", "net_entered_debit", "entered_debit", "entered_credit","net_accounted_debit","accounted_debit","accounted_credit","description_ar_comments","journal_source","journal_category","gl_batch_name","gl_journal_name","gl_document_seq_number","ap_ar_source","line_type","ap_ar_batch_name","invoice_number","transaction_number","transaction_date","check_number","receipt_number","vendor_customer","bank_name","bank_account_number","business_number","tax_payer_id","subledger_document_seq_number","tax_date","tax_code","tax_rate","created_by","create_user_name","dff_context","dff1","dff2","dff3","dff4","dff5","dff6","dff7","dff8","dff9","dff10","dff11","dff12","dff13","dff14","dff15","dff16","dff17","dff18","dff19","dff20","lease_no","asset_number","org_id","link_id","je_header_id","je_line_number","je_id","type_voucher","serie_voucher","number_voucher"];
-		
 
 		while (true) {
 			$query = $this->db->select($columns)
