@@ -441,19 +441,14 @@ class Scm_order_status extends CI_Controller {
 	
 	public function date_convert($date) {
 		if (is_numeric($date)) {
-			// Si es un número (número de días desde 1900-01-01)
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
 			return $date->format('Y-m-d');
 		}
 
-		// Si no es un número
 		$aux = explode("/", $date);
 		if (count($aux) == 3) {
-			// Verificamos que la fecha esté en formato mm/dd/yyyy
 			return $aux[2]."-".$aux[0]."-".$aux[1]; // yyyy-mm-dd
 		}
-		
-		// Si la fecha no está en un formato esperado, devolvemos null
 		return null;
 	}
 	
@@ -478,38 +473,59 @@ class Scm_order_status extends CI_Controller {
 		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
 	
-	public function update_srv8 ($data_serv8) {
+	public function update_open_order ($data_open_order) {
 		$this->load->model('general_espr_model', 'gen_e');
 		
-		foreach($data_serv8 as $item){
+		foreach($data_open_order as $item){
 			$order_no = $item['order_no'];
 			$line_no = $item['line_no'];
 			$om_line_status = $item['om_line_status'];
 			$this->gen_e->update_srv8("T_OPEN_ORDER", "[SO NO] = '{$order_no}' AND [SO Line NO] = '{$line_no}'", ["STATUS" => $om_line_status]);
 		}
-		
-		
+				
 		//$this->gen_e->update_srv8("T_OPEN_ORDER", [], ["STATUS" => NULL]); // Column Status NULL for all data
 		ini_set('sqlsrv.ClientBufferMaxKBSize', 100000); // 20MB
+	}
+	
+	public function update_open_status ($data_open_status, $data_open_order) {
+		$this->load->model('general_espr_model', 'gen_e');
+			
+		
+		$this->gen_m->gen_e->truncate('T_OPEN_STATUS');
+		
+		$db_connection = $this->gen_e->db;
+		foreach ($data_open_status as $row) {
+			$sql = "INSERT INTO [T_OPEN_STATUS] ([SO NO], [SO Line NO], [SO Line ID], [ESTATUS], [PLAN DE ENTREGA], [WEEK], [last_update_date], [last_updated_by]) VALUES (";
 
-		//$orders = $this->gen_e->sql_query("SELECT * FROM T_OPEN_ORDER");
+			$values = [];
+			$values[] = $db_connection->escape_str($row['SO NO']);
+			$values[] = $db_connection->escape_str($row['SO Line NO']);
+			$values[] = $db_connection->escape_str($row['SO Line ID']);
+			$values[] = $db_connection->escape_str($row['ESTATUS']);
+			$values[] = $db_connection->escape_str($row['PLAN DE ENTREGA']);
+			$values[] = $db_connection->escape_str($row['WEEK']);
+			$values[] = $db_connection->escape_str($row['last_update_date']);
+			$values[] = $db_connection->escape_str($row['last_updated_by']);
+
+			$sql .= "'" . implode("', '", $values) . "');";
+			
+			$db_connection->query($sql);
+		}
+		
+		$this->update_open_order($data_open_order);
 		//$orders = $this->gen_e->all("T_OPEN_ORDER");
-		//echo $this->db->last_query();
-		//echo '<pre>'; print_r($orders);
+		ini_set('sqlsrv.ClientBufferMaxKBSize', 100000); // 20MB
 	}
 	
 	public function update_test () {
-		$this->load->model('general_espr_model', 'gen_e');
-
-		//$this->gen_e->update("T_OPEN_ORDER", "[SO NO] = {$order_no} AND [SO Line NO] = {$line_no}", ["STATUS" => $om_line_status]);
-
+		$this->load->model('general_espr_model', 'gen_e');	
 		
-		
-		//$this->gen_e->update("T_OPEN_ORDER", [], ["STATUS" => NULL]); Column Status NULL for all data
+		//$this->gen_e->update_srv8("T_OPEN_ORDER", [], ["STATUS" => NULL]); //Column Status NULL for all data
 		ini_set('sqlsrv.ClientBufferMaxKBSize', 100000); // 20MB
 
-		$orders = $this->gen_e->sql_query("SELECT * FROM T_OPEN_ORDER");
-		//$orders = $this->gen_e->all("T_OPEN_ORDER");
+		$orders = $this->gen_e->sql_query("SELECT * FROM T_OPEN_STATUS");
+		//$orders = $this->gen_e->sql_query("SELECT * FROM T_OPEN_ORDER");
+		//$orders = $this->gen_e->all("T_OPEN_ORDER", [], '', '', false);
 		//echo $this->db->last_query();
 		echo '<pre>'; print_r($orders);
 	}
@@ -546,6 +562,8 @@ class Scm_order_status extends CI_Controller {
 			$max_row = $sheet->getHighestRow();
 			$batch_size = 200;
 			$batch_data = [];
+			$data_open_status = [];
+			$emp_number = $this->session->userdata('employee_number');
 			$row_counter = 0;
 			$batch_data_eq = [];
 			//define now
@@ -555,8 +573,8 @@ class Scm_order_status extends CI_Controller {
 			foreach ($shipping_data as $item) $key_shipp[] = $item->order_no . "_" . $item->line_no;
 			$key_shipp = array_unique($key_shipp);
 			
-			$data_serv8 = [];
-			//echo '<pre>'; print_r($key_shipp);
+			$data_open_order = [];
+
 			for($i = 3; $i <= $max_row; $i++){
 				$row = [
 					'model' 			=> trim($sheet->getCell('B'.$i)->getValue()),
@@ -583,22 +601,20 @@ class Scm_order_status extends CI_Controller {
 				
 				//$row['om_appointment'] = $row['om_appointment'] . " 00:00:00";
 				$order_line = $row['order_no'] . "_". $row['line_no'];
-				$data_serv8[] = ['order_no' => $row['order_no'], 'line_no' => $row['line_no'], 'om_line_status' => $row['om_line_status']];
+				$data_open_order[] = ['order_no' => $row['order_no'], 'line_no' => $row['line_no'], 'om_line_status' => $row['om_line_status']];
 				if (in_array($order_line, $key_shipp)) {
 					$to_ship = $this->gen_m->filter_select('scm_shipping_status', false, ['to_ship'], ['order_no' => $row['order_no'], 'line_no' => $row['line_no']]);
 					$row['om_appointment'] = $to_ship[0]->to_ship;
 				}
 				$batch_data[] = ['order_line' => $order_line, 'om_line_status' => $row['om_line_status'], 'om_appointment' => $row['om_appointment'], 'om_updated_at' => $row['om_updated_at']];
+				
+				$data_open_status[] = ['SO NO' => $row['order_no'], 'SO Line NO' => $row['line_no'], 'SO Line ID' => NULL, 'ESTATUS' => $row['om_line_status'], 'PLAN DE ENTREGA' => $row['om_appointment'], 'WEEK' => null, 'last_update_date' => Date('Y-m-d H:i:s'), 'last_updated_by' => $emp_number];
 			}	
-			
-			//echo '<pre>'; print_r($batch_data);
+
 			$row_counter = count($batch_data);
 			
-			// update sales order table
-			$this->gen_m->update_multi('lgepr_sales_order', $batch_data, 'order_line'); 
-
-			// update server 8
-			$this->update_srv8($data_serv8);
+			// update sql tables
+			$this->update_open_status($data_open_status, $data_open_order);
 		} else $msg = "Wrong file.";
 		
 		$msg = "Finished.<br/><br/>Records: ".number_format($row_counter)."<br/>Time: ".number_Format(microtime(true) - $start_time, 2)." secs";
