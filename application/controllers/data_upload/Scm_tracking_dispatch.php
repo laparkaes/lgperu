@@ -21,9 +21,7 @@ class Scm_tracking_dispatch extends CI_Controller {
 	
 	public function index(){
 		
-		//$w = ["updated >=" => date("Y-m-d", strtotime("-3 months"))];
-		//$o = [["updated", "desc"], ["model_description", "asc"], ["model", "asc"]];
-		$tracking = $this->gen_m->filter("scm_tracking_dispatch", false);
+		$tracking = $this->gen_m->filter("scm_tracking_dispatch", false, null, null, null, null, 500);
 		$data = [
 			"tracking"		=> $tracking,
 			"count_tracking" => count($tracking),
@@ -34,14 +32,11 @@ class Scm_tracking_dispatch extends CI_Controller {
 	}
 	
 	public function date_convert_dd_mm_yyyy($date) {
-    // Intentamos convertir con la lógica del valor numérico (excel date)
 		if (is_numeric($date)) {
-			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
 			return $date->format('Y-m-d');
 		}
 
-		// Si no es un número, intentamos convertir con la lógica de fecha en formato dd/mm/yyyy
 		$aux = explode("/", $date);
 		if (count($aux) > 2) return $aux[2]."-".$aux[1]."-".$aux[0];
 		else return null;
@@ -147,7 +142,6 @@ class Scm_tracking_dispatch extends CI_Controller {
         foreach ($time_only_formats as $format) {
             $tempDateTimeObj = DateTime::createFromFormat($format, $input_as_string);
             
-            // Validar que se haya parseado correctamente y que la cadena original coincida con el formato
             $formatted_back = $tempDateTimeObj ? $tempDateTimeObj->format($format) : '';
             if (
                 $tempDateTimeObj !== false &&
@@ -269,11 +263,6 @@ class Scm_tracking_dispatch extends CI_Controller {
 			$row["date"] = $this->date_convert_dd_mm_yyyy($row["date"]);	
 			$row["client_appointment"] = $this->convertToTimeFormat($row["client_appointment"]);
 			$row["to_appointment"] = $this->convertToTimeFormat($row["to_appointment"]);
-			// $row["arrival_time"] = $this->convertToTimeFormat($row["arrival_time"]);
-			// $row["download_time"] = $this->convertToTimeFormat($row["download_time"]);
-			// $row["completion_time"] = $this->convertToTimeFormat($row["completion_time"]);
-			// $row["service_completion_time"] = $this->convertToTimeFormat($row["service_completion_time"]);
-			// $row["waiting_time"] = $this->convertToTimeFormat($row["waiting_time"]);
 			
 			if(strpos($row['status'], 'CANCELADO') !== false){
 				//contiene
@@ -294,9 +283,6 @@ class Scm_tracking_dispatch extends CI_Controller {
 				$row["waiting_time"] = $this->convertToTimeFormat($row["waiting_time"]);
 			}
 			
-			// if ($row["date"] !== null && $row["placa"] !== null && $row["guide"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
-				// $row["tracking_key"] = $row["date"] . "_" . $row["placa"] . "_" . $row["guide"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
-			// } else continue;
 			
 			if ($row["date"] !== null && $row["placa"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
 				$row["tracking_key"] = $row["date"] . "_" . $row["pick_order"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
@@ -405,10 +391,6 @@ class Scm_tracking_dispatch extends CI_Controller {
 				$row["service_completion_time"] = $this->convertToTimeFormat($row["service_completion_time"]);
 				$row["waiting_time"] = $this->convertToTimeFormat($row["waiting_time"]);
 			}
-			//echo '<pre>'; print_r($row);
-			// if ($row["date"] !== null && $row["placa"] !== null && $row["guide"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
-				// $row["tracking_key"] = $row["date"] . "_" . $row["placa"] . "_" . $row["guide"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
-			// } else continue;
 
 			if ($row["date"] !== null && $row["placa"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
 				$row["tracking_key"] = $row["date"] . "_" . $row["pick_order"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];

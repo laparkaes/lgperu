@@ -689,7 +689,7 @@ class Lgepr extends CI_Controller {
 		if ($this->input->get("key") === "lgepr") {
 			$res = [];
 			$from = date('Y-m-d', strtotime('-5 days'));
-			$data = $this->gen_m->filter("scm_tracking_dispatch", false, ['date >=' => $from]);
+			$data = $this->gen_m->filter("scm_tracking_dispatch", false, ['date >=' =>$from ]);
 					
 			foreach($data as $item){
 				$cloned_item = clone $item;
