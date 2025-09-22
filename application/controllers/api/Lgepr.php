@@ -686,67 +686,108 @@ class Lgepr extends CI_Controller {
 		//llamasys/api/lgepr/get_tracking_dispatch?key=lgepr		
 		// APM: N4M, N4E
 		// KLO: N4S	
-		if ($this->input->get("key") === "lgepr") {
-			$res = [];
-			$from = date('Y-m-d', strtotime('-5 days'));
-			$data = $this->gen_m->filter("scm_tracking_dispatch", false, ['date >=' =>$from ]);
-					
-			foreach($data as $item){
-				$cloned_item = clone $item;
-				$warehouse = null;
+		if ($this->input->get("key") !== "lgepr") {
+			http_response_code(401);
+			echo json_encode(["error" => "Key error"]);
+			return;
+		}
+		
+		$from = date('Y-m-d', strtotime('-5 days'));
+		//$from = '2025-08-01';
+		$trackingData = $this->gen_m->filter("scm_tracking_dispatch", false, ['date >=' => $from]);
+
+		if (empty($trackingData)) {
+			header('Content-Type: application/json');
+			echo json_encode([]);
+			return;
+		}
+
+		$pickOrders = array_column($trackingData, 'pick_order');
+		$models = array_column($trackingData, 'model');
+
+		$w_in_clause_shipping = [['field' => 'pick_no', 'values' => $pickOrders]];
+		$shippingData = $this->gen_m->filter('scm_shipping_status', false, null, null, $w_in_clause_shipping);
+		
+		$order_nos = array_column($shippingData, 'order_no');
+		$line_nos = array_column($shippingData, 'line_no');
+
+		$w_in_clause_sales = [['field' => 'order_no', 'values' => $order_nos], ['field' => 'line_no', 'values' => $line_nos]];
+		$salesData = $this->gen_m->filter('lgepr_sales_order', false, null, null, $w_in_clause_sales);
+		
+		$w_in_clause_closed = [['field' => 'model', 'values' => $models], ['field' => 'order_no', 'values' => $order_nos], ['field' => 'line_no', 'values' => $line_nos]];
+		$closedData = $this->gen_m->filter('lgepr_closed_order', false, null, null, $w_in_clause_closed);
+
+		$shippingMap = [];
+		foreach ($shippingData as $shipItem) {
+			$shippingMap[$shipItem->pick_no . "_" . $shipItem->model . "_" . $shipItem->order_qty] = $shipItem;
+		}
+
+		$salesMap = [];
+		foreach ($salesData as $salesItem) {
+			$salesMap[$salesItem->order_no . '-' . $salesItem->line_no] = $salesItem;
+		}
+
+		$closedMap = [];
+		foreach ($closedData as $closedItem) {
+			$closedMap[$closedItem->order_no . '-' . $closedItem->line_no] = $closedItem;
+		}
+
+		$closedMapByModel = [];
+		foreach ($closedData as $closedItem) {
+			$closedMapByModel[$closedItem->model] = $closedItem;
+		}
+
+		$res = [];
+		foreach ($trackingData as $item) {
+			$cloned_item = clone $item;
+			
+			$shippingItem = $shippingMap[$cloned_item->pick_order . "_" . $cloned_item->model . "_" . $cloned_item->qty] ?? null;
+
+			if ($shippingItem) {
+				$key = $shippingItem->order_no . '-' . $shippingItem->line_no;
 				
-				$w = [
-						'model' 	 => $cloned_item->model,
-						'order_qty'	 => $cloned_item->qty,
-						'pick_no' 	 => $cloned_item->pick_order,
-				];
-				
-				$shipping_data = $this->gen_m->filter_select('scm_shipping_status', false, ['order_no', 'line_no'], $w);
-				if ($shipping_data) {
-				//echo '<pre>'; print_r($shipping_data);
-					foreach ($shipping_data as $item_ship){
-						$w_s = [
-								'order_no' 		=> $item_ship->order_no,
-								'line_no'		=> $item_ship->line_no,
-								];
-						$sales_data = $this->gen_m->filter_select('lgepr_sales_order', false, ['dash_company', 'dash_division', 'sales_amount_usd'], $w_s);
-						
-						if ($sales_data){
-							$cloned_item->dash_company = $sales_data[0]->dash_company;
-							$cloned_item->dash_division = $sales_data[0]->dash_division;
-							$cloned_item->order_no = $item_ship->order_no;
-							$cloned_item->line_no = $item_ship->line_no;
-							$cloned_item->dash_amount_usd = $sales_data[0]->sales_amount_usd;
-						} else {
-							$w_c = [
-								'order_no' 		=> $item_ship->order_no,
-								'line_no'		=> $item_ship->line_no,
-								];
-							$closed_data = $this->gen_m->filter_select('lgepr_closed_order', false, ['dash_company', 'dash_division', 'order_amount_usd'], $w_c);
-							
-							$cloned_item->dash_company = $closed_data[0]->dash_company ?? '';
-							$cloned_item->dash_division = $closed_data[0]->dash_division ?? '';
-							$cloned_item->order_no = $item_ship->order_no;
-							$cloned_item->line_no = $item_ship->line_no;
-							$cloned_item->dash_amount_usd = $closed_data[0]->order_amount_usd ?? '';
-						}
+				$salesItem = $salesMap[$key] ?? null;
+				if ($salesItem) {
+					$cloned_item->dash_company = $salesItem->dash_company;
+					$cloned_item->dash_division = $salesItem->dash_division;
+					$cloned_item->order_no = $shippingItem->order_no;
+					$cloned_item->line_no = $shippingItem->line_no;
+					$cloned_item->dash_amount_usd = $salesItem->sales_amount_usd;
+				} else {
+					$closedItem = $closedMap[$key] ?? null;
+					if ($closedItem) {
+						$cloned_item->dash_company = $closedItem->dash_company ?? '';
+						$cloned_item->dash_division = $closedItem->dash_division ?? '';
+						$cloned_item->order_no = $shippingItem->order_no;
+						$cloned_item->line_no = $shippingItem->line_no;
+						$cloned_item->dash_amount_usd = $closedItem->order_amount_usd ?? '';
+					} else {
+						$cloned_item->dash_company = '';
+						$cloned_item->dash_division = '';
+						$cloned_item->order_no = $shippingItem->order_no;
+						$cloned_item->line_no = $shippingItem->line_no;
+						$cloned_item->dash_amount_usd = '';
 					}
-				} else{
-					$w_c = [
-								'model'	=> $cloned_item->model,
-								];
-					$closed_data_ = $this->gen_m->filter_select('lgepr_closed_order', false, ['dash_company', 'dash_division'], $w_c);
-					$cloned_item->dash_company = $closed_data_[0]->dash_company ?? '';
-					$cloned_item->dash_division = $closed_data_[0]->dash_division ?? '';
+				}
+			} else {
+				$closedItem = $closedMapByModel[$cloned_item->model] ?? null;
+				if ($closedItem) {
+					$cloned_item->dash_company = $closedItem->dash_company ?? '';
+					$cloned_item->dash_division = $closedItem->dash_division ?? '';
 					$cloned_item->order_no = '';
 					$cloned_item->line_no = '';
 					$cloned_item->dash_amount_usd = '';
+				} else {
+					 $cloned_item->dash_company = '';
+					 $cloned_item->dash_division = '';
+					 $cloned_item->order_no = '';
+					 $cloned_item->line_no = '';
+					 $cloned_item->dash_amount_usd = '';
 				}
-				//if ($cloned_item->sales_amount_usd === '') continue;
-				$res[] = clone $cloned_item;
 			}
-		} else $res = ["Key error"];
-		
+			$res[] = $cloned_item;
+		}
+
 		header('Content-Type: application/json');
 		echo json_encode($res);
 	}
