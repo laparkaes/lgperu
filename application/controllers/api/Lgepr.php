@@ -697,7 +697,9 @@ class Lgepr extends CI_Controller {
 		}
 		
 		$from = date('Y-m-d', strtotime('-5 days'));
-
+		
+		// print_r($from);
+		//$from = '2025-08-01';
 		$trackingData = $this->gen_m->filter("scm_tracking_dispatch", false, ['date >=' => $from]);
 		
 		
@@ -712,7 +714,7 @@ class Lgepr extends CI_Controller {
 		
 		$w_in_clause_shipping = [['field' => 'pick_no', 'values' => $pickOrders]];		
 		$shippingData = @$this->gen_m->filter('scm_shipping_status', false, null, null, $w_in_clause_shipping);
-
+		//echo '<pre>'; print_r($shippingData);
 		$order_nos = array_column($shippingData, 'order_no');
 		$line_nos = array_column($shippingData, 'line_no');
 
@@ -775,7 +777,7 @@ class Lgepr extends CI_Controller {
 					}
 				}
 			} else {
-				$sales_data = @$this->gen_m->filter_select('lgepr_sales_order', false, ['dash_company', 'dash_division'], ['model' => $cloned_item->model]);
+				$sales_data = $this->gen_m->filter_select('lgepr_sales_order', false, ['dash_company', 'dash_division'], ['model' => $cloned_item->model]);
 				if ($sales_data) {
 					$cloned_item->dash_company = $sales_data[0]->dash_company ?? '';
 					$cloned_item->dash_division = $sales_data[0]->dash_division ?? '';
@@ -783,11 +785,20 @@ class Lgepr extends CI_Controller {
 					$cloned_item->line_no = '';
 					$cloned_item->dash_amount_usd = '';
 				} else {
-					 $cloned_item->dash_company = '';
-					 $cloned_item->dash_division = '';
-					 $cloned_item->order_no = '';
-					 $cloned_item->line_no = '';
-					 $cloned_item->dash_amount_usd = '';
+					$closed_data = $this->gen_m->filter_select('lgepr_closed_order', false, ['dash_company', 'dash_division'], ['model' => $cloned_item->model]);
+					if ($closed_data){
+						$cloned_item->dash_company = $closed_data[0]->dash_company ?? '';
+						$cloned_item->dash_division = $closed_data[0]->dash_division ?? '';
+						$cloned_item->order_no = '';
+						$cloned_item->line_no = '';
+						$cloned_item->dash_amount_usd = '';
+					} else {
+						 $cloned_item->dash_company = '';
+						 $cloned_item->dash_division = '';
+						 $cloned_item->order_no = '';
+						 $cloned_item->line_no = '';
+						 $cloned_item->dash_amount_usd = '';
+					}
 				}
 				
 			}
