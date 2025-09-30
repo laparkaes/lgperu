@@ -710,7 +710,7 @@ class Lgepr extends CI_Controller {
 		$models = array_column($trackingData, 'model');
 
 		$w_in_clause_shipping = [['field' => 'pick_no', 'values' => $pickOrders]];
-		$shippingData = $this->gen_m->filter('scm_shipping_status', false, null, null, $w_in_clause_shipping);
+		$shippingData = @$this->gen_m->filter('scm_shipping_status', false, null, null, $w_in_clause_shipping);
 		
 		$order_nos = array_column($shippingData, 'order_no');
 		$line_nos = array_column($shippingData, 'line_no');
