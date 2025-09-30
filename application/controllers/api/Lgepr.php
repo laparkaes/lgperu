@@ -698,7 +698,7 @@ class Lgepr extends CI_Controller {
 		
 		$from = date('Y-m-d', strtotime('-5 days'));
 		//$from = '2025-08-01';
-		$trackingData = $this->gen_m->filter("scm_tracking_dispatch", false, ['date >=' => $from]);
+		$trackingData = @$this->gen_m->filter("scm_tracking_dispatch", false, ['date >=' => $from]);
 
 		if (empty($trackingData)) {
 			header('Content-Type: application/json');
