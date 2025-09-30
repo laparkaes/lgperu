@@ -359,6 +359,7 @@ class Lgepr extends CI_Controller {
 			$start_month = Date('Y-m-01');
 			//print_r($start_month);
 			$today = Date('Y-m-d'); //current date
+			//$yesterday = date('Y-m-d', strtotime($today . ' -1 day'));
 
 			$dayOfWeek = date('N', strtotime($today));
 
@@ -367,7 +368,7 @@ class Lgepr extends CI_Controller {
 			} else {
 				$yesterday = date('Y-m-d', strtotime($today . ' -1 day'));
 			}
-
+			//print_r($yesterday);
 			$from_current_inventory = '';
 			$stock_cbm = [];
 			$stock = $this->gen_m->filter('v_cbm_history_lastload', false, ['on_hand_cbm !=' => 0, 'updated >=' => $start_month . ' 00:00:00'], null, null, [['updated', 'asc']]);
@@ -382,6 +383,7 @@ class Lgepr extends CI_Controller {
 				$day = $time_aux[0];
 				
 				$key = $type . "-". $item_stock->updated . "-" . $item_stock->org . "-" . $item_stock->model . "-" . $item_stock->dash_company . "-" . $item_stock->dash_division;
+
 				if(!isset($data_cbm[$key])){
 					$data_cbm[$key] = [
 										"type" 				=> $type,
@@ -402,6 +404,7 @@ class Lgepr extends CI_Controller {
 				}
 				$data_cbm[$key]["qty"] += $item_stock->on_hand;
 				$data_cbm[$key]["cbm"] += $item_stock->on_hand_cbm;
+				
 			}
 		
 			
@@ -495,7 +498,7 @@ class Lgepr extends CI_Controller {
 							];
 					}
 				}
-				elseif((new DateTime($item_sales->appointment_date))->format('Y-m-d') > $today){
+				elseif((new DateTime($item_container->eta))->format('Y-m-d') > $today){
 					if(!isset($data_cbm[$key])){
 						$data_cbm[$key] = [
 								"type" 				=> $type, 
@@ -527,7 +530,8 @@ class Lgepr extends CI_Controller {
 		
 		header('Content-Type: application/json');
 		echo json_encode($res);
-	}
+
+		}
 	
 	public function get_monthly_closed_order(){
 		//llamasys/api/lgepr/get_monthly_closed_order?key=lgepr
