@@ -167,13 +167,44 @@ class Lgepr extends CI_Controller {
 					$cloned_item->sales_deduction = "";
 					$cloned_item->sd_order_amount_usd = $cloned_item->sales_amount_usd;
 				}
+				
+				// new code about to change status
+				if ($cloned_item->hold_flag === 'N' && $cloned_item->appointment_date !== NULL){
+					$new_status2 = 'POR CITA';
+				}elseif ($cloned_item->hold_flag === 'N' && $cloned_item->appointment_date === NULL){
+					$new_status2 = 'SIN DISTRIBUCION';
+				} elseif ($cloned_item->om_line_status === 'CON CITA' && $cloned_item->hold_flag === 'Y' && $cloned_item->appointment_date >= Date('Y-m-d')){
+					$new_status2 = 'HOLD - CON CITA';
+				} elseif (($cloned_item->hold_flag === 'Y' && $cloned_item->appointment_date !== NULL) || $cloned_item->om_line_status === 'POR LIBERAR DE CREDITOS'||($cloned_item->om_line_status === 'SIN LINEA DE CREDITOS' && 	$cloned_item->credit_hold === 'N')){
+					$new_status2 = 'HOLD - POR CITA';
+				} elseif ($cloned_item->om_line_status === 'SIN STOCK' || $cloned_item->back_order_hold === 'Y'){
+					$new_status2 = 'BACK';
+				} elseif ($cloned_item->om_line_status === 'SIN DISTRIBUCION' || $cloned_item->back_order_hold === 'N'){
+					$new_status2 = 'BACK';
+				} elseif ($cloned_item->shipment_date !== NULL || ($cloned_item->om_line_status === 'CON CITA' && $cloned_item->appointment_date >= Date('Y-m-d'))){
+					$new_status2 = 'CON CITA';
+				} else $new_status2 = NULL;
+				
+				//new status 3
+				if ($new_status2 === 'CON CITA' || $cloned_item->order_category === 'RETURN'){
+					$new_status3 = 'OPEN+HOLD With Appointment';
+				} elseif ($new_status2 === 'POR CITA' && $cloned_item->om_line_status === 'POR CONFIRMAR CITA'){
+					$new_status3 = 'By Customer Confirm';
+				} elseif ($new_status2 === 'POR CITA' && $cloned_item->om_line_status === 'POR SOLICITAR CITA'){
+					$new_status3 = 'To Request Appointment';
+				} elseif ($new_status2 === 'SIN DISTRIBUCION' || $new_status2 === 'BACK'){
+					$new_status3 = 'Without Allocation';
+				} elseif ($cloned_item->shipment_date !== NULL){
+					$new_status3 = 'Pick';
+				} else $new_status3 = 'To Review';
+					
+				$cloned_item->om_line_status = $new_status3;
 				$res[] = clone $cloned_item;
 			}
 		} else $res = ["Key error"];
 		
 		header('Content-Type: application/json');
-		echo json_encode($res);
-		
+		echo json_encode($res);		
 	}
 	
 	public function get_sales_projection(){
