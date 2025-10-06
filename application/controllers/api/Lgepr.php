@@ -527,12 +527,12 @@ class Lgepr extends CI_Controller {
 			}
 			$var_ml = ($cbm_total/$past_ml_sum) * $current_ml_sum;
 			foreach ($data_cbm as $key => &$item) {
-				if ($item['type'] === 'Sales') $item['cbm'] = number_format((($item['cbm'] / $cbm_total) * $var_ml) * -1);
+				if ($item['type'] === 'Sales') $item['cbm'] = number_format((($item['cbm'] / $cbm_total) * $var_ml) * -1,4);
 				else continue;
 			}
 				
 			$container_cbm = [];
-			$container = $this->gen_m->filter('lgepr_container', false, ['cbm !=' => 0, 'eta >=' => $yesterday], null, null, [['eta', 'asc']]);
+			$container = $this->gen_m->filter('lgepr_container', false, ['cbm !=' => 0, 'eta >=' => $yesterday, 'eta <=' => date('Y-m-t')], null, null, [['eta', 'asc']]);
 			foreach($container as $item_container){
 				$type = 'Arrival';
 				$dates = explode("-", $item_container->eta);
