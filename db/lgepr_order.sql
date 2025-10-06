@@ -1,9 +1,9 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.1.3
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- 생성 시간: 25-10-05 19:55
+-- 생성 시간: 25-10-05 21:07
 -- 서버 버전: 10.4.24-MariaDB
 -- PHP 버전: 7.4.29
 
@@ -64,7 +64,7 @@ CREATE TABLE `lgepr_order` (
   `shipment_date` date DEFAULT NULL,
   `closed_date` date DEFAULT NULL,
   `inventory_org` varchar(5) DEFAULT NULL,
-  `sub__inventory` varchar(20) DEFAULT NULL,
+  `sub_inventory` varchar(20) DEFAULT NULL,
   `order_type` varchar(50) DEFAULT NULL,
   `line_type` varchar(50) DEFAULT NULL,
   `bill_to_code` varchar(20) DEFAULT NULL,
