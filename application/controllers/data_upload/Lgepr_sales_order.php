@@ -32,6 +32,11 @@ class Lgepr_sales_order extends CI_Controller {
 		$this->update_dash_div_cat();
 	}
 	
+	public function test(){
+		//$this->update_dash_div_cat("lgepr_order");
+		
+	}
+	
 	private function update_dash_div_cat($tablename = "lgepr_sales_order"){
 		$dash_mapping = [
 			"REF" 	=> ["dash_company" => "HS"	, "dash_division" => "REF"],
@@ -60,7 +65,6 @@ class Lgepr_sales_order extends CI_Controller {
 		
 		$this->gen_m->update($tablename, ["product_level2_name" => "SRAC"], $dash_mapping["RAC"]);
 		$this->gen_m->update($tablename, ["product_level2_name" => "Commercial_LED Signage"], $dash_mapping["LEDSGN"]);
-		
 	}
 	
 	private function update_model_category($tablename = "lgepr_sales_order"){
@@ -472,7 +476,7 @@ class Lgepr_sales_order extends CI_Controller {
 			
 			$this->update_model_category();
 			
-			//$this->process_lgepr_order();//order consolidated table. No borrar.
+			$this->process_lgepr_order();//order consolidated table. No borrar.
 			
 			$msg = number_format($records)." record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		}else $msg = "File template error. Please check upload file.";
@@ -601,15 +605,6 @@ class Lgepr_sales_order extends CI_Controller {
 				$row_db["order_amount_usd"] =  $row_db["order_amount"] ? round($row_db["order_amount"] / $er, 2) : 0;
 				$row_db["total_amount_usd"] =  $row_db["total_amount"] ? round($row_db["total_amount"] / $er, 2) : 0;
 				
-				//dash_company, dash_division
-				/*
-				$dash = $this->gen_m->unique("v_lgepr_model_master", "model", $row_db["model"], false);
-				if ($dash){
-					$row_db["dash_company"] = $dash->dash_company;
-					$row_db["dash_division"] = $dash->dash_division;
-				}
-				*/
-				
 				//updated
 				$row_db["sales_updated_at"] = $now;
 				
@@ -624,7 +619,22 @@ class Lgepr_sales_order extends CI_Controller {
 			
 		}
 		
+		//fill dash company and division
 		$this->update_dash_div_cat("lgepr_order");
+		
+		$records = $this->gen_m->filter("lgepr_order", false, ["dash_company" => null, "product_level4 !=" => "ZZZZZZZZ"]);
+		foreach($records as $item){
+			$aux = null;
+			$aux = $this->gen_m->filter("lgepr_order", false, ["dash_company !=" => null], [["field" => "product_level4", "values" => [$item->product_level4]]], null, null, 1);
+			if (!$aux) $aux = $this->gen_m->filter("lgepr_order", false, ["dash_company !=" => null], [["field" => "product_level4", "values" => [substr($item->product_level4, 0, 6)]]], null, null, 1);
+			if (!$aux) $aux = $this->gen_m->filter("lgepr_order", false, ["dash_company !=" => null], [["field" => "product_level4", "values" => [substr($item->product_level4, 0, 4)]]], null, null, 1);
+			if (!$aux) $aux = $this->gen_m->filter("lgepr_order", false, ["dash_company !=" => null], [["field" => "product_level4", "values" => [substr($item->product_level4, 0, 2)]]], null, null, 1);
+			
+			if ($aux){
+				$val = ["dash_company" => $aux[0]->dash_company, "dash_division" => $aux[0]->dash_division, "model_category" => $aux[0]->model_category];
+				$this->gen_m->update("lgepr_order", ["order_line" => $item->order_line], $val);	
+			}
+		}
 	}
 	
 	public function upload(){
