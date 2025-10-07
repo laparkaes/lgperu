@@ -476,7 +476,7 @@ class Lgepr_sales_order extends CI_Controller {
 			
 			$this->update_model_category();
 			
-			$this->process_lgepr_order();//order consolidated table. No borrar.
+			//$this->process_lgepr_order();//order consolidated table. No borrar.
 			
 			$msg = number_format($records)." record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		}else $msg = "File template error. Please check upload file.";
