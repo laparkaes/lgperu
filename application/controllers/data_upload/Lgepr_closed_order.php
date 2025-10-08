@@ -2,6 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 class Lgepr_closed_order extends CI_Controller {
 
@@ -122,7 +123,7 @@ class Lgepr_closed_order extends CI_Controller {
 	}
 	
 	public function process(){
-		ini_set('memory_limit', '2G');
+		ini_set('memory_limit', '4G');
 		set_time_limit(0);
 		
 		$start_time = microtime(true);
@@ -265,6 +266,7 @@ class Lgepr_closed_order extends CI_Controller {
 					$rows_eq[] = $row;
 				}
 				*/
+				//echo $i." Check ".number_Format(microtime(true) - $start_time, 2)." secs.<br/>";
 			}
 			
 			/* removed by code performance
@@ -284,6 +286,9 @@ class Lgepr_closed_order extends CI_Controller {
 			
 			$this->update_model_category();
 			
+			/* NO BORRAR!! Nueva tabla para pedidos unificados */
+			$this->process_lgepr_order();
+			
 			$msg = number_format($records)." record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		}else $msg = "File template error. Please check upload file.";
 		
@@ -291,6 +296,134 @@ class Lgepr_closed_order extends CI_Controller {
 		echo $msg;
 		echo "<br/><br/>";
 		echo 'You can close this tab now.<br/><br/><button onclick="window.close();">Close This Tab</button>';
+	}
+	
+	public function process_lgepr_order(){
+		ini_set('memory_limit', '4G');
+		set_time_limit(0);
+		
+		//load excel file
+		$spreadsheet = IOFactory::load("./upload/lgepr_closed_order.xls");
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		//excel file header validation
+		$h = [
+			trim($sheet->getCell('A1')->getValue()),
+			trim($sheet->getCell('B1')->getValue()),
+			trim($sheet->getCell('C1')->getValue()),
+			trim($sheet->getCell('D1')->getValue()),
+			trim($sheet->getCell('E1')->getValue()),
+			trim($sheet->getCell('BW1')->getValue()),
+		];
+		
+		//sales order header
+		$h_gerp = ["Category", "AU", "Bill To Name", "Ship To Name", "Model", "Fapiao No."];
+		
+		//header validation
+		foreach($h as $i => $h_i) if ($h_i !== $h_gerp[$i]){ echo "Template error."; return; }
+		
+		//define now
+		$now = date('Y-m-d H:i:s', time());
+		
+		$header_index = [];
+		$header_mapping = ['Category' => 'category', 'Customer Department' => 'department', 'Order No.' => 'order_no', 'Line No.' => 'line_no', 'Original List Pirce' => 'original_list_price', 'Unit List  Price' => 'unit_list_price', 'Unit Selling  Price' => 'unit_selling_price', 'Order Amount' => 'order_amount', 'Order Amount (USD)' => 'order_amount_usd', 'Tax Amount' => 'tax_amount', 'Line Charge Amount' => 'charge_amount', 'Total Amount' => 'total_amount', 'Total Amount (USD)' => 'total_amount_usd', 'DC Rate' => 'dc_rate', 'Currency' => 'currency', 'Invoice No.' => 'invoice_no', 'Order Date' => 'order_date', 'Shipment Date' => 'shipment_date', 'Closed Date' => 'closed_date', 'Inventory Org.' => 'inventory_org', 'Sub- Inventory' => 'sub_inventory', 'Order Type' => 'order_type', 'Line  Type' => 'line_type', 'Bill To Code' => 'bill_to_code', 'Bill To Name' => 'bill_to_name', 'Ship To Code' => 'ship_to_code', 'Ship To Name' => 'ship_to_name', 'Order Qty' => 'order_qty', 'Item CBM' => 'item_cbm', 'Model' => 'model', 'HQ AU' => 'item_division', 'Model Category' => 'model_category', 'Product Level1 Name' => 'product_level1_name', 'Product Level2 Name' => 'product_level2_name', 'Product Level3 Name' => 'product_level3_name', 'Product Level4 Name' => 'product_level4_name', 'Product Level4' => 'product_level4', 'AU' => 'accounting_unit', 'Book Currency' => 'book_currency', 'Customer Name' => 'customer_name', 'Customer PO No.' => 'customer_po_no', 'Install Type' => 'install_type', 'Interest Amt' => 'interest_amt', 'Item Type Desctiption' => 'item_type_desctiption', 'Item Weight' => 'item_weight', 'Order Source' => 'order_source', 'Payment Term' => 'payment_term', 'Pricing Group' => 'pricing_group', 'Project Code' => 'project_code', 'Sales Channel' => 'sales_channel', 'Sales Person' => 'sales_person', 'Ship To City' => 'ship_to_city', 'Shipping Method' => 'shipping_method', 'Price Condition' => 'price_condition',];
+		
+		// RowIterator로 행을 순회
+		foreach ($sheet->getRowIterator() as $row){
+			
+			if ($row->getRowIndex() == 1){//make header_index setup
+				$cellIterator = $row->getCellIterator();
+				$cellIterator->setIterateOnlyExistingCells(false); // 비어 있는 셀도 포함
+
+				foreach ($cellIterator as $cell) {
+					$header_index[] = $cell->getValue();
+				}
+				
+				//print_r($header_index); echo "<br/><br/>";
+				
+			}else{//data insert/update
+			
+				$row_data = [];
+				
+				$cellIterator = $row->getCellIterator();
+				$cellIterator->setIterateOnlyExistingCells(false); // 비어 있는 셀도 포함
+
+				foreach ($cellIterator as $cell) {
+					$col_i = Coordinate::columnIndexFromString($cell->getColumn()) - 1;//index
+					$col_h = $header_index[$col_i];//sales order report header
+					//$col_h_mapped = $header_mapping[$col_h];
+					
+					$row_data[$col_h] = $cell->getValue();
+				}
+				
+				$row_db = [];
+				foreach($header_mapping as $k => $val){
+					$row_db[$val] = trim($row_data[$k]);
+				}
+				
+				//primary key
+				$row_db["line_no"] = str_replace("' ", "", $row_db["line_no"]);
+				$row_db["order_line"] = $row_db["order_no"]."_".$row_db["line_no"];
+				
+				//integer & float_convert
+				$row_db["order_qty"] = str_replace(",", "", $row_db["order_qty"]);
+				$row_db["original_list_price"] = str_replace(",", "", $row_db["original_list_price"]);
+				$row_db["unit_list_price"] = str_replace(",", "", $row_db["unit_list_price"]);
+				$row_db["unit_selling_price"] = str_replace(",", "", $row_db["unit_selling_price"]);
+				$row_db["order_amount"] = str_replace(",", "", $row_db["order_amount"]);
+				$row_db["order_amount_usd"] = str_replace(",", "", $row_db["order_amount_usd"]);
+				$row_db["tax_amount"] = str_replace(",", "", $row_db["tax_amount"]);
+				$row_db["charge_amount"] = str_replace(",", "", $row_db["charge_amount"]);
+				$row_db["total_amount"] = str_replace(",", "", $row_db["total_amount"]);
+				$row_db["total_amount_usd"] = str_replace(",", "", $row_db["total_amount_usd"]);
+				$row_db["item_weight"] = str_replace(",", "", $row_db["item_weight"]);
+				$row_db["item_cbm"] = str_replace(",", "", $row_db["item_cbm"]);
+				
+				//% remove
+				$row_db["dc_rate"] = str_replace("%", "", $row_db["dc_rate"]);
+				
+				//date convert: 24/06/2021 > 2021-10-28
+				$row_db["order_date"] = $this->my_func->date_convert($row_db["order_date"]);
+				$row_db["shipment_date"] = $this->my_func->date_convert($row_db["shipment_date"]);
+				$row_db["closed_date"] = $this->my_func->date_convert($row_db["closed_date"]);
+				
+				//default values
+				$row_db["so_status"] = "INVO";
+				$row_db["order_status"] = "Closed";
+				$row_db["line_status"] = "Closed";
+				
+				//updated
+				$row_db["closed_updated_at"] = $now;
+				
+				//DB work
+				$data = $this->gen_m->unique("lgepr_order", "order_line", $row_db["order_line"], false);
+				if ($data) $this->gen_m->update("lgepr_order", ["order_line" => $row_db["order_line"]], $row_db);
+				else $this->gen_m->insert("lgepr_order", $row_db);
+				
+				//print_r($row_db); echo "<br/><br/>";
+				//foreach($row_db as $k => $val){ echo $k."======>".$val."<br/>"; } echo "<br/><br/>";
+			}
+		}
+		
+		//fill dash company and division
+		$this->update_dash_div_cat("lgepr_order");
+		
+		$records = $this->gen_m->filter("lgepr_order", false, ["dash_company" => null, "product_level4 !=" => "ZZZZZZZZ"]);
+		foreach($records as $item){
+			$aux = null;
+			$aux = $this->gen_m->filter("lgepr_order", false, ["dash_company !=" => null], [["field" => "product_level4", "values" => [$item->product_level4]]], null, null, 1);
+			if (!$aux) $aux = $this->gen_m->filter("lgepr_order", false, ["dash_company !=" => null], [["field" => "product_level4", "values" => [substr($item->product_level4, 0, 6)]]], null, null, 1);
+			if (!$aux) $aux = $this->gen_m->filter("lgepr_order", false, ["dash_company !=" => null], [["field" => "product_level4", "values" => [substr($item->product_level4, 0, 4)]]], null, null, 1);
+			if (!$aux) $aux = $this->gen_m->filter("lgepr_order", false, ["dash_company !=" => null], [["field" => "product_level4", "values" => [substr($item->product_level4, 0, 2)]]], null, null, 1);
+			
+			if ($aux){
+				$val = ["dash_company" => $aux[0]->dash_company, "dash_division" => $aux[0]->dash_division, "model_category" => $aux[0]->model_category];
+				$this->gen_m->update("lgepr_order", ["order_line" => $item->order_line], $val);	
+			}
+		}
+		
+		//print_r($header_mapping);
+		
 	}
 	
 	public function upload(){

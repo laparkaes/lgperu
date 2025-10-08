@@ -298,7 +298,7 @@ class Lgepr_sales_order extends CI_Controller {
 	}
 	
 	public function process(){
-		ini_set('memory_limit', '2G');
+		ini_set('memory_limit', '4G');
 		set_time_limit(0);
 		
 		$start_time = microtime(true);
@@ -476,7 +476,9 @@ class Lgepr_sales_order extends CI_Controller {
 			
 			$this->update_model_category();
 			
-			//$this->process_lgepr_order();//order consolidated table. No borrar.
+			/* Nueva tabla para gestion de pedidos */
+			$this->process_lgepr_order();
+			/* NO ELIMINAR */
 			
 			$msg = number_format($records)." record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		}else $msg = "File template error. Please check upload file.";
@@ -488,7 +490,7 @@ class Lgepr_sales_order extends CI_Controller {
 	}
 	
 	public function process_lgepr_order(){
-		ini_set('memory_limit', '2G');
+		ini_set('memory_limit', '4G');
 		set_time_limit(0);
 		
 		//load excel file
@@ -515,7 +517,7 @@ class Lgepr_sales_order extends CI_Controller {
 		$now = date('Y-m-d H:i:s', time());
 		
 		$header_index = [];
-		$header_mapping = ['Order Category' => 'order_category', 'Department' => 'department', 'Order No.' => 'order_no', 'Line No.' => 'line_no', 'SO Status(2)' => 'so_status', 'Order Status' => 'order_status', 'Line Status' => 'line_status', 'Original List Price' => 'original_list_pirce', 'List Price' => 'unit_list_price', 'Unit Selling Price' => 'unit_selling_price', 'Sales Amount' => 'order_amount', 'Tax Amount' => 'tax_amount', 'Charge Amount' => 'charge_amount', 'Line Total' => 'total_amount', 'DC Rate' => 'dc_rate', 'Currency' => 'currency', 'Delivery Number' => 'delivery_number', 'Invoice No.' => 'invoice_no', 'Customer Po Date' => 'customer_po_date', 'Create Date' => 'create_date', 'Booked Date' => 'booked_date', 'Order Date' => 'order_date', 'Customer RAD' => 'customer_rad', 'Req. Arrival Date From' => 'req_arrival_date_from', 'Req. Arrival Date To' => 'req_arrival_date_to', 'Appointment Date' => 'appointment_date', 'Req. Ship Date' => 'req_ship_date', 'Shipment Date' => 'shipment_date', 'Close Date' => 'closed_date', 'Inventory Org.' => 'inventory_org', 'Sub- Inventory' => 'sub_inventory', 'Order Type' => 'order_type', 'Line Type' => 'line_type', 'Bill To' => 'bill_to_code', 'Bill To Name' => 'bill_to_name', 'Ship To' => 'ship_to_code', 'Ship To Name' => 'ship_to_name', 'Order Qty' => 'order_qty', 'Cancel Qty' => 'cancel_qty', 'Item CBM' => 'item_cbm', 'Model' => 'model', 'Item Division' => 'item_division', 'Model Category' => 'model_category', 'PL1 Name' => 'product_level1_name', 'PL2 Name' => 'product_level2_name', 'PL3 Name' => 'product_level3_name', 'PL4 Name' => 'product_level4_name', 'Product Level4 Code' => 'product_level4', 'Instock Flag' => 'instock_flag', 'Inventory Reserved' => 'inventory_reserved', 'Partial Flag' => 'partial_flag', 'Pick Released' => 'pick_released', 'Ready To Pick' => 'ready_to_pick', 'SO-SA Mapping' => 'so_sa_mapping', 'Hold Flag' => 'hold_flag', 'Credit Hold' => 'credit_hold', 'Back Order Hold' => 'back_order_hold', 'Overdue Hold' => 'overdue_hold', 'Customer Hold' => 'customer_hold', 'Manual Hold' => 'manual_hold', 'Auto Pending Hold' => 'auto_pending_hold', 'Bank Collateral Hold' => 'bank_collateral_hold', 'Form Hold' => 'form_hold', 'FP Hold' => 'fp_hold', 'Future Hold' => 'future_hold', 'Insurance Hold' => 'insurance_hold', 'Minimum Hold' => 'minimum_hold', 'Payterm Term Hold' => 'payterm_term_hold', 'Pick Cancel Manual Hold' => 'pick_cancel_manual_hold', 'Reserve Hold' => 'reserve_hold', 'S/A Hold' => 'sa_hold', 'Accounting Unit' => 'accounting_unit', 'Carrier Code' => 'carrier_code', 'Customer Name' => 'customer_name', 'Customer PO No.' => 'customer_po_no', 'Install Type' => 'install_type', 'Interest Amt' => 'interest_amt', 'Item Type' => 'item_type_desctiption', 'Item Weight' => 'item_weight', 'Order Source' => 'order_source', 'Payment Term' => 'payment_term', 'Pick Release Qty' => 'pick_release_qty', 'Pricing Group' => 'pricing_group', 'Project Code' => 'project_code', 'Sales Channel (Low)' => 'sales_channel', 'Sales Person' => 'sales_person', 'Receiver City Desc' => 'ship_to_city', 'Shipping Method' => 'shipping_method', 'Price Condition' => 'price_condition',];
+		$header_mapping = ['Order Category' => 'order_category', 'Department' => 'department', 'Order No.' => 'order_no', 'Line No.' => 'line_no', 'SO Status(2)' => 'so_status', 'Order Status' => 'order_status', 'Line Status' => 'line_status', 'Original List Price' => 'original_list_price', 'List Price' => 'unit_list_price', 'Unit Selling Price' => 'unit_selling_price', 'Sales Amount' => 'order_amount', 'Tax Amount' => 'tax_amount', 'Charge Amount' => 'charge_amount', 'Line Total' => 'total_amount', 'DC Rate' => 'dc_rate', 'Currency' => 'currency', 'Delivery Number' => 'delivery_number', 'Invoice No.' => 'invoice_no', 'Customer Po Date' => 'customer_po_date', 'Create Date' => 'create_date', 'Booked Date' => 'booked_date', 'Order Date' => 'order_date', 'Customer RAD' => 'customer_rad', 'Req. Arrival Date From' => 'req_arrival_date_from', 'Req. Arrival Date To' => 'req_arrival_date_to', 'Appointment Date' => 'appointment_date', 'Req. Ship Date' => 'req_ship_date', 'Shipment Date' => 'shipment_date', 'Close Date' => 'closed_date', 'Inventory Org.' => 'inventory_org', 'Sub- Inventory' => 'sub_inventory', 'Order Type' => 'order_type', 'Line Type' => 'line_type', 'Bill To' => 'bill_to_code', 'Bill To Name' => 'bill_to_name', 'Ship To' => 'ship_to_code', 'Ship To Name' => 'ship_to_name', 'Order Qty' => 'order_qty', 'Cancel Qty' => 'cancel_qty', 'Item CBM' => 'item_cbm', 'Model' => 'model', 'Item Division' => 'item_division', 'Model Category' => 'model_category', 'PL1 Name' => 'product_level1_name', 'PL2 Name' => 'product_level2_name', 'PL3 Name' => 'product_level3_name', 'PL4 Name' => 'product_level4_name', 'Product Level4 Code' => 'product_level4', 'Instock Flag' => 'instock_flag', 'Inventory Reserved' => 'inventory_reserved', 'Partial Flag' => 'partial_flag', 'Pick Released' => 'pick_released', 'Ready To Pick' => 'ready_to_pick', 'SO-SA Mapping' => 'so_sa_mapping', 'Hold Flag' => 'hold_flag', 'Credit Hold' => 'credit_hold', 'Back Order Hold' => 'back_order_hold', 'Overdue Hold' => 'overdue_hold', 'Customer Hold' => 'customer_hold', 'Manual Hold' => 'manual_hold', 'Auto Pending Hold' => 'auto_pending_hold', 'Bank Collateral Hold' => 'bank_collateral_hold', 'Form Hold' => 'form_hold', 'FP Hold' => 'fp_hold', 'Future Hold' => 'future_hold', 'Insurance Hold' => 'insurance_hold', 'Minimum Hold' => 'minimum_hold', 'Payterm Term Hold' => 'payterm_term_hold', 'Pick Cancel Manual Hold' => 'pick_cancel_manual_hold', 'Reserve Hold' => 'reserve_hold', 'S/A Hold' => 'sa_hold', 'Accounting Unit' => 'accounting_unit', 'Carrier Code' => 'carrier_code', 'Customer Name' => 'customer_name', 'Customer PO No.' => 'customer_po_no', 'Install Type' => 'install_type', 'Interest Amt' => 'interest_amt', 'Item Type' => 'item_type_desctiption', 'Item Weight' => 'item_weight', 'Order Source' => 'order_source', 'Payment Term' => 'payment_term', 'Pick Release Qty' => 'pick_release_qty', 'Pricing Group' => 'pricing_group', 'Project Code' => 'project_code', 'Sales Channel (Low)' => 'sales_channel', 'Sales Person' => 'sales_person', 'Receiver City Desc' => 'ship_to_city', 'Shipping Method' => 'shipping_method', 'Price Condition' => 'price_condition',];
 		
 		// RowIterator로 행을 순회
 		foreach ($sheet->getRowIterator() as $row){
@@ -553,7 +555,7 @@ class Lgepr_sales_order extends CI_Controller {
 				$row_db["order_line"] = $row_db["order_no"]."_".$row_db["line_no"];
 				
 				//float comma
-				$row_db["original_list_pirce"]	= str_replace(",", "", $row_db["original_list_pirce"]);
+				$row_db["original_list_price"]	= str_replace(",", "", $row_db["original_list_price"]);
 				$row_db["unit_list_price"]		= str_replace(",", "", $row_db["unit_list_price"]);
 				$row_db["unit_selling_price"]	= str_replace(",", "", $row_db["unit_selling_price"]);
 				$row_db["order_amount"] 		= str_replace(",", "", $row_db["order_amount"]);
@@ -610,8 +612,9 @@ class Lgepr_sales_order extends CI_Controller {
 				
 				//DB work
 				$data = $this->gen_m->unique("lgepr_order", "order_line", $row_db["order_line"], false);
-				if ($data) $this->gen_m->update("lgepr_order", ["order_line" => $row_db["order_line"]], $row_db);
-				else $this->gen_m->insert("lgepr_order", $row_db);
+				if ($data){
+					if ($data->line_status !== "Closed") $this->gen_m->update("lgepr_order", ["order_line" => $row_db["order_line"]], $row_db);
+				}else $this->gen_m->insert("lgepr_order", $row_db);
 					
 				//print_r($row_db);
 				//foreach($row_db as $k => $val){ echo $k."======>".$val."<br/>"; } echo "<br/><br/>";
