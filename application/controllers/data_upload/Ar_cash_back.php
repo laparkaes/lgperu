@@ -87,7 +87,7 @@ class Ar_cash_back extends CI_Controller {
 		else return null;
 	}
 	
-	function convert_date($excel_date) {
+	public function convert_date($excel_date) {
 		// Si la entrada es un número, es un número de serie de Excel
 		if (is_numeric($excel_date)) {
 			// Los números de serie de Excel cuentan los días desde 1900-01-01
@@ -522,19 +522,18 @@ class Ar_cash_back extends CI_Controller {
 		
 	public function update_daily_book($data, $period) {
 		
-		// Consulta data daliy book mes acutal o elegido
+		$now = date('Y-m-d H:i:s');
 		$je_ids = [];
 		$list_update = [];
 		$list_origin = [];
 		$s = ['period_name', 'effective_date', 'invoice_number', 'transaction_number', 'net_entered_debit', 'accounting_unit', 'je_id', 'type_voucher', 'serie_voucher', 'number_voucher'];
 		$w = ['period_name' => $period];
 		$daily_book = $this->gen_m->filter_select('tax_daily_book', false, $s, $w); 
-
+		//echo '<pre>'; print_r($daily_book);
 		foreach ($daily_book as $item_d) {
 			$key = $item_d->effective_date . '_' . $item_d->net_entered_debit . '_' . $item_d->transaction_number;
-			if (!empty($data[$key]) && ($item_d->invoice_number === null || $item_d->invoice_number === '')) {
-				//$list_origin[] = ['invoice_number' => $item_d->invoice_number, 'type_voucher' => $item_d->type_voucher, 'serie_voucher' => $item_d->serie_voucher, 'number_voucher' => $item_d->number_voucher, 'transaction_number' => $item_d->transaction_number,'je_id' => $item_d->je_id];	
-				$list_update[] = ['invoice_number' => $data[$key]['invoice_number'], 'type_voucher' => $data[$key]['type_voucher'], 'serie_voucher' => $data[$key]['serie_voucher'], 'number_voucher' => $data[$key]['number_voucher'],'je_id' => $item_d->je_id];									
+			if (!empty($data[$key]) && ($item_d->invoice_number === null || $item_d->invoice_number === '')) {	
+				$list_update[] = ['invoice_number' => $data[$key]['invoice_number'], 'type_voucher' => $data[$key]['type_voucher'], 'serie_voucher' => $data[$key]['serie_voucher'], 'number_voucher' => $data[$key]['number_voucher'],'je_id' => $item_d->je_id, 'cash_back_updated' => $now];									
 				//break;
 			} else continue;
 		}
@@ -602,6 +601,7 @@ class Ar_cash_back extends CI_Controller {
 					'apply_date'			=> trim($sheet->getCell('W'.$i)->getValue()),
 					'batch_no'				=> trim($sheet->getCell('X'.$i)->getValue()),
 					'updated' 				=> $now,
+					'cash_back_updated'		=> $now
 				];
 				
 				
@@ -643,6 +643,20 @@ class Ar_cash_back extends CI_Controller {
 			// Manejo de errores si el archivo es inválido o corrupto.
 			return "Error: El archivo subido no es un formato de hoja de cálculo válido o está corrupto. Intenta con un archivo .xlsx, .xls o .csv válido.";
 		}
+		// Paso 1: Leer el archivo como un TSV
+		// $tab_reader = new CsvReader();
+		// $tab_reader->setDelimiter("\t");
+		// $spreadsheet = $tab_reader->load($file_path);
+
+		// // Paso 2: Crear el escritor para el formato XLS
+		// $xls_writer = new XlsWriter($spreadsheet);
+		
+		// // Paso 3: Guardar el archivo en el mismo path para sobreescribirlo
+		// $xls_writer->save($file_path);
+
+		// Ahora, el archivo en $file_path es un verdadero XLS binario
+		// Puedes continuar con la lectura convencional
+		// La lectura ya no es necesaria si solo usas el objeto $spreadsheet
 		
 		$sheet = $spreadsheet->getActiveSheet();
 
