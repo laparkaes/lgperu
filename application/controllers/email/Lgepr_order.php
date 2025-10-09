@@ -1,6 +1,16 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Font;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
 class Lgepr_order extends CI_Controller {
 
 	public function __construct(){
@@ -32,6 +42,47 @@ class Lgepr_order extends CI_Controller {
 		
 	}
 	
+	public function order_report_excel(){
+		$sales = $this->gen_m->filter("lgepr_order", false, ["line_status !=" => "Closed"]);
+		$closed = $this->gen_m->filter("lgepr_order", false, ["closed_date >=" => date("Y-m-01")]);
+		
+		$orders = array_merge($sales, $closed);
+		
+		$excel = [];
+		
+		//header setting
+		$header = [];
+		foreach($orders[0] as $key => $val) $header[] = strtoupper(str_replace("_", " ", $key));
+		
+		$excel[] = $header;
+		
+		//content
+		foreach($orders as $item){
+			$aux = [];
+			foreach($item as $key => $val) $aux[] = $val;
+			
+			$excel[] = $aux;
+			//print_r($item); echo "<br/><br/>";
+			//print_r($aux); echo "<br/><br/>";
+		}
+		
+		//print_r($excel);
+		
+		$spreadsheet = new Spreadsheet();
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		$sheet->setTitle('rawdata');
+		
+		foreach($excel as $j => $row) foreach($row as $i => $val) $sheet->setCellValueByColumnAndRow($i+1, $j+1, $val);
+		
+		//save file
+		$writer = new Xlsx($spreadsheet);
+		$filePath = 'report/lgepr_orders.xlsx';
+		$writer->save($filePath);
+		
+		redirect($filePath);
+	}
+	
 	public function daily_closing_report(){
 		//only_multi($tablename, $fields, $where = null, $groups = null);
 		
@@ -45,10 +96,17 @@ class Lgepr_order extends CI_Controller {
 		$period = new DatePeriod($start_date, $interval, $end_date);
 
 		$date_arr = [];
-		$date_arr["00"] = ["day" => "No Appo.", "amount" => ["plan" => 0, "closed" => 0]];
 		foreach ($period as $date) {
 			$date_arr[$date->format('d')] = ["day" => $date->format('d'), "amount" => ["plan" => 0, "closed" => 0]];
 		}
+		
+		//no appointments in SO status
+		$date_arr["40"] = ["day" => "OPEN", "amount" => ["plan" => 0, "closed" => 0]];
+		$date_arr["41"] = ["day" => "HOLD", "amount" => ["plan" => 0, "closed" => 0]];
+		$date_arr["42"] = ["day" => "BACK", "amount" => ["plan" => 0, "closed" => 0]];
+		
+		//line total
+		$date_arr["50"] = ["day" => "TOTAL", "amount" => ["plan" => 0, "closed" => 0]];
 		
 		//print_r($date_arr); echo "<br/><br/>";
 
@@ -106,6 +164,49 @@ class Lgepr_order extends CI_Controller {
 			],
 		];
 		
+		$today = date("Y-m-d");
+		$today_t = strtotime($today);
+		
+		$sales = $this->gen_m->filter("lgepr_order", false, ["line_status !=" => "Closed"]);
+		foreach($sales as $item){
+			
+			//print_r($item); echo "<br/>";
+			if ($item->appointment_date){
+				if ($today_t <= strtotime($item->appointment_date)){
+					$amount_usd = $item->order_amount_usd;
+					$day = date("d", strtotime($item->appointment_date));
+				}else{
+					$amount_usd = 0;
+					$day = "01";
+				}
+			}else{
+				$amount_usd = $item->order_amount_usd;
+				
+				switch($item->so_status){
+					case "OPEN": $day = "40"; break;
+					case "HOLD": $day = "41"; break;
+					case "BACK": $day = "42"; break;
+					default: $day = "01"; $amount_usd = 0;
+				}
+			}
+				
+			if ($item->department === "LGEPR"){
+				//sum to day
+				$daily_plan["Total"]["closing"][$day]["amount"]["plan"] += $amount_usd;
+				$daily_plan["Total"]["departments"][$item->department]["closing"][$day]["amount"]["plan"] += $amount_usd;
+				$daily_plan["Total"]["departments"][$item->department]["companies"][$item->dash_company]["closing"][$day]["amount"]["plan"] += $amount_usd;
+				$daily_plan["Total"]["departments"][$item->department]["companies"][$item->dash_company]["divisions"][$item->dash_division]["closing"][$day]["amount"]["plan"] += $amount_usd;
+				
+				//sum to line total
+				$day = "50";
+				$daily_plan["Total"]["closing"][$day]["amount"]["plan"] += $amount_usd;
+				$daily_plan["Total"]["departments"][$item->department]["closing"][$day]["amount"]["plan"] += $amount_usd;
+				$daily_plan["Total"]["departments"][$item->department]["companies"][$item->dash_company]["closing"][$day]["amount"]["plan"] += $amount_usd;
+				$daily_plan["Total"]["departments"][$item->department]["companies"][$item->dash_company]["divisions"][$item->dash_division]["closing"][$day]["amount"]["plan"] += $amount_usd;
+			}
+			
+		}
+		
 		$closed = $this->gen_m->filter("lgepr_order", false, ["closed_date >=" => $from]);
 		foreach($closed as $item){
 			//print_R($item); echo "<br/><br/>";
@@ -119,40 +220,15 @@ class Lgepr_order extends CI_Controller {
 			$daily_plan["Total"]["departments"][$item->department]["closing"][$day]["amount"]["closed"] += $item->order_amount_usd;
 			$daily_plan["Total"]["departments"][$item->department]["companies"][$item->dash_company]["closing"][$day]["amount"]["closed"] += $item->order_amount_usd;
 			$daily_plan["Total"]["departments"][$item->department]["companies"][$item->dash_company]["divisions"][$item->dash_division]["closing"][$day]["amount"]["closed"] += $item->order_amount_usd;
+			
+			//sum to line total
+			$day = "50";
+			
+			$daily_plan["Total"]["closing"][$day]["amount"]["closed"] += $item->order_amount_usd;
+			$daily_plan["Total"]["departments"][$item->department]["closing"][$day]["amount"]["closed"] += $item->order_amount_usd;
+			$daily_plan["Total"]["departments"][$item->department]["companies"][$item->dash_company]["closing"][$day]["amount"]["closed"] += $item->order_amount_usd;
+			$daily_plan["Total"]["departments"][$item->department]["companies"][$item->dash_company]["divisions"][$item->dash_division]["closing"][$day]["amount"]["closed"] += $item->order_amount_usd;
 		}
-		
-		$appointments = $this->gen_m->filter("lgepr_order", false, ["line_status !=" => "Closed", "appointment_date >=" => $from]);
-		foreach($appointments as $item){
-			//print_R($item); echo "<br/><br/>";
-			//echo date("d", strtotime($item->closed_date))."<br/>";
-			//echo $item->order_amount_usd."<br/>";
-			//echo "<br/><br/>";
-			
-			$day = date("d", strtotime($item->appointment_date));
-			
-			$daily_plan["Total"]["closing"][$day]["amount"]["plan"] += $item->order_amount_usd;
-			$daily_plan["Total"]["departments"][$item->department]["closing"][$day]["amount"]["plan"] += $item->order_amount_usd;
-			$daily_plan["Total"]["departments"][$item->department]["companies"][$item->dash_company]["closing"][$day]["amount"]["plan"] += $item->order_amount_usd;
-			$daily_plan["Total"]["departments"][$item->department]["companies"][$item->dash_company]["divisions"][$item->dash_division]["closing"][$day]["amount"]["plan"] += $item->order_amount_usd;
-		}
-		
-		$no_appointments = $this->gen_m->filter("lgepr_order", false, ["line_status !=" => "Closed", "appointment_date" => null]);
-		foreach($no_appointments as $item){
-			foreach($item as $key => $val) echo $key." _____ ".$val."<br/>"; echo "<br/><br/>";
-			//echo date("d", strtotime($item->closed_date))."<br/>";
-			//echo $item->order_amount_usd."<br/>";
-			//echo "<br/><br/>";
-			
-			/*
-			$day = date("d", strtotime($item->appointment_date));
-			
-			$daily_plan["Total"]["closing"][$day]["amount"]["plan"] += $item->order_amount_usd;
-			$daily_plan["Total"]["departments"][$item->department]["closing"][$day]["amount"]["plan"] += $item->order_amount_usd;
-			$daily_plan["Total"]["departments"][$item->department]["companies"][$item->dash_company]["closing"][$day]["amount"]["plan"] += $item->order_amount_usd;
-			$daily_plan["Total"]["departments"][$item->department]["companies"][$item->dash_company]["divisions"][$item->dash_division]["closing"][$day]["amount"]["plan"] += $item->order_amount_usd;
-			*/
-		}
-		
 		
 		$data = [
 			"today" => date("d"),

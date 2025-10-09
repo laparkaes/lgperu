@@ -610,6 +610,9 @@ class Lgepr_sales_order extends CI_Controller {
 				//updated
 				$row_db["sales_updated_at"] = $now;
 				
+				//remove blank fields
+				foreach($row_db as $key => $val) if (!$val) unset($row_db[$key]);
+				
 				//DB work
 				$data = $this->gen_m->unique("lgepr_order", "order_line", $row_db["order_line"], false);
 				if ($data){
