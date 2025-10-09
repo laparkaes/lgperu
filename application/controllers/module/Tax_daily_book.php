@@ -20,47 +20,134 @@ class Tax_daily_book extends CI_Controller {
 	}
 	
 	public function index(){
-
-		$net_accounted_debit = $this->gen_m->filter_select('tax_daily_book', false, ['net_accounted_debit', 'period_name', 'accounting_unit'], null, null, null, [['period_name', 'desc']]);
-		$uniquePeriods = [];
-
-
 		
-		$dates = $this->get_unique_values('tax_daily_book', 'period_name');
-		//print_r($dates);
+		$module_links = [
+			'[TAX] Daily Book'        => base_url('module/tax_daily_book'),
+			'[AR] Cash Back'          => base_url('data_upload/ar_cash_back'),
+			'[AR] Bank Code'          => base_url('data_upload/ar_bank_code'),
+			'[AR] MDMS'               => base_url('data_upload/ar_mdms'),
+			'[ACC] PCGE'              => base_url('data_upload/lgepr_tax_pcge'),			
+			'[TAX] Purchase Register' => base_url('data_upload/tax_purchase_register'),	
+		];
+		$accum_values = $this->get_debe_haber();
+		$dates = $this->get_period();
+		$last_modules_info = $this->get_last_module_dates();
+		//echo '<pre>'; print_r($last_modules_info);
+		//$last_modules_info = $this->gen_m->filter('tax_modules_last_updates', false);
 		$data = [
-			"net_accounted_debit" 	=> $net_accounted_debit,
+			"module_links"			=> $module_links,
+			"last_modules_info"		=> $last_modules_info,
 			"period" 				=> $dates,
-			"tax"					=> $this->gen_m->filter("tax_daily_book", false, null, null, null, [['period_name', 'desc']], 500),
+			"accum_values"			=> $accum_values,
 			"main" 					=> "module/tax_daily_book/index",
 		];
 		
 		$this->load->view('layout', $data);
 	}
 	
+	public function get_debe_haber(){
+		
+		$this->db->select([
+			'period_name',
+			'SUM(CASE WHEN net_accounted_debit > 0 THEN net_accounted_debit ELSE 0 END) as total_positive',
+			'SUM(CASE WHEN net_accounted_debit < 0 THEN net_accounted_debit ELSE 0 END) as total_negative'
+		], false);
+
+		//$this->db->where('valid', false);
+		$this->db->where('accounting_unit !=', 'EPG');
+		$this->db->where('accounting_unit !=', 'INT');
+		$this->db->group_by('period_name');
+		$this->db->order_by('period_name', 'desc');
+		$net_accounted_debit = $this->db->get('tax_daily_book')->result();
+		$total_values = [];
+		foreach ($net_accounted_debit as $row) {
+			$total_values[$row->period_name] = ["debe" => (float)$row->total_positive, "haber" => (float)$row->total_negative];
+		}
+		//echo '<pre>'; print_r($total_values); 
+		return $total_values;
+	}
+
+	public function get_last_module_dates(){
+		$sql = "
+			-- 1. [TAX] Daily Book (updated)
+			SELECT '[TAX] Daily Book' as module, 'TAX' as team, MAX(updated) as last_updated
+			FROM tax_daily_book
+			
+			UNION ALL
+			
+			-- 2. [AR] Cash Back (cash_back_updated de tax_daily_book)
+			-- COALESCE asegura que si MAX() retorna NULL, se muestre 'No Data'.
+			SELECT '[AR] Cash Back', 'AR', COALESCE(MAX(cash_back_updated), 'No Data') 
+			FROM tax_daily_book
+			
+			UNION ALL
+			
+			-- 3. [AR] Bank Code
+			SELECT '[AR] Bank Code' as module, 'AR' as team, MAX(updated) as last_updated
+			FROM ar_bank_code
+			
+			UNION ALL
+			
+			-- 4. [AR] MDMS
+			SELECT '[AR] MDMS', 'AR', MAX(updated) FROM ar_mdms
+			
+			UNION ALL
+			
+			-- 5. [TAX] Purchase Register
+			SELECT '[TAX] Purchase Register', 'TAX', MAX(updated) FROM tax_purchase_register
+			
+			UNION ALL
+			
+			-- 6. [ACC] PCGE
+			SELECT '[ACC] PCGE', 'ACC', MAX(updated) FROM lgepr_tax_pcge		
+		";
+		
+		// Ejecución de la única consulta SQL
+		$result = $this->db->query($sql)->result_array();
+		//print_r($result);
+		return $result;
+	}
+	
+	public function get_period(){
+		$current_date = date('Y-m');
+		$current_month = (int)date('m');
+		$period = [];
+		for ($i=$current_month; $i>0; $i--){
+			if ($i < 10) $period[] = date('Y') . "-" . '0' . $i;
+			else $period[] = date('Y') . "-" . $i; 
+		}
+		
+		if ($current_month == 1){
+			$period[] = ((int)date('Y')-1) . '-12';
+		}
+		return $period;
+	}
+	
 	public function get_unique_values($tablename, $column_name) {
-		// 1. Obtener el año actual y el anterior.
+		// 1. Obtener el año actual y el anterior
 		$current_year = date('Y');
 		$previous_year = $current_year - 1;
-
-		// 2. Establecer el rango de inicio y fin para la consulta.
-		$start_period = $previous_year . '-10'; // Inicia en octubre del año anterior.
-		$end_period = $current_year . '-12'; // Termina en diciembre del año actual.
-
-		// 3. Construir la consulta con el rango y la unicidad.
-		$this->db->distinct()->select($column_name);
-
-		// 4. Excluye los valores nulos.
-		$this->db->where($column_name . ' IS NOT NULL', NULL, FALSE);
-
-		// 5. Añade la cláusula BETWEEN para el filtro de rango.
-		$this->db->where("$column_name BETWEEN '$start_period' AND '$end_period'");
 		
-		// 6. Ordenar los resultados de forma descendente (DESC).
+		// 2. Establecer el rango de inicio y fin
+		$start_period = $previous_year . '-10';
+		$end_period = $current_year . '-12';
+		
+		// 3. Usar GROUP BY en lugar de DISTINCT (más eficiente)
+		$this->db->select($column_name);
+		$this->db->from($tablename);
+		
+		// 4. Filtros optimizados
+		$this->db->where($column_name . ' >=', $start_period);
+		$this->db->where($column_name . ' <=', $end_period);
+		$this->db->where($column_name . ' IS NOT NULL', NULL, FALSE);
+		
+		// 5. GROUP BY es más eficiente que DISTINCT en la mayoría de casos
+		$this->db->group_by($column_name);
+		
+		// 6. Ordenar descendente
 		$this->db->order_by($column_name, 'DESC');
-	
-		// 7. Ejecuta y devuelve el resultado.
-		return $this->db->get($tablename)->result_array();
+		
+		return $this->db->get()->result_array();
 	}
 	
 	// Conversion fechas
@@ -743,110 +830,6 @@ class Tax_daily_book extends CI_Controller {
 			//$batch_insert = [];
 		}
 		
-	}
-	
-	public function number_document_v1($from_date, $to_date) {
-		set_time_limit(0);
-		ini_set("memory_limit", -1);
-		// Función para limpiar números (deja solo dígitos)
-		function clean_number($number) {
-			return preg_replace('/\D/', '', $number); // Elimina todo excepto dígitos
-		}
-
-		// Condición filtrando registros válidos
-		$w_daily = "vendor_customer NOT LIKE 'PR%' 
-					AND vendor_customer NOT LIKE 'GCC%'
-					AND accounting_unit NOT LIKE 'EPG'
-					AND accounting_unit NOT LIKE 'INT'
-					AND effective_date BETWEEN '$from_date' AND '$to_date'";
-
-		// Obtener vendor_customer y je_id en una sola consulta
-		$vendor_data = $this->gen_m->filter_select("tax_daily_book", false, ['vendor_customer', 'je_id'], $w_daily);
-
-		if (empty($vendor_data)) {
-			return [];
-		}
-		$vendor_chars = [];
-		// Extraer valores únicos de vendor_customer según la condición
-		$vendor_chars = ['numbers' => [], 'letters' => [], 'pe' => []];
-		foreach ($vendor_data as $v) {
-			$vc = $v->vendor_customer;
-			
-
-			if (ctype_digit(substr($vc, 0, 1))) {
-				//$vendor_chars['numbers'][] = strtok($vc, ' '); // Extraer hasta el primer espacio
-				$cleaned_number =  clean_number(strtok($vc, ' ')); // Elimina todo excepto dígitos
-				$vendor_chars['numbers'][] = $cleaned_number;
-				//print_r($cleaned_number); echo '<br>';
-			} elseif (stripos($vc, 'PE') === 0) {
-				$vendor_chars['pe'][] = substr($vc, 0, 8); // Extraer primeros 8 caracteres
-				
-			} else {
-				$vendor_chars['letters'][] = substr($vc, 0, 8); // Extraer primeros 8 caracteres
-			}
-		}
-		//print_r($vendor_chars['pe']); echo '<br>'; return;
-		// Remover duplicados
-		$vendor_chars['numbers'] = array_unique($vendor_chars['numbers']);
-		$vendor_chars['letters'] = array_unique($vendor_chars['letters']);
-		$vendor_chars['pe'] = array_unique($vendor_chars['pe']);
-
-		// Consultar en ar_mdms para valores que comienzan con letra (excepto PE)
-		$biz_map = [];
-		if (!empty($vendor_chars['letters'])) {
-			$w_letters = "master_id IN ('" . implode("','", $vendor_chars['letters']) . "') 
-						  OR bp_code IN ('" . implode("','", $vendor_chars['letters']) . "')";
-			
-			$biz_numbers_letters = $this->gen_m->filter_select("ar_mdms", false, ['master_id', 'bp_code']);
-			foreach ($biz_numbers_letters as $biz) {
-				$key = $biz->master_id ?: $biz->bp_code;
-				$biz_map[$key] = true; // Solo se usa para verificar existencia
-			}
-		}
-
-		// Consultar en ar_mdms para valores que comienzan con número
-		$biz_numbers_map = [];
-		if (!empty($vendor_chars['numbers'])) {
-			$clean_numbers = array_map('clean_number', $vendor_chars['numbers']); // Limpiar todos los números
-			$w_numbers = "biz_registration_no IN ('" . implode("','", $clean_numbers) . "')";
-			//$w_numbers = "biz_registration_no IN ('" . implode("','", $vendor_chars['numbers']) . "')";
-			$biz_numbers_numbers = $this->gen_m->filter_select("ar_mdms", false, ['biz_registration_no']);
-			$biz_numbers_map = array_column($biz_numbers_numbers, 'biz_registration_no', 'biz_registration_no');
-		}
-
-		// Consultar en ar_mdms para valores que comienzan con "PE"
-		$biz_pe_map = [];
-		if (!empty($vendor_chars['pe'])) {
-			$w_pe = "master_id IN ('" . implode("','", $vendor_chars['pe']) . "') 
-					OR bp_code IN ('" . implode("','", $vendor_chars['pe']) . "')";
-						  
-			$biz_pe_numbers = $this->gen_m->filter_select("ar_mdms", false, ['master_id', 'bp_code', 'biz_registration_no'], $w_pe);
-			//$w_pe = "biz_registration_no IN ('" . implode("','", $vendor_chars['pe']) . "')";
-			//$biz_pe_numbers = $this->gen_m->filter_select("ar_mdms", false, ['biz_registration_no']);
-			foreach ($biz_pe_numbers as $biz) {
-				$key = $biz->master_id ?: $biz->bp_code;
-				$biz_map[$key] = !empty($biz->biz_registration_no) ? substr($biz->biz_registration_no, 0, 11) : "Pendiente"; // Solo se usa para verificar existencia
-			}
-			//$biz_pe_map = array_column($biz_pe_numbers, 'biz_registration_no', 'biz_registration_no');
-		}
-
-		// Construir el array final con los datos optimizados
-		return array_map(function ($vendor) use ($biz_map, $biz_numbers_map) {
-			$vc = $vendor->vendor_customer;
-
-			if (ctype_digit(substr($vc, 0, 1))) {
-				$vendor_char = clean_number(strtok($vc, ' ')); // Extraer hasta el primer espacio
-				$ci_value = $biz_numbers_map[$vendor_char] ?? "00000000000"; // Buscar en biz_registration_no
-			} elseif (stripos($vc, 'PE') === 0) {
-				$vendor_char = substr($vc, 0, 8);
-				$ci_value = $biz_map[$vendor_char] ?? "00000000000"; // Si PE existe en ar_mdms, usarlo, si no, "00000000"
-			} else {
-				$vendor_char = substr($vc, 0, 8);
-				$ci_value = isset($biz_map[$vendor_char]) ? $vendor_char : "00000000000"; // Si existe en ar_mdms, usar el extraído
-			}
-
-			return [$vendor->je_id, $ci_value, $vendor_char];
-		}, $vendor_data);
 	}
 	
 	public function number_document($period) {

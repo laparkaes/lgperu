@@ -19,7 +19,7 @@
 	
 		<!-- Formulario para Subir Excel -->
 		<div class="col-md-3">    
-			<div class="card">
+			<div class="card shadow-sm">
 				<div class="card-body">
 					<h5 class="card-title text-center">Upload Daily Book</h5>
 		  
@@ -40,7 +40,7 @@
 		</div>
 		
 		<!-- Formulario para Subir Trial Balance -->
-		<div class="col-md-3">
+		<!--<div class="col-md-3">
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title text-center">Upload Trial Balance</h5>
@@ -59,21 +59,21 @@
 					</form>	
 				</div>
 			</div>
-		</div>
+		</div> -->
 		
 		<!-- Formulario para Exportar Reporte Excel -->
-		<div class="col-md-3">	
-			<div class="card">
+		<div class="col-md-4">	
+			<div class="card shadow-sm">
 				<div class="card-body">
 					<h5 class="card-title text-center">Export Daily Book</h5>
 					
 					<form class="row g-3 justify-content-center" id="export_report_form" action="<?= base_url('module/tax_daily_book/export_to_excel')?>" method="POST">
-						<div class="col-md-4">
+						<div class="col-md-3">
 							<label for="period" class="form-label">Period</label>
 							<select class="form-select flex-grow-1" id="period" name="period" required>
 								<option value="">Period...</option>
 								<?php foreach ($period as $periodName) { ?>
-									<option value="<?php echo $periodName['period_name']; ?>"><?php echo $periodName['period_name']; ?></option>
+									<option value="<?php echo $periodName; ?>"><?php echo $periodName; ?></option>
 								<?php } ?>
 							</select>
 							<!-- <div class="form-text">Select the period to export.</div> -->
@@ -132,50 +132,46 @@
        
 	  
 	</div>
-  
-  <table class="table datatable">
-		<thead>
-			<h5 class="card-title">Last 500 records </h5>
-			<tr>
-				<th scope="col">Period Name</th>
-				<th scope="col">Effective Date</th>
-				<th scope="col">Posted Date</th>
-				<th scope="col">Accounting Unit</th>
-				<th scope="col">Department Name</th>
-				<th scope="col">Currency</th>
-				<th scope="col">Net Entered Debit</th>
-				<th scope="col">Entered Debit</th>
-				<th scope="col">Entered Credit</th>
-				<th scope="col">Net Accounted Debit</th>
-				<th scope="col">Accounted Debit</th>
-				<th scope="col">Accounted Credit</th>
-				<th scope="col">Transaction Date</th>
-				<th scope="col">Created By</th>
-				<th scope="col">Updated</th>
-			</tr>
-		</thead>
-		<tbody>
-			<?php foreach($tax as $item){ ?>
-			<tr>
-				<td><?= $item->period_name ?></td>
-				<td><?= $item->effective_date ?></td>
-				<td><?= $item->posted_date ?></td>
-				<td><?= $item->accounting_unit ?></td>
-				<td><?= $item->department_name ?></td>
-				<td><?= $item->currency ?></td>
-				<td><?= $item->net_entered_debit ?></td>
-				<td><?= $item->entered_debit ?></td>
-				<td><?= $item->entered_credit ?></td>
-				<td><?= $item->net_accounted_debit ?></td>
-				<td><?= $item->accounted_debit ?></td>
-				<td><?= $item->accounted_credit ?></td>		
-				<td><?= $item->transaction_date ?></td>
-				<td><?= $item->created_by ?></td>
-				<td><?= $item->updated ?></td>
-			</tr>
-			<?php } ?>
-		</tbody>
-	</table>
+	<div class="row justify-content-center mt-4">
+		<div class="col-lg-8 col-xl-7">		
+			<div class="card shadow-sm">
+				<div class="card-body p-0">
+					<table class="table table-striped table-hover mb-0">
+						<thead>
+							<tr>
+								<th scope="col" style="width: 5%;">#</th>
+								<th scope="col" style="width: 45%;">Module</th>
+								<th scope="col" style="width: 15%;">Team</th>
+								<th scope="col" style="width: 25%;">Last updated</th>
+								<th scope="col" style="width: 10%;" class="text-center"></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php $count = 1; ?>
+							<?php foreach($last_modules_info as $item){ 
+								// Obtener el enlace del módulo, si existe en el array de mapeo
+								$link = $module_links[$item['module']] ?? '#'; 
+							?>
+							
+							<tr>
+								<td><?= $count?></td>
+								<td><?= $item['module']?></td>
+								<td><?= $item['team']?></td>
+								<td><?= $item['last_updated']?></td>
+								<td class="text-center">
+									<a href="<?= $link ?>" target="_blank" title="Go to module"> 
+										<i class="bi bi-arrow-up-right-square-fill text-primary"></i>
+									</a>
+								</td>
+							</tr>
+							<?php $count += 1; ?>
+							<?php } ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
 </section>
 
 <script> // Upload Data
@@ -197,44 +193,48 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 <script>
-// Captura la variable PHP y la convierte a una variable JavaScript
-// Asegúrate de que esta línea esté después de que $net_accounted_debit haya sido definida en tu controlador
-const netAccountedDebitData = <?php echo json_encode($net_accounted_debit); ?>;
+    const accumValues = <?php echo json_encode($accum_values); ?>;
 
-document.addEventListener('DOMContentLoaded', function() {
     const periodSelect = document.getElementById('period');
     const debeInput = document.getElementById('debe');
     const haberInput = document.getElementById('haber');
+    
+    // Función para formatear números como moneda (opcional)
+    const formatter = new Intl.NumberFormat('es-PE', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
 
-    function updateDebeHaber() {
-        const selectedPeriod = periodSelect.value;
-        let totalDebe = 0;
-        let totalHaber = 0;
+    periodSelect.addEventListener('change', function() {
+        const selectedPeriod = this.value;
 
-        if (selectedPeriod) { // Solo procesar si se ha seleccionado un período
-            // Iterar sobre todos los datos y filtrar por el período seleccionado
-            netAccountedDebitData.forEach(item => {
-                if (item.period_name === selectedPeriod && item.accounting_unit !== 'EPG' && item.accounting_unit !== 'INT') {
-                    const value = parseFloat(item.net_accounted_debit); // Asegurarse de que sea un número
-                    if (value >= 0) {
-                        totalDebe += value;
-                    } else { // Sumar valores negativos
-                        totalHaber += value;
-                    }
-                }
-            });
+        if (!selectedPeriod) {
+            debeInput.value = 'Valor del Debe';
+            haberInput.value = 'Valor del Haber';
+            return;
         }
 
-        // Actualizar los inputs con los valores formateados a dos decimales
-        debeInput.value = totalDebe.toFixed(2);
-        haberInput.value = totalHaber.toFixed(2);
-    }
+        if (accumValues[selectedPeriod]) {
+            const data = accumValues[selectedPeriod];
+            
+            // --- MODIFICACIÓN CLAVE ---
+            // 1. Obtener el valor numérico (data.debe)
+            // 2. Convertirlo a una cadena de texto (toString())
+            // 3. Reemplazar todas las comas (si existen) por una cadena vacía.
+            const debeSinComas = data.debe.toString().replace(/,/g, '');
+            const haberSinComas = data.haber.toString().replace(/,/g, '');
+            
+            // Asignar los valores sin comas a los inputs
+            debeInput.value = debeSinComas;
+            haberInput.value = haberSinComas;
+            
+        } else {
+            debeInput.value = 'No Data';
+            haberInput.value = 'No Data';
+        }
+    });
 
-    // Escuchar el evento 'change' en el select del período
-    periodSelect.addEventListener('change', updateDebeHaber);
+    periodSelect.dispatchEvent(new Event('change'));
 
-    // Llamar la función al cargar la página por si hay un período pre-seleccionado
-    // o para inicializar los valores de los inputs.
-    updateDebeHaber();
-});
 </script>
