@@ -2,7 +2,12 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
 class Lgepr_sales_order extends CI_Controller {
 
@@ -32,12 +37,7 @@ class Lgepr_sales_order extends CI_Controller {
 		$this->update_dash_div_cat();
 	}
 	
-	public function test(){
-		//$this->update_dash_div_cat("lgepr_order");
-		
-	}
-	
-	private function update_dash_div_cat($tablename = "lgepr_sales_order"){
+	private function update_dash_div_cat(){
 		$dash_mapping = [
 			"REF" 	=> ["dash_company" => "HS"	, "dash_division" => "REF"],
 			"CVT" 	=> ["dash_company" => "HS"	, "dash_division" => "Cooking"],
@@ -51,23 +51,25 @@ class Lgepr_sales_order extends CI_Controller {
 			"SGN" 	=> ["dash_company" => "MS"	, "dash_division" => "MNT Signage"],
 			"LEDSGN" => ["dash_company" => "MS"	, "dash_division" => "LED Signage"],
 			"CTV" 	=> ["dash_company" => "MS"	, "dash_division" => "Commercial TV"],
-			"PC" 	=> ["dash_company" => "MS"	, "dash_division" => "PC"],
+			"PC" 	=> ["dash_company" => "MS"	, "dash_division" => "PC"],		
 			"PRJ" 	=> ["dash_company" => "MS"	, "dash_division" => "MNT"],
 			
-			"RAC" 	=> ["dash_company" => "ES"	, "dash_division" => "RAC"],
+			"BMS" 	=> ["dash_company" => "ES"	, "dash_division" => "RAC"],			
+			"RAC" 	=> ["dash_company" => "ES"	, "dash_division" => "RAC"],			
 			"SAC" 	=> ["dash_company" => "ES"	, "dash_division" => "SAC"],
 			"A/C" 	=> ["dash_company" => "ES"	, "dash_division" => "Chiller"],
+			"CHL" 	=> ["dash_company" => "ES"	, "dash_division" => "Chiller"],
 			
-			"MC" 	=> ["dash_company" => "MC"	, "dash_division" => "MC"],
+			"MC" 	=> ["dash_company" => "MC"	, "dash_division" => "MC"],	
 		];
 		
-		foreach($dash_mapping as $key => $item) $this->gen_m->update($tablename, ["model_category" => $key], $item);
+		foreach($dash_mapping as $key => $item) $this->gen_m->update("lgepr_sales_order", ["model_category" => $key], $item);
 		
-		$this->gen_m->update($tablename, ["product_level2_name" => "SRAC"], $dash_mapping["RAC"]);
-		$this->gen_m->update($tablename, ["product_level2_name" => "Commercial_LED Signage"], $dash_mapping["LEDSGN"]);
+		$this->gen_m->update("lgepr_sales_order", ["product_level2_name" => "SRAC"], $dash_mapping["RAC"]);
+		$this->gen_m->update("lgepr_sales_order", ["product_level2_name" => "Commercial_LED Signage"], $dash_mapping["LEDSGN"]);
 	}
 	
-	private function update_model_category($tablename = "lgepr_sales_order"){
+	private function update_model_category(){
 		//set mapping array
 		$w = ["model_category !=" => ""];
 		$s = ["model_category", "product_level4"];
@@ -97,7 +99,7 @@ class Lgepr_sales_order extends CI_Controller {
 		//update blank model categories
 		$w = ["model_category" => ""];
 		$s = ["model_category", "product_level4_code"];
-		$sales_orders = $this->gen_m->filter_select($tablename, false, $s, $w, null, null, [["product_level4_code", "desc"]], null, null, "product_level4_code");
+		$sales_orders = $this->gen_m->filter_select("lgepr_sales_order", false, $s, $w, null, null, [["product_level4_code", "desc"]], null, null, "product_level4_code");
 		
 		foreach($sales_orders as $item){
 			$mc = "";
@@ -112,10 +114,113 @@ class Lgepr_sales_order extends CI_Controller {
 			
 			//echo $sub6." ".$sub4." >>> ".$mc."<br/>"; print_r($item); echo "<br/><br/>";
 			
-			if ($mc) $this->gen_m->update($tablename, ["product_level4_code" => $item->product_level4_code], ["model_category" => $mc]);
+			if ($mc) $this->gen_m->update("lgepr_sales_order", ["product_level4_code" => $item->product_level4_code], ["model_category" => $mc]);
 		}
 		
-		$this->update_dash_div_cat($tablename);
+		$this->update_dash_div_cat();
+	}
+	
+	public function export_sales_data(){
+		$from_date = $this->input->get('from_date'); 
+        $to_date   = $this->input->get('to_date');   
+		
+		if (empty($from_date) || empty($to_date)) {
+            show_error('Las fechas de inicio y fin son requeridas para la exportación.', 400);
+            return;
+        }
+		
+		$data = $this->gen_m->filter('lgepr_sales_order', false, ['create_date <=' => $to_date, 'create_date >=' => $from_date]);
+		
+		$spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $headers = [
+           'Dash Company', 'Dash Division', 'Bill to Name', 'Ship to Name', 'Customer Name', 'Customer PO No.', 'Customer PO Date', 'Model', 'Order Line', 'Order No.', 'Line No.', 'Order Type', 'Line Status', 'SO Status', 'Ordered Qty', 'CBM', 'Unit Selling Price', 'Sales Amount', 'Sales Amount USD', 'Tax Amount', 'Charge Amount', 'Line Total', 'Currency', 'Booked Date', 'Req Arrival Date to', 'Shipment Date', 'Appointment Date', 'Bill to', 'Customer Department', 'Ship to','Inventory Org.', 'Sub-Inventory', 'Order Status', 'Order Category', 'Receiver City', 'Item Division', 'Product Level1 Name', 'Product Level2 Name', 'Product Level3 Name', 'Product Level4 Name', 'Product Level4 Code', 'Model Category', 'Item Type Description', 'Create Date', 'Hold Flag', 'Instock Flag', 'Back Order Hold', 'Credit Hold', 'Overdue Hold', 'Customer Hold', 'Payterm Term Hold', 'Fp Hold', 'Minimum Hold', 'Future Hold', 'Reserve Hold', 'Manual Hold', 'Auto pending Hold', 'On Hold', 'Form Hold', 'Bank Collateral Hold', 'Insurance Hold', 'Partial Flag', 'Load Hold Flag', 'Updated At', 'About Line Status', 'Om Appointment', 'Om Appointment Remark', 'Om Updared At'
+        ];
+        $sheet->fromArray($headers, NULL, 'A1');
+
+        $row = 2;
+        foreach ($data as $item) {
+            $sheet->setCellValue('A' . $row, $item->dash_company);
+            $sheet->setCellValue('B' . $row, $item->dash_division);
+            $sheet->setCellValue('C' . $row, $item->bill_to_name);
+            $sheet->setCellValue('D' . $row, $item->ship_to_name);
+            $sheet->setCellValue('E' . $row, $item->customer_name);			
+			$sheet->setCellValue('F' . $row, $item->customer_po_no);
+            $sheet->setCellValue('G' . $row, $item->customer_po_date);
+            $sheet->setCellValue('H' . $row, $item->model);
+            $sheet->setCellValue('I' . $row, $item->order_line);
+            $sheet->setCellValue('J' . $row, $item->order_no);
+			$sheet->setCellValue('K' . $row, $item->line_no);
+            $sheet->setCellValue('L' . $row, $item->order_type);
+            $sheet->setCellValue('M' . $row, $item->line_status);
+            $sheet->setCellValue('N' . $row, $item->so_status);
+            $sheet->setCellValue('O' . $row, $item->ordered_qty);
+			$sheet->setCellValue('P' . $row, $item->cbm);
+            $sheet->setCellValue('Q' . $row, $item->unit_selling_price);
+            $sheet->setCellValue('R' . $row, $item->sales_amount);
+            $sheet->setCellValue('S' . $row, $item->sales_amount_usd);
+            $sheet->setCellValue('T' . $row, $item->tax_amount);
+			$sheet->setCellValue('U' . $row, $item->charge_amount);
+            $sheet->setCellValue('V' . $row, $item->line_total);
+            $sheet->setCellValue('W' . $row, $item->currency);
+            $sheet->setCellValue('X' . $row, $item->booked_date);
+            $sheet->setCellValue('Y' . $row, $item->req_arrival_date_to);
+			$sheet->setCellValue('Z' . $row, $item->shipment_date);
+            $sheet->setCellValue('AA' . $row, $item->appointment_date);
+            $sheet->setCellValue('AB' . $row, $item->bill_to);
+            $sheet->setCellValue('AC' . $row, $item->customer_department);
+            $sheet->setCellValue('AD' . $row, $item->ship_to);
+			$sheet->setCellValue('AE' . $row, $item->inventory_org);
+            $sheet->setCellValue('AF' . $row, $item->sub_inventory);
+            $sheet->setCellValue('AG' . $row, $item->order_status);
+            $sheet->setCellValue('AH' . $row, $item->order_category);
+            $sheet->setCellValue('AI' . $row, $item->receiver_city);            
+			$sheet->setCellValue('AJ' . $row, $item->item_division);
+            $sheet->setCellValue('AK' . $row, $item->product_level1_name);
+            $sheet->setCellValue('AL' . $row, $item->product_level2_name);		
+            $sheet->setCellValue('AM' . $row, $item->product_level3_name);
+			$sheet->setCellValue('AN' . $row, $item->product_level4_name);            
+			$sheet->setCellValue('AO' . $row, $item->product_level4_code);
+            $sheet->setCellValue('AP' . $row, $item->model_category);
+            $sheet->setCellValue('AQ' . $row, $item->item_type_desctiption);
+            $sheet->setCellValue('AR' . $row, $item->create_date);
+			$sheet->setCellValue('AS' . $row, $item->hold_flag);			
+			$sheet->setCellValue('AT' . $row, $item->instock_flag);
+            $sheet->setCellValue('AU' . $row, $item->back_order_hold);			
+			$sheet->setCellValue('AV' . $row, $item->credit_hold);            
+			$sheet->setCellValue('AW' . $row, $item->overdue_hold);
+            $sheet->setCellValue('AX' . $row, $item->customer_hold);
+            $sheet->setCellValue('AY' . $row, $item->payterm_term_hold);		
+            $sheet->setCellValue('AZ' . $row, $item->fp_hold);
+			$sheet->setCellValue('BA' . $row, $item->minimum_hold);            
+			$sheet->setCellValue('BB' . $row, $item->future_hold);
+            $sheet->setCellValue('BC' . $row, $item->reserve_hold);
+            $sheet->setCellValue('BD' . $row, $item->manual_hold);
+            $sheet->setCellValue('BE' . $row, $item->auto_pending_hold);
+			$sheet->setCellValue('BF' . $row, $item->sa_hold);			
+			$sheet->setCellValue('BG' . $row, $item->form_hold);
+            $sheet->setCellValue('BH' . $row, $item->bank_collateral_hold);
+			$sheet->setCellValue('BI' . $row, $item->insurance_hold);
+            $sheet->setCellValue('BJ' . $row, $item->partial_flag);
+            $sheet->setCellValue('BK' . $row, $item->load_hold_flag);
+            $sheet->setCellValue('BL' . $row, $item->updated_at);
+			$sheet->setCellValue('BM' . $row, $item->om_line_status);			
+			$sheet->setCellValue('BN' . $row, $item->om_appointment);
+            $sheet->setCellValue('BO' . $row, $item->om_appointment_remark);
+			$sheet->setCellValue('BP' . $row, $item->om_updated_at);
+            $row++;
+        }
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $filename = 'Lgepr_sales_order_' . $from_date . '_to_' . $to_date . '.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="'. $filename .'"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+        exit;
 	}
 	
 	public function process_snap(){//sales order shapshot
@@ -298,7 +403,7 @@ class Lgepr_sales_order extends CI_Controller {
 	}
 	
 	public function process(){
-		ini_set('memory_limit', '4G');
+		ini_set('memory_limit', '2G');
 		set_time_limit(0);
 		
 		$start_time = microtime(true);
@@ -365,6 +470,7 @@ class Lgepr_sales_order extends CI_Controller {
 					'appointment_date'		=> trim($sheet->getCell('EH'.$i)->getValue()),
 					'shipment_date'			=> trim($sheet->getCell('AF'.$i)->getValue()),
 					'receiver_city'			=> trim($sheet->getCell('BX'.$i)->getValue()),
+					'order_source' 			=> trim($sheet->getCell('BD'.$i)->getValue()),
 					'item_type_desctiption' => trim($sheet->getCell('CK'.$i)->getValue()),
 					'item_division' 		=> trim($sheet->getCell('CD'.$i)->getValue()),
 					'model_category' 		=> trim($sheet->getCell('CJ'.$i)->getValue()),
@@ -476,10 +582,6 @@ class Lgepr_sales_order extends CI_Controller {
 			
 			$this->update_model_category();
 			
-			/* Nueva tabla para gestion de pedidos */
-			$this->process_lgepr_order();
-			/* NO ELIMINAR */
-			
 			$msg = number_format($records)." record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		}else $msg = "File template error. Please check upload file.";
 		
@@ -487,160 +589,6 @@ class Lgepr_sales_order extends CI_Controller {
 		echo $msg;
 		echo "<br/><br/>";
 		echo 'You can close this tab now.<br/><br/><button onclick="window.close();">Close This Tab</button>';
-	}
-	
-	public function process_lgepr_order(){
-		ini_set('memory_limit', '4G');
-		set_time_limit(0);
-		
-		//load excel file
-		$spreadsheet = IOFactory::load("./upload/lgepr_sales_order.xls");
-		$sheet = $spreadsheet->getActiveSheet();
-		
-		//excel file header validation
-		$h = [
-			trim($sheet->getCell('A1')->getValue()),
-			trim($sheet->getCell('B1')->getValue()),
-			trim($sheet->getCell('C1')->getValue()),
-			trim($sheet->getCell('D1')->getValue()),
-			trim($sheet->getCell('E1')->getValue()),
-			trim($sheet->getCell('EL1')->getValue()),
-		];
-		
-		//sales order header
-		$h_gerp = ["Bill To Name", "Ship To Name", "Model", "Order No.", "Line No.", "RAD Unmeet Reason"];
-		
-		//header validation
-		foreach($h as $i => $h_i) if ($h_i !== $h_gerp[$i]){ echo "Template error."; return; }
-		
-		//define now
-		$now = date('Y-m-d H:i:s', time());
-		
-		$header_index = [];
-		$header_mapping = ['Order Category' => 'order_category', 'Department' => 'department', 'Order No.' => 'order_no', 'Line No.' => 'line_no', 'SO Status(2)' => 'so_status', 'Order Status' => 'order_status', 'Line Status' => 'line_status', 'Original List Price' => 'original_list_price', 'List Price' => 'unit_list_price', 'Unit Selling Price' => 'unit_selling_price', 'Sales Amount' => 'order_amount', 'Tax Amount' => 'tax_amount', 'Charge Amount' => 'charge_amount', 'Line Total' => 'total_amount', 'DC Rate' => 'dc_rate', 'Currency' => 'currency', 'Delivery Number' => 'delivery_number', 'Invoice No.' => 'invoice_no', 'Customer Po Date' => 'customer_po_date', 'Create Date' => 'create_date', 'Booked Date' => 'booked_date', 'Order Date' => 'order_date', 'Customer RAD' => 'customer_rad', 'Req. Arrival Date From' => 'req_arrival_date_from', 'Req. Arrival Date To' => 'req_arrival_date_to', 'Appointment Date' => 'appointment_date', 'Req. Ship Date' => 'req_ship_date', 'Shipment Date' => 'shipment_date', 'Close Date' => 'closed_date', 'Inventory Org.' => 'inventory_org', 'Sub- Inventory' => 'sub_inventory', 'Order Type' => 'order_type', 'Line Type' => 'line_type', 'Bill To' => 'bill_to_code', 'Bill To Name' => 'bill_to_name', 'Ship To' => 'ship_to_code', 'Ship To Name' => 'ship_to_name', 'Order Qty' => 'order_qty', 'Cancel Qty' => 'cancel_qty', 'Item CBM' => 'item_cbm', 'Model' => 'model', 'Item Division' => 'item_division', 'Model Category' => 'model_category', 'PL1 Name' => 'product_level1_name', 'PL2 Name' => 'product_level2_name', 'PL3 Name' => 'product_level3_name', 'PL4 Name' => 'product_level4_name', 'Product Level4 Code' => 'product_level4', 'Instock Flag' => 'instock_flag', 'Inventory Reserved' => 'inventory_reserved', 'Partial Flag' => 'partial_flag', 'Pick Released' => 'pick_released', 'Ready To Pick' => 'ready_to_pick', 'SO-SA Mapping' => 'so_sa_mapping', 'Hold Flag' => 'hold_flag', 'Credit Hold' => 'credit_hold', 'Back Order Hold' => 'back_order_hold', 'Overdue Hold' => 'overdue_hold', 'Customer Hold' => 'customer_hold', 'Manual Hold' => 'manual_hold', 'Auto Pending Hold' => 'auto_pending_hold', 'Bank Collateral Hold' => 'bank_collateral_hold', 'Form Hold' => 'form_hold', 'FP Hold' => 'fp_hold', 'Future Hold' => 'future_hold', 'Insurance Hold' => 'insurance_hold', 'Minimum Hold' => 'minimum_hold', 'Payterm Term Hold' => 'payterm_term_hold', 'Pick Cancel Manual Hold' => 'pick_cancel_manual_hold', 'Reserve Hold' => 'reserve_hold', 'S/A Hold' => 'sa_hold', 'Accounting Unit' => 'accounting_unit', 'Carrier Code' => 'carrier_code', 'Customer Name' => 'customer_name', 'Customer PO No.' => 'customer_po_no', 'Install Type' => 'install_type', 'Interest Amt' => 'interest_amt', 'Item Type' => 'item_type_desctiption', 'Item Weight' => 'item_weight', 'Order Source' => 'order_source', 'Payment Term' => 'payment_term', 'Pick Release Qty' => 'pick_release_qty', 'Pricing Group' => 'pricing_group', 'Project Code' => 'project_code', 'Sales Channel (Low)' => 'sales_channel', 'Sales Person' => 'sales_person', 'Receiver City Desc' => 'ship_to_city', 'Shipping Method' => 'shipping_method', 'Price Condition' => 'price_condition',];
-		
-		// RowIterator로 행을 순회
-		foreach ($sheet->getRowIterator() as $row){
-			
-			if ($row->getRowIndex() == 1){//make header_index setup
-				$cellIterator = $row->getCellIterator();
-				$cellIterator->setIterateOnlyExistingCells(false); // 비어 있는 셀도 포함
-
-				foreach ($cellIterator as $cell) {
-					$header_index[] = $cell->getValue();
-				}
-				
-				//print_r($header_index); echo "<br/><br/>";
-			}else{//data insert/update
-				
-				$row_data = [];
-				
-				$cellIterator = $row->getCellIterator();
-				$cellIterator->setIterateOnlyExistingCells(false); // 비어 있는 셀도 포함
-
-				foreach ($cellIterator as $cell) {
-					$col_i = Coordinate::columnIndexFromString($cell->getColumn()) - 1;//index
-					$col_h = $header_index[$col_i];//sales order report header
-					//$col_h_mapped = $header_mapping[$col_h];
-					
-					$row_data[$col_h] = $cell->getValue();
-				}
-				
-				$row_db = [];
-				foreach($header_mapping as $k => $val){
-					$row_db[$val] = trim($row_data[$k]);
-				}
-				
-				//primary key
-				$row_db["order_line"] = $row_db["order_no"]."_".$row_db["line_no"];
-				
-				//float comma
-				$row_db["original_list_price"]	= str_replace(",", "", $row_db["original_list_price"]);
-				$row_db["unit_list_price"]		= str_replace(",", "", $row_db["unit_list_price"]);
-				$row_db["unit_selling_price"]	= str_replace(",", "", $row_db["unit_selling_price"]);
-				$row_db["order_amount"] 		= str_replace(",", "", $row_db["order_amount"]);
-				$row_db["tax_amount"] 			= str_replace(",", "", $row_db["tax_amount"]);
-				$row_db["charge_amount"] 		= str_replace(",", "", $row_db["charge_amount"]);
-				$row_db["total_amount"] 		= str_replace(",", "", $row_db["total_amount"]);
-				
-				//%
-				$row_db["dc_rate"]	= $row_db["dc_rate"] ? str_replace("%", "", $row_db["dc_rate"])/100 : 0;
-				
-				//date convert: 28-OCT-2021 > 2021-10-28
-				$row_db["appointment_date"] = $this->my_func->date_convert_5($row_db["appointment_date"]);
-				
-				//date convert: dd/mm/yyyy > yyyy-mm-dd
-				$row_db["customer_po_date"] 	= $this->my_func->date_convert($row_db["customer_po_date"]);
-				$row_db["create_date"] 			= $this->my_func->date_convert($row_db["create_date"]);
-				$row_db["booked_date"] 			= $this->my_func->date_convert($row_db["booked_date"]);
-				$row_db["order_date"] 			= $this->my_func->date_convert($row_db["order_date"]);
-				$row_db["req_arrival_date_from"] = $this->my_func->date_convert($row_db["req_arrival_date_from"]);
-				$row_db["req_arrival_date_to"] 	= $this->my_func->date_convert($row_db["req_arrival_date_to"]);
-				$row_db["req_ship_date"] 		= $this->my_func->date_convert($row_db["req_ship_date"]);
-				$row_db["shipment_date"] 		= $this->my_func->date_convert($row_db["shipment_date"]);
-				$row_db["closed_date"] 			= $this->my_func->date_convert($row_db["closed_date"]);
-				
-				//customer_rad yyyy-mm-dd 0:00
-				$row_db["customer_rad"] = $row_db["customer_rad"] ? explode(" ", $row_db["customer_rad"])[0] : null;
-				
-				//data from Closed order
-				$row_db["category"] = $row_db["order_category"] === "RETURN" ? "Return" : "Sales";
-				
-				//usd calculation
-				$er = 3.6;
-				switch($row_db['currency']){
-					case "BRL": $er = 3.25; break;
-					case "USD": $er = 1; break;
-					default:
-						if ($row_db["booked_date"]){
-							$rate = $this->gen_m->filter("exchange_rate", false, ["currency" => $row_db['currency'], "date <=" => $row_db["booked_date"]], null, null, [["date", "desc"]], 1);
-							
-							if ($rate){
-								$er = $rate[0]->sell;
-								if (!$er) $er = 3.6;
-							}else $er = 3.6;
-						}else $er = 3.6;
-						
-						break;
-				}
-				
-				$row_db["order_amount_usd"] =  $row_db["order_amount"] ? round($row_db["order_amount"] / $er, 2) : 0;
-				$row_db["total_amount_usd"] =  $row_db["total_amount"] ? round($row_db["total_amount"] / $er, 2) : 0;
-				
-				//updated
-				$row_db["sales_updated_at"] = $now;
-				
-				//remove blank fields
-				foreach($row_db as $key => $val) if (!$val) unset($row_db[$key]);
-				
-				//DB work
-				$data = $this->gen_m->unique("lgepr_order", "order_line", $row_db["order_line"], false);
-				if ($data){
-					if ($data->line_status !== "Closed") $this->gen_m->update("lgepr_order", ["order_line" => $row_db["order_line"]], $row_db);
-				}else $this->gen_m->insert("lgepr_order", $row_db);
-					
-				//print_r($row_db);
-				//foreach($row_db as $k => $val){ echo $k."======>".$val."<br/>"; } echo "<br/><br/>";
-			}
-			
-		}
-		
-		//fill dash company and division
-		$this->update_dash_div_cat("lgepr_order");
-		
-		$records = $this->gen_m->filter("lgepr_order", false, ["dash_company" => null, "product_level4 !=" => "ZZZZZZZZ"]);
-		foreach($records as $item){
-			$aux = null;
-			$aux = $this->gen_m->filter("lgepr_order", false, ["dash_company !=" => null], [["field" => "product_level4", "values" => [$item->product_level4]]], null, null, 1);
-			if (!$aux) $aux = $this->gen_m->filter("lgepr_order", false, ["dash_company !=" => null], [["field" => "product_level4", "values" => [substr($item->product_level4, 0, 6)]]], null, null, 1);
-			if (!$aux) $aux = $this->gen_m->filter("lgepr_order", false, ["dash_company !=" => null], [["field" => "product_level4", "values" => [substr($item->product_level4, 0, 4)]]], null, null, 1);
-			if (!$aux) $aux = $this->gen_m->filter("lgepr_order", false, ["dash_company !=" => null], [["field" => "product_level4", "values" => [substr($item->product_level4, 0, 2)]]], null, null, 1);
-			
-			if ($aux){
-				$val = ["dash_company" => $aux[0]->dash_company, "dash_division" => $aux[0]->dash_division, "model_category" => $aux[0]->model_category];
-				$this->gen_m->update("lgepr_order", ["order_line" => $item->order_line], $val);	
-			}
-		}
 	}
 	
 	public function upload(){
