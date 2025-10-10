@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 09, 2025 at 11:49 PM
+-- Generation Time: Oct 10, 2025 at 07:56 PM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 7.4.33
 
@@ -31,6 +31,11 @@ CREATE TABLE `po_register` (
   `id` int(11) NOT NULL,
   `po_number` varchar(100) DEFAULT NULL,
   `line` int(10) DEFAULT NULL,
+  `model` varchar(100) DEFAULT NULL,
+  `qty` int(11) DEFAULT NULL,
+  `amount_usd` float DEFAULT NULL,
+  `order_no` varchar(100) DEFAULT NULL,
+  `line_no` varchar(20) DEFAULT NULL,
   `registrator` varchar(200) DEFAULT NULL,
   `ep_mail` varchar(100) DEFAULT NULL,
   `po_file` varchar(100) DEFAULT NULL,

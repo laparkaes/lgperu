@@ -1,6 +1,11 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+use PhpMimeMailParser\Parser as EmlParser;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use Smalot\PdfParser\Parser as PdfParser;
+
 class Po_register extends CI_Controller {
 
 	public function __construct(){
@@ -11,86 +16,129 @@ class Po_register extends CI_Controller {
 	}
 		
 	public function index(){
-		$customer_list = ['IMPORTACIONES RUBI S.A.', 'SAGA FALABELLA S.A.', 'CONECTA RETAIL S.A.', 'REPRESENTACIONES VARGAS S.A.', 'INTEGRA RETAIL S.A.C.', 'TIENDAS PERUANAS S.A. (OECHSLE)', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA (PLAZA VEA)', 'HOMECENTERS PERUANOS S.A. (PROMART)', 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.', 'HIPERMERCADOS TOTTUS S.A.', 'IMPORTACIONES HIRAOKA S.A.C.', 'SODIMAC', 'ESTILOS S.R.L.', 'METRO'];
-		$po_data = $this->gen_m->filter('po_register', false, null, null, $w_in = null, $orders = [['created', 'DESC'], ['po_number', 'ASC'], ['line', 'ASC']]);
+		$customer_list = ['IMPORTACIONES RUBI S.A.', 'SAGA FALABELLA S.A.', 'CONECTA RETAIL S.A.', 'REPRESENTACIONES VARGAS S.A.', 'INTEGRA RETAIL S.A.C.', 'TIENDAS PERUANAS S.A. - [OECHSLE]', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - [PLAZA VEA]', 'HOMECENTERS PERUANOS S.A. - [PROMART]', 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.', 'HIPERMERCADOS TOTTUS S.A.', 'TIENDAS DEL MEJORAMIENTO DEL HOGAR S.A. - [SODIMAC]', 'ESTILOS S.R.L.', 'CENCOSUD RETAIL PERU S.A. - [METRO]', 'COMERCIAL COUNTRY S.A.' , 'ELECTROHOGAR YATACO E.I.R.L.', 'IMPORTACIONES HIRAOKA S.A.', 'TIENDAS CHANCAFE S.A.C.'];
+		
+		$po_list = [];
+		$po_data = $this->gen_m->filter('po_register', false, ['created >=' => Date('Y-m-01')], null, $w_in = null, $orders = [['created', 'DESC'], ['po_number', 'ASC'], ['line_no', 'ASC']]);
+		foreach ($po_data as $item) $po_list[$item->po_number][] = $item;		
+		
+		
 		sort($customer_list);
 		$status_list = ['Confirmed', 'Requested', 'Registered', 'Sent'];
 		$data = [
 			"status"	=> $status_list,
 			"customers" => $customer_list,
-			"history"	=> $po_data,
-			"overflow" 	=> "hidden",
+			"history"	=> $po_list,
+			"overflow" 	=> "scroll",
 			"main" 		=> "page/po_register/index",
 		];
-		
+		$this->update_po_lines();
 		$this->load->view('layout_dashboard', $data);
 	}
+	
+	public function process_eml_format($original_eml_files, $uploaded_files_map){
+		$eml_was_uploaded = !empty($original_eml_files);
+		$eml_attachments_for_email = [];
+		$eml_processed_files = [];
 
-	public function register_data() {
-        // Obtener los valores de los campos de texto
-        $registrator = $this->input->post('registrator', TRUE); // TRUE para sanitizar el input
-        $ep_mail = $this->input->post('ep_mail', TRUE);
-		$customer_name = $this->input->post("customer_name");
-		$po_number = $this->input->post("po_number");
-		$remark = $this->input->post("remark");
-		
-        // Configuración para la subida del archivo
-        $config['upload_path']   = './upload/';
-        $config['allowed_types'] = 'gif|jpg|png|pdf|doc|docx|zip|xls|xlsx|txt';
-        $config['max_size']      = 20000;
-        $config['file_name']     = $_FILES['attachment']['name']; // Conservar el nombre original
-			
-		$file_path = null;
-		$file_name = null;
-		
-		if (!empty($_FILES['attachment']['name'])) {
-			$this->upload->initialize($config);
-			if ($this->upload->do_upload('attachment')) {
-				$file_data = $this->upload->data();
-				$file_path = $file_data['full_path'];
-				$file_name = $file_data['orig_name'];
-			} else {
-				// Manejar error si la subida falla (ej. tamaño o tipo incorrecto)
-				$error = $this->upload->display_errors();
-				log_message('error', 'Upload error: ' . $error);
-				// Puedes redirigir a una página de error o mostrar un mensaje
-				redirect('page/po_register', 'refresh'); // Refresh
-				return;
+		// Lógica para procesar archivos .eml primero
+		if ($eml_was_uploaded) {
+			foreach ($original_eml_files as $original_eml_file) {
+				if (isset($uploaded_files_map[$original_eml_file])) {
+					$file_data = $uploaded_files_map[$original_eml_file];
+					try {
+						$parser = new Parser();
+						$parser->setPath($file_data['tmp_name']);
+						
+						// Cuerpo y adjuntos del correo original
+						$html_message_body = $parser->getMessageBody('html');
+						$eml_attachments_data = $parser->getAttachments();
+
+						// Procesar y guardar adjuntos del EML
+						foreach ($eml_attachments_data as $eml_attachment) {
+							$eml_file_name = $eml_attachment->getFilename();
+							$eml_attachment_extension = strtolower(pathinfo($eml_file_name, PATHINFO_EXTENSION));
+
+							// Ignorar imágenes incrustadas para la BD
+							if (in_array($eml_attachment_extension, ['png', 'jpg', 'jpeg', 'gif'])) {
+								continue;
+							}
+
+							// Extraer PO del nombre del archivo
+							$eml_po_number = '-';
+							if (preg_match('/[a-zA-Z]?\d{5,}(?:[_\-][a-zA-Z0-9]+)?/', $eml_file_name, $poMatch)) {
+								$eml_po_number = $poMatch[0];
+							}
+							
+							// Si se encontró un PO, o al menos un nombre de archivo, guárdalo
+							if (!empty($eml_po_number) || !empty($eml_file_name)) {
+								// Guardar el archivo adjunto para el correo de resumen
+								$target_path = './upload/' . $eml_file_name;
+								file_put_contents($target_path, $eml_attachment->getContent());
+								$eml_attachments_for_email[] = $target_path;
+								$eml_processed_files[] = $eml_file_name;
+
+								// Agrupar por PO para la inserción
+								if (!isset($po_to_files_map[$eml_po_number])) {
+									$po_to_files_map[$eml_po_number] = [];
+								}
+								$po_to_files_map[$eml_po_number][] = $eml_file_name;
+							}
+						}
+						
+						// Usar el cuerpo del EML para el mensaje principal
+						$message_content = $html_message_body;
+
+					} catch (Exception $e) {
+						log_message('error', 'EML parsing error: ' . $e->getMessage());
+						echo json_encode(['status' => 'error', 'message' => 'EML file could not be processed.']);
+						return;
+					}
+				}
 			}
 		}
-        //$this->upload->initialize($config); // Inicializar la librería de subida con la configuración
-		
-		$data = [
-				'po_number' 	=> $po_number,
-				'line'			=> 1,
-				'registrator'	=> $registrator,
-				'ep_mail' 		=> $ep_mail,
-				'po_file' 		=> $file_name,
-				'customer_name' => $customer_name,
-				'created' 		=> Date('Y-m-d H:i:s'),
-				'status'		=> 'Sent',
-				'remark'		=> $remark
-		];
-		
-		$this->gen_m->insert('po_register', $data);
-		 
-		
-		// --- Generar el HTML del correo ---
-		$to = ['mariela.carbajal@lge.com', 'elizabeth.sampe@lge.com', 'patricia.rivas@lge.com', $ep_mail . "@lge.com"];
-		// Definir el asunto
-		$subject = "[{$customer_name}] Registro de Orden de Compra: #" . $po_number . " " . Date("Ymd");
+	}
+	
+	public function _process_special_customers($registrator, $ep_mail, $customer_name, $remark) {	// Special customers
+		$po_numbers_from_remark = [];
+		$separators = '/,\s*|\r?\n/u'; 
 
+		$po_array = preg_split($separators, $remark, -1, PREG_SPLIT_NO_EMPTY);
+
+		$po_numbers_from_remark = array_map('trim', $po_array);
+
+		if (empty($po_numbers_from_remark)) {
+			return json_encode(['status' => 'error', 'message' => 'No PO numbers detected in the remark field.']);
+		}
+
+		foreach ($po_numbers_from_remark as $po) {
+			$data = [
+				'po_number'     => $po,
+				'line'          => 1,
+				'registrator'   => $registrator,
+				'ep_mail'       => $ep_mail,
+				'po_file'       => '', // El campo de archivo queda vacío
+				'customer_name' => $customer_name,
+				'created'       => Date('Y-m-d H:i:s'),
+				'status'        => 'Sent',
+				'remark'        => $remark
+			];
+			$this->gen_m->insert('po_register', $data);
+		}
+
+		$subject = "[{$customer_name}] Registro de Orden de Compra" . " " . Date("Ymd");
 		$created = Date('Y-m-d H:i:s');
+		$po_msg = implode(", #", $po_numbers_from_remark);
 
 		$message_content = "
 		<html>
 		<body>
 			<p>Estimado/a(s),</p>
-			<p>Se ha registrado una nueva orden de compra con los siguientes detalles:</p>
+			<p>Se han registrado las siguientes ordenes de compra:</p>
 			<table style='width: 60%; border-collapse: collapse; margin-left: 0;'>
 				<tr>
-					<td style='border: 1px solid #ddd; padding: 8px; font-weight: bold;'>Numero de Orden:</td>
-					<td style='border: 1px solid #ddd; padding: 8px;'>#" . $po_number . "</td>
+					<td style='border: 1px solid #ddd; padding: 8px; font-weight: bold;'>PO Registrados:</td>
+					<td style='border: 1px solid #ddd; padding: 8px;'>#" . $po_msg . "</td>
 				</tr>
 				<tr>
 					<td style='border: 1px solid #ddd; padding: 8px; font-weight: bold;'>Cliente:</td>
@@ -106,24 +154,317 @@ class Po_register extends CI_Controller {
 				</tr>
 				<tr>
 					<td style='border: 1px solid #ddd; padding: 8px; font-weight: bold;'>Comentarios:</td>
-					<td style='border: 1px solid #ddd; padding: 8px;'>" . $remark . "</td>
+					<td style='border: 1px solid #ddd; padding: 8px;'>" . " PO Registrados " . "</td>
 				</tr>
-			</table>";
+			</table>
+		</body>
+		</html>";
 
-		if (!empty($file_name)) {
-			$message_content .= "<p>Se adjunta la orden de compra correspondiente.</p>";
-		} else {
-			$message_content .= "<p>No se adjunto ningun archivo.</p>";
+		$from_email = $ep_mail . '@lge.com';
+		// Se utiliza la función send_email para el envío sin adjuntos
+		$to = ['mariela.carbajal@lge.com', 'elizabeth.sampe@lge.com', 'patricia.rivas@lge.com', $ep_mail . "@lge.com"];
+		$this->my_func->send_email_po($from_email, $to, $subject, $message_content, []); 
+		
+		return json_encode(['status' => 'success', 'message' => 'PO has been registered successfully.']);
+	}
+		
+	public function _map_uploaded_files($files) { // Método auxiliar para mapear archivos subidos
+		$map = [];
+		$file_count = count($files['name']);
+		for ($i = 0; $i < $file_count; $i++) {
+			$filename = $files['name'][$i];
+			$map[$filename] = [
+				'name'      => $files['name'][$i],
+				'type'      => $files['type'][$i],
+				'tmp_name'  => $files['tmp_name'][$i],
+				'error'     => $files['error'][$i],
+				'size'      => $files['size'][$i],
+			];
 		}
-		$message_content .= "<p>Saludos cordiales.</p></body></html>";
-		$mail = $ep_mail . "@lge.com";
-		$this->my_func->send_email($mail, $to, $subject, $message_content, $file_path);
+		return $map;
+	}
 
-		if (!empty($file_path) && file_exists($file_path)) {
-			unlink($file_path);
+	public function _process_eml_files($original_eml_files, $uploaded_files_map, $po_to_files_map) { // Procesamiento de archivos .EML y corrección del problema de PNG/GIF en la BD
+		$eml_temp_paths = [];
+		$subject = '';
+		$message_content = '';
+
+		foreach ($original_eml_files as $original_eml_file) {
+			if (isset($uploaded_files_map[$original_eml_file])) {
+				$file_data = $uploaded_files_map[$original_eml_file];
+				try {
+					$parser = new EmlParser();
+					$parser->setPath($file_data['tmp_name']);
+					
+					$subject = $parser->getHeader('subject');
+					$message_content = $parser->getMessageBody('html');
+
+					$eml_attachments_data = $parser->getAttachments();
+					
+					foreach ($eml_attachments_data as $eml_attachment) {
+						$eml_file_name = $eml_attachment->getFilename();
+						$eml_attachment_extension = strtolower(pathinfo($eml_file_name, PATHINFO_EXTENSION));
+						
+						$fill_map_by_user = false;
+						foreach ($po_to_files_map as $filenames) {
+							if (in_array($eml_file_name, $filenames)) {
+								$fill_map_by_user = true;
+								break;
+							}
+						}
+						if (!$fill_map_by_user) {
+							$is_inline_image = in_array($eml_attachment_extension, ['png', 'jpg', 'jpeg', 'gif']);
+
+							$eml_po_number = '';
+							if (!$is_inline_image) {
+								if (preg_match('/[a-zA-Z]?\d{5,}(?:[_\-][a-zA-Z0-9]+)?/', $eml_file_name, $poMatch)) {
+									$eml_po_number = $poMatch[0];
+								}
+							}
+							
+							$target_path = './upload/' . $eml_file_name;
+							file_put_contents($target_path, $eml_attachment->getContent());
+							$eml_temp_paths[] = $target_path;
+
+							if (!$is_inline_image && !empty($eml_po_number)) {
+								if (!isset($po_to_files_map[$eml_po_number])) {
+									$po_to_files_map[$eml_po_number] = [];
+								}
+								$po_to_files_map[$eml_po_number][] = $eml_file_name;
+							}
+						}
+					}
+
+				} catch (Exception $e) {
+					log_message('error', 'EML parsing error: ' . $e->getMessage());
+					return ['error' => json_encode(['status' => 'error', 'message' => 'EML file could not be processed.'])];
+				}
+			}
 		}
-		echo json_encode(['status' => 'success', 'message' => 'PO has been registered successfully.']);
-    }
+
+		return [
+			'po_to_files_map' => $po_to_files_map,
+			'eml_temp_paths' => $eml_temp_paths,
+			'subject' => $subject,
+			'message_content' => $message_content,
+		];
+	}
+
+	public function _process_other_files($po_numbers_form, $file_names_form, $uploaded_files_map, $original_eml_files, $po_to_files_map) { // Procesamiento de otros archivos (NO-EML)
+		$other_temp_paths = [];
+		
+		foreach ($po_numbers_form as $key => $po_number) {
+			$files_string = $file_names_form[$key];
+			$associated_filenames = $files_string;
+			$associated_filenames = explode(', ', $files_string);
+			
+			foreach ($associated_filenames as $original_filename) {
+				// Se asegura de no procesar adjuntos de EML nuevamente
+				if (in_array($original_filename, $original_eml_files)) {
+					continue;
+				}
+
+				if (isset($uploaded_files_map[$original_filename])) {
+					$file_data = $uploaded_files_map[$original_filename];
+					
+					$_FILES['userfile'] = $file_data;
+					$config['upload_path']   = './upload/';
+					$config['allowed_types'] = 'gif|jpg|png|pdf|doc|docx|zip|xls|xlsx|txt';
+					$config['max_size']      = 20000;
+					$config['file_name']     = $original_filename;
+					$this->upload->initialize($config);
+
+					if ($this->upload->do_upload('userfile')) {
+						$upload_data = $this->upload->data();
+						
+						if (!isset($po_to_files_map[$po_number])) {
+							$po_to_files_map[$po_number] = [];
+						}
+						$po_to_files_map[$po_number][] = $original_filename;
+						
+						$other_temp_paths[] = $upload_data['full_path'];
+					} else {
+						$error = $this->upload->display_errors();
+						log_message('error', 'Upload error: ' . $error);
+						return ['error' => json_encode(['status' => 'error', 'message' => 'File upload failed: ' . strip_tags($error)])];
+					}
+				}
+			}
+		}
+		
+		return [
+			'po_to_files_map' => $po_to_files_map,
+			'other_temp_paths' => $other_temp_paths,
+		];
+	}
+
+	public function _insert_pos_to_db($po_to_files_map, $registrator, $ep_mail, $customer_name, $remark) { // Inserción en la base de datos
+		//log_message('info', $po_to_files_map);
+		foreach ($po_to_files_map as $po_number => $files_for_this_po) {
+			$data = [
+				'po_number'     => $po_number,
+				'line'          => 1,
+				'registrator'   => $registrator,
+				'ep_mail'       => $ep_mail,
+				'po_file'       => implode(', ', $files_for_this_po),
+				'customer_name' => $customer_name,
+				'created'       => Date('Y-m-d H:i:s'),
+				'status'        => 'Sent',
+				'remark'        => $remark
+			];
+			$this->gen_m->insert('po_register', $data);
+		}
+	}
+	
+	public function _send_and_cleanup($eml_was_processed, $po_to_files_map, $all_temp_paths, $registrator, $ep_mail, $customer_name, $remark, $subject_to_send, $message_content) {
+    
+		$from_email = $ep_mail . '@lge.com';
+		$attachments_to_send = $all_temp_paths; // Contiene todos los paths temporales
+
+		if (!$eml_was_processed) {
+			// Generar el cuerpo del mensaje de resumen (usando TU PLANTILLA HTML)
+			$subject_to_send = "[{$customer_name}] Registro de Orden de Compra" . " " . Date("Ymd");
+			$created = Date('Y-m-d H:i:s');
+			$po_list_for_summary = array_keys($po_to_files_map);
+			$po_msg = implode(", #", array_unique($po_list_for_summary));
+
+			$message_content = "
+			<html><body>
+				<p>Estimado/a(s),</p>
+				<p>Se ha registrado una nueva orden de compra con los siguientes detalles:</p>
+				<table style='width: 60%; border-collapse: collapse; margin-left: 0;'>
+					<tr>
+						<td style='border: 1px solid #ddd; padding: 8px; font-weight: bold;'>PO Registrados:</td>
+						<td style='border: 1px solid #ddd; padding: 8px;'>#" . $po_msg . "</td>
+					</tr>
+					<tr>
+						<td style='border: 1px solid #ddd; padding: 8px; font-weight: bold;'>Cliente:</td>
+						<td style='border: 1px solid #ddd; padding: 8px;'>" . $customer_name . "</td>
+					</tr>
+					<tr>
+						<td style='border: 1px solid #ddd; padding: 8px; font-weight: bold;'>Fecha de Registro:</td>
+						<td style='border: 1px solid #ddd; padding: 8px;'>" . $created . "</td>
+					</tr>
+					<tr>
+						<td style='border: 1px solid #ddd; padding: 8px; font-weight: bold;'>Registrador:</td>
+						<td style='border: 1px solid #ddd; padding: 8px;'>" . $registrator . "</td>
+					</tr>
+					<tr>
+						<td style='border: 1px solid #ddd; padding: 8px; font-weight: bold;'>Comentarios:</td>
+						<td style='border: 1px solid #ddd; padding: 8px;'>" . nl2br($remark) . "</td>
+					</tr>
+				</table>
+				<p>Se adjuntan las ordenes de compra correspondientes.</p>
+			</body></html>";
+		}
+		
+		$to = ['mariela.carbajal@lge.com', 'elizabeth.sampe@lge.com', 'patricia.rivas@lge.com', $ep_mail . "@lge.com"];
+		$email_sent = $this->my_func->send_email_po($from_email, $to, $subject_to_send, $message_content, $attachments_to_send);
+
+		// Limpiar archivos temporales
+		foreach ($all_temp_paths as $path) {
+			if (file_exists($path)) {
+				unlink($path);
+			}
+		}
+		
+		if (!$email_sent) {
+			// Podrías devolver un mensaje de error diferente o simplemente loggearlo.
+			log_message('error', 'Email failed to send.');
+			return json_encode([
+				'status' => 'warning', 
+				'message' => 'PO registrado, pero el correo de notificación falló. Revisar logs.'
+			]);
+		}
+		return json_encode(['status' => 'success', 'message' => 'PO has been registered successfully.']);
+	}
+
+	public function register_data() {
+		ob_start();
+		$po_to_files_map = [];
+		$all_temp_paths = [];
+		$subject_to_send = '';
+		$message_content = '';
+		$eml_was_processed = false;
+
+		// Obtener datos del formulario
+		$registrator = $this->input->post('registrator', TRUE);
+		$ep_mail = $this->input->post('ep_mail', TRUE);
+		$customer_name = $this->input->post("customer_name");
+		$remark = $this->input->post("remark");
+		$original_eml_files = (array) $this->input->post("original_eml_files");
+		$files = $_FILES['attachment'];
+		$uploaded_files_map = $this->_map_uploaded_files($files);
+		
+		$files_exist = !empty($_FILES['attachment']['name'][0]);
+		
+		$po_numbers_form = (array) $this->input->post('po_numbers_form');
+		$file_names_form = (array) $this->input->post('file_names_form');
+		
+		foreach ($file_names_form as $index => $filename) {
+			$po_number_by_user = $po_numbers_form[$index] ?? null; 
+			
+			if ($po_number_by_user) {
+				if (!isset($po_to_files_map[$po_number_by_user])) {
+					$po_to_files_map[$po_number_by_user] = [];
+				}
+				$po_to_files_map[$po_number_by_user][] = $filename;
+			}
+		}
+
+		// 1. Manejar clientes especiales (Lógica Manual)
+		$special_customers = ['SAGA FALABELLA S.A.', 'HIPERMERCADOS TOTTUS S.A.', 'TIENDAS DEL MEJORAMIENTO DEL HOGAR S.A. - [SODIMAC]'];
+		if (in_array($customer_name, $special_customers)) {
+			$response_json = $this->_process_special_customers($registrator, $ep_mail, $customer_name, $remark);
+			ob_end_clean();
+			echo $response_json; 
+			return;
+		}
+		
+		// 2. Procesar archivos .EML
+		if (!empty($original_eml_files)) {
+			$eml_was_processed = true;
+			$result = $this->_process_eml_files($original_eml_files, $uploaded_files_map, $po_to_files_map);
+			
+			if (isset($result['error'])) {
+				return $result['error'];
+			}
+			
+			// Asignar los valores extraídos del EML
+			$po_to_files_map = $result['po_to_files_map'];
+			$all_temp_paths = array_merge($all_temp_paths, $result['eml_temp_paths']);
+			$subject_to_send = $result['subject'];
+			$message_content = $result['message_content'];
+		}
+
+		// 3. Procesar otros archivos (Adjuntos normales)
+		$result = $this->_process_other_files(
+			$this->input->post("po_numbers_form"), 
+			$this->input->post("file_names_form"), 
+			$uploaded_files_map, 
+			$original_eml_files, 
+			$po_to_files_map
+		);
+
+		if (isset($result['error'])) {
+			return $result['error'];
+		}
+		
+		$po_to_files_map = $result['po_to_files_map'];
+		$all_temp_paths = array_merge($all_temp_paths, $result['other_temp_paths']);
+
+		// 4. Inserción Final en BD
+		$this->_insert_pos_to_db($po_to_files_map, $registrator, $ep_mail, $customer_name, $remark);
+
+		// 5. Envío de Correo y Limpieza
+		$response_json  = $this->_send_and_cleanup(
+			$eml_was_processed, $po_to_files_map, $all_temp_paths, 
+			$registrator, $ep_mail, $customer_name, $remark, 
+			$subject_to_send, $message_content
+		);
+		ob_end_clean();
+		echo $response_json ;
+	}
 	
 	public function check_po_exists(){
 		$po_number = $this->input->post("po_number");
@@ -138,6 +479,28 @@ class Po_register extends CI_Controller {
 		} else{
 			echo json_encode(['exists' => false]);
 		}
+	}
+	
+	public function check_multiple_po_exists() {
+		$po_numbers_from_form = $this->input->post('po_numbers');
+		$po_numbers_array = json_decode($po_numbers_from_form, true);
+
+		$duplicates_in_form = array_diff_assoc($po_numbers_array, array_unique($po_numbers_array));
+		if (!empty($duplicates_in_form)) {
+			echo json_encode(['exists' => array_values($duplicates_in_form)]);
+			return;
+		}
+
+		$this->db->select('po_number');
+		$this->db->where_in('po_number', $po_numbers_array);
+		$query = $this->db->get('po_register');
+
+		$existing_pos_in_db = [];
+		foreach ($query->result() as $row) {
+			$existing_pos_in_db[] = $row->po_number;
+		}
+
+		echo json_encode(['exists' => $existing_pos_in_db]);
 	}
 	
 	public function update_status(){
@@ -309,11 +672,15 @@ class Po_register extends CI_Controller {
 		
 		
 		if ($state_date == 1) { // GERP Date
-			$data = ['gerp' => null];
+			$status = 'Sent';
+			$data = ['gerp' => null, 'status' => $status];
+			
 		} elseif ($state_date == 2){ // Request Date
-			$data = ['appointment_request	' => null];
+			$status = 'Registered';
+			$data = ['appointment_request	' => null, 'status' => $status];			
 		} elseif ($state_date == 3){ // Appointment Date
-			$data = ['appointment_confirmed	' => null];
+			$status = 'Requested';
+			$data = ['appointment_confirmed	' => null, 'status' => $status];		
 		}
 		
 		
@@ -325,4 +692,543 @@ class Po_register extends CI_Controller {
 		}
 	
 	}
+
+	public function extract_po() {
+		// Verificar si se han subido archivos
+		if (empty($_FILES['attachment']['name'])) {
+			echo json_encode(['status' => 'error', 'message' => 'No files provided.']);
+			return;
+		}
+
+		$files_by_po = [];
+		$customer_name = $this->input->post('customer_name', TRUE);
+		$file_count = count($_FILES['attachment']['name']);
+		for ($i = 0; $i < $file_count; $i++) {
+			$file_name = $_FILES['attachment']['name'][$i];
+			$tmp_name = $_FILES['attachment']['tmp_name'][$i];
+			$extension = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+
+			$po_number = null;
+
+			// Lógica para archivos .eml
+			if ($extension === 'eml') {
+				try {
+					// Utiliza file_get_contents para leer el contenido del archivo
+					$eml_content = file_get_contents($tmp_name);
+					if ($eml_content === false) {
+						throw new Exception('Could not read EML file content.');
+					}
+					
+					$parser = new EmlParser();
+					$parser->setText($eml_content);
+					
+					$attachments = $parser->getAttachments();
+					
+					foreach ($attachments as $attachment) {
+						$attachment_name = $attachment->getFilename();
+						$attachment_extension = strtolower(pathinfo($attachment_name, PATHINFO_EXTENSION));
+						log_message('info', 'attachments: ' . $attachment_name);
+						// No saltes los archivos, solo los ignora si son imágenes
+						if (in_array($attachment_extension, ['png', 'jpg', 'jpeg', 'gif'])) {
+							continue;
+						}
+						
+						
+					// 3. Crear un archivo temporal con el contenido del adjunto
+						// Esto simula que el usuario cargó este archivo directamente
+						$temp_file_path = sys_get_temp_dir() . '/' . basename($attachment_name);
+						if (file_put_contents($temp_file_path, $attachment_content) === false) {
+							throw new Exception("Could not save attachment '{$attachment_name}' to temp file.");
+						}
+
+						// 4. Determinar si el adjunto interno necesita parseo (Excel/PDF/TXT, etc.)
+						if (in_array($attachment_extension, ['xlsx', 'xls', 'pdf', 'txt'])) {
+							$eml_po_number = null;
+							if (preg_match('/([a-zA-Z0-9][a-zA-Z0-9_-]{4,})/u', $attachment_name, $poMatch)) {
+								$eml_po_number = $poMatch[0];
+							}
+
+							// 6. Almacenar el archivo temporal para su posterior uso (ej: moverlo a un directorio permanente)
+							// Usamos el PO extraído como clave para el archivo TEMPORAL
+							if (!isset($files_by_po[$eml_po_number])) {
+								$files_by_po[$eml_po_number] = [];
+							}
+							// Almacena el *path* temporal del adjunto extraído del EML
+							$files_by_po[$eml_po_number][] = $temp_file_path; 
+
+						} else {
+							// Si es un archivo que no procesamos (ej: .zip), simplemente loguear y continuar
+							log_message('info', 'Ignoring non-parsable attachment: ' . $attachment_name);
+						}
+						
+						// 7. Limpieza: Es crucial eliminar el archivo temporal después de procesar todo.
+						// Esto se haría al final del proceso de envío general, no aquí.
+					}
+				} catch (Exception $e) {
+					log_message('error', 'EML parsing error: ' . $e->getMessage());
+					echo json_encode(['status' => 'error', 'message' => 'EML file could not be processed.']);
+					return;
+				}	
+			} 
+			else if ($extension === 'txt') { // Lógica para archivos .txt (usando explode como solicitaste)
+				$file_parts = explode('-', pathinfo($file_name, PATHINFO_FILENAME));
+				$po_number = end($file_parts);
+				
+				// Agrupa los archivos .txt
+				if ($po_number) {
+					 if (!isset($files_by_po[$po_number])) {
+						$files_by_po[$po_number] = [];
+					}
+					$files_by_po[$po_number][] = $file_name;
+				}
+			}
+			elseif(in_array($extension,['xls', 'xlsx'])){
+				$po_numbers_from_excel = $this->_extract_po_from_excel_file($file_name, $tmp_name, $customer_name);
+				
+				// **1. Manejar el Fallback (si la extracción avanzada falló)**
+				if (empty($po_numbers_from_excel)) {
+					// Asignar el valor de ingreso manual ('-') si no se encontró nada
+					$po_numbers_to_map = ['-'];
+				} else {
+					$po_numbers_to_map = $po_numbers_from_excel;
+				}
+				
+				// **2. Mapear cada PO al archivo en el array final ($files_by_po)**
+				// Esto crea una fila por cada PO encontrado para el mismo archivo.
+				foreach ($po_numbers_to_map as $po) {
+					// Agrupa los archivos
+					if (!isset($files_by_po[$po])) {
+						$files_by_po[$po] = [];
+					}
+					$files_by_po[$po][] = $file_name;
+				}
+			} 
+			elseif ($extension === 'pdf'){
+				// Llama a la lógica avanzada de extracción con fallback para PDF
+				$po_numbers_from_pdf = $this->_extract_po_from_pdf_file($file_name, $tmp_name, $customer_name);
+
+				// Manejar el Fallback (si la extracción avanzada falló)
+				if (empty($po_numbers_from_pdf)) {
+					 $po_numbers_to_map = ['-']; // Si no hay POs, usa '-' para ingreso manual
+				} else {
+					$po_numbers_to_map = $po_numbers_from_pdf;
+				}
+
+				// Mapear cada PO al archivo en el array final ($files_by_po)
+				foreach ($po_numbers_to_map as $po) {
+					if (!isset($files_by_po[$po])) {
+						$files_by_po[$po] = [];
+					}
+					$files_by_po[$po][] = $file_name;
+				}
+			} else {
+				//$po_number = null;
+				if (preg_match('/[a-zA-Z]?\d{5,}(?:[_\-][a-zA-Z0-9]+)?/', $file_name, $poMatch)) {
+					$po_number = $poMatch[0];
+				} else $po_number = '-';
+				
+				// Agrupa los otros archivos
+				if ($po_number) {
+					if (!isset($files_by_po[$po_number])) {
+						$files_by_po[$po_number] = [];
+					}
+					$files_by_po[$po_number][] = $file_name;
+				}
+			}
+		}
+		
+		// Preparar el array final para el front-end
+		$files_data = [];
+		foreach ($files_by_po as $po_number => $files) {
+			$files_data[] = [
+				'name' => implode(', ', $files), // Unir todos los nombres de archivo en una sola cadena
+				'po_number' => $po_number,
+				'original_files' => $files // Pasar el array de nombres de archivo originales
+			];
+		}
+		
+		echo json_encode(['status' => 'success', 'files_data' => $files_data]);
+	}
+		
+	private function _extract_po_from_filename($file_name, $extension = null) { // extract PO from filename
+		// Si la extensión no se pasa explícitamente, la determinamos
+		if (is_null($extension)) {
+			$extension = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+		}
+
+		if ($extension === 'txt') {
+			$file_parts = explode('-', pathinfo($file_name, PATHINFO_FILENAME));
+			$po_number = end($file_parts);
+		} else {
+			
+			$po_regex = '/[a-zA-Z]?\d{5,}(?:[_\-][a-zA-Z0-9]+)?/';
+			
+			if (preg_match($po_regex, $file_name, $poMatch)) {
+				$po_number = $poMatch[0];
+			} else {
+				// Si no se encuentra ningún patrón, se devuelve el guion para ingreso manual
+				$po_number = '-';
+			}
+		}
+		
+		// Devolvemos el PO encontrado o el guion.
+		return $po_number;
+	}
+
+	// ************************** Extract excel PO ******************************
+	
+	public function _extract_po_from_excel_file($file_name, $tmp_name, $customer_name){
+		$po_numbers = [];
+		try {
+			$reader = IOFactory::createReaderForFile($tmp_name);
+        
+			// Carga el archivo en la memoria en el objeto $spreadsheet
+			$spreadsheet = $reader->load($tmp_name);
+			$worksheet = $spreadsheet->getActiveSheet();
+			
+			$po_numbers = $this->_get_excel_pos_by_customer($customer_name, $worksheet);
+			
+			// Si la extracción avanzada devuelve POs, se usan.
+			if (!empty($po_numbers)) {
+				return $po_numbers;
+			}
+
+		} catch (\Exception $e) {
+			log_message('error', 'Spreadsheet reading error for file: ' . $file_name . '. Error: ' . $e->getMessage());
+		}
+
+		// 2. FALLBACK 1: EXTRACCIÓN POR NOMBRE DEL ARCHIVO
+		$po_from_filename = $this->_extract_po_from_filename($file_name);
+		
+		// Si la extracción por nombre falla (devuelve '-'), se pasa al fallback 2 (manual)
+		if ($po_from_filename === '-') {
+			// 3. FALLBACK 2: INGRESO MANUAL ('-')
+			return ['-'];
+		}
+		
+		// Si se encontró algo en el nombre, lo devolvemos como un array para la consistencia
+		return [$po_from_filename];
+	}
+	
+	private function _extract_pos_from_column($worksheet, $column, $start_row) {
+		$po_list = [];
+		$row = $start_row;
+		
+		// Bucle que se rompe cuando la celda está vacía
+		while (true) {
+			$cell_coordinate = $column . $row;
+			// Obtiene el valor de la celda
+			$cell_value = $worksheet->getCell($cell_coordinate)->getValue();
+
+			// 1. Condición de Parada: Detener si la celda está vacía o es nula
+			if (empty($cell_value)) {
+				break;
+			}
+
+			// 2. Extracción Directa: Extrae el valor tal cual.
+			// Se asegura de que el valor sea una cadena y se limpia de espacios.
+			if (is_string($cell_value) || is_numeric($cell_value)) {
+				$value = trim((string)$cell_value);
+				
+				// Solo se agrega si el valor no está vacío después de limpiar espacios.
+				if (!empty($value)) {
+					$po_list[] = $value;
+				}
+			}
+
+			$row++;
+			
+			// 3. Condición de seguridad: Evitar bucles infinitos en archivos muy grandes
+			if ($row > 1000) { // Límite de 1000 filas
+				log_message('warning', 'Exceeded 1000 rows while extracting data from column ' . $column . '. Stopped at row ' . $row);
+				break;
+			}
+		}
+
+		// 4. Unicidad: Devolver solo los valores únicos
+		return array_unique($po_list);
+	}
+
+	private function _get_excel_pos_by_customer($customer_name, $worksheet) {
+		$po_list = [];
+		
+		switch (strtoupper($customer_name)) {
+			case 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA (PLAZA VEA)':
+				$po_list = $this->_extract_pos_from_column($worksheet, 'B', 2); // po variables
+				break;
+			case 'TIENDAS PERUANAS S.A. (OECHSLE)': // po unico
+				 $cell_coordinate = 'B7';
+            
+				// 1. Obtener el valor de la celda B7
+				$cell_value = $worksheet->getCell($cell_coordinate)->getValue();
+				
+				// 2. Limpiar y verificar si el valor existe
+				if (is_string($cell_value) || is_numeric($cell_value)) {
+					$value = trim((string)$cell_value);
+					
+					if (!empty($value)) {
+						// Si el valor no está vacío, lo agregamos tal cual.
+						$po_list[] = $value;
+					}
+				}
+				break;
+			case 'HOMECENTERS PERUANOS S.A. (PROMART)':
+				$cell_coordinate = 'B7';
+				$cell_value = $worksheet->getCell($cell_coordinate)->getValue();
+
+				if (is_string($cell_value) || is_numeric($cell_value)) {
+					$value = trim((string)$cell_value);
+					
+					if (!empty($value)) {
+						$po_list[] = $value;
+					}
+				}
+				break;
+			case 'COMERCIAL COUNTRY S.A.':
+				$cell_coordinate = 'B17';
+				$cell_value = $worksheet->getCell($cell_coordinate)->getValue();
+
+				if (is_string($cell_value) || is_numeric($cell_value)) {
+					$value = trim((string)$cell_value);
+					
+					if (!empty($value)) {
+						$po_list[] = $value;
+					}
+				}
+				break;
+			case 'ELECTROHOGAR YATACO E.I.R.L.':
+				$cell_coordinate = 'B17';
+				$cell_value = $worksheet->getCell($cell_coordinate)->getValue();
+
+				if (is_string($cell_value) || is_numeric($cell_value)) {
+					$value = trim((string)$cell_value);
+					
+					if (!empty($value)) {
+						$po_list[] = $value;
+					}
+				}
+				break;
+		}
+
+		return array_unique($po_list);
+	}
+	
+	// **************************************************************************
+	
+	// ************************** Extract pdf PO ********************************
+	private function _extract_po_from_pdf_file($file_name, $tmp_name, $customer_name) {
+		$po_numbers = [];
+
+		// 1. INTENTO DE EXTRACCIÓN AVANZADA (POR CONTENIDO/CLIENTE)
+		try {
+			$parser = new PdfParser();
+			$pdf = $parser->parseFile($tmp_name);
+			
+			// CAMBIO CLAVE: Iterar sobre las páginas 
+			$pages = $pdf->getPages();
+			
+			// Iteramos sobre cada objeto Page
+			foreach ($pages as $page) {
+				$page_text = $page->getText();
+				
+				// Pasamos solo el texto de la página actual a la lógica específica del cliente
+				$page_pos = $this->_get_pdf_pos_by_customer($customer_name, $page_text);
+				
+				// Acumulamos los POs encontrados en la página
+				$po_numbers = array_merge($po_numbers, $page_pos);
+			}
+
+			if (!empty($po_numbers)) {
+				// Si se encontraron POs, los retornamos y evitamos el fallback.
+				return array_unique($po_numbers);
+			}
+
+		} catch (\Exception $e) {
+			// En caso de error de lectura del PDF, registramos y pasamos al fallback.
+			log_message('error', 'PDF parsing error for file: ' . $file_name . '. Error: ' . $e->getMessage());
+		}
+
+		// 2. FALLBACK 1: EXTRACCIÓN POR NOMBRE DEL ARCHIVO
+		$po_from_filename = $this->_extract_po_from_filename($file_name);
+		
+		if ($po_from_filename === '-') {
+			// 3. FALLBACK 2: INGRESO MANUAL ('-')
+			return ['-'];
+		}
+		
+		// Si se encontró algo en el nombre, lo devolvemos como un array.
+		return [$po_from_filename];
+	}
+	
+	private function _get_pdf_pos_by_customer($customer_name, $full_pdf_text) {
+		$po_list = [];
+		$customer_key = strtoupper($customer_name);
+		//log_message('info', 'CUSTOMER: ' . $customer_key);
+		
+		$full_pdf_text = $this->clean_text($full_pdf_text);
+		//log_message('info', 'TEXT: ' . $full_pdf_text);
+		switch ($customer_key) {
+			
+			case 'CONECTA RETAIL S.A.':
+				$regex = '/Ped\.\s+Nacional\s+N°\s*.*?(\d{10})/is';
+				
+				if (preg_match_all($regex, $full_pdf_text, $matches)) {		
+					$po_list = $matches[1];
+				}
+				break;
+				
+			case 'INTEGRA RETAIL S.A.C.':
+				$regex = '/Observaciones para el Proveedor\s*.*?(\d{7})/is';
+				
+				if (preg_match_all($regex, $full_pdf_text, $matches)) {
+					$po_list = $matches[1];
+				}
+				break;
+			case 'IMPORTACIONES RUBI S.A.':
+				$regex = '/ORDEN\s+DE\s+COMPRA\s*.*?(\d{7})/is';
+				
+				if (preg_match_all($regex, $full_pdf_text, $matches)) { 
+					$po_list = $matches[1];
+				}
+				break;
+			case 'ESTILOS S.R.L.':
+				$regex = '/# L (\d+)/';
+				
+				if (preg_match_all($regex, $full_pdf_text, $matches)) { 
+					$po_list = $matches[1];
+				}
+				break;
+			case 'IMPORTACIONES HIRAOKA S.A.':
+				$regex = '/# (\d+)/';
+				
+				if (preg_match_all($regex, $full_pdf_text, $matches)) { 
+					$po_list = $matches[1];
+				}
+				break;
+			case 'CENCOSUD RETAIL PERU S.A. - [METRO]':
+				$regex = '/Número (\d+)/';
+				
+				if (preg_match_all($regex, $full_pdf_text, $matches)) { 
+					$po_list = $matches[1];
+				}
+				break;
+				
+		}
+
+		return array_unique($po_list);
+	}
+	
+	private function clean_text($text) {
+		
+        $text = preg_replace('/[\p{C}&&[^\n\r\t]]/u', '', $text);
+        $text = str_replace(["\r\n", "\r", "\n"], "\n", $text);
+        $text = preg_replace('/[ \t]+/', ' ', $text);
+        // Ajuste para unir líneas: solo si es alfanumérico o puntuación común
+        $text = preg_replace('/([a-zA-Z0-9.,])\s*\n\s*([a-zA-Z0-9.,])/', '$1 $2', $text);
+        $text = trim($text);
+        return $text;
+    }
+	
+	// **************************************************************************
+	
+	public function update_po_lines() {
+		$data_po = $this->gen_m->filter('po_register', false, ['line' => 1]);
+		
+		if (empty($data_po)) {
+			//echo "Don't find POs in po_register.";
+			return;
+		}
+		
+		$po_first_data = [];
+		foreach ($data_po as $item) $po_first_data[$item->po_number] = $item;
+		//echo '<pre>'; print_r($po_first_data);
+		$default_values = [];
+		foreach ($data_po as $item){
+			$default_values[$item->po_number] = [
+							'po_number' 				=> $item->po_number,
+							'line'						=> 1,
+							'model'						=> null,
+							'qty'						=> null,
+							'amount_usd'				=> null,
+							'order_no'					=> $item->order_no ?? null,
+							'line_no'					=> $item->line_no ?? null,
+							'registrator'				=> $item->registrator,
+							'ep_mail'					=> $item->ep_mail,
+							'po_file'					=> $item->po_file ?? null,
+							'customer_name'				=> $item->customer_name,
+							'created'					=> $item->created,
+							'gerp'						=> null,
+							'appointment_request'		=> null,
+							'appointment_confirmed'		=> null,
+							'status'					=> 'Sent',
+							'remark'					=> $item->remark ?? null,
+							'remark_appointment'		=> $item->remark_appointment ?? null,
+			];
+		}
+		
+		$customer_po_list = array_unique(array_column($data_po, 'po_number'));
+		
+		//echo '<pre>'; print_r($customer_po_list);
+		
+		$w_in_clause = [
+			[
+				'field' => 'customer_po_no', 
+				'values' => $customer_po_list
+			]
+		];
+
+		$sales_columns = ['customer_po_no', 'model', 'ordered_qty', 'order_no', 'line_no', 'sales_amount_usd'];
+		$sales_orders = [['order_no', 'ASC'], ['line_no', 'ASC']];
+		$sales_data = $this->gen_m->filter_select('lgepr_sales_order', false, $sales_columns, null, null, $w_in_clause, $sales_orders);
+
+		$closed_columns = ['customer_po_no', 'model', 'order_qty', 'order_no', 'line_no', 'order_amount_usd'];
+		$closed_data = $this->gen_m->filter_select('lgepr_closed_order', false, $closed_columns, null, null, $w_in_clause, $sales_orders);
+
+		$list_data = [];
+		
+		$all_data = array_merge($sales_data, $closed_data);
+
+		if ($all_data) {
+			foreach($all_data as $item) {
+				$list_data[$item->customer_po_no][] = $item;
+			}
+		}
+		
+		$data_multi = [];
+
+		foreach ($customer_po_list as $po_number){
+			if(!empty($list_data[$po_number])){
+				$list_data_ =  $list_data[$po_number];
+			} else continue;
+			
+			$line = 1;
+			if ($list_data_){
+				foreach ($list_data_ as $index => $item) {
+					//$data = ['po_number' => $po_number, 'model' => $item->model, 'line' => $line,'qty' => ($item->ordered_qty ?? $item->order_qty)];
+					$default_values[$po_number]['model'] = $item->model;
+					$default_values[$po_number]['qty'] = $item->ordered_qty ?? $item->order_qty;
+					$default_values[$po_number]['amount_usd'] = $item->sales_amount_usd ?? $item->order_amount_usd;
+					$default_values[$po_number]['line'] = $line;
+					$default_values[$po_number]['order_no'] = $item->order_no;
+					$default_values[$po_number]['line_no'] = $item->line_no;
+					$data = $default_values[$po_number];
+					
+					if ($this->gen_m->filter_select('po_register', false, ['order_no', 'line_no'], ['order_no' =>  $item->order_no, 'line_no' => $item->line_no])) continue;
+					else {
+						if ($index == 0 && empty($po_first_data[$po_number]->model) && empty($po_first_data[$po_number]->order_no)){ // First insert data from form							
+							$this->gen_m->update('po_register', ['po_number' => $po_number, 'line' => 1], $data);
+							//echo '<pre>'; print_r($data);
+						} else {
+							$data_multi[] = $data;
+						}
+						$line += 1;
+					}
+				}
+			}
+		}
+		
+		if ($data_multi) $this->gen_m->insert_m('po_register', $data_multi);
+		
+		//echo '<pre>'; print_r($data_multi);
+	}		
 }

@@ -446,6 +446,10 @@ class My_func{
 		
 		$config['protocol'] = 'smtp';
 		$config['smtp_host'] = 'lgekrhqmh01.lge.com';
+		$config['smtp_crypto'] = '';
+
+
+
 		$config['smtp_port'] = 25;
 		$config['smtp_user'] = '';
 		$config['smtp_pass'] = '';
@@ -457,15 +461,105 @@ class My_func{
 
 		$this->CI->email->from($from);
 		$this->CI->email->to($to);
+		//$this->CI->email->cc($cc);
 		$this->CI->email->subject($subject);
 		$this->CI->email->message($message);
 
 		// Attach the file
-		if ($attach_path) $this->CI->email->attach($attach_path);
-
+		//if ($attach_path) $this->CI->email->attach($attach_path);
+		
+		if ($attach_path) {
+			if (is_array($attach_path)) {
+				// Si es un array, itera sobre él y adjunta cada archivo
+				foreach ($attach_path as $path) {
+					if (file_exists($path)) {
+						$this->CI->email->attach($path);
+					}
+				}
+			} else {
+				// Si es una sola ruta de archivo, adjúntala directamente
+				if (file_exists($attach_path)) {
+					$this->CI->email->attach($attach_path);
+				}
+			}
+		}
+		
 		$result = "";
 		if (!$this->CI->email->send()) $result = $this->CI->email->print_debugger(array('headers'));
 		
 		return $result;
+	}
+	
+	public function send_email_po($from, $to, $subject, $message, $attachments = null){
+    
+		// Configuración del correo (sin cambios)
+		$this->CI->load->library('email');
+		$config['protocol'] = 'smtp';
+		$config['smtp_host'] = 'lgekrhqmh01.lge.com';
+		$config['smtp_crypto'] = '';
+		$config['smtp_port'] = 25;
+		$config['smtp_user'] = '';
+		$config['smtp_pass'] = '';
+		$config['mailtype'] = 'html';
+		$config['charset'] = 'iso-8859-1';
+		$config['wordwrap'] = TRUE;
+		$this->CI->email->initialize($config);
+		$this->CI->email->set_newline("\r\n");
+		
+		$config['smtp_timeout'] = 20; // (Ej: 10 segundos)
+		
+		$this->CI->email->from($from);
+		$this->CI->email->to($to);
+		$this->CI->email->subject($subject);
+		$this->CI->email->message($message);
+	
+		if (!empty($attachments)) {
+			if (is_array($attachments) && is_array(reset($attachments)) && isset(reset($attachments)['cid'])) {
+				
+				foreach ($attachments as $attachment) {
+					$filepath = $attachment['path'];
+					$cid = $attachment['cid'];
+					$is_inline = $attachment['inline'];
+
+					if (file_exists($filepath)) {
+
+						if ($is_inline) {
+							$this->CI->email->attach(
+								$filepath, 
+								'inline', // Disposition: 'attachment' o 'inline'
+								$attachment['name'], // Nombre
+								$attachment['type'], // Tipo MIME
+								$cid // Content-ID
+							);
+						} else {
+							// Adjunto normal (ej. PDF, Excel)
+							$this->CI->email->attach($filepath);
+						}
+					}
+				}
+
+			} 
+			elseif (is_array($attachments)) {
+				// Si es un array de rutas de archivo simples, adjuntarlas
+				foreach ($attachments as $path) {
+					if (file_exists($path)) {
+						$this->CI->email->attach($path);
+					}
+				}
+			} 
+			// Opción 3: Una sola ruta de archivo simple
+			elseif (is_string($attachments) && file_exists($attachments)) {
+				$this->CI->email->attach($attachments);
+			}
+		}
+		
+		$is_sent = $this->CI->email->send(false);
+		
+		if (!$is_sent) {
+			// En lugar de asignar a una variable, loggeamos el error completo para revisarlo después
+			$debugger_output = $this->CI->email->print_debugger();
+		}
+		
+		return $is_sent;
 	}
 }

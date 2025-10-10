@@ -9,12 +9,6 @@
 			top: 0;
 			z-index: 10;
 		}
-		#po-table {
-			/* Fuerza al navegador a usar la anchura de las columnas de la primera fila/thead */
-			table-layout: fixed; 
-			/* Opcional: Esto ayuda a que no se desborden */
-			width: 100%; 
-		}
 		#summary-table thead th {
 			position: sticky;
 			top: 0;
@@ -22,92 +16,104 @@
 		}
 	</style>
 </header>
-
-<div class="container-fluid mt-5">
+<div class="d-flex justify-content-between align-items-start">
+	<div class="pagetitle">
+		<h1> PO Management </h1>
+		<nav>
+			<ol class="breadcrumb">
+				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
+				<li class="breadcrumb-item active">PO Management</li>
+			</ol>	
+		</nav>
+	</div>	
+	<div>
+		<a href="../user_manual/module/scm_po_management/scm_po_management_en.pptx" class="text-primary p-3">User Manual</a>
+	</div>
+</div>
+<div class="container-fluid">
 	<div class="row">
-		<div>
-			<a href="../user_manual/page/po_management/po_register_en.pptx" class="text-primary p-3">User Manual</a>
-		</div>
-		<div class="row-12 col-md-6 mx-auto" id="form-column">
-			<div class="card p-4 mx-auto">
-				<h5 class="card-title text-center">Submission Form</h5>				
-				<form class="row g-3" action="<?php echo site_url('page/po_register/register_data'); ?>" method="post" enctype="multipart/form-data">
-					<div class="col-md-6">
-						<label for="registrator" class="form-label">Registrator</label>
-						<input type="text" class="form-control" id="registrator" name="registrator" placeholder="your name" required>
-					</div>
-					<div class="col-md-6">
-						<label for="ep_mail" class="form-label">Email</label>
-						<div class="input-group">
-							<input type="text" class="form-control" id="ep_mail" name="ep_mail" placeholder="ep-mail" required>
-							<span class="input-group-text text-muted">@lge.com</span>
+		<div class="col-md-3 d-none" id="form-column">
+			<div class="card p-4">
+				<h5 class="card-title text-center">Submission Form</h5>
+				
+					<form class="row g-3" action="<?php echo site_url('page/po_register/register_data'); ?>" method="post" enctype="multipart/form-data">
+						<div class="col-md-6">
+							<label for="registrator" class="form-label">Registrator</label>
+							<input type="text" class="form-control" id="registrator" name="registrator" placeholder="your name" required>
 						</div>
-					</div>
-					<div class="col-md-6">
-						<label for="customer_name" class="form-label d-flex align-items-center justify-content-between">
-							<span>Customer</span>
-							<div class="form-check">
-								<input class="form-check-input" type="checkbox" id="add_customer_checkbox">
-								<label class="form-check-label" for="add_customer_checkbox">
-									Add
-								</label>
+						<div class="col-md-6">
+							<label for="ep_mail" class="form-label">Email</label>
+							<div class="input-group">
+								<input type="text" class="form-control" id="ep_mail" name="ep_mail" placeholder="ep-mail" required>
+								<span class="input-group-text text-muted">@lge.com</span>
 							</div>
-						</label>
-						
-						<div id="customer_select_container">
-							<select class="form-select" id="customer_name" name="customer_name" required>
-								<option value="">Choose customer...</option>
-								<?php foreach ($customers as $customer) { ?>
-									<option value="<?php echo htmlspecialchars($customer); ?>"><?php echo htmlspecialchars($customer); ?></option>
-								<?php } ?>
-							</select>
 						</div>
-						
-						<div id="customer_input_container" style="display: none;">
-							<input type="text" class="form-control" id="customer_name_input" name="customer_name" placeholder="Customer..." required disabled>
+						<div class="col-md-6">
+							<label for="customer_name" class="form-label d-flex align-items-center justify-content-between">
+								<span>Customer</span>
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" id="add_customer_checkbox">
+									<label class="form-check-label" for="add_customer_checkbox">
+										Add
+									</label>
+								</div>
+							</label>
+							
+							<div id="customer_select_container">
+								<select class="form-select" id="customer_name" name="customer_name" required>
+									<option value="">Choose customer...</option>
+									<?php foreach ($customers as $customer) { ?>
+										<option value="<?php echo htmlspecialchars($customer); ?>"><?php echo htmlspecialchars($customer); ?></option>
+									<?php } ?>
+								</select>
+							</div>
+							
+							<div id="customer_input_container" style="display: none;">
+								<input type="text" class="form-control" id="customer_name_input" name="customer_name" placeholder="Customer..." required disabled>
+							</div>
 						</div>
-					</div>
-					<!--<div class="mb-3">
-						<label for="additional_emails" class="form-label">Add Emails (Optional)</label>
-						<textarea class="form-control" id="additional_emails" name="additional_emails" rows="3" placeholder="Enter additional emails, one per line or separated by commas. (e.g., mail1@example.com, mail2@example.com)"></textarea>
-					</div>-->
-					<div class="col-md-12">
-						<label for="remark" class="form-label">Remark</label>
-						<textarea class="form-control" id="remark" name="remark" placeholder="remark"></textarea>
-					</div>
+						<!--<div class="mb-3">
+							<label for="additional_emails" class="form-label">Add Emails (Optional)</label>
+							<textarea class="form-control" id="additional_emails" name="additional_emails" rows="3" placeholder="Enter additional emails, one per line or separated by commas. (e.g., mail1@example.com, mail2@example.com)"></textarea>
+						</div>-->
+						<div class="col-md-12">
+							<label for="remark" class="form-label">Remark</label>
+							<textarea class="form-control" id="remark" name="remark" placeholder="remark"></textarea>
+						</div>
 
-					<div class="col-md-12">
-						<div class="mb-3">
-							<label for="attachment" class="form-label">Attach Files</label>
-							<input class="form-control" type="file" id="attachment" name="attachment[]" multiple>
-						</div>
+						<div class="col-md-12">
+							<div class="mb-3">
+								<label for="attachment" class="form-label">Attach Files</label>
+								<input class="form-control" type="file" id="attachment" name="attachment[]" multiple>
+							</div>
 
-						<div id="file-summary-container" class="mt-3" style="display: none;">
-							<h6 class="text-center">File Summary</h6>
-							<div style="max-height: 300px; overflow-y: auto;">
-								<div class="table-responsive">
-									<table id="summary-table" class="table table-bordered table-sm">
-										<thead>
-											<tr>
-												<th style="width: 50%;">File Name</th>
-												<th style="width: 30%;">PO Number</th>
-												<th style="width: 10%;"></th>
-											</tr>
-										</thead>
-										<tbody id="file-summary-table-body">
-											</tbody>
-									</table>
+							<div id="file-summary-container" class="mt-3" style="display: none;">
+								<h6 class="text-center">File Summary</h6>
+								<div style="max-height: 300px; overflow-y: auto;">
+									<div class="table-responsive">
+										<table id="summary-table" class="table table-bordered table-sm">
+											<thead>
+												<tr>
+													<th style="width: 50%;">File Name</th>
+													<th style="width: 30%;">PO Number</th>
+													<th style="width: 10%;"></th>
+												</tr>
+											</thead>
+											<tbody id="file-summary-table-body">
+												</tbody>
+										</table>
+									</div>
 								</div>
 							</div>
+						</div>	
+						<div class="col-12">
+							<button type="submit" class="btn btn-primary w-100">Send</button>
 						</div>
-					</div>	
-					<div class="col-12">
-						<button type="submit" class="btn btn-primary w-100">Send</button>
-					</div>
-				</form>
-			</div>	
+					</form>
+				</div>
+			
 		</div>
-		<div class="row-md-12" id="table-column">
+		<div class="col-md-12" id="table-column">
 			<div class="card p-4 h-100">
 				<h5 class="card-title text-center">Purchase Order History</h5>
 				<div class="d-flex justify-content-between align-items-center">
@@ -125,36 +131,35 @@
 						</select>
 						<!--<select class="form-select me-1" id="sl_dept" style="width: 150px;">
 							<option value="">Status --</option>
-							<?php //foreach($status as $item){  ?>
-							<option> $item </option>
-							<?php //} ?>
+							<?php foreach($status as $item){  ?>
+							<option><?= $item ?></option>
+							<?php } ?>
 						</select>-->
 					</div>
 				</div>
 				<div style="max-height: 700px; overflow-y: auto;">
-					<table id="po-table" class="table table-hover table-bordered mt-3">
+					<table id="po-table" class="table table-hover table-bordered mt-2">
 						<thead>
-							<tr>
-								<th class="text-center" style="width: 3%;">#</th>
-								<th class="text-center" style="width: 8%;">PO Number</th>
-								<th style="width: 16%;">Customer</th>
-								<th class="text-center">Registrator</th>
-								<th class="text-center">Created</th>
-								<th class="text-center" style="width: 3%;">Line</th>
-								<th class="text-center" style="width: 10%;">Model</th>
-								<th class="text-center" style="width: 4%;">Qty</th>
-								<th class="text-center" style="width: 8%;">Amount USD</th>
-								<th class="text-center">Status</th>
-								<th class="text-center">GERP</th>
-								<th class="text-center">Requested</th>
-								<th class="text-center">Confirmed</th>
-								<th class="text-center">Remark</th>
-							</tr>
+						  <tr>
+							<th class="text-center" style="width: 3%;">#</th>
+							<th class="text-center" style="width: 8%;">PO Number</th>
+							<th style="width: 16%;">Customer</th>
+							<th class="text-center">Registrator</th>
+							<th class="text-center">Created</th>
+							<th class="text-center" style="width: 3%;">Line</th>
+							<th class="text-center" style="width: 10%;">Model</th>
+							<th class="text-center" style="width: 4%;">Qty</th>
+							<th class="text-center">Status</th>
+							<th class="text-center">GERP</th>
+							<th class="text-center">Requested</th>
+							<th class="text-center">Confirmed</th>
+							<th class="text-center">Remark</th>
+						  </tr>
 						</thead>
 						<tbody>
-							<?php if (!empty($history)): ?>
+							<?php if (!empty($po_data)): ?>
 								<?php $counter = 1; ?>
-								<?php foreach ($history as $key => $records): ?>
+								<?php foreach ($po_data as $key => $records): ?>
 									<?php $firstRow = true; ?>
 									<?php $total_records = count($records); ?>
 									<?php $rowId = "po-{$key}"; ?>
@@ -166,13 +171,17 @@
 											$row_classes = ($firstRow) ? "po-master-row" : "po-detail-row {$rowId} d-none"; 
 										?>
 										
-										<tr class="<?= $row_classes ?>" data-po-id="<?= $rowId ?>">
+										<tr class="<?= $row_classes ?>" data-po-id="<?= $rowId ?>" data-id="<?php echo $item->id; ?>">
 											
 											<?php if ($firstRow): ?>
-												<td class="text-center po-span-cell" data-real-rowspan="<?php echo $total_records; ?>" rowspan="1"><?php echo $counter++; ?></td>
+												<td class="text-center po-span-cell" data-real-rowspan="<?php echo $total_records; ?>" rowspan="1">
+													<i class="bi bi-x-square text-danger remove-line-btn clickable-icon fs-5" data-po-number="<?php echo $item->po_number; ?>" data-record-id="<?php echo $item->id; ?>"></i>
+													<?php echo $counter++; ?>
+												</td>
 												<td class="po-number-cell po-span-cell" data-real-rowspan="<?php echo $total_records; ?>" rowspan="1">
 													<i class="bi bi-caret-down-fill po-toggle-icon me-2" role="button" data-po-id="<?= $rowId ?>"></i>
 													<?php echo $key; ?>
+													<!--<i class="bi bi-plus-square text-primary add-line-btn clickable-icon fs-5" data-po-number="<?php echo $item->po_number; ?>" data-record-id="<?php echo $item->id; ?>"></i>-->
 												</td>
 												<td class="customer-cell po-span-cell" data-real-rowspan="<?php echo $total_records; ?>" rowspan="1"><?php echo $item->customer_name; ?></td>
 												<td class="text-center po-span-cell" data-real-rowspan="<?php echo $total_records; ?>" rowspan="1"><?php echo $item->registrator; ?></td>
@@ -180,22 +189,59 @@
 												<?php $firstRow = false; ?>
 											<?php endif; ?>
 											
-											<td class="text-center line-cell"><?php echo $item->line_no; ?></td>
+											<td class="text-center line-cell">
+												<?php echo $item->line_no; ?>
+												 
+											</td>
 											<td class="text-center model-cell"><?php echo $item->model; ?></td>
 											<td class="text-center qty-cell"><?php echo $item->qty; ?></td>
-											<td class="text-center qty-cell"><?php echo $item->amount_usd; ?></td>
 											<td class="text-center status-cell"><?php echo $item->status; ?></td>
 											<td class="text-center">
-												<?php echo (!empty($item->gerp)) ? $item->gerp : '<input type="checkbox" name="gerp" required disabled/>'; ?>
+												<?php if (!empty($item->gerp)): ?>
+													<?php echo $item->gerp; ?>
+													<i class="bi bi-calendar-x text-danger m-2 remove-gerp-date-btn clickable-icon fs-8" data-po-number="<?php echo $item->po_number; ?>" data-record-id="<?php echo $item->id; ?>"></i>
+												<?php else: ?>
+													<input type="checkbox" name="gerp"/>
+												<?php endif; ?>
 											</td>
 											<td class="text-center">
-												<?php echo (!empty($item->appointment_request)) ? $item->appointment_request : '<input type="checkbox" name="requested" required disabled/>'; ?>
+												<?php if (!empty($item->appointment_request)): ?>
+													<?php echo $item->appointment_request; ?>
+													<i class="bi bi-calendar-x text-danger m-2 remove-requested-date-btn clickable-icon fs-8" data-po-number="<?php echo $item->po_number; ?>" data-record-id="<?php echo $item->id; ?>"></i>
+												<?php else: ?>
+													<input type="checkbox" name="requested"/>
+												<?php endif; ?>
 											</td>
 											<td class="text-center">
-												<?php echo (!empty($item->appointment_confirmed)) ? $item->appointment_confirmed : '<input type="checkbox" name="confirmed" required disabled/>'; ?>
+												<?php if (!empty($item->appointment_confirmed)): ?>
+													<?php echo $item->appointment_confirmed; ?>
+													<i class="bi bi-calendar-x text-danger m-2 remove-confirmed-date-btn clickable-icon fs-8" data-po-number="<?php echo $item->po_number; ?>" data-record-id="<?php echo $item->id; ?>"></i>
+												<?php else: ?>
+													<input type="checkbox" name="confirmed"/>
+												<?php endif; ?>
 											</td>
 											<td class="text-center remark-cell">
-												<?php echo ($item->remark_appointment !== null) ? $item->remark_appointment : '-'; ?>
+												<?php if ($item->remark_appointment !== null):?>
+													<?php //echo $item->remark_appointment; ?>
+													<div class="remark-display d-flex align-items-center justify-content-between">
+														<span><?php echo htmlspecialchars($item->remark_appointment); ?></span>
+														<div class="d-flex flex-column align-items-end">
+															<button class="btn btn-sm btn-outline-primary edit-remark-btn ms-2" data-record-id="<?php echo $item->id; ?>">
+																<i class="bi bi-pencil"></i>
+															</button>
+															<button class="btn btn-sm btn-outline-danger delete-remark-btn ms-2 mt-1" data-record-id="<?php echo $item->id; ?>">
+																<i class="bi bi-trash"></i>
+															</button>
+														</div>
+													</div>
+												<?php else: ?>
+													<div class="d-flex align-items-center">
+														<textarea class="form-control remark-input flex-grow-1 me-2" data-record-id="<?php echo $item->id; ?>" name="remark_appointment" placeholder="Add a remark"></textarea>
+														<button class="btn btn-outline-primary btn-sm save-remark-btn" data-record-id="<?php echo $item->id; ?>">
+															<i class="bi bi-send"></i>
+														</button>
+													</div>
+												<?php endif; ?>
 											</td>
 										</tr>
 									<?php endforeach; ?>
@@ -207,13 +253,12 @@
 							<?php endif; ?>
 						</tbody>
 					</table>
-				</div>	
+				</div>
 				<div id="pagination-controls" class="d-flex justify-content-center mt-3"></div>
 			</div>
 		</div>
 	</div>
 </div>
-
 
 <script> // Expand po numbers rows
 document.addEventListener('DOMContentLoaded', function() {
@@ -277,25 +322,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<script> // NO files cases (REMARK)
-document.addEventListener('DOMContentLoaded', function() {
-    const customerSelect = document.getElementById('customer_name');
-    const remarkField = document.getElementById('remark');
-    const specialCustomers = ['SAGA FALABELLA S.A.', 'HIPERMERCADOS TOTTUS S.A.', 'TIENDAS DEL MEJORAMIENTO DEL HOGAR S.A. - [SODIMAC]'];
-
-    // Escucha el cambio en la lista de clientes.
-    customerSelect.addEventListener('change', function() {
-        const selectedCustomer = this.value;
-		console.log(selectedCustomer);
-        if (specialCustomers.includes(selectedCustomer)) {
-            remarkField.placeholder = "Ingrese los números de PO aquí, uno por línea o separados por comas.";
-        } else {
-            remarkField.placeholder = "remark";
-        }
-    });
-});
-</script>
-
 <script> // Validation empty submission form
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.querySelector('form');
@@ -306,34 +332,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const attachmentInput = document.getElementById('attachment');
     const fileSummaryContainer = document.getElementById('file-summary-container');
     const tableBody = document.getElementById('file-summary-table-body');
-	
-    let originalEmlFiles = [];
-	
-	function getSelectedCustomerName() {
-		// Si el checkbox está marcado, toma el valor del input, si no, toma el valor del select.
-		if (addCustomerCheckbox.checked) {
-			return inputElement.value.trim();
-		} else {
-			return selectElement.value; // El valor del select ya está limpio
-		}
-	}
+    
     // Función para manejar el cambio de archivos y poblar la tabla
     attachmentInput.addEventListener('change', function () {
         const files = this.files;
         tableBody.innerHTML = '';
         
-		const customerName = getSelectedCustomerName();
-		
         if (files.length > 0) {
             fileSummaryContainer.style.display = 'block';
             
             const formData = new FormData();
-			formData.append('customer_name', customerName);
             Array.from(files).forEach(file => {
                 formData.append('attachment[]', file);
-				if (file.name.toLowerCase().endsWith('.eml')) {
-					originalEmlFiles.push(file.name);
-				}
             });
 
             const xhr = new XMLHttpRequest();
@@ -347,20 +357,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         const response = JSON.parse(xhr.responseText);
                         if (response.status === 'success') {
                             const fragment = document.createDocumentFragment();
-                            if (response.files_data.length === 0 && originalEmlFiles.length > 0) {
-                                // Si no se extrajeron adjuntos pero se subió un .eml,
-                                // crea una fila manual para cada .eml
-                                originalEmlFiles.forEach(emlName => {
-                                    const row = createRow({ name: emlName }, null);
-                                    fragment.appendChild(row);
-                                });
-                            } else {
-                                // Lógica existente para poblar la tabla con los datos del servidor
-                                response.files_data.forEach(item => {
-                                    const row = createRow({ name: item.name }, item.po_number);
-                                    fragment.appendChild(row);
-                                });
-                            }
+                            response.files_data.forEach(item => {
+                                const row = createRow({ name: item.name }, item.po_number);
+                                fragment.appendChild(row);
+                            });
                             tableBody.appendChild(fragment);
                         } else {
                             Swal.fire('Error!', response.message, 'error');
@@ -555,7 +555,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function sendDataToServer() {
-	
 		// Recopila los datos de la tabla de resumen
 		const poNumbersForm = [];
 		const fileNamesForm = [];
@@ -593,69 +592,35 @@ document.addEventListener('DOMContentLoaded', function () {
 		poNumbersForm.forEach(po => formData.append('po_numbers_form[]', po));
 		fileNamesForm.forEach(name => formData.append('file_names_form[]', name));
 		
-		originalEmlFiles.forEach(emlName => {
-			formData.append('original_eml_files[]', emlName);
-		});
-
 		// Muestra el contenido del objeto FormData antes de enviarlo
 		console.log('Contenido final del FormData:');
 		for (let pair of formData.entries()) {
 			console.log(pair[0] + ': ' + pair[1]);
 		}
-		
-		Swal.fire({
-			title: 'Processing Data...',
-			text: 'Please wait while the files are being registered and the email is sent.',
-			allowOutsideClick: false, // Evita que el usuario haga clic fuera
-			didOpen: () => {
-				Swal.showLoading();
-			},
-			// Opcional: Icono de progreso visual
-			imageUrl: 'https://cdn.jsdelivr.net/gh/t4t5/sweetalert/images/loading.gif' 
-		});
-		
-		
+
 		const xhr = new XMLHttpRequest();
 		const url = '<?php echo site_url("page/po_register/register_data"); ?>';
 
 		xhr.open('POST', url, true);
 		xhr.onload = function() {
-			// 2. Cerrar el Sweet Alert de Carga (independientemente del resultado)
-			Swal.close();
-			
 			if (xhr.status === 200) {
 				try {
 					const response = JSON.parse(xhr.responseText);
-					if (response.status === 'success' || response.status === 'warning') {
-						// Muestra el mensaje de éxito o advertencia del servidor
-						Swal.fire(
-							(response.status === 'success' ? 'Success!' : 'Warning!'), 
-							response.message, 
-							response.status
-						).then(() => {
+					if (response.status === 'success') {
+						Swal.fire('Success!', response.message, 'success').then(() => {
 							location.reload();
 						});
 					} else {
-						// Muestra un error si el servidor lo indica (status: 'error')
 						Swal.fire('Error!', response.message, 'error');
 					}
 				} catch (e) {
-					// Error de parsing (aquí estaba el problema original)
-					console.error('Parsing error. Server response:', xhr.responseText, e); // Muestra la respuesta cruda
-					Swal.fire('Error!', 'An unexpected error occurred. Please try again later. (Parsing Error)', 'error');
+					Swal.fire('Error!', 'An unexpected error occurred. Please try again later.', 'error');
+					console.error('Parsing error:', e);
 				}
 			} else {
-				// Error de conexión o HTTP no-200
-				Swal.fire('Error!', 'Something went wrong with the server request (HTTP Status: ' + xhr.status + ').', 'error');
+				Swal.fire('Error!', 'Something went wrong with the server request.', 'error');
 			}
 		};
-		
-		// Manejar errores de red
-		xhr.onerror = function() {
-			Swal.close();
-			Swal.fire('Error!', 'Network error. Could not connect to the server.', 'error');
-		};
-		
 		xhr.send(formData);
 	}
 });
@@ -705,30 +670,33 @@ document.addEventListener('DOMContentLoaded', function() {
     const formColumn = document.getElementById('form-column');
     const tableColumn = document.getElementById('table-column');
 
+    // Estado inicial: El botón muestra el formulario
+    toggleFormBtn.innerHTML = '<i class="bi bi-eye"></i> Show Form';
+
     toggleFormBtn.addEventListener('click', function() {
         if (formColumn.classList.contains('d-none')) {
-            // Si el formulario está oculto, lo muestra y restaura el ancho de la tabla
+            // Si el formulario está oculto, lo muestra y reduce el ancho de la tabla
             formColumn.classList.remove('d-none');
-            tableColumn.classList.remove('row-md-12');
-            tableColumn.classList.add('row-md-9');
+            tableColumn.classList.remove('col-md-12');
+            tableColumn.classList.add('col-md-9');
             toggleFormBtn.innerHTML = '<i class="bi bi-eye-slash"></i> Hide Form';
         } else {
             // Si el formulario está visible, lo oculta y expande el ancho de la tabla
             formColumn.classList.add('d-none');
-            tableColumn.classList.remove('row-md-9');
-            tableColumn.classList.add('row-md-12');
+            tableColumn.classList.remove('col-md-9');
+            tableColumn.classList.add('col-md-12');
             toggleFormBtn.innerHTML = '<i class="bi bi-eye"></i> Show Form';
         }
     });
 });
 </script>
 
-<script> // Filter Scripts and pagination
+<script> // Filter Scripts
 document.addEventListener('DOMContentLoaded', function() {
     // Referencias a los elementos del DOM
     const searchInput = document.getElementById('po-search');
     const customerSelect = document.getElementById('sl_period');
-   // const statusSelect = document.getElementById('sl_dept');
+    //const statusSelect = document.getElementById('sl_dept');
     const tableBody = document.querySelector('#po-table tbody');
     const paginationContainer = document.getElementById('pagination-controls');
 
@@ -740,7 +708,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function filterAndPaginate() {
         const searchTerm = searchInput.value.toLowerCase();
         const customerFilter = customerSelect.value.toLowerCase();
-        //const statusFilter = statusSelect.value.toLowerCase();
+       // const statusFilter = statusSelect.value.toLowerCase();
 
         const allRows = Array.from(tableBody.querySelectorAll('tr'));
         
@@ -769,6 +737,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
+        // **NUEVO:** El cálculo de paginación se basa en los POs, no en las filas individuales
         const totalPoGroups = visiblePoGroups.length;
         const totalPages = Math.ceil(totalPoGroups / rowsPerPage);
 
@@ -1184,7 +1153,10 @@ document.addEventListener('DOMContentLoaded', function () {
                                 const response = JSON.parse(xhr.responseText);
                                 if (response.status === 'success') {
                                     // Actualizar la celda con la fecha y hora
-                                    checkboxCell.innerHTML = `${response.timestamp}`;
+                                    checkboxCell.innerHTML = `${response.timestamp}
+											<i class="bi bi-calendar-x text-danger m-2 remove-date-btn clickable-icon fs-8" 
+                                           data-field="${field}" 
+                                           data-record-id="${recordId}"></i>`;
 
                                     const statusCell = row.querySelector('.status-cell');
                                     if (field === 'gerp') {
@@ -1200,7 +1172,7 @@ document.addEventListener('DOMContentLoaded', function () {
 										text: response.message,
 										icon: 'success'
 									}).then(() => {
-										location.reload();
+										//location.reload();
 									});
                                 } else {
                                     Swal.fire('Error!', response.message, 'error');
