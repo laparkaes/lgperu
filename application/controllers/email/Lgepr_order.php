@@ -43,6 +43,8 @@ class Lgepr_order extends CI_Controller {
 	}
 	
 	public function order_report_excel(){
+		ini_set('memory_lmit', '4096M');
+		
 		$from = $this->input->get("from");
 		if (!$from) $from = date("Y-m-01");
 		
