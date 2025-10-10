@@ -43,8 +43,11 @@ class Lgepr_order extends CI_Controller {
 	}
 	
 	public function order_report_excel(){
+		$from = $this->input->get("from");
+		if (!$from) $from = date("Y-m-01");
+		
 		$sales = $this->gen_m->filter("lgepr_order", false, ["line_status !=" => "Closed"]);
-		$closed = $this->gen_m->filter("lgepr_order", false, ["closed_date >=" => date("Y-m-01")]);
+		$closed = $this->gen_m->filter("lgepr_order", false, ["closed_date >=" => $from]);
 		
 		$orders = array_merge($sales, $closed);
 		
