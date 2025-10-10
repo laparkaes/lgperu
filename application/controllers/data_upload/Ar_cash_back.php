@@ -30,32 +30,24 @@ class Ar_cash_back extends CI_Controller {
 	}
 	
 	public function get_unique_values($tablename, $column_name) {
-		// 1. Obtener el año actual y el anterior.
 		$current_year = date('Y');
 		$previous_year = $current_year - 1;
-
-		// 2. Establecer el rango de inicio y fin para la consulta.
+		
 		$start_period = $previous_year . '-10'; // Inicia en octubre del año anterior.
 		$end_period = $current_year . '-12'; // Termina en diciembre del año actual.
 
-		// 3. Construir la consulta con el rango y la unicidad.
 		$this->db->distinct()->select($column_name);
 
-		// 4. Excluye los valores nulos.
 		$this->db->where($column_name . ' IS NOT NULL', NULL, FALSE);
 
-		// 5. Añade la cláusula BETWEEN para el filtro de rango.
 		$this->db->where("$column_name BETWEEN '$start_period' AND '$end_period'");
-		
-		// 6. Ordenar los resultados de forma descendente (DESC).
+
 		$this->db->order_by($column_name, 'DESC');
 	
-		// 7. Ejecuta y devuelve el resultado.
 		return $this->db->get($tablename)->result_array();
 	}
 
 	public function date_convert_mm_dd_yyyy($date) {
-    // Intentamos convertir con la lógica del valor numérico (excel date)
 		if (is_numeric($date)) {
 			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
@@ -529,16 +521,19 @@ class Ar_cash_back extends CI_Controller {
 		$s = ['period_name', 'effective_date', 'invoice_number', 'transaction_number', 'net_entered_debit', 'accounting_unit', 'je_id', 'type_voucher', 'serie_voucher', 'number_voucher'];
 		$w = ['period_name' => $period];
 		$daily_book = $this->gen_m->filter_select('tax_daily_book', false, $s, $w); 
-		//echo '<pre>'; print_r($daily_book);
 		foreach ($daily_book as $item_d) {
 			$key = $item_d->effective_date . '_' . $item_d->net_entered_debit . '_' . $item_d->transaction_number;
-			if (!empty($data[$key]) && ($item_d->invoice_number === null || $item_d->invoice_number === '')) {	
+			if (!empty($data[$key]) && ($item_d->invoice_number === null || $item_d->invoice_number === '')) {
 				$list_update[] = ['invoice_number' => $data[$key]['invoice_number'], 'type_voucher' => $data[$key]['type_voucher'], 'serie_voucher' => $data[$key]['serie_voucher'], 'number_voucher' => $data[$key]['number_voucher'],'je_id' => $item_d->je_id, 'cash_back_updated' => $now];									
 				//break;
 			} else continue;
 		}
-		$this->gen_m->update_multi('tax_daily_book', $list_update, 'je_id');
-		//echo '<pre>'; print_r($list_update);
+		
+		if (!empty($list_update)) {
+			$this->gen_m->update_multi('tax_daily_book', $list_update, 'je_id');
+			return count($list_update);
+		}
+		return 0;
 	}
 	
 	public function process(){
@@ -632,31 +627,14 @@ class Ar_cash_back extends CI_Controller {
 		
 		$start_time = microtime(true);
 		
-		$file_path = './upload/ar_cash_back.xls';
+		$file_path = './upload/ar_cash_back.xlsx';
 		$period = $this->input->post('date_period');
 		
 		try {
-			// Usa IOFactory::load() para detectar y cargar el archivo correctamente.
-			// No es necesario convertir el archivo de un formato a otro.
 			$spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file_path);
 		} catch (\Exception $e) {
-			// Manejo de errores si el archivo es inválido o corrupto.
 			return "Error: El archivo subido no es un formato de hoja de cálculo válido o está corrupto. Intenta con un archivo .xlsx, .xls o .csv válido.";
 		}
-		// Paso 1: Leer el archivo como un TSV
-		// $tab_reader = new CsvReader();
-		// $tab_reader->setDelimiter("\t");
-		// $spreadsheet = $tab_reader->load($file_path);
-
-		// // Paso 2: Crear el escritor para el formato XLS
-		// $xls_writer = new XlsWriter($spreadsheet);
-		
-		// // Paso 3: Guardar el archivo en el mismo path para sobreescribirlo
-		// $xls_writer->save($file_path);
-
-		// Ahora, el archivo en $file_path es un verdadero XLS binario
-		// Puedes continuar con la lectura convencional
-		// La lectura ya no es necesaria si solo usas el objeto $spreadsheet
 		
 		$sheet = $spreadsheet->getActiveSheet();
 
@@ -668,7 +646,7 @@ class Ar_cash_back extends CI_Controller {
 			trim($sheet->getCell('E1')->getValue()),
 			trim($sheet->getCell('F1')->getValue())
 		];
-
+		//echo '<pre>'; print_r($h); return;
 		$header = ["Customer Code", "Customer Name", "Cheque/Note No", "Class", "Invoice No", "Reference No"];
 		$is_ok = true;
 		foreach ($h as $i => $h_i) {
@@ -746,56 +724,14 @@ class Ar_cash_back extends CI_Controller {
 			
 			
 		}
-		$this->update_daily_book($data, $period);
-		//echo '<pre>'; print_r($data);
 		
-		$msg = " record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
-		//print_r($msg); return;
+		if (empty($data)) {
+			$error_msg = "Error: The file contained no valid rows for the selected period ($period) or was empty.";
+			return $error_msg;
+		}
+		$count = $this->update_daily_book($data, $period);
+		$msg = $count . " records updated in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 		return $msg;
-	}
-	
-	public function process_uploaded_filev1() {
-		$start_time = microtime(true);
-		$file_path ='./upload/ar_cash_back.xls';
-		$reader = new Csv();
-
-		// Configurar el lector para usar el tabulador como delimitador
-		$reader->setDelimiter("\t");
-
-		// Cargar el archivo con el lector configurado
-		$spreadsheet = $reader->load($file_path);
-		$sheet = $spreadsheet->getActiveSheet();
-
-		// Ahora puedes validar las cabeceras como lo hacías antes
-		// Se supone que las cabeceras también están separadas por tabuladores
-		$h = [
-			trim($sheet->getCell('A1')->getValue()),
-			trim($sheet->getCell('B1')->getValue()),
-			trim($sheet->getCell('C1')->getValue()),
-			trim($sheet->getCell('D1')->getValue()),
-			trim($sheet->getCell('E1')->getValue()),
-			trim($sheet->getCell('F1')->getValue())
-		];
-
-		$header = ["Customer Code", "Customer Name", "Cheque/Note No", "Class", "Invoice No", "Reference No"];
-
-		// Validación de las cabeceras
-		$is_ok = true;
-		foreach($h as $i => $h_i) {
-			if ($h_i !== $header[$i]) {
-				$is_ok = false;
-				break; // Salir del bucle si se encuentra una discrepancia
-			}
-		}
-
-		if (!$is_ok) {
-			// Manejar el error: las cabeceras no coinciden
-			return "Error: El formato del archivo o las cabeceras no son correctas.";
-		} else {
-			print_r($h);
-			$msg = $this->process_mapping($sheet); return;
-			//echo '<pre>'; print_r($data);
-		}
 	}
 	
 	public function upload(){
@@ -809,7 +745,7 @@ class Ar_cash_back extends CI_Controller {
 				'allowed_types'	=> '*',
 				'max_size'		=> 90000,
 				'overwrite'		=> TRUE,
-				'file_name'		=> 'ar_cash_back.xls',
+				'file_name'		=> 'ar_cash_back.xlsx',
 			];
 			$this->load->library('upload', $config);
 

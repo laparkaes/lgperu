@@ -97,10 +97,19 @@
         <div class="content">
             <!--<p>Estimado/a <?= $info_pr['name']?>,</p>-->
 			
-			<p>Informamos que el dia de hoy <?= $current_day_format?> no ha registrado su marcacion. </p>
+			<p class="text-center">Informamos que el dia de hoy <?= $current_day_format?> no ha registrado su marcacion. </p>
 			
-			<p>Si no realizaste el registro correspondiente, recuerda justificar la ausencia mediante un approval dirigido a tu superior, con copia a hans.beuermann y carlos.mego.</p>
+			<p class="text-center">Si no realizaste el registro correspondiente, recuerda justificar la ausencia mediante un approval considerando la siguiente linea de aprobacion:</p>
 			
+			<p>
+				<div style="margin-bottom: 5px;">
+					<strong>Solicitante - Team Leader - CEO o CFO</strong> (de acuerdo al area)
+				</div>
+				<div>
+					<strong>CC:</strong> carlos.mego, hans.beuermann
+				</div>
+			</p>
+			<p class="text-center"> <strong>Nota:</strong> dejar sin efecto la presente, si al momento de recibir la notificacion se encuentra de Vacaciones, Descanso Medico, Licencias u otra justificacion previa.</p>
             <p>A continuacion, se detalla la informacion:</p>
 
                 <table class="table-container">
