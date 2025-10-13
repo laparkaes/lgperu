@@ -38,21 +38,22 @@ class Hr_email_alarm extends CI_Controller {
 					   'PR009226', // Sangkyu Lee
 					   'PR100004', // KIM JE HEON
 					   'PR009113', // Oh Sangjun
-					   'PR009329', // Han Muhyun					   
-					   'PR009230', // Seongmin Lee	
-					   'PR100017', // Ga yeon Park 
+					   'PR009329', // Han Muhyun
+					   'PR009230', // Seongmin Lee
+					   'PR100017', // Ga yeon Park
 					   'PR009224', // Sang Uk Jeong
 					   'PR008210' // Byung Seok Hwang
 					   //Add more exceptions
 					   ]; //exclude PR
 		
-		$fecha_actual = date("Y-m-d"); // Current date
-		
-		$attendance_summ = $this->gen_m->filter('v_hr_attendance_summary', false, ['work_date' => $fecha_actual]);
+		$fecha_actual = date("Y-m-d");
+		// Inciar con fecha actual para ejecucion de codigo diaria
+		//$fecha_actual = '2025-04-11';
+		$attendance_summ = $this->gen_m->filter('v_hr_attendance_summary', false, ['work_date' => $fecha_actual]); // Validar que haya data en el dia.
 		if (empty($attendance_summ)) {
 			$this->send_issue_email();
 			return;
-		} // Empty attendance data
+		}
 		foreach($attendance_summ as $item) $att_summ[$item->pr] = $item;
 		
 		$att_sch = [];
@@ -62,10 +63,11 @@ class Hr_email_alarm extends CI_Controller {
 		$employee_number = $this->gen_m->filter_select('hr_employee', false, ['employee_number', 'ep_mail', 'name'], ['working'=>1, 'ep_mail !=' => null, 'ep_mail !=' => ''], null, null, [['employee_number', 'ASC']] );		
 		foreach($employee_number as $item) $emp_hr_info[$item->employee_number] = $item;
 		
-		//PR exceptions
+		//PR unicos
 		$employee_unique_n_exclude = [];
 		$employee_unique = [];
 		foreach ($employee_number as $item) {
+			//print_r($item); echo '<br>';
 			if (!in_array($item->employee_number, $employee_unique)) {
 				if(!in_array($item->employee_number, $pr_exclude)){
 					$employee_unique[] = $item->employee_number;
@@ -90,6 +92,7 @@ class Hr_email_alarm extends CI_Controller {
 				
 				if (isset($att_summ[$emp_number])) {
 					$att_summ[$emp_number]->first_access = (DateTime::createFromFormat('Y-m-d H:i:s', $att_summ[$emp_number]->first_access))->format('H:i:s');
+					
 					if($att_summ[$emp_number]->first_access >= $att_sch[$emp_number]->work_start){
 						
 						if (isset($att_exc[$emp_number]) && $att_exc[$emp_number]->type !== 'NEF' && $att_exc[$emp_number]->type !== 'EF' && $att_exc[$emp_number]->type !== 'H'){
@@ -119,7 +122,7 @@ class Hr_email_alarm extends CI_Controller {
 		
 		$subject = "[LGEPR] Registros de asistencias vacios - " . $date_formatted;
 		$message = $this->generate_warning_html_message();
-		$to = ['ricardo.alvarez@lge.com', 'roberto.kawano@lge.com'] //PI Team
+		$to = ['ricardo.alvarez@lge.com', 'roberto.kawano@lge.com'];
 		$this->my_func->send_email("rpa.espr@lgepartner.com", $to, $subject, $message);
 	}
 	
@@ -264,15 +267,18 @@ class Hr_email_alarm extends CI_Controller {
 	private function calcularDiferenciaTiempo($first_access, $work_start) {
 		
 		if(DateTime::createFromFormat('H:i:s', $first_access) !== false){
+			// Convertir las cadenas de tiempo a objetos DateTime
 			$first_access_dt = DateTime::createFromFormat("H:i:s", $first_access);
 			$work_start_dt = DateTime::createFromFormat("H:i:s", $work_start);
 
+			// Calcular la diferencia
 			$diff = $first_access_dt->diff($work_start_dt);
 
+			// Obtener la diferencia en horas y minutos
 			$horas = $diff->h;
 			$minutos = $diff->i;
 			$segundos = $diff->s;
-
+			// Formatear el resultado
 			$resultado = "";
 			if ($horas > 0) {
 				$resultado .= $horas . "h ";
@@ -286,15 +292,19 @@ class Hr_email_alarm extends CI_Controller {
 	
 	public function send_email($list_tardiness, $list_no_work) {	
 		//llamasys/module/email_alarm/send_email
+
+		$current_date = date("Ymd"); // Obtiene la fecha actual en formato YYYYMMDD
+		// Obtener los datos de la base de datos con la condición dada
 		
-		$current_day = date('Ymd');  // Current date format - YYYYMMDD
 		$count = 1;
+		$current_day = date('Ymd');
 		$info_total = [];
 		foreach($list_tardiness as $item){
 			$delay = $this->calcularDiferenciaTiempo($item['first_access'], $item['work_start']);
 			$info_total[$item['pr']][] = $item;
 			
 			$to = $item['ep_mail'] . '@lge.com';
+			//$cc = '';
 			$subject = "[LGEPR_HR] Notificacion de tardanza {$current_day}";
 			$data = [
 					'info_pr' => $item,
@@ -302,47 +312,49 @@ class Hr_email_alarm extends CI_Controller {
 					'current_day_format' => date('d/m/Y'),
 					'delay' => $delay
 					];
-
+			// Cargar la vista con los datos combinados
 			$message = $this->load->view('email/email_tardiness', $data, true);
 
-			// Send email
+			// Enviar el correo electrónico
 			$this->my_func->send_email("rpa.espr@lgepartner.com", $to, $subject, $message);
 		}
 		
 		foreach($list_no_work as $item){
 			$info_total[$item['pr']][] = $item;
 			$to = $item['ep_mail'] . '@lge.com';
+			//$cc = '';
 			$subject = "[LGEPR_HR] Notificacion marcacion no registrada {$current_day}";
 			$data = [
 					'info_pr' => $item,
 					'current_day_format' => date('d/m/Y'),
 					'current_day' => $current_day,
 					];
-
+			// Cargar la vista con los datos combinados
 			$message = $this->load->view('email/email_absence', $data, true);
 
-			// Send email
+			// Enviar el correo electrónico
 			$this->my_func->send_email("rpa.espr@lgepartner.com", $to, $subject, $message);
 		}
 		
-		// Report attendance to RRHH
-
+		// Correo acumulativo para RRHH
 		$delay_total = [];
 		foreach($info_total as $item){
 			$delay_total[$item[0]['pr']] = $this->calcularDiferenciaTiempo($item[0]['first_access'], $item[0]['work_start']);
 		}
-
 		$data = [
 					'info' => $info_total,
 					'current_day' => $current_day,
 					'current_day_format' => date('d/m/Y'),
 					'delay' => $delay_total
 					];
-		$message = $this->load->view('email/email_report', $data, true);		
+		// Cargar la vista con los datos combinados
+		$message = $this->load->view('email/email_report', $data, true);				
 		$to = 'carlos.mego@lge.com'; //RRHHH
-
+		//$cc = '';
 		$subject = "[LGEPR_HR] Reporte de asistencias {$current_day}";
-		// Send email
-		$this->my_func->send_email("rpa.espr@lgepartner.com", $to, $subject, $message);	
-	}	
+		// Enviar el correo electrónico
+		$this->my_func->send_email("rpa.espr@lgepartner.com", $to, $subject, $message);
+		
+	}
+	
 }

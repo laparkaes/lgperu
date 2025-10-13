@@ -97,10 +97,20 @@
         <div class="content">
             <!--<p>Estimado/a <?= $info_pr['name']?>,</p>-->
 			
-			<p>Informamos que ud. registro una tardanza el dia de hoy <?=$current_day_format?> con hora de entrada <?=$info_pr['first_access']?> y un retraso de <?= $delay ?>.</p>
+			<p class="text-center">Informamos que ud. registro una tardanza el dia de hoy <?=$current_day_format?> con hora de entrada <?=$info_pr['first_access']?> y un retraso de <?= $delay ?>.</p>
            
-		    <p>Si has tenido un inconveniente, por favor justificarlo mediante un approval dirigido a tu superior, con copia a hans.beuermann y carlos.mego.</p>
+		    <p class="text-center">Si has tenido un inconveniente, recuerda justificar la tardanza mediante un approval, considerando la siguiente linea de aprobacion:</p>
 		   
+			<p>
+				<div style="margin-bottom: 5px;">
+					<strong>Solicitante - Team Leader - CEO o CFO</strong> (de acuerdo al area)
+				</div>
+				<div>
+					<strong>CC:</strong> carlos.mego, hans.beuermann
+				</div>
+			</p>
+			<p class="text-center"> <strong>Nota:</strong> dejar sin efecto la presente, si al momento de recibir la notificacion a justificado la tardanza.</p>
+			
             <p>A continuacion, se detalla la informacion:</p>
 
                 <table class="table-container">
@@ -132,7 +142,6 @@
         </div>
 
         <div class="footer">
-			<p>Si ya enviaste previamente el sustento, puedes omitir este aviso.</p>
             <p>Este es un mensaje generado automaticamente. Por favor, no respondas a este correo.</p>
         </div>
     </div>
