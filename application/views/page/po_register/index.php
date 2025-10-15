@@ -46,11 +46,20 @@
 					<div class="col-md-6">
 						<label for="customer_name" class="form-label d-flex align-items-center justify-content-between">
 							<span>Customer</span>
-							<div class="form-check">
-								<input class="form-check-input" type="checkbox" id="add_customer_checkbox">
-								<label class="form-check-label" for="add_customer_checkbox">
-									Add
-								</label>
+							<div class="d-flex align-items-center">
+								<div class="form-check me-3">
+									<input class="form-check-input" type="checkbox" id="filter_ac_checkbox">
+									<label class="form-check-label" for="filter_ac_checkbox">
+										AC
+									</label>
+								</div>
+								
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" id="add_customer_checkbox">
+									<label class="form-check-label" for="add_customer_checkbox">
+										Add
+									</label>
+								</div>
 							</div>
 						</label>
 						
@@ -214,6 +223,79 @@
 	</div>
 </div>
 
+<script> // Customers list values
+    const ALL_CUSTOMERS = <?php echo json_encode($customers); ?>;
+    const AC_CUSTOMERS = <?php echo json_encode($customers_ac); ?>;
+</script>
+
+<script> // Script Customer List
+document.addEventListener('DOMContentLoaded', function () {
+    const filterACCheckbox = document.getElementById('filter_ac_checkbox');
+    const addCustomerCheckbox = document.getElementById('add_customer_checkbox');
+    const selectElement = document.getElementById('customer_name');
+    const inputContainer = document.getElementById('customer_input_container');
+    const selectContainer = document.getElementById('customer_select_container');
+    const inputElement = document.getElementById('customer_name_input');
+    
+    // Función centralizada para construir el <select>
+    function updateCustomerList(customersArray) {
+        selectElement.innerHTML = '<option value="">Choose customer...</option>';
+        customersArray.forEach(customer => {
+            const option = document.createElement('option');
+            option.value = customer; 
+            option.textContent = customer;
+            selectElement.appendChild(option);
+        });
+    }
+
+    filterACCheckbox.addEventListener('change', function () {
+        if (this.checked) {
+            if (addCustomerCheckbox.checked) {
+                addCustomerCheckbox.checked = false;
+                selectContainer.style.display = 'block';
+                inputContainer.style.display = 'none';
+                inputElement.required = false;
+                inputElement.disabled = true;
+                selectElement.required = true;
+                inputElement.value = ''; // Limpiar el valor manual
+            }
+            
+            // Aplica el filtro AC usando la variable inyectada
+            updateCustomerList(AC_CUSTOMERS);
+            
+        } else {
+            // Desactivar Filtro AC: Volver a la lista COMPLETA original
+            updateCustomerList(ALL_CUSTOMERS);
+        }
+    });
+
+    addCustomerCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            // Activar Add:
+            
+            // Si el Filtro AC está activo, desactívalo y vuelve a la lista completa
+            if (filterACCheckbox.checked) {
+                filterACCheckbox.checked = false;
+                updateCustomerList(ALL_CUSTOMERS);
+            }
+            
+            selectContainer.style.display = 'none';
+            inputContainer.style.display = 'block';
+            inputElement.required = true;
+            inputElement.disabled = false;
+            selectElement.required = false;
+            
+        } else {
+            selectContainer.style.display = 'block';
+            inputContainer.style.display = 'none';
+            inputElement.required = false;
+            inputElement.disabled = true;
+            selectElement.required = true;
+            inputElement.value = '';
+        }
+    });
+});
+</script>
 
 <script> // Expand po numbers rows
 document.addEventListener('DOMContentLoaded', function() {
@@ -1218,6 +1300,154 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+</script>
+
+<script> // Register data // check po exists
+// document.addEventListener('DOMContentLoaded', function () {
+    // const form = document.querySelector('form');
+    // const addCustomerCheckbox = document.getElementById('add_customer_checkbox');
+    // const selectElement = document.getElementById('customer_name');
+    // const inputElement = document.getElementById('customer_name_input');
+	
+    // // Escucha el evento de envío del formulario
+    // form.addEventListener('submit', function (event) {
+        
+        // // Evita el envío automático del formulario para hacer la validación manual
+        // event.preventDefault();
+        
+        // // Excluye los campos opcionales del array de validación
+        // const requiredFields = ['registrator', 'ep_mail', 'po_number'];
+        // let allFieldsFilled = true;
+        
+        // // Itera sobre los campos obligatorios para verificar si están vacíos
+        // requiredFields.forEach(fieldId => {
+            // const field = document.getElementById(fieldId);
+            // if (!field.value.trim()) {
+                // allFieldsFilled = false;
+                // field.classList.add('is-invalid'); // Añade una clase para indicar un error
+            // } else {
+                // field.classList.remove('is-invalid');
+            // }
+        // });
+        
+		// let customerField;
+        // if (addCustomerCheckbox.checked) {
+            // customerField = inputElement;
+        // } else {
+            // customerField = selectElement;
+        // }
+
+        // if (!customerField.value.trim()) {
+            // allFieldsFilled = false;
+            // customerField.classList.add('is-invalid');
+        // } else {
+            // customerField.classList.remove('is-invalid');
+        // }
+		
+        // // Si no todos los campos están llenos, detén el proceso y muestra un error
+        // if (!allFieldsFilled) {
+            // Swal.fire({
+                // icon: 'error',
+                // title: 'Error',
+                // text: 'Please fill out all required fields.',
+                // confirmButtonColor: '#3085d6',
+                // confirmButtonText: 'OK'
+            // });
+            // return;
+        // }
+
+        // // Verifica si se adjuntó un archivo
+        // const attachmentInput = document.getElementById('attachment');
+        // const fileAttached = attachmentInput.files.length > 0;
+        
+        // let confirmMessage = 'Are you sure you want to register this data?';
+
+        // if (!fileAttached) {
+            // confirmMessage += '<br><br><strong>Note:</strong> No file is being attached.';
+        // }
+        
+        // // Muestra la alerta de confirmación con SweetAlert
+        // Swal.fire({
+            // title: 'Confirm Submission',
+            // html: confirmMessage,
+            // icon: 'warning',
+            // showCancelButton: true,
+            // confirmButtonColor: '#3085d6',
+            // cancelButtonColor: '#d33',
+            // confirmButtonText: 'Ok',
+            // cancelButtonText: 'Cancel'
+        // }).then((result) => {
+            // if (result.isConfirmed) {
+                // // Si el usuario confirma, procede con la validación del PO
+                // const poNumber = document.getElementById('po_number').value.trim();
+                
+                // // 3. Llamada AJAX para verificar si el PO ya existe
+                // const checkXhr = new XMLHttpRequest();
+                // const checkUrl = '<?php echo site_url("page/po_register/check_po_exists"); ?>';
+                // const checkParams = `po_number=${poNumber}`;
+
+                // checkXhr.open('POST', checkUrl, true);
+                // checkXhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+                // checkXhr.onload = function() {
+                    // if (checkXhr.status === 200) {
+                        // const checkResponse = JSON.parse(checkXhr.responseText);
+
+                        // if (checkResponse.exists) {
+                            // // Si el PO existe, muestra la alerta de confirmación
+                            // Swal.fire({
+                                // title: 'PO already exists!',
+                                // text: 'Are you sure you want to proceed with an existing PO number?',
+                                // icon: 'warning',
+                                // showCancelButton: true,
+                                // confirmButtonText: 'Yes, register it!',
+                                // cancelButtonText: 'Cancel'
+                            // }).then((result) => {
+                                // if (result.isConfirmed) {
+                                    // // Si el usuario confirma, procede con la llamada AJAX original
+                                    // sendDataToServer();
+                                // }
+                            // });
+                        // } else {
+                            // // Si el PO no existe, envía los datos directamente
+                            // sendDataToServer();
+                        // }
+                    // }
+                // };
+                // checkXhr.send(checkParams);
+            // }
+        // });
+    // });
+	
+	// function sendDataToServer() {
+        // const xhr = new XMLHttpRequest();
+        // const url = form.action;
+        // const formData = new FormData(form);
+        
+        // xhr.open('POST', url, true);
+
+        // xhr.onload = function() {
+            // if (xhr.status === 200) {
+                // try {
+                    // const response = JSON.parse(xhr.responseText);
+                    // if (response.status === 'success') {
+                        // Swal.fire('Success!', response.message, 'success').then(() => {
+                            // location.reload();
+                        // });
+                    // } else {
+                        // Swal.fire('Error!', response.message, 'error');
+                    // }
+                // } catch (e) {
+                    // Swal.fire('Error!', 'An unexpected error occurred. Please try again later.', 'error');
+                    // console.error('Parsing error:', e);
+                // }
+            // } else {
+                // Swal.fire('Error!', 'Something went wrong with the server request.', 'error');
+            // }
+        // };
+        // xhr.send(formData);
+    // }
+// });
 </script>
 
 <script> // Remove remark appointment
