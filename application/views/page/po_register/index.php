@@ -70,21 +70,57 @@
 									<option value="<?php echo htmlspecialchars($customer); ?>"><?php echo htmlspecialchars($customer); ?></option>
 								<?php } ?>
 							</select>
-						</div>
-						
+						</div>				
 						<div id="customer_input_container" style="display: none;">
 							<input type="text" class="form-control" id="customer_name_input" name="customer_name" placeholder="Customer..." required disabled>
 						</div>
 					</div>
-					<!--<div class="mb-3">
-						<label for="additional_emails" class="form-label">Add Emails (Optional)</label>
-						<textarea class="form-control" id="additional_emails" name="additional_emails" rows="3" placeholder="Enter additional emails, one per line or separated by commas. (e.g., mail1@example.com, mail2@example.com)"></textarea>
-					</div>-->
-					<div class="col-md-12">
-						<label for="remark" class="form-label">Remark</label>
-						<textarea class="form-control" id="remark" name="remark" placeholder="remark"></textarea>
+					<div class="col-md-6">
+						<label class="form-label">
+							CC Email 
+							<span class="text-muted small">(Optional)</span>
+						</label>
+						
+						<div class="form-control"> 
+							
+							<div class="d-flex flex-row justify-content-start align-items-center">
+								
+								<div class="form-check me-5">
+									<input class="form-check-input" type="checkbox" value="HS" id="cc_email_hs" name="cc_emails[]">
+									<label class="form-check-label" for="cc_email_hs">
+										HS
+									</label>
+								</div>
+								<div class="form-check me-5">
+									<input class="form-check-input" type="checkbox" value="MS" id="cc_email_ms" name="cc_emails[]">
+									<label class="form-check-label" for="cc_email_ms">
+										MS
+									</label>
+								</div>
+								<div class="form-check me-5">
+									<input class="form-check-input" type="checkbox" value="IT" id="cc_email_it" name="cc_emails[]">
+									<label class="form-check-label" for="cc_email_it">
+										IT
+									</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" value="ES" id="cc_email_es" name="cc_emails[]">
+									<label class="form-check-label" for="cc_email_es">
+										ES
+									</label>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="form-group ac-po-source-group" style="display: none;">
+						<label for="po_source_ac">PO Numbers</label>
+						<textarea class="form-control" id="po_source_ac" name="po_source_ac" rows="2" placeholder="Ingrese los números de PO aquí, uno por línea o separados por comas."></textarea>
 					</div>
 
+					<div class="form-group">
+						<label for="remark">Remark <span class="text-muted small">(Optional)</span></label>
+						<textarea class="form-control" id="remark" name="remark" rows="2" placeholder="Comentarios adicionales para el registro..."></textarea>
+					</div>
 					<div class="col-md-12">
 						<div class="mb-3">
 							<label for="attachment" class="form-label">Attach Files</label>
@@ -132,12 +168,6 @@
 							<option><?= $customer ?></option>
 							<?php } ?>
 						</select>
-						<!--<select class="form-select me-1" id="sl_dept" style="width: 150px;">
-							<option value="">Status --</option>
-							<?php //foreach($status as $item){  ?>
-							<option> $item </option>
-							<?php //} ?>
-						</select>-->
 					</div>
 				</div>
 				<div style="max-height: 700px; overflow-y: auto;">
@@ -250,6 +280,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     filterACCheckbox.addEventListener('change', function () {
         if (this.checked) {
+            // Activar Filtro AC:
+            
+            // Si "Add" está activo, desactívalo y oculta el input
             if (addCustomerCheckbox.checked) {
                 addCustomerCheckbox.checked = false;
                 selectContainer.style.display = 'block';
@@ -271,14 +304,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     addCustomerCheckbox.addEventListener('change', function() {
         if (this.checked) {
-            // Activar Add:
-            
-            // Si el Filtro AC está activo, desactívalo y vuelve a la lista completa
             if (filterACCheckbox.checked) {
                 filterACCheckbox.checked = false;
-                updateCustomerList(ALL_CUSTOMERS);
+                updateCustomerList(ALL_CUSTOMERS); // Cargar lista COMPLETA antes de ocultar
             }
             
+            // Muestra el input y oculta el select
             selectContainer.style.display = 'none';
             inputContainer.style.display = 'block';
             inputElement.required = true;
@@ -286,6 +317,7 @@ document.addEventListener('DOMContentLoaded', function () {
             selectElement.required = false;
             
         } else {
+            // Desactivar Add: Ocultar input y mostrar select
             selectContainer.style.display = 'block';
             inputContainer.style.display = 'none';
             inputElement.required = false;
@@ -312,35 +344,26 @@ document.addEventListener('DOMContentLoaded', function() {
             const poId = icon.getAttribute('data-po-id');
             const detailRows = document.querySelectorAll(`.po-detail-row.${poId}`);
             
-            // 1. Encontrar todas las celdas de la fila maestra que tienen rowspan
             const masterRow = icon.closest('tr');
             const spanCells = masterRow.querySelectorAll('.po-span-cell');
             
-            // 2. Comprobar el estado (Expandido o Colapsado)
+            // Comprobar el estado (Expandido o Colapsado)
             const is_collapsed = icon.classList.contains('bi-caret-down-fill');
 
             if (is_collapsed) {
-                // ESTADO: EXPANDIR
-                // ------------------
-                // Mostrar filas de detalle
                 detailRows.forEach(row => {
                     row.classList.remove('d-none');
                 });
                 
-                // Aplicar el rowspan real
                 spanCells.forEach(cell => {
                     const realRowspan = cell.getAttribute('data-real-rowspan');
                     cell.setAttribute('rowspan', realRowspan);
                 });
 
-                // Cambiar icono
                 icon.classList.remove('bi-caret-down-fill');
                 icon.classList.add('bi-caret-up-fill');
                 
             } else {
-                // ESTADO: COLAPSAR
-                // -----------------
-                // Ocultar filas de detalle
                 detailRows.forEach(row => {
                     row.classList.add('d-none');
                 });
@@ -359,24 +382,50 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<script> // NO files cases (REMARK)
-document.addEventListener('DOMContentLoaded', function() {
+<script> // Special Customer - Add text area por PO numbers
+document.addEventListener('DOMContentLoaded', function () {
     const customerSelect = document.getElementById('customer_name');
-    const remarkField = document.getElementById('remark');
+    const customerInput = document.getElementById('customer_name_input'); // El input si se usa el checkbox 'Add Customer'
+    const poSourceGroup = document.querySelector('.ac-po-source-group'); // Contenedor del campo de extracción del PO
+    const poSourceAc = document.getElementById('po_source_ac');
+    const addCustomerCheckbox = document.getElementById('add_customer_checkbox'); // El checkbox que alterna select/input
+
+    // Special Customers
     const specialCustomers = ['SAGA FALABELLA S.A.', 'HIPERMERCADOS TOTTUS S.A.', 'TIENDAS DEL MEJORAMIENTO DEL HOGAR S.A. - [SODIMAC]'];
 
-    // Escucha el cambio en la lista de clientes.
-    customerSelect.addEventListener('change', function() {
-        const selectedCustomer = this.value;
-		console.log(selectedCustomer);
-        if (specialCustomers.includes(selectedCustomer)) {
-            remarkField.placeholder = "Ingrese los números de PO aquí, uno por línea o separados por comas.";
+    function getSelectedCustomerName() {
+        if (addCustomerCheckbox && addCustomerCheckbox.checked) {
+            return customerInput.value.trim().toUpperCase();
         } else {
-            remarkField.placeholder = "remark";
+            return customerSelect.value;
         }
-    });
+    }
+
+    function toggleAcPoSource() {
+        const customerValue = getSelectedCustomerName(); 
+
+        const isAC = specialCustomers.includes(customerValue); 
+
+        if (isAC) {
+            poSourceGroup.style.display = 'block';
+        } else {
+            poSourceGroup.style.display = 'none';
+            poSourceAc.value = ''; 
+        }
+    }
+
+    customerSelect.addEventListener('change', toggleAcPoSource);
+
+    if (addCustomerCheckbox) {
+        addCustomerCheckbox.addEventListener('change', toggleAcPoSource);
+    }
+    
+    customerInput.addEventListener('input', toggleAcPoSource);
+
+    toggleAcPoSource(); 
 });
 </script>
+
 
 <script> // Validation empty submission form
 document.addEventListener('DOMContentLoaded', function () {
@@ -392,14 +441,13 @@ document.addEventListener('DOMContentLoaded', function () {
     let originalEmlFiles = [];
 	
 	function getSelectedCustomerName() {
-		// Si el checkbox está marcado, toma el valor del input, si no, toma el valor del select.
 		if (addCustomerCheckbox.checked) {
 			return inputElement.value.trim();
 		} else {
-			return selectElement.value; // El valor del select ya está limpio
+			return selectElement.value;
 		}
 	}
-    // Función para manejar el cambio de archivos y poblar la tabla
+
     attachmentInput.addEventListener('change', function () {
         const files = this.files;
         tableBody.innerHTML = '';
@@ -430,14 +478,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (response.status === 'success') {
                             const fragment = document.createDocumentFragment();
                             if (response.files_data.length === 0 && originalEmlFiles.length > 0) {
-                                // Si no se extrajeron adjuntos pero se subió un .eml,
-                                // crea una fila manual para cada .eml
                                 originalEmlFiles.forEach(emlName => {
                                     const row = createRow({ name: emlName }, null);
                                     fragment.appendChild(row);
                                 });
                             } else {
-                                // Lógica existente para poblar la tabla con los datos del servidor
                                 response.files_data.forEach(item => {
                                     const row = createRow({ name: item.name }, item.po_number);
                                     fragment.appendChild(row);
@@ -521,7 +566,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function validateForm() {
-        // Tu función de validación... (no necesita cambios)
         const requiredFields = ['registrator', 'ep_mail'];
         let allFieldsFilled = true;
         requiredFields.forEach(fieldId => {
@@ -657,13 +701,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		console.log('POs recopilados de la tabla:', poNumbersForm);
 		console.log('Nombres de archivo recopilados de la tabla:', fileNamesForm);
 
-		const formData = new FormData();
-		
-		// Adjunta los campos del formulario principal
-		formData.append('registrator', document.getElementById('registrator').value);
-		formData.append('ep_mail', document.getElementById('ep_mail').value);
-		formData.append('customer_name', document.getElementById('customer_name').value);
-		formData.append('remark', document.getElementById('remark').value);
+		const formData = new FormData(form);
 
 		// Adjunta los archivos subidos
 		const attachmentInput = document.getElementById('attachment');
@@ -674,7 +712,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		// Adjunta los arrays de POs y nombres de archivos de la tabla
 		poNumbersForm.forEach(po => formData.append('po_numbers_form[]', po));
 		fileNamesForm.forEach(name => formData.append('file_names_form[]', name));
-		
+
 		originalEmlFiles.forEach(emlName => {
 			formData.append('original_eml_files[]', emlName);
 		});
@@ -753,23 +791,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     addCustomerCheckbox.addEventListener('change', function() {
         if (this.checked) {
-            // Ocultar el select y mostrar el input
             selectContainer.style.display = 'none';
             inputContainer.style.display = 'block';
 
-            // Deshabilitar el select y habilitar el input
             selectElement.required = false;
             selectElement.disabled = true;
-            selectElement.value = ""; // Limpiar el valor del select
+            selectElement.value = "";
 
             inputElement.required = true;
             inputElement.disabled = false;
         } else {
-            // Mostrar el select y ocultar el input
             selectContainer.style.display = 'block';
             inputContainer.style.display = 'none';
             
-            // Deshabilitar el input y habilitar el select
             inputElement.required = false;
             inputElement.disabled = true;
             inputElement.value = ""; // Limpiar el valor del input
@@ -789,13 +823,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     toggleFormBtn.addEventListener('click', function() {
         if (formColumn.classList.contains('d-none')) {
-            // Si el formulario está oculto, lo muestra y restaura el ancho de la tabla
             formColumn.classList.remove('d-none');
             tableColumn.classList.remove('row-md-12');
             tableColumn.classList.add('row-md-9');
             toggleFormBtn.innerHTML = '<i class="bi bi-eye-slash"></i> Hide Form';
         } else {
-            // Si el formulario está visible, lo oculta y expande el ancho de la tabla
             formColumn.classList.add('d-none');
             tableColumn.classList.remove('row-md-9');
             tableColumn.classList.add('row-md-12');
@@ -810,23 +842,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Referencias a los elementos del DOM
     const searchInput = document.getElementById('po-search');
     const customerSelect = document.getElementById('sl_period');
-   // const statusSelect = document.getElementById('sl_dept');
     const tableBody = document.querySelector('#po-table tbody');
     const paginationContainer = document.getElementById('pagination-controls');
-
-    // Configuración de la paginación
-    const rowsPerPage = 15; // Ahora, esto representa el número de PO por página
+    const rowsPerPage = 15;
     let currentPage = 1;
 
-    // Función principal para filtrar y paginar la tabla
     function filterAndPaginate() {
         const searchTerm = searchInput.value.toLowerCase();
         const customerFilter = customerSelect.value.toLowerCase();
-        //const statusFilter = statusSelect.value.toLowerCase();
-
         const allRows = Array.from(tableBody.querySelectorAll('tr'));
         
-        // **NUEVO:** Almacena solo la primera fila de cada PO que coincida con los filtros
         let visiblePoGroups = [];
 
         allRows.forEach(row => {
@@ -840,11 +865,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const poMatch = poNumber.includes(searchTerm);
                 const customerMatch = (customerFilter === '' || customerName.includes(customerFilter));
-                //const statusMatch = (statusFilter === '' || statusName.includes(statusFilter));
-
-                // if (poMatch && customerMatch && statusMatch) {
-                    // visiblePoGroups.push(row);
-                // }
 				if (poMatch && customerMatch) {
                     visiblePoGroups.push(row);
                 }
@@ -857,10 +877,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const startGroup = (currentPage - 1) * rowsPerPage;
         const endGroup = startGroup + rowsPerPage;
 
-        // Ocultar todas las filas
         allRows.forEach(row => row.style.display = 'none');
 
-        // Mostrar solo las filas de los POs en la página actual
         for (let i = startGroup; i < endGroup && i < totalPoGroups; i++) {
             const poGroupStartRow = visiblePoGroups[i];
             poGroupStartRow.style.display = '';
@@ -907,7 +925,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Eventos que disparan la función de filtro y paginación
     searchInput.addEventListener('input', () => {
         currentPage = 1;
         filterAndPaginate();
@@ -916,23 +933,16 @@ document.addEventListener('DOMContentLoaded', function() {
         currentPage = 1;
         filterAndPaginate();
     });
-    // statusSelect.addEventListener('change', () => {
-        // currentPage = 1;
-        // filterAndPaginate();
-    // });
-    
-    // Llamada inicial para cargar la tabla y la paginación
+
     filterAndPaginate();
 });
 </script>
 
 <script> // Delete row
 document.addEventListener('DOMContentLoaded', function () {
-    // Escuchar clics en el contenedor de la tabla
 	const historyTable = document.getElementById('po-table');
 	if (historyTable) {
         historyTable.addEventListener('click', function (event) {
-    //document.querySelector('table').addEventListener('click', function (event) {
 			if (event.target.classList.contains('remove-line-btn')) {
 				const button = event.target;
 				const recordId = button.dataset.recordId;
@@ -987,11 +997,9 @@ document.addEventListener('DOMContentLoaded', function () {
 <script> // Remove checkbox dates
 document.addEventListener('DOMContentLoaded', function () {
 	const state_date = 0;
-    // Escuchar clics en el contenedor de la tabla
 	const historyTable = document.getElementById('po-table');
 	if (historyTable) {
         historyTable.addEventListener('click', function (event) {
-    //document.querySelector('table').addEventListener('click', function (event) {
 			if (event.target.classList.contains('remove-gerp-date-btn')) {
 				const button = event.target;
 				const poNumber = button.dataset.poNumber;
@@ -1013,7 +1021,6 @@ document.addEventListener('DOMContentLoaded', function () {
 					cancelButtonText: 'Cancel'
 				}).then((result) => {
 					if (result.isConfirmed) {
-						// Si el usuario confirma, procede con la llamada AJAX
 						const xhr = new XMLHttpRequest();
 						const url = '<?php echo site_url("page/po_register/remove_dates"); ?>';
 						const params = `record_id=${recordId}&state_date=${state_date}&state_date=${state_date}`;
@@ -1025,7 +1032,6 @@ document.addEventListener('DOMContentLoaded', function () {
 							if (xhr.status === 200) {
 								const response = JSON.parse(xhr.responseText);
 								if (response.status === 'success') {
-									// Muestra un mensaje de éxito y recarga la página
 									Swal.fire({
 										title: 'Confirmed!',
 										text: 'The date has been removed.',
@@ -1106,7 +1112,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				const poNumberCell = currentRow.querySelector('.po-number-cell');
 				
 				const state_date = 3;
-				//console.log(state_date);
 
 				Swal.fire({
 					title: 'Are you sure?',
@@ -1131,7 +1136,6 @@ document.addEventListener('DOMContentLoaded', function () {
 							if (xhr.status === 200) {
 								const response = JSON.parse(xhr.responseText);
 								if (response.status === 'success') {
-									// Muestra un mensaje de éxito y recarga la página
 									Swal.fire({
 										title: 'Confirmed!',
 										text: 'The date has been removed.',
@@ -1158,11 +1162,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script> // Add new line
 document.addEventListener('DOMContentLoaded', function () {
-    // Escuchar clics en el contenedor de la tabla
 	const historyTable = document.getElementById('po-table');
 	if (historyTable) {
         historyTable.addEventListener('click', function (event) {
-    //document.querySelector('table').addEventListener('click', function (event) {
 			if (event.target.classList.contains('add-line-btn')) {
 				const button = event.target;
 				const poNumber = button.dataset.poNumber;
@@ -1170,13 +1172,9 @@ document.addEventListener('DOMContentLoaded', function () {
 				const currentRow = button.closest('tr');
 				const poNumberCell = currentRow.querySelector('.po-number-cell');
 				
-				// Verifica si la línea original era nula
 				const lineIsNull = currentRow.dataset.lineIsNull === 'true';
-
-				// 1. Eliminar el botón de la fila actual (la que se hizo clic)
 				button.remove();
 
-				// Preparar y enviar la solicitud AJAX
 				const xhr = new XMLHttpRequest();
 				const url = '<?php echo site_url("page/po_register/add_new_line"); ?>';
 				const params = `po_number=${poNumber}&record_id=${recordId}`;
@@ -1213,10 +1211,8 @@ document.addEventListener('DOMContentLoaded', function () {
 									<td class="text-center"><input type="checkbox" name="confirmed" /></td>
 								</tr>
 							`;
-							// Insertar la nueva fila después de la fila actual
 							currentRow.insertAdjacentHTML('afterend', newRowHtml);
 						} else {
-							// Re-mostrar el botón si hubo un error en la base de datos
 							poNumberCell.appendChild(button);
 							Swal.fire('Error', 'Failed to add a new line.', 'error');
 						}
@@ -1229,230 +1225,8 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
-<script> // Update status
-document.addEventListener('DOMContentLoaded', function () {
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function () {
-            if (this.checked) {
-                // Obtener el ID del registro desde el atributo data-id de la fila
-                const recordId = this.closest('tr').dataset.id;
-                const field = this.name;
-                const row = this.closest('tr');
-                const checkboxCell = this.closest('td');
-
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You will register the current date",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'OK',
-                    cancelButtonText: 'Cancel'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        const xhr = new XMLHttpRequest();
-                        const url = '<?php echo site_url("page/po_register/update_status"); ?>';
-                        // Enviar el ID y el nombre del campo en la solicitud AJAX
-                        const params = `record_id=${recordId}&field=${field}`;
-
-                        xhr.open('POST', url, true);
-                        xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-
-                        xhr.onload = function() {
-                            if (xhr.status === 200) {
-                                const response = JSON.parse(xhr.responseText);
-                                if (response.status === 'success') {
-                                    // Actualizar la celda con la fecha y hora
-                                    checkboxCell.innerHTML = `${response.timestamp}`;
-
-                                    const statusCell = row.querySelector('.status-cell');
-                                    if (field === 'gerp') {
-                                        statusCell.textContent = 'Registered';
-                                    } else if (field === 'requested') {
-                                        statusCell.textContent = 'Requested';
-                                    } else if (field === 'confirmed') {
-                                        statusCell.textContent = 'Confirmed';
-                                    }
-
-                                    Swal.fire({
-										title: 'Confirmed!',
-										text: response.message,
-										icon: 'success'
-									}).then(() => {
-										location.reload();
-									});
-                                } else {
-                                    Swal.fire('Error!', response.message, 'error');
-                                }
-                            } else {
-                                Swal.fire('Error!', 'Something went wrong with the server request.', 'error');
-                            }
-                        };
-                        xhr.send(params);
-                    } else {
-                        this.checked = false;
-                    }
-                });
-            }
-        });
-    });
-});
-</script>
-
-<script> // Register data // check po exists
-// document.addEventListener('DOMContentLoaded', function () {
-    // const form = document.querySelector('form');
-    // const addCustomerCheckbox = document.getElementById('add_customer_checkbox');
-    // const selectElement = document.getElementById('customer_name');
-    // const inputElement = document.getElementById('customer_name_input');
-	
-    // // Escucha el evento de envío del formulario
-    // form.addEventListener('submit', function (event) {
-        
-        // // Evita el envío automático del formulario para hacer la validación manual
-        // event.preventDefault();
-        
-        // // Excluye los campos opcionales del array de validación
-        // const requiredFields = ['registrator', 'ep_mail', 'po_number'];
-        // let allFieldsFilled = true;
-        
-        // // Itera sobre los campos obligatorios para verificar si están vacíos
-        // requiredFields.forEach(fieldId => {
-            // const field = document.getElementById(fieldId);
-            // if (!field.value.trim()) {
-                // allFieldsFilled = false;
-                // field.classList.add('is-invalid'); // Añade una clase para indicar un error
-            // } else {
-                // field.classList.remove('is-invalid');
-            // }
-        // });
-        
-		// let customerField;
-        // if (addCustomerCheckbox.checked) {
-            // customerField = inputElement;
-        // } else {
-            // customerField = selectElement;
-        // }
-
-        // if (!customerField.value.trim()) {
-            // allFieldsFilled = false;
-            // customerField.classList.add('is-invalid');
-        // } else {
-            // customerField.classList.remove('is-invalid');
-        // }
-		
-        // // Si no todos los campos están llenos, detén el proceso y muestra un error
-        // if (!allFieldsFilled) {
-            // Swal.fire({
-                // icon: 'error',
-                // title: 'Error',
-                // text: 'Please fill out all required fields.',
-                // confirmButtonColor: '#3085d6',
-                // confirmButtonText: 'OK'
-            // });
-            // return;
-        // }
-
-        // // Verifica si se adjuntó un archivo
-        // const attachmentInput = document.getElementById('attachment');
-        // const fileAttached = attachmentInput.files.length > 0;
-        
-        // let confirmMessage = 'Are you sure you want to register this data?';
-
-        // if (!fileAttached) {
-            // confirmMessage += '<br><br><strong>Note:</strong> No file is being attached.';
-        // }
-        
-        // // Muestra la alerta de confirmación con SweetAlert
-        // Swal.fire({
-            // title: 'Confirm Submission',
-            // html: confirmMessage,
-            // icon: 'warning',
-            // showCancelButton: true,
-            // confirmButtonColor: '#3085d6',
-            // cancelButtonColor: '#d33',
-            // confirmButtonText: 'Ok',
-            // cancelButtonText: 'Cancel'
-        // }).then((result) => {
-            // if (result.isConfirmed) {
-                // // Si el usuario confirma, procede con la validación del PO
-                // const poNumber = document.getElementById('po_number').value.trim();
-                
-                // // 3. Llamada AJAX para verificar si el PO ya existe
-                // const checkXhr = new XMLHttpRequest();
-                // const checkUrl = '<?php echo site_url("page/po_register/check_po_exists"); ?>';
-                // const checkParams = `po_number=${poNumber}`;
-
-                // checkXhr.open('POST', checkUrl, true);
-                // checkXhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-
-                // checkXhr.onload = function() {
-                    // if (checkXhr.status === 200) {
-                        // const checkResponse = JSON.parse(checkXhr.responseText);
-
-                        // if (checkResponse.exists) {
-                            // // Si el PO existe, muestra la alerta de confirmación
-                            // Swal.fire({
-                                // title: 'PO already exists!',
-                                // text: 'Are you sure you want to proceed with an existing PO number?',
-                                // icon: 'warning',
-                                // showCancelButton: true,
-                                // confirmButtonText: 'Yes, register it!',
-                                // cancelButtonText: 'Cancel'
-                            // }).then((result) => {
-                                // if (result.isConfirmed) {
-                                    // // Si el usuario confirma, procede con la llamada AJAX original
-                                    // sendDataToServer();
-                                // }
-                            // });
-                        // } else {
-                            // // Si el PO no existe, envía los datos directamente
-                            // sendDataToServer();
-                        // }
-                    // }
-                // };
-                // checkXhr.send(checkParams);
-            // }
-        // });
-    // });
-	
-	// function sendDataToServer() {
-        // const xhr = new XMLHttpRequest();
-        // const url = form.action;
-        // const formData = new FormData(form);
-        
-        // xhr.open('POST', url, true);
-
-        // xhr.onload = function() {
-            // if (xhr.status === 200) {
-                // try {
-                    // const response = JSON.parse(xhr.responseText);
-                    // if (response.status === 'success') {
-                        // Swal.fire('Success!', response.message, 'success').then(() => {
-                            // location.reload();
-                        // });
-                    // } else {
-                        // Swal.fire('Error!', response.message, 'error');
-                    // }
-                // } catch (e) {
-                    // Swal.fire('Error!', 'An unexpected error occurred. Please try again later.', 'error');
-                    // console.error('Parsing error:', e);
-                // }
-            // } else {
-                // Swal.fire('Error!', 'Something went wrong with the server request.', 'error');
-            // }
-        // };
-        // xhr.send(formData);
-    // }
-// });
-</script>
-
 <script> // Remove remark appointment
 document.addEventListener('DOMContentLoaded', function() {
-    // Escucha clics en los botones de "Guardar"
     document.addEventListener('click', function(event) {
         if (event.target.classList.contains('delete-remark-btn')) {
             const button = event.target;
@@ -1469,7 +1243,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 confirmButtonText: 'Ok'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Si el usuario confirma, llama a la función para borrar
                     removeRemark(recordId);
                 }
             });
@@ -1488,7 +1261,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (xhr.status === 200) {
                 const response = JSON.parse(xhr.responseText);
                 if (response.status === 'success') {
-                    // Muestra el mensaje de éxito y recarga la página
                     Swal.fire({
                         icon: 'success',
                         title: 'Success!',
@@ -1516,7 +1288,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script> // Save button
 document.addEventListener('DOMContentLoaded', function() {
-    // Escucha clics en los botones de "Guardar"
     document.addEventListener('click', function(event) {
         if (event.target.classList.contains('save-remark-btn')) {
             const button = event.target;
@@ -1571,17 +1342,6 @@ document.addEventListener('DOMContentLoaded', function() {
 							location.reload();
 						}
 					});
-                    // const remarkCell = document.querySelector(`tr[data-id="${recordId}"] .remark-cell`);
-                    // if (remarkCell) {
-                        // remarkCell.innerHTML = `
-                            // <div class="remark-display">
-                                // ${remark}
-                                // <button class="btn btn-sm btn-outline-primary edit-remark-btn" data-record-id="${recordId}">
-                                    // <i class="bi bi-pencil"></i>
-                                // </button>
-                            // </div>
-                        // `;
-                    // }
                 } else {
                     Swal.fire('Error', response.message, 'error');
                 }

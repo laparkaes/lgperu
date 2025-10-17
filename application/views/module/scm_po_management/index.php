@@ -72,10 +72,6 @@
 								<input type="text" class="form-control" id="customer_name_input" name="customer_name" placeholder="Customer..." required disabled>
 							</div>
 						</div>
-						<!--<div class="mb-3">
-							<label for="additional_emails" class="form-label">Add Emails (Optional)</label>
-							<textarea class="form-control" id="additional_emails" name="additional_emails" rows="3" placeholder="Enter additional emails, one per line or separated by commas. (e.g., mail1@example.com, mail2@example.com)"></textarea>
-						</div>-->
 						<div class="col-md-12">
 							<label for="remark" class="form-label">Remark</label>
 							<textarea class="form-control" id="remark" name="remark" placeholder="remark"></textarea>
@@ -167,16 +163,15 @@
 									<?php foreach ($records as $item): ?>
 										
 										<?php 
-											// Identificamos y ocultamos las filas de detalle (excepto la primera)
 											$row_classes = ($firstRow) ? "po-master-row" : "po-detail-row {$rowId} d-none"; 
 										?>
 										
 										<tr class="<?= $row_classes ?>" data-po-id="<?= $rowId ?>" data-id="<?php echo $item->id; ?>">
 											
 											<?php if ($firstRow): ?>
-												<td class="text-center po-span-cell" data-real-rowspan="<?php echo $total_records; ?>" rowspan="1">
-													<i class="bi bi-x-square text-danger remove-line-btn clickable-icon fs-5" data-po-number="<?php echo $item->po_number; ?>" data-record-id="<?php echo $item->id; ?>"></i>
+												<td class="text-center po-span-cell" data-real-rowspan="<?php echo $total_records; ?>" rowspan="1">													
 													<?php echo $counter++; ?>
+													<i class="bi bi-x-square text-danger remove-line-btn clickable-icon fs-5" data-po-number="<?php echo $item->po_number; ?>" data-record-id="<?php echo $item->id; ?>"></i>
 												</td>
 												<td class="po-number-cell po-span-cell" data-real-rowspan="<?php echo $total_records; ?>" rowspan="1">
 													<i class="bi bi-caret-down-fill po-toggle-icon me-2" role="button" data-po-id="<?= $rowId ?>"></i>
@@ -693,26 +688,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script> // Filter Scripts
 document.addEventListener('DOMContentLoaded', function() {
-    // Referencias a los elementos del DOM
     const searchInput = document.getElementById('po-search');
     const customerSelect = document.getElementById('sl_period');
-    //const statusSelect = document.getElementById('sl_dept');
     const tableBody = document.querySelector('#po-table tbody');
     const paginationContainer = document.getElementById('pagination-controls');
 
     // Configuración de la paginación
-    const rowsPerPage = 15; // Ahora, esto representa el número de PO por página
+    const rowsPerPage = 15;
     let currentPage = 1;
 
     // Función principal para filtrar y paginar la tabla
     function filterAndPaginate() {
         const searchTerm = searchInput.value.toLowerCase();
         const customerFilter = customerSelect.value.toLowerCase();
-       // const statusFilter = statusSelect.value.toLowerCase();
-
         const allRows = Array.from(tableBody.querySelectorAll('tr'));
         
-        // **NUEVO:** Almacena solo la primera fila de cada PO que coincida con los filtros
         let visiblePoGroups = [];
 
         allRows.forEach(row => {
@@ -726,28 +716,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const poMatch = poNumber.includes(searchTerm);
                 const customerMatch = (customerFilter === '' || customerName.includes(customerFilter));
-                //const statusMatch = (statusFilter === '' || statusName.includes(statusFilter));
-
-                // if (poMatch && customerMatch && statusMatch) {
-                    // visiblePoGroups.push(row);
-                // }
+				
 				if (poMatch && customerMatch) {
                     visiblePoGroups.push(row);
                 }
             }
         });
         
-        // **NUEVO:** El cálculo de paginación se basa en los POs, no en las filas individuales
         const totalPoGroups = visiblePoGroups.length;
         const totalPages = Math.ceil(totalPoGroups / rowsPerPage);
 
         const startGroup = (currentPage - 1) * rowsPerPage;
         const endGroup = startGroup + rowsPerPage;
 
-        // Ocultar todas las filas
         allRows.forEach(row => row.style.display = 'none');
 
-        // Mostrar solo las filas de los POs en la página actual
         for (let i = startGroup; i < endGroup && i < totalPoGroups; i++) {
             const poGroupStartRow = visiblePoGroups[i];
             poGroupStartRow.style.display = '';
@@ -794,7 +777,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Eventos que disparan la función de filtro y paginación
     searchInput.addEventListener('input', () => {
         currentPage = 1;
         filterAndPaginate();
@@ -803,23 +785,15 @@ document.addEventListener('DOMContentLoaded', function() {
         currentPage = 1;
         filterAndPaginate();
     });
-    // statusSelect.addEventListener('change', () => {
-        // currentPage = 1;
-        // filterAndPaginate();
-    // });
-    
-    // Llamada inicial para cargar la tabla y la paginación
     filterAndPaginate();
 });
 </script>
 
 <script> // Delete row
 document.addEventListener('DOMContentLoaded', function () {
-    // Escuchar clics en el contenedor de la tabla
 	const historyTable = document.getElementById('po-table');
 	if (historyTable) {
         historyTable.addEventListener('click', function (event) {
-    //document.querySelector('table').addEventListener('click', function (event) {
 			if (event.target.classList.contains('remove-line-btn')) {
 				const button = event.target;
 				const recordId = button.dataset.recordId;
@@ -874,11 +848,9 @@ document.addEventListener('DOMContentLoaded', function () {
 <script> // Remove checkbox dates
 document.addEventListener('DOMContentLoaded', function () {
 	const state_date = 0;
-    // Escuchar clics en el contenedor de la tabla
 	const historyTable = document.getElementById('po-table');
 	if (historyTable) {
         historyTable.addEventListener('click', function (event) {
-    //document.querySelector('table').addEventListener('click', function (event) {
 			if (event.target.classList.contains('remove-gerp-date-btn')) {
 				const button = event.target;
 				const poNumber = button.dataset.poNumber;
@@ -887,8 +859,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				const poNumberCell = currentRow.querySelector('.po-number-cell');
 				
 				const state_date = 1;
-				//console.log(state_date);
-
+				
 				Swal.fire({
 					title: 'Are you sure?',
 					text: "You are about to remove this date.",
@@ -900,7 +871,6 @@ document.addEventListener('DOMContentLoaded', function () {
 					cancelButtonText: 'Cancel'
 				}).then((result) => {
 					if (result.isConfirmed) {
-						// Si el usuario confirma, procede con la llamada AJAX
 						const xhr = new XMLHttpRequest();
 						const url = '<?php echo site_url("page/po_register/remove_dates"); ?>';
 						const params = `record_id=${recordId}&state_date=${state_date}&state_date=${state_date}`;
@@ -912,7 +882,6 @@ document.addEventListener('DOMContentLoaded', function () {
 							if (xhr.status === 200) {
 								const response = JSON.parse(xhr.responseText);
 								if (response.status === 'success') {
-									// Muestra un mensaje de éxito y recarga la página
 									Swal.fire({
 										title: 'Confirmed!',
 										text: 'The date has been removed.',
@@ -993,7 +962,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				const poNumberCell = currentRow.querySelector('.po-number-cell');
 				
 				const state_date = 3;
-				//console.log(state_date);
 
 				Swal.fire({
 					title: 'Are you sure?',
@@ -1006,7 +974,6 @@ document.addEventListener('DOMContentLoaded', function () {
 					cancelButtonText: 'Cancel'
 				}).then((result) => {
 					if (result.isConfirmed) {
-						// Si el usuario confirma, procede con la llamada AJAX
 						const xhr = new XMLHttpRequest();
 						const url = '<?php echo site_url("page/po_register/remove_dates"); ?>';
 						const params = `record_id=${recordId}&state_date=${state_date}&state_date=${state_date}`;
@@ -1045,25 +1012,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script> // Add new line
 document.addEventListener('DOMContentLoaded', function () {
-    // Escuchar clics en el contenedor de la tabla
 	const historyTable = document.getElementById('po-table');
 	if (historyTable) {
         historyTable.addEventListener('click', function (event) {
-    //document.querySelector('table').addEventListener('click', function (event) {
 			if (event.target.classList.contains('add-line-btn')) {
 				const button = event.target;
 				const poNumber = button.dataset.poNumber;
 				const recordId = button.dataset.recordId;
 				const currentRow = button.closest('tr');
 				const poNumberCell = currentRow.querySelector('.po-number-cell');
-				
-				// Verifica si la línea original era nula
 				const lineIsNull = currentRow.dataset.lineIsNull === 'true';
 
-				// 1. Eliminar el botón de la fila actual (la que se hizo clic)
 				button.remove();
 
-				// Preparar y enviar la solicitud AJAX
 				const xhr = new XMLHttpRequest();
 				const url = '<?php echo site_url("page/po_register/add_new_line"); ?>';
 				const params = `po_number=${poNumber}&record_id=${recordId}`;
@@ -1100,10 +1061,8 @@ document.addEventListener('DOMContentLoaded', function () {
 									<td class="text-center"><input type="checkbox" name="confirmed" /></td>
 								</tr>
 							`;
-							// Insertar la nueva fila después de la fila actual
 							currentRow.insertAdjacentHTML('afterend', newRowHtml);
 						} else {
-							// Re-mostrar el botón si hubo un error en la base de datos
 							poNumberCell.appendChild(button);
 							Swal.fire('Error', 'Failed to add a new line.', 'error');
 						}
@@ -1123,7 +1082,6 @@ document.addEventListener('DOMContentLoaded', function () {
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function () {
             if (this.checked) {
-                // Obtener el ID del registro desde el atributo data-id de la fila
                 const recordId = this.closest('tr').dataset.id;
                 const field = this.name;
                 const row = this.closest('tr');
@@ -1142,7 +1100,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (result.isConfirmed) {
                         const xhr = new XMLHttpRequest();
                         const url = '<?php echo site_url("page/po_register/update_status"); ?>';
-                        // Enviar el ID y el nombre del campo en la solicitud AJAX
                         const params = `record_id=${recordId}&field=${field}`;
 
                         xhr.open('POST', url, true);
@@ -1152,7 +1109,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (xhr.status === 200) {
                                 const response = JSON.parse(xhr.responseText);
                                 if (response.status === 'success') {
-                                    // Actualizar la celda con la fecha y hora
                                     checkboxCell.innerHTML = `${response.timestamp}
 											<i class="bi bi-calendar-x text-danger m-2 remove-date-btn clickable-icon fs-8" 
                                            data-field="${field}" 
@@ -1172,7 +1128,6 @@ document.addEventListener('DOMContentLoaded', function () {
 										text: response.message,
 										icon: 'success'
 									}).then(() => {
-										//location.reload();
 									});
                                 } else {
                                     Swal.fire('Error!', response.message, 'error');
@@ -1194,13 +1149,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script> // Remove remark appointment
 document.addEventListener('DOMContentLoaded', function() {
-    // Escucha clics en los botones de "Guardar"
     document.addEventListener('click', function(event) {
         if (event.target.classList.contains('delete-remark-btn')) {
             const button = event.target;
             const recordId = button.dataset.recordId;
 
-            // Alerta de confirmación previa a la acción
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
@@ -1211,7 +1164,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 confirmButtonText: 'Ok'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Si el usuario confirma, llama a la función para borrar
                     removeRemark(recordId);
                 }
             });
@@ -1230,7 +1182,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (xhr.status === 200) {
                 const response = JSON.parse(xhr.responseText);
                 if (response.status === 'success') {
-                    // Muestra el mensaje de éxito y recarga la página
                     Swal.fire({
                         icon: 'success',
                         title: 'Success!',
@@ -1258,7 +1209,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script> // Save button
 document.addEventListener('DOMContentLoaded', function() {
-    // Escucha clics en los botones de "Guardar"
     document.addEventListener('click', function(event) {
         if (event.target.classList.contains('save-remark-btn')) {
             const button = event.target;
@@ -1276,8 +1226,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const recordId = button.dataset.recordId;
             const remarkCell = button.closest('.remark-cell');
             const currentRemark = remarkCell.querySelector('.remark-display span').textContent;
-
-            // Reemplaza el contenido de la celda con el textarea y el botón de guardar
+			
             remarkCell.innerHTML = `
                 <div class="d-flex align-items-center">
                     <textarea class="form-control remark-input flex-grow-1 me-2" data-record-id="${recordId}" name="remark_appointment">${currentRemark}</textarea>
@@ -1313,17 +1262,6 @@ document.addEventListener('DOMContentLoaded', function() {
 							location.reload();
 						}
 					});
-                    // const remarkCell = document.querySelector(`tr[data-id="${recordId}"] .remark-cell`);
-                    // if (remarkCell) {
-                        // remarkCell.innerHTML = `
-                            // <div class="remark-display">
-                                // ${remark}
-                                // <button class="btn btn-sm btn-outline-primary edit-remark-btn" data-record-id="${recordId}">
-                                    // <i class="bi bi-pencil"></i>
-                                // </button>
-                            // </div>
-                        // `;
-                    // }
                 } else {
                     Swal.fire('Error', response.message, 'error');
                 }
@@ -1333,9 +1271,5 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         xhr.send(params);
     }
-
-	
-
-
 });
 </script>

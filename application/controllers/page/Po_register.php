@@ -16,14 +16,15 @@ class Po_register extends CI_Controller {
 	}
 		
 	public function index(){
-		$customer_list = ['IMPORTACIONES RUBI S.A.', 'SAGA FALABELLA S.A.', 'CONECTA RETAIL S.A.', 'REPRESENTACIONES VARGAS S.A.', 'INTEGRA RETAIL S.A.C.', 'TIENDAS PERUANAS S.A. - [OECHSLE]', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - [PLAZA VEA]', 'HOMECENTERS PERUANOS S.A. - [PROMART]', 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.', 'HIPERMERCADOS TOTTUS S.A.', 'TIENDAS DEL MEJORAMIENTO DEL HOGAR S.A. - [SODIMAC]', 'ESTILOS S.R.L.', 'CENCOSUD RETAIL PERU S.A. - [METRO]', 'COMERCIAL COUNTRY S.A.' , 'ELECTROHOGAR YATACO E.I.R.L.', 'IMPORTACIONES HIRAOKA S.A.', 'TIENDAS CHANCAFE S.A.C.'];
+		$customer_list = ['IMPORTACIONES RUBI S.A.', 'SAGA FALABELLA S.A.', 'CONECTA RETAIL S.A.', 'REPRESENTACIONES VARGAS S.A.', 'INTEGRA RETAIL S.A.C.', 'TIENDAS PERUANAS S.A. - [OECHSLE]', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - [PLAZA VEA]', 'HOMECENTERS PERUANOS S.A. - [PROMART]', 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.', 'HIPERMERCADOS TOTTUS S.A.', 'TIENDAS DEL MEJORAMIENTO DEL HOGAR S.A. - [SODIMAC]', 'ESTILOS S.R.L.', 'CENCOSUD RETAIL PERU S.A. - [METRO]', 'COMERCIAL COUNTRY S.A.' , 'ELECTROHOGAR YATACO E.I.R.L.', 'IMPORTACIONES HIRAOKA S.A.', 'TIENDAS CHANCAFE S.A.C.', 'CORPORACION EFAMEINSA E INGENIERIA S.A.', 'OPEN INVESTMENTS S.A.C.', 'SERFAC S.A.C.'];
 		
-		$customer_ac_list = ['UEZU COMERCIAL SOCIEDAD ANONIMA CERRADA - UEZU COMERCIAL SAC', 'COMERCIAL REFRIGERACION PERU S.A.C.', 'TECNICAV SERVICE E.I.R.L.', 'COINREFRI AIR S.A.C.', 'INVERSIONES GENERALES TECNICAS S.A', 'CONSORCIO INTI PUNKU', 'HANURI SOCIEDAD ANONIMA CERRADA', 'COLDSMART PERU S.A.C.', 'SUMINISTROS E INVERSIONES DEL PERU E.I.R.L.', 'INGENIEROS FRIOTEMP S.A.C.', 'AMASDCLIMA PERU S.R.L.', 'INVERSIONES LUNI S.A.C.', 'GASUE S.A.C.', 'COMERCIAL FRIONORTE E.I.R.L.', 'PROTERM PERU S.A.C.', 'PCR SERVICIOS GENERALES E.I.R.L.', 'IREDI INTERNATIONAL S R L', 'GREENCORP PERU S.A.C.', 'JUAN PABLO MORI E.I.R.L.', 'SOLUCIONES MULTITECNICAS S.A.C.', 'TODOCLIMA PERU S.A.C.', 'FRIOSYSTEM PERU S.R.L.', 'GRUPO VICTORIA SERVICIOS ESPECIALIZADOS S.A.C.', 'REPRESENTACIONES MONTERO S.R.L.', 'SERVICLIMA INTERNATIONAL E.I.R.L.', 'GRUPO MERPES PERU S.A.C.', 'TIENDAS CHANCAFE S.A.C.', 'REPRESENTACIONES VARGAS S.A.', 'COMERCIAL IMPORTADORA J. MORA', 'F Y P INVERSIONES S.A.C.', 'IMPORTACIONES MONTERO E.I.R.L.', 'ASOCIACION PERUANA DE LA IGLESIA DE JESUCRISTO DE LOS SANTOS DE LOS ULTIMOS DIAS', 'MEGA SHOP FRIO SOC. COM. RESPONS. LTDA.', 'COLD MACHINES S.A.C', 'SONEPAR PERU S.A.C.', 'L Y Z INVESTMENT S.A.C', 'AIR COOL SYSTEM SM S.A.C.', 'VMH INGENIEROS S.A.C.', 'TGESTIONA SERVICIOS GLOBALES S.A.C.', 'ALSI PERU S.A.C.', 'ASCENSORES S.A.', 'MOTOREX S A', 'THERMOFIRE S.A.C.', 'MORA PERU CORPORATION S.R.L.', 'ALSI BMS PERU S.A.C.', 'GOLDEN ENGINEERING PERU S.A.', 'TEKKO PERU S.A.C.', 'PROTERM PERU S.AC.', 'PRIMELINES S.A.C.', 'REFRIGERACION TROPIC FRIO E.I.R.L.', 'ASESORIA, INGENIERIA Y REPRESENTACIONES S.A.C.', 'ABB S.A.', 'ALSI HVACR PERU E.I.R.L.', 'COLD IMPORT S.A.'
-];
+		$customer_ac_list = ['UEZU COMERCIAL SOCIEDAD ANONIMA CERRADA - UEZU COMERCIAL SAC', 'COMERCIAL REFRIGERACION PERU S.A.C.', 'TECNICAV SERVICE E.I.R.L.', 'COINREFRI AIR S.A.C.', 'INVERSIONES GENERALES TECNICAS S.A', 'CONSORCIO INTI PUNKU', 'HANURI SOCIEDAD ANONIMA CERRADA', 'COLDSMART PERU S.A.C.', 'SUMINISTROS E INVERSIONES DEL PERU E.I.R.L.', 'INGENIEROS FRIOTEMP S.A.C.', 'AMASDCLIMA PERU S.R.L.', 'INVERSIONES LUNI S.A.C.', 'GASUE S.A.C.', 'COMERCIAL FRIONORTE E.I.R.L.', 'PROTERM PERU S.A.C.', 'PCR SERVICIOS GENERALES E.I.R.L.', 'IREDI INTERNATIONAL S R L', 'GREENCORP PERU S.A.C.', 'JUAN PABLO MORI E.I.R.L.', 'SOLUCIONES MULTITECNICAS S.A.C.', 'TODOCLIMA PERU S.A.C.', 'FRIOSYSTEM PERU S.R.L.', 'GRUPO VICTORIA SERVICIOS ESPECIALIZADOS S.A.C.', 'REPRESENTACIONES MONTERO S.R.L.', 'SERVICLIMA INTERNATIONAL E.I.R.L.', 'GRUPO MERPES PERU S.A.C.', 'TIENDAS CHANCAFE S.A.C.', 'REPRESENTACIONES VARGAS S.A.', 'COMERCIAL IMPORTADORA J. MORA', 'F Y P INVERSIONES S.A.C.', 'IMPORTACIONES MONTERO E.I.R.L.', 'ASOCIACION PERUANA DE LA IGLESIA DE JESUCRISTO DE LOS SANTOS DE LOS ULTIMOS DIAS', 'MEGA SHOP FRIO SOC. COM. RESPONS. LTDA.', 'COLD MACHINES S.A.C', 'SONEPAR PERU S.A.C.', 'L Y Z INVESTMENT S.A.C', 'AIR COOL SYSTEM SM S.A.C.', 'VMH INGENIEROS S.A.C.', 'TGESTIONA SERVICIOS GLOBALES S.A.C.', 'ALSI PERU S.A.C.', 'ASCENSORES S.A.', 'MOTOREX S A', 'THERMOFIRE S.A.C.', 'MORA PERU CORPORATION S.R.L.', 'ALSI BMS PERU S.A.C.', 'GOLDEN ENGINEERING PERU S.A.', 'TEKKO PERU S.A.C.', 'PRIMELINES S.A.C.', 'REFRIGERACION TROPIC FRIO E.I.R.L.', 'ASESORIA, INGENIERIA Y REPRESENTACIONES S.A.C.', 'ABB S.A.', 'ALSI HVACR PERU E.I.R.L.', 'COLD IMPORT S.A.'];
 		
 		$po_list = [];
 		$po_data = $this->gen_m->filter('po_register', false, ['created >=' => Date('Y-m-01')], null, $w_in = null, $orders = [['created', 'DESC'], ['po_number', 'ASC'], ['line_no', 'ASC']]);
 		foreach ($po_data as $item) $po_list[$item->po_number][] = $item;		
+		
+		//echo '<pre>'; print_r($po_list); return;
 		
 		sort($customer_list);
 		sort($customer_ac_list);
@@ -45,7 +46,6 @@ class Po_register extends CI_Controller {
 		$eml_attachments_for_email = [];
 		$eml_processed_files = [];
 
-		// Lógica para procesar archivos .eml primero
 		if ($eml_was_uploaded) {
 			foreach ($original_eml_files as $original_eml_file) {
 				if (isset($uploaded_files_map[$original_eml_file])) {
@@ -66,7 +66,6 @@ class Po_register extends CI_Controller {
 								continue;
 							}
 
-							// Extraer PO del nombre del archivo
 							$eml_po_number = '-';
 							if (preg_match('/[a-zA-Z]?\d{5,}(?:[_\-][a-zA-Z0-9]+)?/', $eml_file_name, $poMatch)) {
 								$eml_po_number = $poMatch[0];
@@ -78,6 +77,7 @@ class Po_register extends CI_Controller {
 								$eml_attachments_for_email[] = $target_path;
 								$eml_processed_files[] = $eml_file_name;
 
+								// Agrupar por PO para la inserción
 								if (!isset($po_to_files_map[$eml_po_number])) {
 									$po_to_files_map[$eml_po_number] = [];
 								}
@@ -85,6 +85,7 @@ class Po_register extends CI_Controller {
 							}
 						}
 						
+						// Usar el cuerpo del EML para el mensaje principal
 						$message_content = $html_message_body;
 
 					} catch (Exception $e) {
@@ -97,25 +98,28 @@ class Po_register extends CI_Controller {
 		}
 	}
 	
-	public function _process_special_customers($registrator, $ep_mail, $customer_name, $remark) {	// Special customers
+	public function _process_special_customers($registrator, $ep_mail, $customer_name, $remark, $po_source_ac, $final_cc_list) {	// Special customers
+		// 1. Extraer los POs del remark
 		$po_numbers_from_remark = [];
 		$separators = '/,\s*|\r?\n/u'; 
 
-		$po_array = preg_split($separators, $remark, -1, PREG_SPLIT_NO_EMPTY);
-
+		// 2. Divide la cadena por esos separadores, omitiendo las entradas vacías.
+		$po_array = preg_split($separators, $po_source_ac, -1, PREG_SPLIT_NO_EMPTY);
+		// 3. Limpia cada PO de posibles espacios en blanco restantes.
 		$po_numbers_from_remark = array_map('trim', $po_array);
 
 		if (empty($po_numbers_from_remark)) {
 			return json_encode(['status' => 'error', 'message' => 'No PO numbers detected in the remark field.']);
 		}
 
+		// 2. Insertar cada PO en la tabla po_register
 		foreach ($po_numbers_from_remark as $po) {
 			$data = [
 				'po_number'     => $po,
 				'line'          => 1,
 				'registrator'   => $registrator,
 				'ep_mail'       => $ep_mail,
-				'po_file'       => '', // El campo de archivo queda vacío
+				'po_file'       => '',
 				'customer_name' => $customer_name,
 				'created'       => Date('Y-m-d H:i:s'),
 				'status'        => 'Sent',
@@ -123,7 +127,8 @@ class Po_register extends CI_Controller {
 			];
 			$this->gen_m->insert('po_register', $data);
 		}
-		
+
+		// 3. Preparar y enviar el correo de resumen manual
 		$subject = "[{$customer_name}] Registro de Orden de Compra" . " " . Date("Ymd");
 		$created = Date('Y-m-d H:i:s');
 		$po_msg = implode(", #", $po_numbers_from_remark);
@@ -152,7 +157,7 @@ class Po_register extends CI_Controller {
 				</tr>
 				<tr>
 					<td style='border: 1px solid #ddd; padding: 8px; font-weight: bold;'>Comentarios:</td>
-					<td style='border: 1px solid #ddd; padding: 8px;'>" . " PO Registrados " . "</td>
+					<td style='border: 1px solid #ddd; padding: 8px;'>" . $remark . "</td>
 				</tr>
 			</table>
 		</body>
@@ -161,7 +166,10 @@ class Po_register extends CI_Controller {
 		$from_email = $ep_mail . '@lge.com';
 		// Se utiliza la función send_email para el envío sin adjuntos
 		$to = ['mariela.carbajal@lge.com', 'elizabeth.sampe@lge.com', 'patricia.rivas@lge.com', $ep_mail . "@lge.com"];
-		$this->my_func->send_email_po($from_email, $to, $subject, $message_content, []); 
+		if ($final_cc_list){
+			$final_recipient_list = array_merge($to, $final_cc_list);
+		} else $final_recipient_list = $to;
+		$this->my_func->send_email_po($from_email, $final_recipient_list, $subject, $message_content, []); 
 		
 		return json_encode(['status' => 'success', 'message' => 'PO has been registered successfully.']);
 	}
@@ -313,12 +321,12 @@ class Po_register extends CI_Controller {
 		}
 	}
 	
-	public function _send_and_cleanup($eml_was_processed, $po_to_files_map, $all_temp_paths, $registrator, $ep_mail, $customer_name, $remark, $subject_to_send, $message_content) {
+	public function _send_and_cleanup($eml_was_processed, $po_to_files_map, $all_temp_paths, $registrator, $ep_mail, $customer_name, $remark, $subject_to_send, $message_content, $final_cc_list) {
+    
 		$from_email = $ep_mail . '@lge.com';
-		$attachments_to_send = $all_temp_paths; // Contiene todos los paths temporales
+		$attachments_to_send = $all_temp_paths;
 
 		if (!$eml_was_processed) {
-			// Generar el cuerpo del mensaje de resumen (usando TU PLANTILLA HTML)
 			$subject_to_send = "[{$customer_name}] Registro de Orden de Compra" . " " . Date("Ymd");
 			$created = Date('Y-m-d H:i:s');
 			$po_list_for_summary = array_keys($po_to_files_map);
@@ -355,7 +363,11 @@ class Po_register extends CI_Controller {
 		}
 		
 		$to = ['mariela.carbajal@lge.com', 'elizabeth.sampe@lge.com', 'patricia.rivas@lge.com', $ep_mail . "@lge.com"];
-		$email_sent = $this->my_func->send_email_po($from_email, $to, $subject_to_send, $message_content, $attachments_to_send);
+		if ($final_cc_list){
+			$final_recipient_list = array_merge($to, $final_cc_list);
+		} else $final_recipient_list = $to;
+		log_message('info', 'emails: ' . $final_recipient_list);
+		$email_sent = $this->my_func->send_email_po($from_email, $final_recipient_list, $subject_to_send, $message_content, $attachments_to_send);
 
 		// Limpiar archivos temporales
 		foreach ($all_temp_paths as $path) {
@@ -380,19 +392,41 @@ class Po_register extends CI_Controller {
 		$all_temp_paths = [];
 		$subject_to_send = '';
 		$message_content = '';
+		$final_cc_list = [];
 		$eml_was_processed = false;
-
+		// $email_map = [
+			// 'HS' => 'angel.coral@lge.com',
+			// 'MS' => 'dario.vargas@lge.com',
+			// 'IT' => 'renato.freundt@lge.com',
+			// 'ES' => 'victorj.sanchez@lge.com' 
+		// ];
+		
+		$email_map = [
+			'HS' => 'example@lge.com',
+			'MS' => 'example1@lge.com',
+			'IT' => 'example2@lge.com',
+			'ES' => 'example3@lge.com' 
+		];
 		// Obtener datos del formulario
 		$registrator = $this->input->post('registrator', TRUE);
 		$ep_mail = $this->input->post('ep_mail', TRUE);
 		$customer_name = $this->input->post("customer_name");
 		$remark = $this->input->post("remark");
 		$original_eml_files = (array) $this->input->post("original_eml_files");
-		$files = $_FILES['attachment'];
+		$files = $_FILES['attachment'] ?? '';
 		$uploaded_files_map = $this->_map_uploaded_files($files);
+		$cc_emails = $this->input->post('cc_emails');
+		$po_source_ac = $this->input->post('po_source_ac') ?? ''; // PO Numver Special Customers
 		
+		if ($cc_emails) {
+			foreach ($cc_emails as $cc_email) {
+				if (isset($email_map[$cc_email])) {
+					$final_cc_list[] = $email_map[$cc_email];
+				}
+			}
+		}
+
 		$files_exist = !empty($_FILES['attachment']['name'][0]);
-		
 		$po_numbers_form = (array) $this->input->post('po_numbers_form');
 		$file_names_form = (array) $this->input->post('file_names_form');
 		
@@ -410,7 +444,7 @@ class Po_register extends CI_Controller {
 		// 1. Manejar clientes especiales (Lógica Manual)
 		$special_customers = ['SAGA FALABELLA S.A.', 'HIPERMERCADOS TOTTUS S.A.', 'TIENDAS DEL MEJORAMIENTO DEL HOGAR S.A. - [SODIMAC]'];
 		if (in_array($customer_name, $special_customers)) {
-			$response_json = $this->_process_special_customers($registrator, $ep_mail, $customer_name, $remark);
+			$response_json = $this->_process_special_customers($registrator, $ep_mail, $customer_name, $remark, $po_source_ac, $final_cc_list);
 			ob_end_clean();
 			echo $response_json; 
 			return;
@@ -456,10 +490,46 @@ class Po_register extends CI_Controller {
 		$response_json  = $this->_send_and_cleanup(
 			$eml_was_processed, $po_to_files_map, $all_temp_paths, 
 			$registrator, $ep_mail, $customer_name, $remark, 
-			$subject_to_send, $message_content
+			$subject_to_send, $message_content, $final_cc_list
 		);
 		ob_end_clean();
 		echo $response_json ;
+	}
+		
+	public function email_parser() { // NOT INCLUDE THIS FUNCTION
+		$file_path = 'C:\Users\lbernaldo.js\Documents\LG\Purchase Order Files\RE clientes_20250904_1439.eml';
+
+		$parser = new Parser();
+		$parser->setPath($file_path);
+
+		// Obtener los datos del correo
+		$subject = $parser->getHeader('subject');
+		$from = $parser->getAddresses('from');
+		$attachments = $parser->getAttachments();
+
+		// Obtener y decodificar el cuerpo del mensaje en formato HTML
+		$html_body = $parser->getMessageBody('html');
+
+		// Si no hay cuerpo HTML, intenta obtener el de texto plano
+		if (empty($html_body)) {
+			$text_body = $parser->getMessageBody('text');
+			echo "--- Contenido del correo (texto plano) ---" . PHP_EOL;
+			echo $text_body . PHP_EOL;
+		} else {
+			echo "--- Contenido del correo (HTML) ---" . PHP_EOL;
+			echo $html_body . PHP_EOL;
+		}
+
+		echo "Asunto: " . $subject . PHP_EOL;
+		echo "De: " . $from[0]['address'] . PHP_EOL;
+		
+		foreach ($attachments as $attachment) {
+			$filename = $attachment->getFilename();
+			$fileContent = $attachment->getContent();
+			// Ejemplo de cómo guardar el archivo adjunto
+			file_put_contents("C:/Users/lbernaldo.js/Documents/LG/PO Register/" . $filename, $fileContent);
+			echo "Archivo adjunto guardado: " . $filename . PHP_EOL;
+		}
 	}
 	
 	public function check_po_exists(){
@@ -709,6 +779,7 @@ class Po_register extends CI_Controller {
 			// Lógica para archivos .eml
 			if ($extension === 'eml') {
 				try {
+					// Utiliza file_get_contents para leer el contenido del archivo
 					$eml_content = file_get_contents($tmp_name);
 					if ($eml_content === false) {
 						throw new Exception('Could not read EML file content.');
@@ -723,27 +794,33 @@ class Po_register extends CI_Controller {
 						$attachment_name = $attachment->getFilename();
 						$attachment_extension = strtolower(pathinfo($attachment_name, PATHINFO_EXTENSION));
 						log_message('info', 'attachments: ' . $attachment_name);
+						// No saltes los archivos, solo los ignora si son imágenes
 						if (in_array($attachment_extension, ['png', 'jpg', 'jpeg', 'gif'])) {
 							continue;
-						}
+						}				
 						
+					// 3. Crear un archivo temporal con el contenido del adjunto
+						// Esto simula que el usuario cargó este archivo directamente
 						$temp_file_path = sys_get_temp_dir() . '/' . basename($attachment_name);
 						if (file_put_contents($temp_file_path, $attachment_content) === false) {
 							throw new Exception("Could not save attachment '{$attachment_name}' to temp file.");
 						}
 
+						// 4. Determinar si el adjunto interno necesita parseo (Excel/PDF/TXT, etc.)
 						if (in_array($attachment_extension, ['xlsx', 'xls', 'pdf', 'txt'])) {
+
 							$eml_po_number = null;
 							if (preg_match('/([a-zA-Z0-9][a-zA-Z0-9_-]{4,})/u', $attachment_name, $poMatch)) {
 								$eml_po_number = $poMatch[0];
 							}
-
 							if (!isset($files_by_po[$eml_po_number])) {
 								$files_by_po[$eml_po_number] = [];
 							}
+							// Almacena el *path* temporal del adjunto extraído del EML
 							$files_by_po[$eml_po_number][] = $temp_file_path; 
 
 						} else {
+							// Si es un archivo que no procesamos (ej: .zip), simplemente loguear y continuar
 							log_message('info', 'Ignoring non-parsable attachment: ' . $attachment_name);
 						}
 						
@@ -769,6 +846,7 @@ class Po_register extends CI_Controller {
 			elseif(in_array($extension,['xls', 'xlsx'])){
 				$po_numbers_from_excel = $this->_extract_po_from_excel_file($file_name, $tmp_name, $customer_name);
 				
+				// **1. Manejar el Fallback (si la extracción avanzada falló)**
 				if (empty($po_numbers_from_excel)) {
 					// Asignar el valor de ingreso manual ('-') si no se encontró nada
 					$po_numbers_to_map = ['-'];
@@ -776,6 +854,8 @@ class Po_register extends CI_Controller {
 					$po_numbers_to_map = $po_numbers_from_excel;
 				}
 				
+				// **2. Mapear cada PO al archivo en el array final ($files_by_po)**
+				// Esto crea una fila por cada PO encontrado para el mismo archivo.
 				foreach ($po_numbers_to_map as $po) {
 					// Agrupa los archivos
 					if (!isset($files_by_po[$po])) {
@@ -838,9 +918,14 @@ class Po_register extends CI_Controller {
 		}
 
 		if ($extension === 'txt') {
+			// Lógica específica para .txt: Se asume que el PO es la última parte del nombre 
+			// separada por guiones ('-').
 			$file_parts = explode('-', pathinfo($file_name, PATHINFO_FILENAME));
 			$po_number = end($file_parts);
 		} else {
+			// Lógica genérica: Buscar el patrón de PO en el nombre del archivo
+			// El patrón busca 5 o más dígitos, opcionalmente precedidos por letras 
+			// y con sufijos alfanuméricos opcionales (ej: 12345, A12345, 12345-A, 12345_B)
 			
 			$po_regex = '/[a-zA-Z]?\d{5,}(?:[_\-][a-zA-Z0-9]+)?/';
 			
@@ -863,7 +948,6 @@ class Po_register extends CI_Controller {
 		try {
 			$reader = IOFactory::createReaderForFile($tmp_name);
         
-			// Carga el archivo en la memoria en el objeto $spreadsheet
 			$spreadsheet = $reader->load($tmp_name);
 			$worksheet = $spreadsheet->getActiveSheet();
 			
@@ -882,7 +966,7 @@ class Po_register extends CI_Controller {
 		if ($po_from_filename === '-') {
 			return ['-'];
 		}
-
+		
 		return [$po_from_filename];
 	}
 	
@@ -890,10 +974,8 @@ class Po_register extends CI_Controller {
 		$po_list = [];
 		$row = $start_row;
 		
-		// Bucle que se rompe cuando la celda está vacía
 		while (true) {
 			$cell_coordinate = $column . $row;
-			// Obtiene el valor de la celda
 			$cell_value = $worksheet->getCell($cell_coordinate)->getValue();
 
 			if (empty($cell_value)) {
@@ -909,13 +991,13 @@ class Po_register extends CI_Controller {
 			}
 
 			$row++;
-			
 			if ($row > 1000) { // Límite de 1000 filas
 				log_message('warning', 'Exceeded 1000 rows while extracting data from column ' . $column . '. Stopped at row ' . $row);
 				break;
 			}
 		}
 
+		// 4. Unicidad: Devolver solo los valores únicos
 		return array_unique($po_list);
 	}
 
@@ -927,17 +1009,13 @@ class Po_register extends CI_Controller {
 				$po_list = $this->_extract_pos_from_column($worksheet, 'B', 2); // po variables
 				break;
 			case 'TIENDAS PERUANAS S.A. (OECHSLE)': // po unico
-				 $cell_coordinate = 'B7';
-            
-				// 1. Obtener el valor de la celda B7
+				$cell_coordinate = 'B7';
 				$cell_value = $worksheet->getCell($cell_coordinate)->getValue();
 				
-				// 2. Limpiar y verificar si el valor existe
 				if (is_string($cell_value) || is_numeric($cell_value)) {
 					$value = trim((string)$cell_value);
 					
 					if (!empty($value)) {
-						// Si el valor no está vacío, lo agregamos tal cual.
 						$po_list[] = $value;
 					}
 				}
@@ -995,25 +1073,31 @@ class Po_register extends CI_Controller {
 			
 			$pages = $pdf->getPages();
 			
+			// Iteramos sobre cada objeto Page
 			foreach ($pages as $page) {
 				$page_text = $page->getText();
 				
 				$page_pos = $this->_get_pdf_pos_by_customer($customer_name, $page_text);
 				
+				// Acumulamos los POs encontrados en la página
 				$po_numbers = array_merge($po_numbers, $page_pos);
 			}
 
 			if (!empty($po_numbers)) {
+				// Si se encontraron POs, los retornamos y evitamos el fallback.
 				return array_unique($po_numbers);
 			}
 
 		} catch (\Exception $e) {
+			// En caso de error de lectura del PDF, registramos y pasamos al fallback.
 			log_message('error', 'PDF parsing error for file: ' . $file_name . '. Error: ' . $e->getMessage());
 		}
 
+		// 2. FALLBACK 1: EXTRACCIÓN POR NOMBRE DEL ARCHIVO
 		$po_from_filename = $this->_extract_po_from_filename($file_name);
 		
 		if ($po_from_filename === '-') {
+			// 3. FALLBACK 2: INGRESO MANUAL ('-')
 			return ['-'];
 		}
 		

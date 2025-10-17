@@ -13,11 +13,7 @@ class Ar_carta_fianza extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 	}
 	
-	public function index(){
-		
-		// $w = ["updated >=" => date("Y-m-d", strtotime("-3 months"))];
-		// $o = [["updated", "desc"], ["model_description", "asc"], ["model", "asc"]];
-		
+	public function index(){	
 		$data = [
 			"stocks"	=> $this->gen_m->filter("ar_carta_fianza", false, null, null, null, "", 100),
 			"main" 		=> "data_upload/ar_carta_fianza/index",
@@ -38,7 +34,7 @@ class Ar_carta_fianza extends CI_Controller {
 		//load excel file
 		$spreadsheet = IOFactory::load("./upload/ar_carta_fianza.xlsx");
 		$sheet = $spreadsheet->getActiveSheet(0);
-		//print_r($sheet); echo '<br>'; echo '<br>'; echo '<br>'; return;
+
 		//excel file header validation
 		$h = [
 			trim($sheet->getCell('A1')->getValue()),
@@ -48,19 +44,16 @@ class Ar_carta_fianza extends CI_Controller {
 			trim($sheet->getCell('H1')->getValue()),
 			trim($sheet->getCell('I1')->getValue())
 		];
-		//print_r($h);
-		// //magento report header
+
 		$header = ["Customer Code", "Customer Name", "Start Date", "End Date", "Currecy Code", "Credit Amount"];
 		
-		// //header validation
+		//header validation
 		$is_ok = true;
 		foreach($h as $i => $h_i) if ($h_i !== $header[$i]) $is_ok = false;
 
 		
 		
 		if ($is_ok){
-			// Obtener datos desde la fila 6 en adelante en un solo paso
-			//$dataArray = $sheet->toArray(null, true, true, true);
 			$updated = date("Y-m-d");
 			$email_sent = 0;
 			$max_row = $sheet->getHighestRow();
@@ -87,8 +80,6 @@ class Ar_carta_fianza extends CI_Controller {
 					"comment_text"								=> trim($sheet->getCell('AJ'.$i)->getValue()),
 					"updated"									=> $updated,
 				];
-				
-				// Manejo de valores vacios end_date_ative
 					
 				$batch_data[]=$row;
 				if(count($batch_data)>=$batch_size){
@@ -96,24 +87,17 @@ class Ar_carta_fianza extends CI_Controller {
 					$batch_data = [];
 					unset($batch_data);
 				}
-				//$this->gen_m->insert("ar_mdms", $row);
-				//$this->update_model_category();
 			}
-			// Insertar cualquier dato restante en el lote
+
 			if (!empty($batch_data)) {
-				//print_r($batch_data); echo '<br>'; echo '<br>'; echo '<br>';
 				$this->gen_m->insert_m("ar_carta_fianza", $batch_data);
 				$batch_data = [];
 				unset($batch_data);
 			}
 
 			$msg = " record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";;
-			//print_r($msg); return;
 			$this->db->trans_complete();
-			return $msg;
-			//$this->update_model_category();
-			//return "Stock update has been finished. (".$updated.")";
-			
+			return $msg;		
 		}else return "";
 		//$this->update_model_category();
 	}
@@ -151,20 +135,17 @@ class Ar_carta_fianza extends CI_Controller {
 			
 			// Combinar los datos si hay cartas con ambas diferencias
 			if (!empty($cartas_15_dias) || !empty($cartas_7_dias)) {
-				$to = ["juan.depaz@lge.com", "diana.sanchez@lge.com", "madeleine.correa@lge.com", "enrique.salazar@lge.com", "georgio.park@lge.com", "roberto.kawano@lge.com", "ricardo.alvarez@lge.com"];
+				$to = ["juan.depaz@lge.com", "diana.sanchez@lge.com", "madeleine.correa@lge.com", "paola.avalos@lge.com", "enrique.salazar@lge.com", "georgio.park@lge.com", "roberto.kawano@lge.com", "ricardo.alvarez@lge.com"];
 
 				$subject = "[LGEPR AR] Vencimiento Carta Fianza {$current_date}";
 
-				// Preparar los datos para la vista
 				$data = [
 					'cartas_15_dias' => $cartas_15_dias,
 					'cartas_7_dias' => $cartas_7_dias
 				];
-
-				// Cargar la vista con los datos combinados
+				
 				$message = $this->load->view('email/hr_email_alert', $data, true);
 
-				// Enviar el correo electrónico
 				$this->my_func->send_email("rpa.espr@lgepartner.com", $to, $subject, $message);
 			}
 		}

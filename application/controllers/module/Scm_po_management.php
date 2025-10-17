@@ -11,10 +11,10 @@ class Scm_po_management extends CI_Controller {
 	}
 		
 	public function index(){
-		$customer_list = ['IMPORTACIONES RUBI S.A.', 'SAGA FALABELLA S.A.', 'CONECTA RETAIL S.A.', 'REPRESENTACIONES VARGAS S.A.', 'INTEGRA RETAIL S.A.C.', 'TIENDAS PERUANAS S.A. - [OECHSLE]', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - [PLAZA VEA]', 'HOMECENTERS PERUANOS S.A. - [PROMART]', 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.', 'HIPERMERCADOS TOTTUS S.A.', 'TIENDAS DEL MEJORAMIENTO DEL HOGAR S.A. - [SODIMAC]', 'ESTILOS S.R.L.', 'CENCOSUD RETAIL PERU S.A. - [METRO]', 'COMERCIAL COUNTRY S.A.' , 'ELECTROHOGAR YATACO E.I.R.L.', 'IMPORTACIONES HIRAOKA S.A.', 'TIENDAS CHANCAFE S.A.C.'];
+		$customer_list = ['IMPORTACIONES RUBI S.A.', 'SAGA FALABELLA S.A.', 'CONECTA RETAIL S.A.', 'REPRESENTACIONES VARGAS S.A.', 'INTEGRA RETAIL S.A.C.', 'TIENDAS PERUANAS S.A. - [OECHSLE]', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - [PLAZA VEA]', 'HOMECENTERS PERUANOS S.A. - [PROMART]', 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.', 'HIPERMERCADOS TOTTUS S.A.', 'TIENDAS DEL MEJORAMIENTO DEL HOGAR S.A. - [SODIMAC]', 'ESTILOS S.R.L.', 'CENCOSUD RETAIL PERU S.A. - [METRO]', 'COMERCIAL COUNTRY S.A.' , 'ELECTROHOGAR YATACO E.I.R.L.', 'IMPORTACIONES HIRAOKA S.A.', 'TIENDAS CHANCAFE S.A.C.', 'CORPORACION EFAMEINSA E INGENIERIA S.A.', 'OPEN INVESTMENTS S.A.C.', 'SERFAC S.A.C.'];
 		
 		$po_list = [];
-		$po_data = $this->gen_m->filter('po_register', false, null, null, $w_in = null, $orders = [['created', 'DESC'], ['po_number', 'ASC'], ['line_no', 'ASC']]);
+		$po_data = $this->gen_m->filter('po_register', false, ['created >=' => Date('Y-m-01')], null, $w_in = null, $orders = [['created', 'DESC'], ['po_number', 'ASC'], ['line_no', 'ASC']]);
 		foreach ($po_data as $item) $po_list[$item->po_number][] = $item;
 		
 		sort($customer_list);
@@ -33,7 +33,7 @@ class Scm_po_management extends CI_Controller {
 	}
 	
 	public function register_data() {
-		// Obtener los valores de los campos de texto
+		// Form values
 		$registrator = $this->input->post('registrator', TRUE);
 		$ep_mail = $this->input->post('ep_mail', TRUE);
 		$customer_name = $this->input->post("customer_name");
@@ -65,16 +65,13 @@ class Scm_po_management extends CI_Controller {
 			];
 		}
 
-		// Procesar todos los archivos una única vez
 		for ($i = 0; $i < count($po_numbers); $i++) {
 			$po_number = $po_numbers[$i];
 			$original_filename = $file_names_form[$i];
 
-			// Solo procesar si el archivo existe en los subidos
 			if (isset($uploaded_files_map[$original_filename])) {
 				$file_data = $uploaded_files_map[$original_filename];
 
-				// Insertar en la base de datos (se hace para CADA PO)
 				$data = [
 					'po_number'     => $po_number,
 					'line'          => 1,
@@ -88,7 +85,6 @@ class Scm_po_management extends CI_Controller {
 				];
 				$this->gen_m->insert('po_register', $data);
 
-				// Adjuntar el archivo al email, solo si no ha sido adjuntado antes
 				if (!in_array($original_filename, $processed_files)) {
 					$_FILES['userfile'] = $file_data;
 					
@@ -118,7 +114,6 @@ class Scm_po_management extends CI_Controller {
 			}
 		}
 		
-		// Segunda pasada para adjuntar los archivos TXT complementarios que no estaban en la tabla
 		foreach ($uploaded_files_map as $original_filename => $file_data) {
 			if (!in_array($original_filename, $processed_files)) {
 				$is_txt = strtolower(pathinfo($original_filename, PATHINFO_EXTENSION)) === 'txt';
@@ -141,7 +136,6 @@ class Scm_po_management extends CI_Controller {
 			}
 		}
 
-		// Preparar y enviar el email
 		$po_msg_list = [];
 		foreach ($uploaded_files_data as $data) {
 			$po_msg_list[] = $data['po_number'];
@@ -266,10 +260,8 @@ class Scm_po_management extends CI_Controller {
             $db_field => Date('Y-m-d H:i:s')
         ];
 
-        // Definir el filtro para la función de actualización
         $filter = ['id' => $record_id];
         
-        // Llamar a tu función de actualización personalizada
         $success = $this->gen_m->update('po_register', $filter, $update_data);
         
         if ($success) {
@@ -290,16 +282,13 @@ class Scm_po_management extends CI_Controller {
 		$po_number = $this->input->post('po_number', TRUE);
 		$record_id = (int)$this->input->post('record_id', TRUE);
 		
-		// Obtener los datos de la fila original
 		$original_record = $this->db->get_where('po_register', ['id' => $record_id])->row();
 	
-		// Paso 1: Actualizar la fila original
 		if (is_null($original_record->line)) {
 			$this->db->where('id', $record_id);
 			$this->db->update('po_register', ['line' => 1]);
 		}
 		
-		// Paso 2: Obtener la última línea y crear la nueva
 		$this->db->select_max('line');
 		$this->db->where('po_number', $po_number);
 		$query = $this->db->get('po_register');
@@ -307,7 +296,6 @@ class Scm_po_management extends CI_Controller {
 
 		$new_line = $last_line + 1;
 		
-		// Obtener los datos de la fila original para la nueva inserción
 		$last_record = $this->db->get_where('po_register', ['id' => $record_id])->row();
 
 		if ($last_record) {
@@ -350,7 +338,6 @@ class Scm_po_management extends CI_Controller {
 		$data = $this->gen_m->filter_select('po_register', false, ['line'], ['po_number' => $po_number, 'id' => $record_id]);
 		$current_line = $data[0]->line;
 		
-		//$line = $this->input->post("po_number");
 		if ($record_id){
 			if ($this->gen_m->delete('po_register', ['id' => $record_id])) {				
 				$new_data = $this->gen_m->filter_select('po_register', false, ['line', 'po_number', 'id'], ['po_number' => $po_number, 'line >' => $current_line], null, null, [['line', 'DESC']]);
@@ -501,9 +488,7 @@ class Scm_po_management extends CI_Controller {
 		}
 		
 		$customer_po_list = array_unique(array_column($data_po, 'po_number'));
-		
-		//echo '<pre>'; print_r($customer_po_list);
-		
+				
 		$w_in_clause = [
 			[
 				'field' => 'customer_po_no', 
@@ -520,21 +505,15 @@ class Scm_po_management extends CI_Controller {
 
 		$list_data = [];
 		
-		// Unir datos de Ventas y Cerrados por customer_po_no
 		$all_data = array_merge($sales_data, $closed_data);
 
 		if ($all_data) {
 			foreach($all_data as $item) {
-				// Asumiendo que ambas tablas tienen el campo 'customer_po_no'
 				$list_data[$item->customer_po_no][] = $item;
 			}
-		}
-		
-		//echo '<pre>'; print_r($list_data);
-		
+		}	
 		
 		$data_multi = [];
-		//echo '<pre>'; print_r($default_values);
 				
 		foreach ($customer_po_list as $po_number){
 			if(!empty($list_data[$po_number])){
@@ -544,7 +523,6 @@ class Scm_po_management extends CI_Controller {
 			$line = 1;
 			if ($list_data_){
 				foreach ($list_data_ as $index => $item) {
-					//$data = ['po_number' => $po_number, 'model' => $item->model, 'line' => $line,'qty' => ($item->ordered_qty ?? $item->order_qty)];
 					$default_values[$po_number]['model'] = $item->model;
 					$default_values[$po_number]['qty'] = $item->ordered_qty ?? $item->order_qty;
 					$default_values[$po_number]['amount_usd'] = $item->sales_amount_usd ?? $item->order_amount_usd;
@@ -554,11 +532,9 @@ class Scm_po_management extends CI_Controller {
 					$data = $default_values[$po_number];
 					
 					if ($this->gen_m->filter_select('po_register', false, ['order_no', 'line_no'], ['order_no' =>  $item->order_no, 'line_no' => $item->line_no])) continue;
-					else { //FALTA CONSIDERAR NUEVOS CASOS en caso de nuevos ingresos problemas con line = 1
-						//$key = $item->order_no . "_" . $item->line_no . "_" . $item->line;
+					else {
 						if ($index == 0 && empty($po_first_data[$po_number]->model) && empty($po_first_data[$po_number]->order_no)){ // First insert data from form							
 							$this->gen_m->update('po_register', ['po_number' => $po_number, 'line' => 1], $data);
-							//echo '<pre>'; print_r($data);
 						} else {
 							$data_multi[] = $data;
 						}
@@ -569,8 +545,6 @@ class Scm_po_management extends CI_Controller {
 		}
 		
 		if ($data_multi) $this->gen_m->insert_m('po_register', $data_multi);
-		
-		//echo '<pre>'; print_r($data_multi);
 	}	
 
 }
