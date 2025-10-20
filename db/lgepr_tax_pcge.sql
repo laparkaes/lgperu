@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 04, 2025 at 11:48 PM
+-- Generation Time: Oct 17, 2025 at 07:15 PM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 7.4.33
 
@@ -29,8 +29,10 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `lgepr_tax_pcge` (
   `lgepr_pcge_id` int(11) NOT NULL,
-  `concatenate` varchar(100) DEFAULT NULL,
+  `from_period` varchar(100) DEFAULT NULL,
+  `to_period` varchar(20) DEFAULT NULL,
   `accounting_unit` varchar(20) DEFAULT NULL,
+  `accounting_unit_desc` varchar(100) DEFAULT NULL,
   `account` varchar(20) DEFAULT NULL,
   `account_desc` varchar(255) DEFAULT NULL,
   `pcge` varchar(100) DEFAULT NULL,

@@ -17,7 +17,10 @@
 					<div class="d-flex justify-content-between align-items-center">
 						<h5 class="card-title">Last 5,000 records</h5>
 						<form id="form_mdms_update">
-							<div class="input-group">							
+							<div class="input-group">
+								<a class="btn btn-success" href="<?= base_url('data_upload/ar_mdms/export_excel') ?>">
+									<i class="bi bi-file-earmark-spreadsheet"></i> Export
+								</a>
 								<input class="form-control" type="file" name="attach">
 								<button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i></button>
 							</div>

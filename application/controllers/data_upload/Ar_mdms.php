@@ -2,6 +2,12 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
 class Ar_mdms extends CI_Controller {
 
@@ -13,7 +19,11 @@ class Ar_mdms extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 	}
 	
-	public function index(){		
+	public function index(){
+		
+		// $w = ["updated >=" => date("Y-m-d", strtotime("-3 months"))];
+		// $o = [["updated", "desc"], ["model_description", "asc"], ["model", "asc"]];
+		
 		$data = [
 			"stocks"	=> $this->gen_m->filter("ar_mdms", false, null, null, null, "", 5000),
 			"main" 		=> "data_upload/ar_mdms/index",
@@ -22,8 +32,7 @@ class Ar_mdms extends CI_Controller {
 		$this->load->view('layout', $data);
 	}
 	
-	
-	public function process_old(){ // old version - old excel format
+	public function process(){ // ok
 		set_time_limit(0);
 		ini_set("memory_limit", -1);
 		
@@ -35,139 +44,6 @@ class Ar_mdms extends CI_Controller {
 		//load excel file
 		$spreadsheet = IOFactory::load("./upload/ar_mdms.xlsx");
 		$sheet = $spreadsheet->getActiveSheet(0);
-		//excel file header validation
-		$h = [
-			trim($sheet->getCell('A5')->getValue()),
-			trim($sheet->getCell('B5')->getValue()),
-			trim($sheet->getCell('C5')->getValue()),
-			trim($sheet->getCell('D5')->getValue()),
-			trim($sheet->getCell('E5')->getValue()),
-			trim($sheet->getCell('F5')->getValue()),
-			trim($sheet->getCell('G5')->getValue()),
-			trim($sheet->getCell('H5')->getValue()),
-		];
-
-		// //magento report header
-		$header = ["Code ID", "MLGEDIV[ID]", "LGEDIV[NAME]", "Company(Affiliate) Code[ID]", "Company(Affiliate) Code[NAME]", "Short Name(ENG)", "AU[ID]", "AU[NAME]"];
-		
-		// //header validation
-		$is_ok = true;
-		foreach($h as $i => $h_i) if ($h_i !== $header[$i]) $is_ok = false;
-
-		
-		
-		if ($is_ok){
-			// Obtener datos desde la fila 6 en adelante en un solo paso
-			//$dataArray = $sheet->toArray(null, true, true, true);
-			$updated = date("Y-m-d");
-			$max_row = $sheet->getHighestRow();
-			$batch_data =[];
-			$batch_size = 1000;
-			
-			// Iniciar transacción para mejorar rendimiento
-			$this->db->trans_start();
-			for($i = 6; $i <= $max_row; $i++){
-				$row = [
-					"class_id" 										=> trim($sheet->getCell('A'.$i)->getValue()),
-					"master_id" 									=> trim($sheet->getCell('B'.$i)->getValue()),
-					"bp_code" 										=> trim($sheet->getCell('C'.$i)->getValue()),
-					"bp_group_id" 									=> trim($sheet->getCell('D'.$i)->getValue()),
-					"bp_group_name" 								=> trim($sheet->getCell('E'.$i)->getCalculatedValue()),
-					"partner_type_id"								=> trim($sheet->getCell('F'.$i)->getValue()),
-					"partner_type_name" 							=> trim($sheet->getCell('G'.$i)->getCalculatedValue()),
-					"country_id" 									=> trim($sheet->getCell('H'.$i)->getValue()),
-					"country_name"									=> trim($sheet->getCell('I'.$i)->getValue()),
-					"non_vat_no_id"									=> trim($sheet->getCell('J'.$i)->getValue()),
-					"non_vat_no_name"								=> trim($sheet->getCell('K'.$i)->getCalculatedValue()),
-					"corporation_registration_number"				=> trim($sheet->getCell('L'.$i)->getValue()),
-					"hq_vat_biz_registration_no"					=> trim($sheet->getCell('M'.$i)->getValue()),		
-					"name_local"									=> trim($sheet->getCell('N'.$i)->getValue()),
-					"name_eng"										=> trim($sheet->getCell('O'.$i)->getValue()),
-					"trading_partner_affiliate_branch_id"			=> trim($sheet->getCell('P'.$i)->getValue()),
-					"short_name_local"								=> trim($sheet->getCell('Q'.$i)->getValue()),
-					"trading_partner_affiliate_branch_name"			=> trim($sheet->getCell('R'.$i)->getValue()),
-					"type_of_business"								=> trim($sheet->getCell('S'.$i)->getValue()),
-					"tel_country_number"							=> trim($sheet->getCell('T'.$i)->getValue()),
-					"business_registration_certificate"				=> trim($sheet->getCell('U'.$i)->getValue()),
-					"biz_registration_no"							=> trim($sheet->getCell('V'.$i)->getValue()),
-					"sub_biz_reg_no_branch_code"					=> trim($sheet->getCell('W'.$i)->getValue()),
-					"address_zipcode"								=> trim($sheet->getCell('X'.$i)->getValue()),
-					"address_seq"									=> trim($sheet->getCell('Y'.$i)->getValue()),
-					"address_countrycode"							=> trim($sheet->getCell('Z'.$i)->getValue()),
-					"address_road_addr1"							=> trim($sheet->getCell('AA'.$i)->getValue()),
-					"address_road_addr2"							=> trim($sheet->getCell('AB'.$i)->getValue()),
-					"address_road_addr3"							=> trim($sheet->getCell('AC'.$i)->getValue()),
-					"address_road_addr4"							=> trim($sheet->getCell('AD'.$i)->getValue()),
-					"address_global_addr1"							=> trim($sheet->getCell('AE'.$i)->getValue()),
-					"address_global_addr2"							=> trim($sheet->getCell('AF'.$i)->getValue()),
-					"address_global_addr3"							=> trim($sheet->getCell('AG'.$i)->getValue()),
-					"address_global_addr4"							=> trim($sheet->getCell('AH'.$i)->getValue()),
-					"city"											=> trim($sheet->getCell('AI'.$i)->getValue()),
-					"state_id"										=> trim($sheet->getCell('AJ'.$i)->getValue()),
-					"state_name"									=> trim($sheet->getCell('AK'.$i)->getValue()),
-					"local_full_address"							=> trim($sheet->getCell('AL'.$i)->getValue()),	
-					"county"										=> trim($sheet->getCell('AM'.$i)->getValue()),
-					"tax_payer_id"									=> trim($sheet->getCell('AN'.$i)->getValue()),
-					"kpp_taxpayer_registration_reason_code"			=> trim($sheet->getCell('AO'.$i)->getValue()),
-					"branch_no"										=> trim($sheet->getCell('AP'.$i)->getValue()),
-					"supplier_status_id"							=> trim($sheet->getCell('AQ'.$i)->getValue()),
-					"supplier_status_name"							=> trim($sheet->getCell('AR'.$i)->getCalculatedValue()),
-					"nations_in_electronic_lg_id"					=> trim($sheet->getCell('AS'.$i)->getValue()),
-					"nations_in_electronic_lg_name"					=> trim($sheet->getCell('AT'.$i)->getValue()),
-					"lg_business_factory_id"						=> trim($sheet->getCell('AU'.$i)->getValue()),
-					"lg_business_factory_name"						=> trim($sheet->getCell('AV'.$i)->getValue()),
-					"biz_register_no_type_id"						=> trim($sheet->getCell('AW'.$i)->getValue()),
-					"biz_register_no_type_name"						=> trim($sheet->getCell('AX'.$i)->getCalculatedValue()),
-					"business_form"									=> trim($sheet->getCell('AY'.$i)->getValue()),
-					"start_date_active"								=> trim($sheet->getCell('AZ'.$i)->getValue()),
-					"end_date_active"								=> trim($sheet->getCell('BA'.$i)->getValue()) ?: NULL,
-					"status_id"										=> trim($sheet->getCell('BB'.$i)->getValue()),
-					"status_name"									=> trim($sheet->getCell('BC'.$i)->getCalculatedValue()),
-					"updated"										=> $updated,
-				];
-				
-				// Manejo de valores vacios end_date_ative
-					
-				$batch_data[]=$row;
-				if(count($batch_data)>=$batch_size){
-					$this->gen_m->insert_m("ar_mdms", $batch_data);
-					$batch_data = [];
-					unset($batch_data);
-				}
-				//$this->gen_m->insert("ar_mdms", $row);
-				//$this->update_model_category();
-			}
-			// Insertar cualquier dato restante en el lote
-			if (!empty($batch_data)) {
-				//print_r($batch_data); echo '<br>'; echo '<br>'; echo '<br>';
-				$this->gen_m->insert_m("ar_mdms", $batch_data);
-				$batch_data = [];
-				unset($batch_data);
-			}
-
-			$msg = " record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";;
-			//print_r($msg); return;
-			$this->db->trans_complete();
-			return $msg;
-			//$this->update_model_category();
-			//return "Stock update has been finished. (".$updated.")";
-			
-		}else return "";
-		//$this->update_model_category();
-	}
-	
-	public function process(){ // ok
-		set_time_limit(0);
-		ini_set("memory_limit", -1);
-		
-		$start_time = microtime(true);
-
-		//delete all rows lgepr_stock 
-		$this->gen_m->truncate("ar_mdms");
-		
-		//load excel file
-		$spreadsheet = IOFactory::load("./upload/ar_mdms.xlsx");
-		$sheet = $spreadsheet->getActiveSheet(0);
 
 		//excel file header validation
 		$h = [
@@ -180,17 +56,14 @@ class Ar_mdms extends CI_Controller {
 			trim($sheet->getCell('G5')->getValue()),
 			trim($sheet->getCell('H5')->getValue()),
 		];
-		
-		//magento report header
+
 		$header = ["Code ID", "LGEDIV[ID]", "LGEDIV[NAME]", "Company(Affiliate) Code[ID]", "Company(Affiliate) Code[NAME]", "Short Name(ENG)", "AU[ID]", "AU[NAME]"];
 		
-		// //header validation
+		//header validation
 		$is_ok = true;
 		foreach($h as $i => $h_i) if ($h_i !== $header[$i]) $is_ok = false;
 
 		if ($is_ok){
-			// Obtener datos desde la fila 6 en adelante en un solo paso
-			//$dataArray = $sheet->toArray(null, true, true, true);
 			$updated = date("Y-m-d H:i:s");
 			$max_row = $sheet->getHighestRow();
 			$batch_data =[];
@@ -249,9 +122,7 @@ class Ar_mdms extends CI_Controller {
 					"last_updated_by"						=> trim($sheet->getCell('AV'.$i)->getValue()),
 					"updated"								=> $updated,
 				];
-				
-				// Manejo de valores vacios end_date_ative
-					
+
 				$batch_data[]=$row;
 				if(count($batch_data)>=$batch_size){
 					$this->gen_m->insert_m("ar_mdms", $batch_data);
@@ -261,18 +132,99 @@ class Ar_mdms extends CI_Controller {
 			}
 			// Insertar cualquier dato restante en el lote
 			if (!empty($batch_data)) {
-				//print_r($batch_data); echo '<br>'; echo '<br>'; echo '<br>';
 				$this->gen_m->insert_m("ar_mdms", $batch_data);
 				$batch_data = [];
 				unset($batch_data);
 			}
 
 			$msg = " record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";;
-			//print_r($msg); return;
 			$this->db->trans_complete();
-			return $msg;
-			
+			return $msg;		
 		}else return "";
+	}
+	
+	public function export_excel(){
+		
+		$data = $this->gen_m->filter('ar_mdms', false);
+		$template_path = './template/ar_mdms_template.xlsx';
+		
+		try {
+            $spreadsheet = IOFactory::load($template_path);
+        } catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
+            die('Error loading the Excel template: ' . $e->getMessage());
+        }
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		$start_row = 6;
+        $current_row = $start_row;
+		
+        if ($data) {
+            foreach ($data as $row) {            
+                $sheet->setCellValue('A' . $current_row, $row->code_id); 							// Column A: code_id                           
+                $sheet->setCellValue('B' . $current_row, $row->lgediv_id); 							// Column B: lgediv_id
+                $sheet->setCellValue('C' . $current_row, $row->lgediv_name); 						// Column C: lgediv_name
+				$sheet->setCellValue('D' . $current_row, $row->company_affiliate_code_id); 			// Column D: company_affiliate_code_id
+				$sheet->setCellValue('E' . $current_row, $row->company_affiliate_code_name); 		// Column E: company_affiliate_code_name
+				$sheet->setCellValue('F' . $current_row, $row->short_name_eng); 					// Column F: short_name_eng
+				$sheet->setCellValue('G' . $current_row, $row->au_id); 								// Column G: au_id
+				$sheet->setCellValue('H' . $current_row, $row->au_name); 							// Column H: au_name
+				$sheet->setCellValue('I' . $current_row, $row->supplier_code);						// Column I: supplier_code
+				$sheet->setCellValue('J' . $current_row, $row->supplier_name_loc);					// Column J: supplier_name_loc		
+				$sheet->setCellValue('K' . $current_row, $row->supplier_name_eng); 					// Column K: supplier_name_eng		
+				$sheet->setCellValue('L' . $current_row, $row->biz_registration_no); 				// Column L: biz_registration_no		
+				$sheet->setCellValue('M' . $current_row, $row->domain_type); 						// Column M: domain_type		
+				$sheet->setCellValue('N' . $current_row, $row->job_type_id); 						// Column N: job_type_id		
+				$sheet->setCellValue('O' . $current_row, $row->job_type_name);						// Column O: job_type_name 
+				$sheet->setCellValue('P' . $current_row, $row->trade_type_id); 						// Column P: trade_type_id
+				$sheet->setCellValue('Q' . $current_row, $row->trade_type_name); 					// Column Q: trade_type_name
+				$sheet->setCellValue('R' . $current_row, $row->currency_code_id); 					// Column R: currency_code_id
+				$sheet->setCellValue('S' . $current_row, $row->currency_code_name); 				// Column S: currency_code_name
+				$sheet->setCellValue('T' . $current_row, $row->term_days); 							// Column T: term_days
+				$sheet->setCellValue('U' . $current_row, $row->payment_terms_name); 				// Column U: payment_terms_name
+				$sheet->setCellValue('V' . $current_row, $row->hub_use_flag_id); 					// Column V: hub_use_flag_id
+				$sheet->setCellValue('W' . $current_row, $row->hub_use_flag_name); 					// Column W: hub_use_flag_name
+				$sheet->setCellValue('X' . $current_row, $row->payterm_type);						// Column X: payterm_type
+				$sheet->setCellValue('Y' . $current_row, $row->available_period_from); 				// Column Y: available_period_from
+				$sheet->setCellValue('Z' . $current_row, $row->available_period_to); 				// Column Z: available_period_to
+				$sheet->setCellValue('AA' . $current_row, $row->settlement_type_id); 				// Column AA: settlement_type_id
+				$sheet->setCellValue('AB' . $current_row, $row->settlement_type_name); 				// Column AB: settlement_type_name
+				$sheet->setCellValue('AC' . $current_row, $row->due_counted_point_id); 				// Column AC: due_counted_point_id
+				$sheet->setCellValue('AD' . $current_row, $row->due_counted_point_name); 			// Column AD: due_counted_point_name
+				$sheet->setCellValue('AE' . $current_row, $row->prorate_basis_type_id); 			// Column AE: prorate_basis_type_id
+				$sheet->setCellValue('AF' . $current_row, $row->prorate_basis_type_name); 			// Column AF: prorate_basis_type_name
+				$sheet->setCellValue('AG' . $current_row, $row->payment_group_id); 					// Column AG: payment_group_id
+				$sheet->setCellValue('AH' . $current_row, $row->payment_group_name); 				// Column AH: payment_group_name
+				$sheet->setCellValue('AI' . $current_row, $row->payment_method); 					// Column AI: payment_method
+				$sheet->setCellValue('AJ' . $current_row, $row->collection_redem_at_sight_l_c); 	// Column AJ: collection_redem_at_sight_l_c
+				$sheet->setCellValue('AK' . $current_row, $row->bank_charge_payment_entity_l_c); 	// Column AK: bank_charge_payment_entity_l_c
+				$sheet->setCellValue('AL' . $current_row, $row->document_submit_days_l); 			// Column AL: document_submit_days_l
+				$sheet->setCellValue('AM' . $current_row, $row->usane_l_c_type); 					// Column AM: usane_l_c_type		
+				$sheet->setCellValue('AN' . $current_row, $row->usance_l_c_interest_pay_type); 		// Column AN: usance_l_c_interest_pay_type
+				$sheet->setCellValue('AO' . $current_row, $row->usance_l_c_interest_rate); 			// Column AO: usance_l_c_interest_rate
+				$sheet->setCellValue('AP' . $current_row, $row->enabled_flag_id); 					// Column AP: enabled_flag_id
+				$sheet->setCellValue('AQ' . $current_row, $row->enabled_flag_name); 				// Column AQ: enabled_flag_name
+				$sheet->setCellValue('AR' . $current_row, $row->payterm_key); 						// Column AR: payterm_key
+				$sheet->setCellValue('AS' . $current_row, $row->creation_date); 					// Column AS: creation_date
+				$sheet->setCellValue('AT' . $current_row, $row->creation_user_id); 					// Column AT: creation_user_id
+				$sheet->setCellValue('AU' . $current_row, $row->last_update_date); 					// Column AU: last_update_date
+				$sheet->setCellValue('AV' . $current_row, $row->last_updated_by); 					// Column AV: last_updated_by
+		
+                $current_row++;                                  			
+            }                                                  		
+        }                                                        		
+		$filename = "MDMS_" . date('Y-m') . ".xlsx";
+		ob_end_clean(); //Clean buffer	
+			
+        // Header configuration for download
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');			
+     			
+        $writer = new Xlsx($spreadsheet); 	
+
+        // Save output directly to the browser 
+        $writer->save('php://output');	
+        exit;
 	}
 	
 	public function update(){
