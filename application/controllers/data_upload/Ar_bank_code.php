@@ -15,11 +15,8 @@ class Ar_bank_code extends CI_Controller {
 	
 	public function index(){
 		
-		// $w = ["updated >=" => date("Y-m-d", strtotime("-3 months"))];
-		// $o = [["updated", "desc"], ["model_description", "asc"], ["model", "asc"]];
-		
 		$data = [
-			"stocks"	=> $this->gen_m->filter("ar_bank_code", false, null, null, null, "", 100),
+			"stocks"	=> $this->gen_m->filter("ar_bank_code", false, null, null, null, [['updated', 'desc']], 100),
 			"main" 		=> "data_upload/ar_bank_code/index",
 		];
 		
@@ -27,37 +24,30 @@ class Ar_bank_code extends CI_Controller {
 	}
 	
 	public function date_convert_mm_dd_yyyy($date) {
-    // Intentamos convertir con la lógica del valor numérico (excel date)
 		if (is_numeric($date)) {
-			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
 			return $date->format('Y-m-d');
 		}
 
-		// Si no es un número, intentamos convertir con la lógica de fecha en formato mm/dd/yyyy
 		$aux = explode("/", $date);
 		if (count($aux) == 3) {
-			// Verificamos que la fecha esté en formato mm/dd/yyyy
-			return $aux[2]."-".$aux[0]."-".$aux[1]; // yyyy-mm-dd
+			return $aux[2]."-".$aux[0]."-".$aux[1];
 		}
-		
-		// Si la fecha no está en un formato esperado, devolvemos null
+
 		return null;
 	}
 
 	public function date_convert_dd_mm_yyyy($date) {
-    // Intentamos convertir con la lógica del valor numérico (excel date)
 		if (is_numeric($date)) {
-			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
 			return $date->format('Y-m-d');
 		}
 
-		// Si no es un número, intentamos convertir con la lógica de fecha en formato dd/mm/yyyy
 		$aux = explode("/", $date);
 		if (count($aux) > 2) return $aux[2]."-".$aux[1]."-".$aux[0];
 		else return null;
 	}
+	
 	public function process(){
 		set_time_limit(0);
 		ini_set("memory_limit", -1);
@@ -69,21 +59,19 @@ class Ar_bank_code extends CI_Controller {
 		// Definir el mapeo de columnas para cada hoja
 		$column_map = [
 			"BBVA"    => ["header_row" => 11, "data_start_row" => 12, "date_operation" => 'A', "number_operation" => 'D', "total_amount" => 'F'],
-			"BCP"     => ["header_row" => 5, "data_start_row" => 6, "date_operation" => 'A', "number_operation" => 'G', "total_amount" => 'D'],
-			"CITI"    => ["header_row" => 7, "data_start_row" => 8, "date_operation" => 'D', "number_operation" => 'N', "total_amount" => 'K'],
-			"SCB"     => ["header_row" => 8, "data_start_row" => 9, "date_operation" => 'A', "number_operation" => 'D', "total_amount" => 'C'],
+			"BCP"     => ["header_row" => 5, "data_start_row"  => 6, "date_operation"  => 'A', "number_operation" => 'G', "total_amount" => 'D'],
+			"CITI"    => ["header_row" => 7, "data_start_row"  => 8, "date_operation"  => 'D', "number_operation" => 'N', "total_amount" => 'K'],
+			"SCB"     => ["header_row" => 8, "data_start_row"  => 9, "date_operation"  => 'A', "number_operation" => 'D', "total_amount" => 'C'],
 			"IBK"     => ["header_row" => 12, "data_start_row" => 13, "date_operation" => 'B', "number_operation" => 'D', "total_amount" => 'H'],
-			"NACION"  => ["header_row" => 1, "data_start_row" => 2, "date_operation" => 'B', "number_operation" => 'D', "total_amount" => 'H'],
+			"NACION"  => ["header_row" => 1, "data_start_row"  => 2, "date_operation"  => 'B', "number_operation" => 'D', "total_amount" => 'H'],
 		];
 
-		// Cargar el archivo Excel
 		$spreadsheet = IOFactory::load("./upload/ar_bank_code.xlsx");
 
 		// Iniciar transacción para mejorar el rendimiento
 		$this->db->trans_start();
 
 		foreach ($spreadsheet->getSheetNames() as $sheetName) {
-			// Extraer valores de bank_name y currency desde el nombre de la hoja
 			$name_parts = explode(" ", $sheetName, 2);
 			$bank_name = trim($name_parts[0] ?? "");
 			$currency = trim($name_parts[1] ?? "");
@@ -105,7 +93,8 @@ class Ar_bank_code extends CI_Controller {
 			$date_col = $column_map[$bank_name]["date_operation"];
 			$number_col = $column_map[$bank_name]["number_operation"];
 			$amount_col = $column_map[$bank_name]["total_amount"];
-
+	
+			
 			if ($bank_name === 'BBVA'){
 				$data_start_row = $data_start_row + 1;
 				$max_row = $max_row - 1;
@@ -127,26 +116,36 @@ class Ar_bank_code extends CI_Controller {
 			for ($i = $data_start_row; $i <= $max_row; $i++) {
 				// **Verificar si toda la fila está vacía antes de insertarla**
 				$is_empty_row = true;
-				//for ($col = 'A'; $col <= 'Z'; $col++) { // Recorre columnas clave
-					$cell_date_val = trim($sheet->getCell($date_col . $i)->getValue());
-					if (!empty($cell_date_val)) {
-						$is_empty_row = false;
-						//break;
-					}
-				//}
+				$cell_date_val = trim($sheet->getCell($date_col . $i)->getValue());
+				if (!empty($cell_date_val)) {
+					$is_empty_row = false;
+				}
+				
+				if ($bank_name === 'SCB'){					
+					$f_value = $sheet->getCell('F' . $i)->getValue();
+					$g_value = $sheet->getCell('G' . $i)->getValue();
+					$h_value = $sheet->getCell('H' . $i)->getValue();
+					
+					$f_value = str_pad($f_value, 3, '0', STR_PAD_LEFT);
+					$g_value = str_pad($g_value, 3, '0', STR_PAD_LEFT);
+					$h_value = str_pad($h_value, 4, '0', STR_PAD_LEFT);
+
+					$column_value = $f_value . $g_value . $h_value;
+				}
+			
 				if ($is_empty_row) continue; // Si la fila está vacía, detenemos el bucle en esta hoja
 				$row = [
 					"bank_name" 			=> $bank_name,
 					"currency" 				=> $currency,					
 					"date_operation" 		=> trim($sheet->getCell($date_col . $i)->getValue()),
-					"number_operation" 		=> trim($sheet->getCell($number_col . $i)->getValue()),
+					"number_operation" 		=> $bank_name === 'SCB' ? $column_value : trim($sheet->getCell($number_col . $i)->getValue()),
 					"total_amount" 			=> trim($sheet->getCell($amount_col . $i)->getValue()),
-					"updated" => $updated
+					"updated" 				=> $updated
 				];
 				
 				if (strlen($row["number_operation"]) < 10 && $row["number_operation"] !== '-' && 
 					!empty($row["number_operation"]) && $bank_name !== 'BCP' && $bank_name !== 'IBK' 
-					&& $bank_name !== 'NACION') {
+					&& $bank_name !== 'NACION' && $bank_name !== 'SCB') {
 					$row["number_operation"] = str_pad($row["number_operation"], 10, '0', STR_PAD_LEFT);
 				}
 
@@ -172,13 +171,12 @@ class Ar_bank_code extends CI_Controller {
 				$this->gen_m->insert_m("ar_bank_code", $batch_data);
 			}
 		}
-
+		
 		// Finalizar transacción
 		$this->db->trans_complete();
 
 		return "Records uploaded in " . number_format(microtime(true) - $start_time, 2) . " secs.";
 	}
-
 
 	public function update(){
 		$type = "error"; $msg = "";
