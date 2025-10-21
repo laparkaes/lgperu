@@ -198,107 +198,123 @@ class Scm_tracking_dispatch extends CI_Controller {
 		ini_set("memory_limit", -1);
 		
 		$start_time = microtime(true);
-		
-		
-		$klo_data = $this->gen_m->filter_select('scm_tracking_dispatch', false, ['tracking_key'], ['_3pl' => 'KLO']);
 
-		$klo_track = [];
-		foreach ($klo_data as $item) $klo_track[] = $item->tracking_key;
-		$klo_track = array_filter($klo_track);
-
-		//$this->gen_m->truncate("scm_tracking_dispatch");
 		//load excel file
 		$spreadsheet = IOFactory::load("./upload/".$filename);
 		$sheet = $spreadsheet->getActiveSheet();
-		$rows_og = [];
-		$rows_req = [];
+		
+		//excel file header validation
+		$h = [
+			trim($sheet->getCell('A2')->getValue()),
+			trim($sheet->getCell('B2')->getValue()),
+			trim($sheet->getCell('C2')->getValue()),
+			trim($sheet->getCell('D2')->getValue())
+		];
+		
+		//sales order header
+		$h_origin = ["Fecha", "Transporte", "Placa", "MOVIL"];
+		
+		//header validation
+		$is_ok = true;
+		foreach($h as $i => $h_i) if ($h_i !== $h_origin[$i]) $is_ok = false;
+		
+		if ($is_ok){
+			$klo_data = $this->gen_m->filter_select('scm_tracking_dispatch', false, ['tracking_key'], ['_3pl' => 'KLO']);
+
+			$klo_track = [];
+			foreach ($klo_data as $item) $klo_track[] = $item->tracking_key;
+			$klo_track = array_filter($klo_track);
 			
-		$updated = date("Y-m-d H:i:s");
-		$max_row = $sheet->getHighestRow();
-		for($i = 3; $i <= $max_row; $i++){
-			$row = [
-				"_3pl"						=> 'KLO',
-				"date" 						=> trim($sheet->getCell('A'.$i)->getValue()) ?? '',
-				"actual_load_date" 			=> !empty(trim($sheet->getCell('B'.$i)->getValue())) ? trim($sheet->getCell('B'.$i)->getValue()) : null,
-				"transport"					=> trim($sheet->getCell('C'.$i)->getValue()) ?? null,
-				"placa" 					=> trim($sheet->getCell('D'.$i)->getValue()) ?? null,
-				"movil" 					=> trim($sheet->getCell('E'.$i)->getValue()) ?? null,
-				"ut_load_arrival_time" 		=> !empty(trim($sheet->getCell('F'.$i)->getValue())) ? trim($sheet->getCell('F'.$i)->getValue()) : null,
-				"actual_load_time"			=> !empty(trim($sheet->getCell('G'.$i)->getValue())) ? trim($sheet->getCell('G'.$i)->getValue()) : null,
-				"load_end_time"				=> !empty(trim($sheet->getCell('H'.$i)->getValue())) ? trim($sheet->getCell('H'.$i)->getValue()) : null,			
-				"load_status"				=> trim($sheet->getCell('I'.$i)->getValue()) ?? null,
-				"container_district" 		=> trim($sheet->getCell('J'.$i)->getValue()) ?? null,
-				"customer" 					=> trim($sheet->getCell('K'.$i)->getValue()) ?? null,
-				"address" 					=> trim($sheet->getCell('L'.$i)->getValue()) ?? null,
-				"pick_order"				=> trim($sheet->getCell('M'.$i)->getValue()) ?? null,
-				"service_type"				=> trim($sheet->getCell('N'.$i)->getValue()) ?? null,				
-				"district"					=> trim($sheet->getCell('O'.$i)->getValue()) ?? null,			
-				"b2c_zone"					=> trim($sheet->getCell('P'.$i)->getValue()) ?? null,
-				"ot_per_point" 				=> trim($sheet->getCell('Q'.$i)->getValue()) ?? null,
-				"purchase_order" 			=> trim($sheet->getCell('R'.$i)->getValue()) ?? null,
-				"guide" 					=> trim($sheet->getCell('S'.$i)->getCalculatedValue()) ?? null,
-				"model"						=> trim($sheet->getCell('T'.$i)->getValue()) ?? null,
-				"qty"						=> trim($sheet->getCell('U'.$i)->getValue()) ?? null,				
-				"cbm"						=> trim($sheet->getCell('V'.$i)->getValue()) ?? null,				
-				"cbm_per_unit"				=> trim($sheet->getCell('W'.$i)->getCalculatedValue()) ?? null,			
-				"rejected_qty"				=> trim($sheet->getCell('X'.$i)->getValue()) ?? null,
-				"rejected_cbm" 				=> trim($sheet->getCell('Y'.$i)->getCalculatedValue()) ?? null,
-				"delivered_cbm" 			=> trim($sheet->getCell('Z'.$i)->getCalculatedValue()) ?? null,
-				"observation" 				=> trim($sheet->getCell('AA'.$i)->getValue()) ?? null,
-				"client_appointment"		=> trim($sheet->getCell('AB'.$i)->getValue()) ?? null,
-				"to_appointment"			=> trim($sheet->getCell('AC'.$i)->getValue()) ?? null,			
-				"arrival_time"				=> trim($sheet->getCell('AD'.$i)->getValue()) ?? null,			
-				"download_time"				=> trim($sheet->getCell('AE'.$i)->getValue()) ?? null,
-				"completion_time" 			=> !empty(trim($sheet->getCell('AF'.$i)->getValue())) ? trim($sheet->getCell('AF'.$i)->getValue()) : null,
-				"service_completion_time"	=> !empty(trim($sheet->getCell('AG'.$i)->getValue())) ? trim($sheet->getCell('AG'.$i)->getValue()) : null,
-				"waiting_time" 				=> trim($sheet->getCell('AH'.$i)->getValue()) ?? null,
-				"status"					=> trim($sheet->getCell('AI'.$i)->getValue()) ?? null,
-				"status_2"					=> trim($sheet->getCell('AJ'.$i)->getValue()) ?? null,
-				"observations"				=> trim($sheet->getCell('AK'.$i)->getValue()) ?? null,
-				"otd"						=> trim($sheet->getCell('AL'.$i)->getValue()) ?? null,
-				"updated"					=> $updated,
-			];
-			
-			// Convert Dates
-			$row["date"] = $this->date_convert_dd_mm_yyyy($row["date"]);	
-			$row["client_appointment"] = $this->convertToTimeFormat($row["client_appointment"]);
-			$row["to_appointment"] = $this->convertToTimeFormat($row["to_appointment"]);
-			
-			if(strpos($row['status'], 'CANCELADO') !== false){
-				//contiene
-				$row["arrival_time"] = null;
-				$row["download_time"] = null;
-				$row["completion_time"] = null;
-				$row["service_completion_time"] = null;
-				$row["waiting_time"] = null;
-				$row["cbm_per_unit"] = null;			
-				$row["rejected_qty"] = null;
-				$row["rejected_cbm"] = null;
-				$row["delivered_cbm"] = null;
-			} else{
-				$row["arrival_time"] = $this->convertToTimeFormat($row["arrival_time"]);
-				$row["download_time"] = $this->convertToTimeFormat($row["download_time"]);
-				$row["completion_time"] = $this->convertToTimeFormat($row["completion_time"]);
-				$row["service_completion_time"] = $this->convertToTimeFormat($row["service_completion_time"]);
-				$row["waiting_time"] = $this->convertToTimeFormat($row["waiting_time"]);
+			$rows_og = [];
+			$rows_req = [];
+				
+			$updated = date("Y-m-d H:i:s");
+			$max_row = $sheet->getHighestRow();
+			for($i = 3; $i <= $max_row; $i++){
+				$row = [
+					"_3pl"						=> 'KLO',
+					"date" 						=> trim($sheet->getCell('A'.$i)->getValue()) ?? '',
+					//"actual_load_date" 			=> !empty(trim($sheet->getCell('B'.$i)->getValue())) ? trim($sheet->getCell('B'.$i)->getValue()) : null,
+					"transport"					=> trim($sheet->getCell('B'.$i)->getValue()) ?? null,
+					"placa" 					=> trim($sheet->getCell('C'.$i)->getValue()) ?? null,
+					"movil" 					=> trim($sheet->getCell('D'.$i)->getValue()) ?? null,				
+					"ut_load_arrival_time" 		=> !empty(trim($sheet->getCell('E'.$i)->getValue())) ? trim($sheet->getCell('E'.$i)->getValue()) : null,
+					"actual_load_time"			=> !empty(trim($sheet->getCell('F'.$i)->getValue())) ? trim($sheet->getCell('F'.$i)->getValue()) : null,
+					"load_end_time"				=> !empty(trim($sheet->getCell('G'.$i)->getValue())) ? trim($sheet->getCell('G'.$i)->getValue()) : null,		
+					
+					"load_status"				=> trim($sheet->getCell('H'.$i)->getValue()) ?? null,
+					"container_district" 		=> trim($sheet->getCell('I'.$i)->getValue()) ?? null,
+					"customer" 					=> trim($sheet->getCell('J'.$i)->getValue()) ?? null,
+					"address" 					=> trim($sheet->getCell('K'.$i)->getValue()) ?? null,
+					"pick_order"				=> trim($sheet->getCell('L'.$i)->getValue()) ?? null,
+					"service_type"				=> trim($sheet->getCell('M'.$i)->getValue()) ?? null,				
+					"district"					=> trim($sheet->getCell('N'.$i)->getValue()) ?? null,			
+					"b2c_zone"					=> trim($sheet->getCell('O'.$i)->getValue()) ?? null,
+					"ot_per_point" 				=> trim($sheet->getCell('P'.$i)->getValue()) ?? null,
+					"purchase_order" 			=> trim($sheet->getCell('Q'.$i)->getValue()) ?? null,
+					"guide" 					=> trim($sheet->getCell('R'.$i)->getCalculatedValue()) ?? null,
+					"model"						=> trim($sheet->getCell('S'.$i)->getValue()) ?? null,
+					"qty"						=> trim($sheet->getCell('T'.$i)->getValue()) ?? null,				
+					"cbm"						=> trim($sheet->getCell('U'.$i)->getValue()) ?? null,				
+					"cbm_per_unit"				=> trim($sheet->getCell('V'.$i)->getCalculatedValue()) ?? null,			
+					"rejected_qty"				=> trim($sheet->getCell('W'.$i)->getValue()) ?? null,
+					"rejected_cbm" 				=> trim($sheet->getCell('X'.$i)->getCalculatedValue()) ?? null,
+					"delivered_cbm" 			=> trim($sheet->getCell('Y'.$i)->getCalculatedValue()) ?? null,
+					"observation" 				=> trim($sheet->getCell('Z'.$i)->getValue()) ?? null,
+					"client_appointment"		=> trim($sheet->getCell('AA'.$i)->getValue()) ?? null,
+					"to_appointment"			=> trim($sheet->getCell('AB'.$i)->getValue()) ?? null,			
+					"arrival_time"				=> trim($sheet->getCell('AC'.$i)->getValue()) ?? null,			
+					"download_time"				=> trim($sheet->getCell('AD'.$i)->getValue()) ?? null,
+					"completion_time" 			=> !empty(trim($sheet->getCell('AE'.$i)->getValue())) ? trim($sheet->getCell('AE'.$i)->getValue()) : null,
+					"service_completion_time"	=> !empty(trim($sheet->getCell('AF'.$i)->getValue())) ? trim($sheet->getCell('AF'.$i)->getValue()) : null,
+					"waiting_time" 				=> trim($sheet->getCell('AG'.$i)->getValue()) ?? null,
+					"status"					=> trim($sheet->getCell('AH'.$i)->getValue()) ?? null,
+					"status_2"					=> trim($sheet->getCell('AI'.$i)->getValue()) ?? null,
+					"observations"				=> trim($sheet->getCell('AJ'.$i)->getValue()) ?? null,
+					"otd"						=> trim($sheet->getCell('AK'.$i)->getValue()) ?? null,
+					"updated"					=> $updated,
+				];
+				
+				// Convert Dates
+				$row["date"] = $this->date_convert_dd_mm_yyyy($row["date"]);	
+				$row["client_appointment"] = $this->convertToTimeFormat($row["client_appointment"]);
+				$row["to_appointment"] = $this->convertToTimeFormat($row["to_appointment"]);
+				
+				if(strpos($row['status'], 'CANCELADO') !== false){
+					$row["arrival_time"] = null;
+					$row["download_time"] = null;
+					$row["completion_time"] = null;
+					$row["service_completion_time"] = null;
+					$row["waiting_time"] = null;
+					$row["cbm_per_unit"] = null;			
+					$row["rejected_qty"] = null;
+					$row["rejected_cbm"] = null;
+					$row["delivered_cbm"] = null;
+				} else{
+					$row["arrival_time"] = $this->convertToTimeFormat($row["arrival_time"]);
+					$row["download_time"] = $this->convertToTimeFormat($row["download_time"]);
+					$row["completion_time"] = $this->convertToTimeFormat($row["completion_time"]);
+					$row["service_completion_time"] = $this->convertToTimeFormat($row["service_completion_time"]);
+					$row["waiting_time"] = $this->convertToTimeFormat($row["waiting_time"]);
+				}
+				
+				
+				if ($row["date"] !== null && $row["placa"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
+					$row["tracking_key"] = $row["date"] . "_" . $row["pick_order"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
+				} else continue;
+				
+				if (in_array($row["tracking_key"], $klo_track)) $rows_req[] = $row;
+				elseif(!in_array($row["tracking_key"], $klo_track)) $rows_og[] = $row; 
 			}
 			
+			$rows_split_eq = array_chunk($rows_req, 50);
+			foreach($rows_split_eq as $items) $this->gen_m->update_multi("scm_tracking_dispatch", $items, 'tracking_key');
 			
-			if ($row["date"] !== null && $row["placa"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
-				$row["tracking_key"] = $row["date"] . "_" . $row["pick_order"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
-			} else continue;
+			$rows_split = array_chunk($rows_og, 50);
+			foreach($rows_split as $items) $this->gen_m->insert_m('scm_tracking_dispatch', $items);
 			
-			if (in_array($row["tracking_key"], $klo_track)) $rows_req[] = $row;
-			elseif(!in_array($row["tracking_key"], $klo_track)) $rows_og[] = $row; 
-		}
-		
-		$rows_split_eq = array_chunk($rows_req, 50);
-		foreach($rows_split_eq as $items) $this->gen_m->update_multi("scm_tracking_dispatch", $items, 'tracking_key');
-		
-		$rows_split = array_chunk($rows_og, 50);
-		foreach($rows_split as $items) $this->gen_m->insert_m('scm_tracking_dispatch', $items);
-		
-		return "Stock update has been finished. (".$updated.")";
+			return "Stock update has been finished. (".$updated.")";
+		} else return "";
 	}
 	
 	public function process_tracking_apm($filename = "scm_tracking_apm.xlsx", $debug = false){
@@ -306,108 +322,129 @@ class Scm_tracking_dispatch extends CI_Controller {
 		ini_set("memory_limit", -1);
 		
 		$start_time = microtime(true);
-		//$this->gen_m->truncate("scm_tracking_dispatch");
-		
-		$apm_data = $this->gen_m->filter_select('scm_tracking_dispatch', false, ['tracking_key'], ['_3pl' => 'APM']);
 
-		$apm_track = [];
-		foreach ($apm_data as $item) $apm_track[] = $item->tracking_key;
-		$apm_track = array_filter($apm_track);
-		
 		//load excel file
 		$spreadsheet = IOFactory::load("./upload/".$filename);
 		$sheet = $spreadsheet->getActiveSheet();
-		$rows_og = [];
-		$rows_req = [];
+		
+		//excel file header validation
+		$h = [
+			trim($sheet->getCell('A2')->getValue()),
+			trim($sheet->getCell('B2')->getValue()),
+			trim($sheet->getCell('C2')->getValue()),
+			trim($sheet->getCell('D2')->getValue()),
+			trim($sheet->getCell('E2')->getValue()),
+			trim($sheet->getCell('F2')->getValue()),
+			trim($sheet->getCell('G2')->getValue()),
+			trim($sheet->getCell('H2')->getValue()),
+			trim($sheet->getCell('I2')->getValue()),
+		];
+		
+		//sales order header
+		$h_origin = ["fecha", "Fecha CARGA REAL", "Transporte", "Placa", "MOVIL", "H. LLEGADA CARGA UT", "H. Carga Real", "H. Fin Carga Real", "Status Carga"];
+		
+		//header validation
+		$is_ok = true;
+		foreach($h as $i => $h_i) if ($h_i !== $h_origin[$i]) $is_ok = false;
+		
+		if ($is_ok){
+			$apm_data = $this->gen_m->filter_select('scm_tracking_dispatch', false, ['tracking_key'], ['_3pl' => 'APM']);
+
+			$apm_track = [];
+			foreach ($apm_data as $item) $apm_track[] = $item->tracking_key;
+			$apm_track = array_filter($apm_track);
 			
-		$updated = date("Y-m-d H:i:s");
-		$max_row = $sheet->getHighestRow();
-		for($i = 3; $i <= $max_row; $i++){
-			$row = [
-				"_3pl"						=> 'APM',
-				"date" 						=> trim($sheet->getCell('A'.$i)->getValue()) ?? '',
-				"actual_load_date" 			=> !empty(trim($sheet->getCell('B'.$i)->getValue())) ? trim($sheet->getCell('B'.$i)->getValue()) : null,
-				"transport"					=> trim($sheet->getCell('C'.$i)->getValue()) ?? null,
-				"placa" 					=> trim($sheet->getCell('D'.$i)->getValue()) ?? null,
-				"movil" 					=> trim($sheet->getCell('E'.$i)->getValue()) ?? null,
-				"ut_load_arrival_time" 		=> !empty(trim($sheet->getCell('F'.$i)->getValue())) ? trim($sheet->getCell('F'.$i)->getValue()) : null,
-				"actual_load_time"			=> !empty(trim($sheet->getCell('G'.$i)->getValue())) ? trim($sheet->getCell('G'.$i)->getValue()) : null,
-				"load_end_time"				=> !empty(trim($sheet->getCell('H'.$i)->getValue())) ? trim($sheet->getCell('H'.$i)->getValue()) : null,			
-				"load_status"				=> trim($sheet->getCell('I'.$i)->getValue()) ?? null,
-				"container_district" 		=> trim($sheet->getCell('J'.$i)->getValue()) ?? null,
-				"customer" 					=> trim($sheet->getCell('K'.$i)->getValue()) ?? null,
-				"address" 					=> trim($sheet->getCell('L'.$i)->getValue()) ?? null,
-				"pick_order"				=> trim($sheet->getCell('M'.$i)->getValue()) ?? null,
-				"service_type"				=> trim($sheet->getCell('P'.$i)->getValue()) ?? null,   // Column P - Correction		
-				"district"					=> trim($sheet->getCell('O'.$i)->getValue()) ?? null,			
-				"b2c_zone"					=> null,
-				"ot_per_point" 				=> trim($sheet->getCell('Q'.$i)->getValue()) ?? null,
-				"purchase_order" 			=> trim($sheet->getCell('R'.$i)->getValue()) ?? null,
-				"guide" 					=> trim($sheet->getCell('S'.$i)->getCalculatedValue()) ?? null,
-				"model"						=> trim($sheet->getCell('T'.$i)->getValue()) ?? null,
-				"qty"						=> trim($sheet->getCell('U'.$i)->getValue()) ?? null,				
-				"cbm"						=> trim($sheet->getCell('V'.$i)->getValue()) ?? null,				
-				"cbm_per_unit"				=> trim($sheet->getCell('W'.$i)->getCalculatedValue()) ?? null,			
-				"rejected_qty"				=> trim($sheet->getCell('X'.$i)->getValue()) ?? null,
-				"rejected_cbm" 				=> trim($sheet->getCell('Y'.$i)->getCalculatedValue()) ?? null,
-				"delivered_cbm" 			=> trim($sheet->getCell('Z'.$i)->getCalculatedValue()) ?? null,
-				"observation" 				=> trim($sheet->getCell('AA'.$i)->getValue()) ?? null,
-				"client_appointment"		=> trim($sheet->getCell('AB'.$i)->getValue()) ?? null,
-				"to_appointment"			=> trim($sheet->getCell('AC'.$i)->getValue()) ?? null,			
-				"arrival_time"				=> trim($sheet->getCell('AD'.$i)->getValue()) ?? null,			
-				"download_time"				=> trim($sheet->getCell('AE'.$i)->getValue()) ?? null,
-				"completion_time" 			=> !empty(trim($sheet->getCell('AF'.$i)->getValue())) ? trim($sheet->getCell('AF'.$i)->getValue()) : null,
-				"service_completion_time"	=> !empty(trim($sheet->getCell('AG'.$i)->getValue())) ? trim($sheet->getCell('AG'.$i)->getValue()) : null,
-				"waiting_time" 				=> trim($sheet->getCell('AH'.$i)->getValue()) ?? null,
-				"status"					=> trim($sheet->getCell('AI'.$i)->getValue()) ?? null,
-				"status_2"					=> trim($sheet->getCell('AJ'.$i)->getValue()) ?? null,
-				"observations"				=> trim($sheet->getCell('AK'.$i)->getValue()) ?? null,
-				"otd"						=> trim($sheet->getCell('AL'.$i)->getValue()) ?? null,
-				"updated"					=> $updated,
-			];
-			
-			
-			// Convert Dates
-			$row["date"] = $this->date_convert_dd_mm_yyyy($row["date"]);			
-			$row["client_appointment"] = $this->convertToTimeFormat($row["client_appointment"]);
-			$row["to_appointment"] = $this->convertToTimeFormat($row["to_appointment"]);
-			
-			
-			if(strpos($row['status'], 'CANCELADO') !== false){
-				//contiene
-				$row["arrival_time"] = null;
-				$row["download_time"] = null;
-				$row["completion_time"] = null;
-				$row["service_completion_time"] = null;
-				$row["waiting_time"] = null;
-				$row["cbm_per_unit"] = null;			
-				$row["rejected_qty"] = null;
-				$row["rejected_cbm"] = null;
-				$row["delivered_cbm"] = null;
-			} else{
-				$row["arrival_time"] = $this->convertToTimeFormat($row["arrival_time"]);
-				$row["download_time"] = $this->convertToTimeFormat($row["download_time"]);
-				$row["completion_time"] = $this->convertToTimeFormat($row["completion_time"]);
-				$row["service_completion_time"] = $this->convertToTimeFormat($row["service_completion_time"]);
-				$row["waiting_time"] = $this->convertToTimeFormat($row["waiting_time"]);
+			$rows_og = [];
+			$rows_req = [];
+				
+			$updated = date("Y-m-d H:i:s");
+			$max_row = $sheet->getHighestRow();
+			for($i = 3; $i <= $max_row; $i++){
+				$row = [
+					"_3pl"						=> 'APM',
+					"date" 						=> trim($sheet->getCell('A'.$i)->getValue()) ?? '',
+					"actual_load_date" 			=> !empty(trim($sheet->getCell('B'.$i)->getValue())) ? trim($sheet->getCell('B'.$i)->getValue()) : null,
+					"transport"					=> trim($sheet->getCell('C'.$i)->getValue()) ?? null,
+					"placa" 					=> trim($sheet->getCell('D'.$i)->getValue()) ?? null,
+					"movil" 					=> trim($sheet->getCell('E'.$i)->getValue()) ?? null,
+					"ut_load_arrival_time" 		=> !empty(trim($sheet->getCell('F'.$i)->getValue())) ? trim($sheet->getCell('F'.$i)->getValue()) : null,
+					"actual_load_time"			=> !empty(trim($sheet->getCell('G'.$i)->getValue())) ? trim($sheet->getCell('G'.$i)->getValue()) : null,
+					"load_end_time"				=> !empty(trim($sheet->getCell('H'.$i)->getValue())) ? trim($sheet->getCell('H'.$i)->getValue()) : null,			
+					"load_status"				=> trim($sheet->getCell('I'.$i)->getValue()) ?? null,
+					"container_district" 		=> trim($sheet->getCell('J'.$i)->getValue()) ?? null,
+					"customer" 					=> trim($sheet->getCell('K'.$i)->getValue()) ?? null,
+					"address" 					=> trim($sheet->getCell('L'.$i)->getValue()) ?? null,
+					"pick_order"				=> trim($sheet->getCell('M'.$i)->getValue()) ?? null,
+					"service_type"				=> trim($sheet->getCell('P'.$i)->getValue()) ?? null,   // Column P - Correction		
+					"district"					=> trim($sheet->getCell('O'.$i)->getValue()) ?? null,			
+					"b2c_zone"					=> null,
+					"ot_per_point" 				=> trim($sheet->getCell('Q'.$i)->getValue()) ?? null,
+					"purchase_order" 			=> trim($sheet->getCell('R'.$i)->getValue()) ?? null,
+					"guide" 					=> trim($sheet->getCell('S'.$i)->getCalculatedValue()) ?? null,
+					"model"						=> trim($sheet->getCell('T'.$i)->getValue()) ?? null,
+					"qty"						=> trim($sheet->getCell('U'.$i)->getValue()) ?? null,				
+					"cbm"						=> trim($sheet->getCell('V'.$i)->getValue()) ?? null,				
+					"cbm_per_unit"				=> trim($sheet->getCell('W'.$i)->getCalculatedValue()) ?? null,			
+					"rejected_qty"				=> trim($sheet->getCell('X'.$i)->getValue()) ?? null,
+					"rejected_cbm" 				=> trim($sheet->getCell('Y'.$i)->getCalculatedValue()) ?? null,
+					"delivered_cbm" 			=> trim($sheet->getCell('Z'.$i)->getCalculatedValue()) ?? null,
+					"observation" 				=> trim($sheet->getCell('AA'.$i)->getValue()) ?? null,
+					"client_appointment"		=> trim($sheet->getCell('AB'.$i)->getValue()) ?? null,
+					"to_appointment"			=> trim($sheet->getCell('AC'.$i)->getValue()) ?? null,			
+					"arrival_time"				=> trim($sheet->getCell('AD'.$i)->getValue()) ?? null,			
+					"download_time"				=> trim($sheet->getCell('AE'.$i)->getValue()) ?? null,
+					"completion_time" 			=> !empty(trim($sheet->getCell('AF'.$i)->getValue())) ? trim($sheet->getCell('AF'.$i)->getValue()) : null,
+					"service_completion_time"	=> !empty(trim($sheet->getCell('AG'.$i)->getValue())) ? trim($sheet->getCell('AG'.$i)->getValue()) : null,
+					"waiting_time" 				=> trim($sheet->getCell('AH'.$i)->getValue()) ?? null,
+					"status"					=> trim($sheet->getCell('AI'.$i)->getValue()) ?? null,
+					"status_2"					=> trim($sheet->getCell('AJ'.$i)->getValue()) ?? null,
+					"observations"				=> trim($sheet->getCell('AK'.$i)->getValue()) ?? null,
+					"otd"						=> trim($sheet->getCell('AL'.$i)->getValue()) ?? null,
+					"updated"					=> $updated,
+				];
+				
+				
+				// Convert Dates
+				$row["date"] = $this->date_convert_dd_mm_yyyy($row["date"]);			
+				$row["client_appointment"] = $this->convertToTimeFormat($row["client_appointment"]);
+				$row["to_appointment"] = $this->convertToTimeFormat($row["to_appointment"]);
+				
+				
+				if(strpos($row['status'], 'CANCELADO') !== false){
+					$row["arrival_time"] = null;
+					$row["download_time"] = null;
+					$row["completion_time"] = null;
+					$row["service_completion_time"] = null;
+					$row["waiting_time"] = null;
+					$row["cbm_per_unit"] = null;			
+					$row["rejected_qty"] = null;
+					$row["rejected_cbm"] = null;
+					$row["delivered_cbm"] = null;
+				} else{
+					$row["arrival_time"] = $this->convertToTimeFormat($row["arrival_time"]);
+					$row["download_time"] = $this->convertToTimeFormat($row["download_time"]);
+					$row["completion_time"] = $this->convertToTimeFormat($row["completion_time"]);
+					$row["service_completion_time"] = $this->convertToTimeFormat($row["service_completion_time"]);
+					$row["waiting_time"] = $this->convertToTimeFormat($row["waiting_time"]);
+				}
+
+				if ($row["date"] !== null && $row["placa"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
+					$row["tracking_key"] = $row["date"] . "_" . $row["pick_order"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
+				} else continue;
+				
+				if (in_array($row["tracking_key"], $apm_track)) $rows_req[] = $row;
+				elseif(!in_array($row["tracking_key"], $apm_track)) $rows_og[] = $row; 
+				
 			}
 
-			if ($row["date"] !== null && $row["placa"] !== null && $row["model"] !== null && $row["qty"] !== null && $row["cbm"] !== null){
-				$row["tracking_key"] = $row["date"] . "_" . $row["pick_order"] . "_" . $row["model"] . "_" . $row["qty"] . "_" . $row["cbm"];
-			} else continue;
+			$rows_split_eq = array_chunk($rows_req, 5);
+			foreach($rows_split_eq as $items) $this->gen_m->update_multi("scm_tracking_dispatch", $items, 'tracking_key');
 			
-			if (in_array($row["tracking_key"], $apm_track)) $rows_req[] = $row;
-			elseif(!in_array($row["tracking_key"], $apm_track)) $rows_og[] = $row; 
+			$rows_split = array_chunk($rows_og, 5);
+			foreach($rows_split as $items) $this->gen_m->insert_m('scm_tracking_dispatch', $items);
 			
-		}
-		//echo '<pre>'; print_r($rows_req);
-		$rows_split_eq = array_chunk($rows_req, 5);
-		foreach($rows_split_eq as $items) $this->gen_m->update_multi("scm_tracking_dispatch", $items, 'tracking_key');
-		
-		$rows_split = array_chunk($rows_og, 5);
-		foreach($rows_split as $items) $this->gen_m->insert_m('scm_tracking_dispatch', $items);
-		
-		return "Stock update has been finished. (".$updated.")";
+			return "Stock update has been finished. (".$updated.")";
+		} else return "";
 	}
 	
 	public function upload_tracking_klo(){
