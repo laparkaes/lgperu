@@ -816,8 +816,6 @@ class Lgepr extends CI_Controller {
 		
 		$from = date('Y-m-d', strtotime('-5 days'));
 		
-		// print_r($from);
-		//$from = '2025-08-01';
 		$trackingData = $this->gen_m->filter("scm_tracking_dispatch", false, ['date >=' => $from]);
 		
 		
@@ -832,15 +830,20 @@ class Lgepr extends CI_Controller {
 		
 		$w_in_clause_shipping = [['field' => 'pick_no', 'values' => $pickOrders]];		
 		$shippingData = @$this->gen_m->filter('scm_shipping_status', false, null, null, $w_in_clause_shipping);
-		//echo '<pre>'; print_r($shippingData);
+		
 		$order_nos = array_column($shippingData, 'order_no');
 		$line_nos = array_column($shippingData, 'line_no');
-
-		$w_in_clause_sales = [['field' => 'order_no', 'values' => $order_nos], ['field' => 'line_no', 'values' => $line_nos]];
-		$salesData = $this->gen_m->filter('lgepr_sales_order', false, null, null, $w_in_clause_sales);
 		
-		$w_in_clause_closed = [['field' => 'model', 'values' => $models], ['field' => 'order_no', 'values' => $order_nos], ['field' => 'line_no', 'values' => $line_nos]];
-		$closedData = $this->gen_m->filter('lgepr_closed_order', false, null, null, $w_in_clause_closed);
+		if (!empty($order_nos) && !empty($line_nos)){ // Validate data
+			$w_in_clause_sales = [['field' => 'order_no', 'values' => $order_nos], ['field' => 'line_no', 'values' => $line_nos]];
+			$salesData = $this->gen_m->filter('lgepr_sales_order', false, null, null, $w_in_clause_sales);
+		
+			$w_in_clause_closed = [['field' => 'model', 'values' => $models], ['field' => 'order_no', 'values' => $order_nos], ['field' => 'line_no', 'values' => $line_nos]];
+			$closedData = $this->gen_m->filter('lgepr_closed_order', false, null, null, $w_in_clause_closed);
+		} else {
+			$salesData = [];
+			$closedData = [];
+		}
 		
 		$sales =  $this->gen_m->filter_select('lgepr_sales_order', false, ['model', 'dash_company', 'dash_division']);
 		$sales_dash = [];
