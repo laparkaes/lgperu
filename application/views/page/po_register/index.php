@@ -112,6 +112,10 @@
 							</div>
 						</div>
 					</div>
+					<!--<div class="col-md-12">
+						<label for="remark" class="form-label">Remark</label>
+						<textarea class="form-control" id="remark" name="remark" placeholder="remark"></textarea>
+					</div>-->
 					<div class="form-group ac-po-source-group" style="display: none;">
 						<label for="po_source_ac">PO Numbers</label>
 						<textarea class="form-control" id="po_source_ac" name="po_source_ac" rows="2" placeholder="Ingrese los números de PO aquí, uno por línea o separados por comas."></textarea>
@@ -168,6 +172,12 @@
 							<option><?= $customer ?></option>
 							<?php } ?>
 						</select>
+						<!--<select class="form-select me-1" id="sl_dept" style="width: 150px;">
+							<option value="">Status --</option>
+							<?php //foreach($status as $item){  ?>
+							<option> $item </option>
+							<?php //} ?>
+						</select>-->
 					</div>
 				</div>
 				<div style="max-height: 700px; overflow-y: auto;">
@@ -201,7 +211,6 @@
 									<?php foreach ($records as $item): ?>
 										
 										<?php 
-											// Identificamos y ocultamos las filas de detalle (excepto la primera)
 											$row_classes = ($firstRow) ? "po-master-row" : "po-detail-row {$rowId} d-none"; 
 										?>
 										
@@ -281,8 +290,6 @@ document.addEventListener('DOMContentLoaded', function () {
     filterACCheckbox.addEventListener('change', function () {
         if (this.checked) {
             // Activar Filtro AC:
-            
-            // Si "Add" está activo, desactívalo y oculta el input
             if (addCustomerCheckbox.checked) {
                 addCustomerCheckbox.checked = false;
                 selectContainer.style.display = 'block';
@@ -292,24 +299,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 selectElement.required = true;
                 inputElement.value = ''; // Limpiar el valor manual
             }
-            
-            // Aplica el filtro AC usando la variable inyectada
             updateCustomerList(AC_CUSTOMERS);
             
         } else {
-            // Desactivar Filtro AC: Volver a la lista COMPLETA original
             updateCustomerList(ALL_CUSTOMERS);
         }
     });
 
     addCustomerCheckbox.addEventListener('change', function() {
         if (this.checked) {
+            // Activar Add:
             if (filterACCheckbox.checked) {
                 filterACCheckbox.checked = false;
-                updateCustomerList(ALL_CUSTOMERS); // Cargar lista COMPLETA antes de ocultar
+                updateCustomerList(ALL_CUSTOMERS);
             }
-            
-            // Muestra el input y oculta el select
             selectContainer.style.display = 'none';
             inputContainer.style.display = 'block';
             inputElement.required = true;
@@ -317,7 +320,6 @@ document.addEventListener('DOMContentLoaded', function () {
             selectElement.required = false;
             
         } else {
-            // Desactivar Add: Ocultar input y mostrar select
             selectContainer.style.display = 'block';
             inputContainer.style.display = 'none';
             inputElement.required = false;
@@ -332,8 +334,6 @@ document.addEventListener('DOMContentLoaded', function () {
 <script> // Expand po numbers rows
 document.addEventListener('DOMContentLoaded', function() {
     const table = document.getElementById('po-table');
-
-    //  Asegúrate de que table-layout: fixed; esté aplicado
     if (table) {
         table.style.tableLayout = 'fixed';
     }
@@ -344,17 +344,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const poId = icon.getAttribute('data-po-id');
             const detailRows = document.querySelectorAll(`.po-detail-row.${poId}`);
             
+            // 1. Encontrar todas las celdas de la fila maestra que tienen rowspan
             const masterRow = icon.closest('tr');
             const spanCells = masterRow.querySelectorAll('.po-span-cell');
             
-            // Comprobar el estado (Expandido o Colapsado)
+            // 2. Comprobar el estado (Expandido o Colapsado)
             const is_collapsed = icon.classList.contains('bi-caret-down-fill');
 
             if (is_collapsed) {
                 detailRows.forEach(row => {
                     row.classList.remove('d-none');
                 });
-                
+
                 spanCells.forEach(cell => {
                     const realRowspan = cell.getAttribute('data-real-rowspan');
                     cell.setAttribute('rowspan', realRowspan);
@@ -368,12 +369,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     row.classList.add('d-none');
                 });
                 
-                // Resetear rowspan a 1 (para que solo ocupe 1 fila)
                 spanCells.forEach(cell => {
                     cell.setAttribute('rowspan', '1');
                 });
 
-                // Cambiar icono
                 icon.classList.remove('bi-caret-up-fill');
                 icon.classList.add('bi-caret-down-fill');
             }
@@ -382,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<script> // Special Customer - Add text area por PO numbers
+<script>
 document.addEventListener('DOMContentLoaded', function () {
     const customerSelect = document.getElementById('customer_name');
     const customerInput = document.getElementById('customer_name_input'); // El input si se usa el checkbox 'Add Customer'
@@ -390,8 +389,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const poSourceAc = document.getElementById('po_source_ac');
     const addCustomerCheckbox = document.getElementById('add_customer_checkbox'); // El checkbox que alterna select/input
 
-    // Special Customers
-    const specialCustomers = ['SAGA FALABELLA S.A.', 'HIPERMERCADOS TOTTUS S.A.', 'TIENDAS DEL MEJORAMIENTO DEL HOGAR S.A. - [SODIMAC]'];
+    // LISTA DE CLIENTES ESPECIALES
+    const specialCustomers = ['SAGA FALABELLA S.A.', 'HIPERMERCADOS TOTTUS S.A.', 'TIENDAS DEL MEJORAMIENTO DEL HOGAR S.A. - [SODIMAC]', 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.'];
 
     function getSelectedCustomerName() {
         if (addCustomerCheckbox && addCustomerCheckbox.checked) {
@@ -403,13 +402,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function toggleAcPoSource() {
         const customerValue = getSelectedCustomerName(); 
-
         const isAC = specialCustomers.includes(customerValue); 
 
         if (isAC) {
             poSourceGroup.style.display = 'block';
         } else {
-            poSourceGroup.style.display = 'none';
+            poSourceGroup.style.display = 'none';        
             poSourceAc.value = ''; 
         }
     }
@@ -426,7 +424,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
-
 <script> // Validation empty submission form
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.querySelector('form');
@@ -441,13 +438,14 @@ document.addEventListener('DOMContentLoaded', function () {
     let originalEmlFiles = [];
 	
 	function getSelectedCustomerName() {
+		// Si el checkbox está marcado, toma el valor del input, si no, toma el valor del select.
 		if (addCustomerCheckbox.checked) {
 			return inputElement.value.trim();
 		} else {
-			return selectElement.value;
+			return selectElement.value; // El valor del select ya está limpio
 		}
 	}
-
+    // Función para manejar el cambio de archivos y poblar la tabla
     attachmentInput.addEventListener('change', function () {
         const files = this.files;
         tableBody.innerHTML = '';
@@ -478,11 +476,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (response.status === 'success') {
                             const fragment = document.createDocumentFragment();
                             if (response.files_data.length === 0 && originalEmlFiles.length > 0) {
+                                // Si no se extrajeron adjuntos pero se subió un .eml,
+                                // crea una fila manual para cada .eml
                                 originalEmlFiles.forEach(emlName => {
                                     const row = createRow({ name: emlName }, null);
                                     fragment.appendChild(row);
                                 });
                             } else {
+                                // Lógica existente para poblar la tabla con los datos del servidor
                                 response.files_data.forEach(item => {
                                     const row = createRow({ name: item.name }, item.po_number);
                                     fragment.appendChild(row);
@@ -566,6 +567,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function validateForm() {
+        // Tu función de validación... (no necesita cambios)
         const requiredFields = ['registrator', 'ep_mail'];
         let allFieldsFilled = true;
         requiredFields.forEach(fieldId => {
@@ -681,8 +683,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function sendDataToServer() {
-	
-		// Recopila los datos de la tabla de resumen
 		const poNumbersForm = [];
 		const fileNamesForm = [];
 		
@@ -730,7 +730,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			didOpen: () => {
 				Swal.showLoading();
 			},
-			// Opcional: Icono de progreso visual
 			imageUrl: 'https://cdn.jsdelivr.net/gh/t4t5/sweetalert/images/loading.gif' 
 		});
 		
@@ -791,19 +790,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     addCustomerCheckbox.addEventListener('change', function() {
         if (this.checked) {
+            // Ocultar el select y mostrar el input
             selectContainer.style.display = 'none';
             inputContainer.style.display = 'block';
 
+            // Deshabilitar el select y habilitar el input
             selectElement.required = false;
             selectElement.disabled = true;
-            selectElement.value = "";
+            selectElement.value = ""; // Limpiar el valor del select
 
             inputElement.required = true;
             inputElement.disabled = false;
         } else {
+            // Mostrar el select y ocultar el input
             selectContainer.style.display = 'block';
             inputContainer.style.display = 'none';
             
+            // Deshabilitar el input y habilitar el select
             inputElement.required = false;
             inputElement.disabled = true;
             inputElement.value = ""; // Limpiar el valor del input
@@ -823,11 +826,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     toggleFormBtn.addEventListener('click', function() {
         if (formColumn.classList.contains('d-none')) {
+            // Si el formulario está oculto, lo muestra y restaura el ancho de la tabla
             formColumn.classList.remove('d-none');
             tableColumn.classList.remove('row-md-12');
             tableColumn.classList.add('row-md-9');
             toggleFormBtn.innerHTML = '<i class="bi bi-eye-slash"></i> Hide Form';
         } else {
+            // Si el formulario está visible, lo oculta y expande el ancho de la tabla
             formColumn.classList.add('d-none');
             tableColumn.classList.remove('row-md-9');
             tableColumn.classList.add('row-md-12');
@@ -839,19 +844,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script> // Filter Scripts and pagination
 document.addEventListener('DOMContentLoaded', function() {
-    // Referencias a los elementos del DOM
     const searchInput = document.getElementById('po-search');
     const customerSelect = document.getElementById('sl_period');
     const tableBody = document.querySelector('#po-table tbody');
     const paginationContainer = document.getElementById('pagination-controls');
-    const rowsPerPage = 15;
+
+    // Configuración de la paginación
+    const rowsPerPage = 15; // Ahora, esto representa el número de PO por página
     let currentPage = 1;
 
     function filterAndPaginate() {
         const searchTerm = searchInput.value.toLowerCase();
         const customerFilter = customerSelect.value.toLowerCase();
         const allRows = Array.from(tableBody.querySelectorAll('tr'));
-        
         let visiblePoGroups = [];
 
         allRows.forEach(row => {
@@ -865,6 +870,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const poMatch = poNumber.includes(searchTerm);
                 const customerMatch = (customerFilter === '' || customerName.includes(customerFilter));
+
 				if (poMatch && customerMatch) {
                     visiblePoGroups.push(row);
                 }
@@ -877,8 +883,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const startGroup = (currentPage - 1) * rowsPerPage;
         const endGroup = startGroup + rowsPerPage;
 
+        // Ocultar todas las filas
         allRows.forEach(row => row.style.display = 'none');
 
+        // Mostrar solo las filas de los POs en la página actual
         for (let i = startGroup; i < endGroup && i < totalPoGroups; i++) {
             const poGroupStartRow = visiblePoGroups[i];
             poGroupStartRow.style.display = '';
@@ -925,6 +933,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Eventos que disparan la función de filtro y paginación
     searchInput.addEventListener('input', () => {
         currentPage = 1;
         filterAndPaginate();
@@ -1008,8 +1017,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				const poNumberCell = currentRow.querySelector('.po-number-cell');
 				
 				const state_date = 1;
-				//console.log(state_date);
-
 				Swal.fire({
 					title: 'Are you sure?',
 					text: "You are about to remove this date.",
@@ -1032,6 +1039,7 @@ document.addEventListener('DOMContentLoaded', function () {
 							if (xhr.status === 200) {
 								const response = JSON.parse(xhr.responseText);
 								if (response.status === 'success') {
+									// Muestra un mensaje de éxito y recarga la página
 									Swal.fire({
 										title: 'Confirmed!',
 										text: 'The date has been removed.',
@@ -1059,7 +1067,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				const poNumberCell = currentRow.querySelector('.po-number-cell');
 				
 				const state_date = 2;
-				//console.log(state_date);
 
 				Swal.fire({
 					title: 'Are you sure?',
@@ -1112,7 +1119,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				const poNumberCell = currentRow.querySelector('.po-number-cell');
 				
 				const state_date = 3;
-
 				Swal.fire({
 					title: 'Are you sure?',
 					text: "You are about to remove this date.",
@@ -1136,6 +1142,7 @@ document.addEventListener('DOMContentLoaded', function () {
 							if (xhr.status === 200) {
 								const response = JSON.parse(xhr.responseText);
 								if (response.status === 'success') {
+									// Muestra un mensaje de éxito y recarga la página
 									Swal.fire({
 										title: 'Confirmed!',
 										text: 'The date has been removed.',
@@ -1171,8 +1178,8 @@ document.addEventListener('DOMContentLoaded', function () {
 				const recordId = button.dataset.recordId;
 				const currentRow = button.closest('tr');
 				const poNumberCell = currentRow.querySelector('.po-number-cell');
-				
 				const lineIsNull = currentRow.dataset.lineIsNull === 'true';
+
 				button.remove();
 
 				const xhr = new XMLHttpRequest();
@@ -1186,13 +1193,11 @@ document.addEventListener('DOMContentLoaded', function () {
 					if (xhr.status === 200) {
 						const response = JSON.parse(xhr.responseText);
 						if (response.status === 'success') {
-							// Actualizar la celda de la línea en la fila original
 							if (lineIsNull) {
 								currentRow.querySelector('.line-cell').textContent = '1';
 							}
 							
 							location.reload();
-							// 2. Crear el HTML para la nueva fila con el botón
 							const newRowHtml = `
 								<tr data-id="${response.new_record.id}">
 									<td class="text-center po-number-cell">
@@ -1232,7 +1237,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const button = event.target;
             const recordId = button.dataset.recordId;
 
-            // Alerta de confirmación previa a la acción
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
@@ -1306,7 +1310,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const remarkCell = button.closest('.remark-cell');
             const currentRemark = remarkCell.querySelector('.remark-display span').textContent;
 
-            // Reemplaza el contenido de la celda con el textarea y el botón de guardar
             remarkCell.innerHTML = `
                 <div class="d-flex align-items-center">
                     <textarea class="form-control remark-input flex-grow-1 me-2" data-record-id="${recordId}" name="remark_appointment">${currentRemark}</textarea>

@@ -22,7 +22,7 @@ class Po_register extends CI_Controller {
 		
 		$po_list = [];
 		$po_data = $this->gen_m->filter('po_register', false, ['created >=' => Date('Y-m-01')], null, $w_in = null, $orders = [['created', 'DESC'], ['po_number', 'ASC'], ['line_no', 'ASC']]);
-		foreach ($po_data as $item) $po_list[$item->po_number][] = $item;
+		foreach ($po_data as $item) $po_list[$item->po_number][] = $item;		
 		
 		sort($customer_list);
 		sort($customer_ac_list);
@@ -69,20 +69,23 @@ class Po_register extends CI_Controller {
 							if (preg_match('/[a-zA-Z]?\d{5,}(?:[_\-][a-zA-Z0-9]+)?/', $eml_file_name, $poMatch)) {
 								$eml_po_number = $poMatch[0];
 							}
-
+							
+							// Si se encontró un PO, o al menos un nombre de archivo
 							if (!empty($eml_po_number) || !empty($eml_file_name)) {
 								$target_path = './upload/' . $eml_file_name;
 								file_put_contents($target_path, $eml_attachment->getContent());
 								$eml_attachments_for_email[] = $target_path;
 								$eml_processed_files[] = $eml_file_name;
 
+								// Agrupar por PO para la inserción
 								if (!isset($po_to_files_map[$eml_po_number])) {
 									$po_to_files_map[$eml_po_number] = [];
 								}
 								$po_to_files_map[$eml_po_number][] = $eml_file_name;
 							}
 						}
-
+						
+						// Usar el cuerpo del EML para el mensaje principal
 						$message_content = $html_message_body;
 
 					} catch (Exception $e) {
@@ -202,7 +205,7 @@ class Po_register extends CI_Controller {
 					foreach ($eml_attachments_data as $eml_attachment) {
 						$eml_file_name = $eml_attachment->getFilename();
 						$eml_attachment_extension = strtolower(pathinfo($eml_file_name, PATHINFO_EXTENSION));
-
+						
 						$fill_map_by_user = false;
 						foreach ($po_to_files_map as $filenames) {
 							if (in_array($eml_file_name, $filenames)) {
@@ -313,7 +316,7 @@ class Po_register extends CI_Controller {
 	}
 	
 	public function _send_and_cleanup($eml_was_processed, $po_to_files_map, $all_temp_paths, $registrator, $ep_mail, $customer_name, $remark, $subject_to_send, $message_content, $final_cc_list) {
-    
+ 
 		$from_email = $ep_mail . '@lge.com';
 		$attachments_to_send = $all_temp_paths;
 
@@ -360,6 +363,7 @@ class Po_register extends CI_Controller {
 		
 		$email_sent = $this->my_func->send_email_po($from_email, $final_email_list, $subject_to_send, $message_content, $attachments_to_send);
 
+		// Limpiar archivos temporales
 		foreach ($all_temp_paths as $path) {
 			if (file_exists($path)) {
 				unlink($path);
@@ -390,7 +394,7 @@ class Po_register extends CI_Controller {
 			'IT' => ['renato.freundt@lge.com'],
 			'ES' => ['victorj.sanchez@lge.com', 'apena.js@lgepartner.com']
 		];
-
+		
 		// Obtener datos del formulario
 		$registrator = $this->input->post('registrator', TRUE);
 		$ep_mail = $this->input->post('ep_mail', TRUE);
