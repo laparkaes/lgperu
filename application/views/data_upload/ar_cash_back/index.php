@@ -1,10 +1,10 @@
 <div class="d-flex justify-content-between align-items-start">
 	<div class="pagetitle">
-		<h1>AR Cash Back</h1>
+		<h1>AR Batch Inquiry</h1>
 		<nav>
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-				<li class="breadcrumb-item active">AR Cash Back</li>
+				<li class="breadcrumb-item active">AR Batch Inquiry</li>
 			</ol>
 		</nav>
 	</div>
@@ -17,14 +17,14 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title text-center">Upload Cash Back</h5>
+                    <h5 class="card-title text-center">Upload Batch Inquiry</h5>
                     <form class="row g-3" id="form_cash_back_update" href="<?= base_url() ?>" enctype="multipart/form-data">
                         <div class="col-md-12">
                             <label class="form-label">Select Period</label>
                             <select class="form-control" name="date_period" id="date_period_select">
                                 <option value="">Select a period</option>
                                 <?php foreach ($dates as $date): ?>
-                                    <option value="<?= $date['period_name'] ?>"><?= $date['period_name'] ?></option>
+                                    <option value="<?= $date ?>"><?= $date ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
