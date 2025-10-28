@@ -5,7 +5,6 @@ class Scm_po_management extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
-		if (!$this->session->userdata('logged_in')) redirect("/auth/login");
 		$this->load->library('upload'); 
 		date_default_timezone_set('America/Lima');
 		$this->load->model('general_model', 'gen_m');
@@ -25,6 +24,7 @@ class Scm_po_management extends CI_Controller {
 			"status"	=> $status_list,
 			"customers" => $customer_list,
 			"history"	=> $po_data,
+			"overflow" 	=> "hidden",
 			"main" 		=> "module/scm_po_management/index",
 		];
 		
@@ -33,6 +33,7 @@ class Scm_po_management extends CI_Controller {
 	}
 	
 	public function register_data() {
+		// Form values
 		$registrator = $this->input->post('registrator', TRUE);
 		$ep_mail = $this->input->post('ep_mail', TRUE);
 		$customer_name = $this->input->post("customer_name");
@@ -50,6 +51,7 @@ class Scm_po_management extends CI_Controller {
 		$email_attachments = [];
 		$processed_files = [];
 
+		// Mapear los archivos subidos para un acceso rápido por nombre
 		$uploaded_files_map = [];
 		$file_count = count($files['name']);
 		for ($i = 0; $i < $file_count; $i++) {
@@ -112,7 +114,6 @@ class Scm_po_management extends CI_Controller {
 			}
 		}
 		
-		// Segunda pasada para adjuntar los archivos TXT complementarios que no estaban en la tabla
 		foreach ($uploaded_files_map as $original_filename => $file_data) {
 			if (!in_array($original_filename, $processed_files)) {
 				$is_txt = strtolower(pathinfo($original_filename, PATHINFO_EXTENSION)) === 'txt';
@@ -135,7 +136,6 @@ class Scm_po_management extends CI_Controller {
 			}
 		}
 
-		// Preparar y enviar el email
 		$po_msg_list = [];
 		foreach ($uploaded_files_data as $data) {
 			$po_msg_list[] = $data['po_number'];
@@ -261,7 +261,7 @@ class Scm_po_management extends CI_Controller {
         ];
 
         $filter = ['id' => $record_id];
-
+        
         $success = $this->gen_m->update('po_register', $filter, $update_data);
         
         if ($success) {
@@ -281,7 +281,7 @@ class Scm_po_management extends CI_Controller {
 	public function add_new_line() {
 		$po_number = $this->input->post('po_number', TRUE);
 		$record_id = (int)$this->input->post('record_id', TRUE);
-
+		
 		$original_record = $this->db->get_where('po_register', ['id' => $record_id])->row();
 	
 		if (is_null($original_record->line)) {
@@ -295,7 +295,7 @@ class Scm_po_management extends CI_Controller {
 		$last_line = $query->row()->line;
 
 		$new_line = $last_line + 1;
-
+		
 		$last_record = $this->db->get_where('po_register', ['id' => $record_id])->row();
 
 		if ($last_record) {
@@ -338,7 +338,6 @@ class Scm_po_management extends CI_Controller {
 		$data = $this->gen_m->filter_select('po_register', false, ['line'], ['po_number' => $po_number, 'id' => $record_id]);
 		$current_line = $data[0]->line;
 		
-		//$line = $this->input->post("po_number");
 		if ($record_id){
 			if ($this->gen_m->delete('po_register', ['id' => $record_id])) {				
 				$new_data = $this->gen_m->filter_select('po_register', false, ['line', 'po_number', 'id'], ['po_number' => $po_number, 'line >' => $current_line], null, null, [['line', 'DESC']]);
@@ -401,7 +400,9 @@ class Scm_po_management extends CI_Controller {
 			$status = 'Requested';
 			$data = ['appointment_confirmed	' => null, 'status' => $status];		
 		}
-
+		
+		
+		//print_r([$record_id, $state_date]);
 		if ($this->gen_m->update('po_register', ['id' => $record_id],$data)) {
 			echo json_encode(['status' => 'success', 'message' => 'Date removed successfully.']);
 		} else {
@@ -414,7 +415,8 @@ class Scm_po_management extends CI_Controller {
 		if (!empty($_FILES['attachment']['name'])) {
 			$files_data = []; // Array para almacenar los objetos de archivo
 			$txt_processed_pos = [];
-		
+			
+			// Mapear los archivos y procesar la lógica de POs
 			foreach ($_FILES['attachment']['name'] as $index => $file_name) {
 				$po_number = null;
 				$is_txt = strtolower(pathinfo($file_name, PATHINFO_EXTENSION)) === 'txt';
@@ -460,7 +462,7 @@ class Scm_po_management extends CI_Controller {
 		
 		$po_first_data = [];
 		foreach ($data_po as $item) $po_first_data[$item->po_number] = $item;
-
+		//echo '<pre>'; print_r($po_first_data);
 		$default_values = [];
 		foreach ($data_po as $item){
 			$default_values[$item->po_number] = [
@@ -486,7 +488,7 @@ class Scm_po_management extends CI_Controller {
 		}
 		
 		$customer_po_list = array_unique(array_column($data_po, 'po_number'));
-
+				
 		$w_in_clause = [
 			[
 				'field' => 'customer_po_no', 
@@ -502,13 +504,14 @@ class Scm_po_management extends CI_Controller {
 		$closed_data = $this->gen_m->filter_select('lgepr_closed_order', false, $closed_columns, null, null, $w_in_clause, $sales_orders);
 
 		$list_data = [];
+		
 		$all_data = array_merge($sales_data, $closed_data);
 
 		if ($all_data) {
 			foreach($all_data as $item) {
 				$list_data[$item->customer_po_no][] = $item;
 			}
-		}
+		}	
 		
 		$data_multi = [];
 				

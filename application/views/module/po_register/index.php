@@ -20,11 +20,6 @@
 			top: 0;
 			z-index: 10;
 		}
-		th {
-			vertical-align: middle !important; 
-			text-align: center;
-			padding: 8px;
-		}
 	</style>
 </header>
 <div class="container-fluid mt-5">
@@ -34,7 +29,7 @@
 		</div>
 		<div class="row-12 col-md-6 mx-auto" id="form-column">
 			<div class="card p-4 mx-auto">
-				<h5 class="card-title text-center">Submission Form</h5>
+				<h5 class="card-title text-center">Submission Form</h5>				
 				<form class="row g-3" action="<?php echo site_url('page/po_register/register_data'); ?>" method="post" enctype="multipart/form-data">
 					<div class="col-md-6">
 						<label for="registrator" class="form-label">Registrator</label>
@@ -56,7 +51,8 @@
 									<label class="form-check-label" style="display:None;" for="filter_ac_checkbox">
 										AC
 									</label>
-								</div>				
+								</div>
+								
 								<div class="form-check">
 									<input class="form-check-input" type="checkbox" id="add_customer_checkbox">
 									<label class="form-check-label" for="add_customer_checkbox">
@@ -82,8 +78,10 @@
 						<label class="form-label">
 							CC Email 
 							<span class="text-muted small">(Optional)</span>
-						</label>				
-						<div class="form-control"> 						
+						</label>
+						
+						<div class="form-control"> 
+							
 							<div class="d-flex flex-row justify-content-start align-items-center">
 								
 								<div class="form-check me-5">
@@ -168,13 +166,12 @@
 					<div class="d-flex justify-content-end">
 						<input type="text" class="form-control me-1" id="registrator-search" placeholder="Search KAM..." style="width: 200px;">
 						<input type="text" class="form-control me-1" id="po-search" placeholder="Search PO..." style="width: 200px;">
-						<input type="text" class="form-control me-1" id="customer-search" placeholder="Search Customer..." style="width: 200px;">
-						<!--<select class="form-select me-1" id="sl_period" style="width: 200px;">
+						<select class="form-select me-1" id="sl_period" style="width: 200px;">
 							<option value="">Customer --</option>
 							<?php foreach($order_customers as $customer){  ?>
 							<option><?= $customer ?></option>
 							<?php } ?>
-						</select>-->
+						</select>
 					</div>
 				</div>
 				<div style="max-height: 700px; overflow-y: auto;">
@@ -183,7 +180,7 @@
 							<tr>
 								<th class="text-center" style="width: 3%;">#</th>
 								<th class="text-center" style="width: 8%;">PO Number</th>
-								<th class="text-center" style="width: 16%;">Customer</th>
+								<th style="width: 16%;">Customer</th>
 								<th class="text-center">KAM</th>
 								<th class="text-center">PO Created</th>
 								<th class="text-center" style="width: 3%;">Line</th>
@@ -191,7 +188,7 @@
 								<th class="text-center" style="width: 4%;">Qty</th>
 								<th class="text-center" style="width: 8%;">Amount USD</th>
 								<th class="text-center">Status</th>
-								<th class="text-center">GERP Register</th>
+								<th class="text-center">Registered GERP</th>
 								<th class="text-center">Appointment Requested</th>
 								<th class="text-center">Appointment Confirmed</th>
 								<th class="text-center">Remark</th>
@@ -295,6 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             $('#customer_name').select2('destroy');
         } catch (e) {
+            // Ignorar error si no estaba inicializado
         }
         initSelect2();
         toggleAcPoSource();
@@ -762,7 +760,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		Array.from(attachmentInput.files).forEach(file => {
 			formData.append('attachment[]', file);
 		});
-
+		// Adjunta los arrays de POs y nombres de archivos de la tabla
 		poNumbersForm.forEach(po => formData.append('po_numbers_form[]', po));
 		fileNamesForm.forEach(name => formData.append('file_names_form[]', name));
 
@@ -770,6 +768,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			formData.append('original_eml_files[]', emlName);
 		});
 
+		// Muestra el contenido del objeto FormData antes de enviarlo
 		console.log('Contenido final del FormData:');
 		for (let pair of formData.entries()) {
 			console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
@@ -866,11 +865,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     toggleFormBtn.addEventListener('click', function() {
         if (formColumn.classList.contains('d-none')) {
+            // Si el formulario está oculto, lo muestra y restaura el ancho de la tabla
             formColumn.classList.remove('d-none');
             tableColumn.classList.remove('row-md-12');
             tableColumn.classList.add('row-md-9');
             toggleFormBtn.innerHTML = '<i class="bi bi-eye-slash"></i> Hide Form';
         } else {
+            // Si el formulario está visible, lo oculta y expande el ancho de la tabla
             formColumn.classList.add('d-none');
             tableColumn.classList.remove('row-md-9');
             tableColumn.classList.add('row-md-12');
@@ -882,8 +883,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script> // Filter Scripts and pagination 
 document.addEventListener('DOMContentLoaded', function() {
-	const customerSearchInput = document.getElementById('customer-search');
     const poSearchInput = document.getElementById('po-search');
+    const customerSelect = document.getElementById('sl_period');
     const tableBody = document.querySelector('#po-table tbody');
     const registratorSearchInput = document.getElementById('registrator-search');
     const allRows = tableBody ? Array.from(tableBody.querySelectorAll('tr')) : [];
@@ -892,7 +893,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!tableBody) return;
         const poTerm = poSearchInput ? poSearchInput.value.toLowerCase() : '';
         const registratorTerm = registratorSearchInput ? registratorSearchInput.value.toLowerCase() : '';
-        const customerTerm = customerSearchInput ? customerSearchInput.value.toLowerCase() : '';
+        const customerFilter = customerSelect ? customerSelect.value.toLowerCase() : '';
         
         let foundMatch = false;
 
@@ -910,7 +911,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Filters
                 const poMatch = poTerm === '' || poNumber.includes(poTerm);
-                const customerMatch = customerTerm === '' || customerName.includes(customerTerm);
+                const customerMatch = customerFilter === '' || customerName.includes(customerFilter);
                 const registratorMatch = registratorTerm === '' || registratorName.includes(registratorTerm);
 
                 if (poMatch && customerMatch && registratorMatch) {                   
@@ -948,7 +949,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (poSearchInput) poSearchInput.addEventListener('input', filterTable);
     if (registratorSearchInput) registratorSearchInput.addEventListener('input', filterTable);
-	if (customerSearchInput) customerSearchInput.addEventListener('input', filterTable);
+    if (customerSelect) customerSelect.addEventListener('change', filterTable);
     filterTable();
 });
 </script>
@@ -1180,6 +1181,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				// Verifica si la línea original era nula
 				const lineIsNull = currentRow.dataset.lineIsNull === 'true';
 
+				// 1. Eliminar el botón de la fila actual (la que se hizo clic)
 				button.remove();
 
 				// Preparar y enviar la solicitud AJAX
@@ -1355,5 +1357,9 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         xhr.send(params);
     }
+
+	
+
+
 });
 </script>

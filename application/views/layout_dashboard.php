@@ -14,17 +14,18 @@
 	<link href="<?= base_url() ?>assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link href="<?= base_url() ?>assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
 	<link href="<?= base_url() ?>assets/vendor/bootstrap-datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet">
+	<link href="<?= base_url() ?>assets/vendor/select2/dist/css/select2.min.css" rel="stylesheet">
+	<link href="<?= base_url() ?>assets/vendor/select2/dist/css/select2-bootstrap-5-theme.min.css" rel="stylesheet">
 	<link href="<?= base_url() ?>assets/vendor/sweetalert2/dist/sweetalert2.min.css" rel="stylesheet">
 	<link href="<?= base_url() ?>assets/vendor/simple-datatables/style.css" rel="stylesheet">
 	<link href="<?= base_url() ?>assets/vendor/toastr/toastr.min.css" rel="stylesheet">
 	<link href="<?= base_url() ?>assets/css/style.css" rel="stylesheet">
-	<link href="<?= base_url() ?>assets/css/style_.css" rel="stylesheet">
 </head>
 <body class="toggle-sidebar">
 	<main id="main" class="main m-0 py-0">
 		<section class="section">
 			<div class="row">
-				<div id="content_canva" class="col-md-12 overflow-<?= $overflow ?>" style="height: 100vh;">
+				<div class="col-md-12 overflow-<?= $overflow ?>" style="height: 100vh;">
 					<?php $this->load->view($main); ?>
 				</div>
 			</div>
@@ -35,6 +36,7 @@
 	<script src="<?= base_url() ?>assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 	<script src="<?= base_url() ?>assets/vendor/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
 	<script src="<?= base_url() ?>assets/vendor/echarts/echarts.min.js"></script>
+	<script src="<?= base_url() ?>assets/vendor/select2/dist/js/select2.min.js"></script>
 	<script src="<?= base_url() ?>assets/vendor/sweetalert2/dist/sweetalert2.all.min.js"></script>
 	<script src="<?= base_url() ?>assets/vendor/simple-datatables/simple-datatables.js"></script>
 	<script src="<?= base_url() ?>assets/vendor/toastr/toastr.min.js"></script>

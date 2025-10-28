@@ -15,25 +15,29 @@ class Po_register extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 	}
 		
-	public function index(){
-		$customer_list = ['IMPORTACIONES RUBI S.A.', 'SAGA FALABELLA S.A.', 'CONECTA RETAIL S.A.', 'REPRESENTACIONES VARGAS S.A.', 'INTEGRA RETAIL S.A.C.', 'TIENDAS PERUANAS S.A. - [OECHSLE]', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA - [PLAZA VEA]', 'HOMECENTERS PERUANOS S.A. - [PROMART]', 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.', 'HIPERMERCADOS TOTTUS S.A.', 'TIENDAS DEL MEJORAMIENTO DEL HOGAR S.A. - [SODIMAC]', 'ESTILOS S.R.L.', 'CENCOSUD RETAIL PERU S.A. - [METRO]', 'COMERCIAL COUNTRY S.A.' , 'ELECTROHOGAR YATACO E.I.R.L.', 'IMPORTACIONES HIRAOKA S.A.', 'TIENDAS CHANCAFE S.A.C.', 'CORPORACION EFAMEINSA E INGENIERIA S.A.', 'OPEN INVESTMENTS S.A.C.', 'SERFAC S.A.C.'];
-		
+	public function index(){		
 		$customer_ac_list = ['UEZU COMERCIAL SOCIEDAD ANONIMA CERRADA - UEZU COMERCIAL SAC', 'COMERCIAL REFRIGERACION PERU S.A.C.', 'TECNICAV SERVICE E.I.R.L.', 'COINREFRI AIR S.A.C.', 'INVERSIONES GENERALES TECNICAS S.A', 'CONSORCIO INTI PUNKU', 'HANURI SOCIEDAD ANONIMA CERRADA', 'COLDSMART PERU S.A.C.', 'SUMINISTROS E INVERSIONES DEL PERU E.I.R.L.', 'INGENIEROS FRIOTEMP S.A.C.', 'AMASDCLIMA PERU S.R.L.', 'INVERSIONES LUNI S.A.C.', 'GASUE S.A.C.', 'COMERCIAL FRIONORTE E.I.R.L.', 'PROTERM PERU S.A.C.', 'PCR SERVICIOS GENERALES E.I.R.L.', 'IREDI INTERNATIONAL S R L', 'GREENCORP PERU S.A.C.', 'JUAN PABLO MORI E.I.R.L.', 'SOLUCIONES MULTITECNICAS S.A.C.', 'TODOCLIMA PERU S.A.C.', 'FRIOSYSTEM PERU S.R.L.', 'GRUPO VICTORIA SERVICIOS ESPECIALIZADOS S.A.C.', 'REPRESENTACIONES MONTERO S.R.L.', 'SERVICLIMA INTERNATIONAL E.I.R.L.', 'GRUPO MERPES PERU S.A.C.', 'TIENDAS CHANCAFE S.A.C.', 'REPRESENTACIONES VARGAS S.A.', 'COMERCIAL IMPORTADORA J. MORA', 'F Y P INVERSIONES S.A.C.', 'IMPORTACIONES MONTERO E.I.R.L.', 'ASOCIACION PERUANA DE LA IGLESIA DE JESUCRISTO DE LOS SANTOS DE LOS ULTIMOS DIAS', 'MEGA SHOP FRIO SOC. COM. RESPONS. LTDA.', 'COLD MACHINES S.A.C', 'SONEPAR PERU S.A.C.', 'L Y Z INVESTMENT S.A.C', 'AIR COOL SYSTEM SM S.A.C.', 'VMH INGENIEROS S.A.C.', 'TGESTIONA SERVICIOS GLOBALES S.A.C.', 'ALSI PERU S.A.C.', 'ASCENSORES S.A.', 'MOTOREX S A', 'THERMOFIRE S.A.C.', 'MORA PERU CORPORATION S.R.L.', 'ALSI BMS PERU S.A.C.', 'GOLDEN ENGINEERING PERU S.A.', 'TEKKO PERU S.A.C.', 'PRIMELINES S.A.C.', 'REFRIGERACION TROPIC FRIO E.I.R.L.', 'ASESORIA, INGENIERIA Y REPRESENTACIONES S.A.C.', 'ABB S.A.', 'ALSI HVACR PERU E.I.R.L.', 'COLD IMPORT S.A.'];
 		
-		$po_list = [];
-		$po_data = $this->gen_m->filter('po_register', false, ['created >=' => Date('Y-m-01')], null, $w_in = null, $orders = [['created', 'DESC'], ['po_number', 'ASC'], ['line_no', 'ASC']]);
-		foreach ($po_data as $item) $po_list[$item->po_number][] = $item;		
+		$customer_closed_list = [
+			'HANURI SOCIEDAD ANONIMA CERRADA', 'ANDES EXPRESS S.A.C.', 'EH INVERSIONES S.A.C.', 'JOACAMAR S.A.', 'TRANSPORTES CORPORATIVOS S.A.', 'SUCESION JUAN PINTO RUIZ', 'ARCA DE PAPEL E.I.R.L.', 'COMPURED S.A.C.', 'AE GROUP LATAM S.A.C.', 'PC LINK SOCIEDAD ANONIMA CERRADA', 'Karry S.A.', 'Import Export Salvatierra S.A.', 'IMPORT NOTEBOOK S.A.C.', 'EMME SISTEMAS S.A.', 'ALSI PERU S.A.C.', 'ALSI BMS PERU S.A.C.', 'F Y P INVERSIONES S.A.C.', 'ASCENSORES S.A.', 'GOLDEN ENGINEERING PERU S.A.', 'THERMOFIRE S.A.C.', 'TGESTIONA SERVICIOS GLOBALES S.A.C.', 'AMASDCLIMA PERU S.R.L.', 'IMPORTACIONES HIRAOKA S.A.', 'VMH INGENIEROS S.A.C.', 'INVERSIONES LUNI S.A.C.', 'L Y Z INVESTMENT S.A.C', 'FRIOSYSTEM PERU S.R.L.', 'GRUPO MERPES PERU S.A.C.', 'ESTILOS S.R.L.','HOMECENTERS PERUANOS S.A. - [PROMART]','One time_OBS','SUPERMERCADOS PERUANOS S.A. - [PLAZA VEA]','SAGA FALABELLA S.A.','INGRAM MICRO S.A.C.','SOLUCIONES MULTITECNICAS S.A.C.','HIPERMERCADOS TOTTUS S.A.','ESTAWOL S.A.','One time_Employee','TECH EXPERIENCE E.I.R.L.','REPRESENTACIONES VARGAS  S.A.','INVERSIONES GENERALES TECNICAS S.A','INGENIEROS FRIOTEMP S.A.C.','REPRESENTACIONES MONTERO S.R.L.','COMERCIAL FRIONORTE E.I.R.L.','MORA PERU CORPORATION S.R.L.','GASUE S.A.C.','MEGA SHOP FRIO SOC. COM. RESPONS. LTDA.','UEZU COMERCIAL SAC','LGESP','SUMINISTROS E INVERSIONES DEL PERU E.I.R.L.','TIENDAS DEL MEJORAMIENTO DEL HOGAR S.A. - [SODIMAC]','ICAP GLOBAL S.A.C.','TIENDAS PERUANAS S.A. - [OECHSLE]','ELECTRO FERRO CENTRO S.A.C.','TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.','COMERCIAL REFRIGERACION PERU S.A.C.','CONECTA RETAIL S.A.','CONECTA RETAIL SELVA S.A.C.','CENTRONIC S.A.','COINREFRI AIR S.A.C.','GRUPO DELTRON S.A.','MAXIMA INTERNACIONAL S.A.','TAI LOY S.A.','IMPORTACIONES RUBI S.A.','SONEPAR PERU S.A.C.','INTEGRA RETAIL S.A.C.','COMPUDISKETT S.R.L.','NEXSYS DEL PERU S.R.L.','COLDSMART PERU S.A.C.','CENCOSUD RETAIL PERU S.A. - [METRO]','ENVING S.A.','DACER SOCIEDAD ANONIMA CERRADA','PROTERM PERU S.A.C.','GREENCORP PERU S.A.C.','LGEMS','PCR SERVICIOS GENERALES E.I.R.L.','GRUPO RHINN S.A.C.','REWARDS PERU S.A.C.','COLD MACHINES S.A.C','TODOCLIMA PERU S.A.C.','INTCOMEX PERU S.A.C.','CONSORCIO INTI PUNKU','PRIMELINES S.A.C.','IMPORTACIONES MONTERO E.I.R.L.','LATINAMENITIES S.A.C.','TEKKO PERU S.A.C.','TECNICAV SERVICE E.I.R.L.','ASOCIACION PERUANA DE LA IGLESIA DE JESUCRISTO DE LOS SANTOS DE LOS ULTIMOS DIAS','OCEANLUX S.A.','IREDI INTERNATIONAL S R L','ANIXTER PERU S.A.C.','JUAN PABLO MORI  E.I.R.L.','REFRIGERACION TROPIC FRIO E.I.R.L.','PROMOTICK S.A.C.','INVERSIONES EL NISSEI S.A.','AIR COOL SYSTEM SM S.A.C.','COMERCIAL COUNTRY S.A.','F.P. TECNOLOGI & SYSTEM S.A.C.','LAVOMAT SRL','PERU DATA CONSULT E.I.R.L.','SERFAC S.A.C.','LASER IMPORT S.A.','LGESA','HIPERMERCADOS TOTTUS ORIENTE S.A.C.','EXPORTADORA IMPORTADORA IGARASHI ASCENCIO S.R.L.','PLANNING EST S A','ASESORIA, INGENIERIA Y REPRESENTACIONES S.A.C.','GRUPO VICTORIA SERVICIOS ESPECIALIZADOS S.A.C.','DATACONT S.A.C.','MI NEGOCIO EMPRESA INDIVIDUAL','NICOLAS GONZALEZ ODDONE S.A.E.C.A.','CONTROL AUDIOVISUAL S.A.C.','COMERCIAL IMPORTADORA J. MORA','JMT OUTDOORS S.A.C.','S & M INMOBILIARIA E INVERSIONES S.A.C.','TIENDAS CHANCAFE S.A.C.','RICOH DEL PERU S.A.C.','GRUPO MEGATEC S.R.L.','ABB S.A.','CHANCAFE ORIENTE S.A.C.','OBS_Marketplace_3P','UHMAN PERU SAC','IWALL PERU S.A.C.','MERCADOLIBRE PERU S.R.L.','ELECTROHOGAR YATACO E.I.R.L.','ENMEDIO PERU S.A.C.','PUNTO VISUAL S.A.','CORPORACION EFAMEINSA E INGENIERIA S.A.','OPEN INVESTMENTS S.A.C.','PRO MOUNT S.A.C.','CASA SUIZA SRL','LGECB','MOTOREX S.A.','KIA IMPORT PERU S.A.C.','ACONDICIONAMIENTO INTEGRAL S.A.','ALSI HVACR PERU E.I.R.L.','SERVICLIMA INTERNATIONAL E.I.R.L.','COLD IMPORT S.A.'
+		];
 		
-		sort($customer_list);
+		$po_list = [];
+		$first_day_of_month = Date('Y-m-01');
+		$start_date = Date('Y-m-d', strtotime($first_day_of_month . ' -7 days'));
+		$po_data = $this->gen_m->filter('po_register', false, ['created >=' => $start_date], null, $w_in = null, $orders = [['created', 'DESC'], ['po_number', 'ASC'], ['line_no', 'ASC']]);
+		foreach ($po_data as $item) $po_list[$item->po_number][] = $item;		
+
 		sort($customer_ac_list);
+		sort($customer_closed_list);
 		$status_list = ['Confirmed', 'Requested', 'Registered', 'Sent'];
 		$data = [
-			"customers_ac"  => $customer_ac_list,
-			"status"		=> $status_list,
-			"customers" 	=> $customer_list,
-			"history"		=> $po_list,
-			"overflow" 		=> "scroll",
-			"main" 			=> "page/po_register/index",
+			"order_customers"	=> $customer_closed_list,
+			"customers_ac"  	=> $customer_ac_list,
+			"status"			=> $status_list,
+			"history"			=> $po_list,
+			"overflow" 			=> "scroll",
+			"main" 				=> "page/po_register/index",
 		];
 		$this->update_po_lines();
 		$this->load->view('layout_dashboard', $data);
@@ -85,7 +89,6 @@ class Po_register extends CI_Controller {
 							}
 						}
 						
-						// Usar el cuerpo del EML para el mensaje principal
 						$message_content = $html_message_body;
 
 					} catch (Exception $e) {
@@ -164,6 +167,7 @@ class Po_register extends CI_Controller {
 		if ($final_cc_list){
 			$final_email_list = array_merge($to, $final_cc_list);
 		} else $final_email_list = $to;
+		
 		$this->my_func->send_email_po($from_email, $final_email_list, $subject, $message_content, $all_temp_paths); 
 		
 		return json_encode(['status' => 'success', 'message' => 'PO has been registered successfully.']);
@@ -185,7 +189,7 @@ class Po_register extends CI_Controller {
 		return $map;
 	}
 
-	public function _process_eml_files($original_eml_files, $uploaded_files_map, $po_to_files_map) { // Procesamiento de archivos .EML
+	public function _process_eml_files($original_eml_files, $uploaded_files_map, $po_to_files_map) { // Procesamiento de archivos .EML y corrección del problema de PNG/GIF en la BD
 		$eml_temp_paths = [];
 		$subject = '';
 		$message_content = '';
@@ -253,6 +257,12 @@ class Po_register extends CI_Controller {
 
 	public function _process_other_files($po_numbers_form, $file_names_form, $uploaded_files_map, $original_eml_files, $po_to_files_map) { // Procesamiento de otros archivos (NO-EML)
 		$other_temp_paths = [];
+		if (!is_array($po_numbers_form) || empty($po_numbers_form)) {
+			return [
+				'po_to_files_map' => $po_to_files_map,
+				'other_temp_paths' => []
+			];
+		}
 		
 		foreach ($po_numbers_form as $key => $po_number) {
 			$files_string = $file_names_form[$key];
@@ -316,7 +326,6 @@ class Po_register extends CI_Controller {
 	}
 	
 	public function _send_and_cleanup($eml_was_processed, $po_to_files_map, $all_temp_paths, $registrator, $ep_mail, $customer_name, $remark, $subject_to_send, $message_content, $final_cc_list) {
- 
 		$from_email = $ep_mail . '@lge.com';
 		$attachments_to_send = $all_temp_paths;
 
@@ -404,7 +413,7 @@ class Po_register extends CI_Controller {
 		$files = $_FILES['attachment'] ?? '';
 		$uploaded_files_map = $this->_map_uploaded_files($files);
 		$cc_emails = $this->input->post('cc_emails');
-		$po_source_ac = $this->input->post('po_source_ac') ?? ''; // PO Number Special Customers
+		$po_source_ac = $this->input->post('po_source_ac') ?? '';
 		
 		if ($cc_emails) {
 			foreach ($cc_emails as $cc_email) {
@@ -419,7 +428,7 @@ class Po_register extends CI_Controller {
 		$files_exist = !empty($_FILES['attachment']['name'][0]);
 		$po_numbers_form = (array) $this->input->post('po_numbers_form');
 		$file_names_form = (array) $this->input->post('file_names_form');
-		
+
 		foreach ($file_names_form as $index => $filename) {
 			$po_number_by_user = $po_numbers_form[$index] ?? null; 
 			
@@ -444,14 +453,44 @@ class Po_register extends CI_Controller {
 			echo $result['error'];
 			return;
 		}
-		
 		$po_to_files_map = $result['po_to_files_map'];
 		$all_temp_paths = array_merge($all_temp_paths, $result['other_temp_paths']);
 		
 		// 1. Manejar clientes especiales (Lógica Manual)
 		$special_customers = ['SAGA FALABELLA S.A.', 'HIPERMERCADOS TOTTUS S.A.', 'TIENDAS DEL MEJORAMIENTO DEL HOGAR S.A. - [SODIMAC]', 'TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.'];
 		if (in_array($customer_name, $special_customers)) {
+			$file_paths_to_attach = [];
+
+			foreach ($uploaded_files_map as $original_name => $file_data) {
+				if (isset($file_data['tmp_name']) && $file_data['error'] === 0) {
+					
+					$_FILES['userfile'] = $file_data; 
+					
+					$config['upload_path']   = './upload/';
+					$config['allowed_types'] = '*';
+					$config['max_size']      = 20000;
+					$config['file_name']     = $original_name;
+					$config['overwrite']     = FALSE; 
+					
+					$this->upload->initialize($config);
+
+					if ($this->upload->do_upload('userfile')) {
+						$upload_data = $this->upload->data();
+						$file_paths_to_attach[] = $upload_data['full_path'];
+					} else {
+						log_message('error', 'Error al mover archivo: ' . $this->upload->display_errors());
+					}
+				}
+			}
+			$all_temp_paths = array_merge($all_temp_paths, $file_paths_to_attach);
+			
 			$response_json = $this->_process_special_customers($registrator, $ep_mail, $customer_name, $remark, $po_source_ac, $final_cc_list, $all_temp_paths);
+			if (!empty($all_temp_paths)) {
+				foreach ($all_temp_paths as $file_path) {
+					@unlink($file_path);
+					log_message('info', 'Cleaned up temporary file: ' . $file_path);
+				}
+			}
 			ob_end_clean();
 			echo $response_json; 
 			return;
@@ -473,10 +512,10 @@ class Po_register extends CI_Controller {
 			$message_content = $result['message_content'];
 		}
 
-		// 3. Inserción Final en BD
+		// 4. Inserción Final en BD
 		$this->_insert_pos_to_db($po_to_files_map, $registrator, $ep_mail, $customer_name, $remark);
 
-		// 4. Envío de Correo y Limpieza
+		// 5. Envío de Correo y Limpieza
 		$response_json  = $this->_send_and_cleanup(
 			$eml_was_processed, $po_to_files_map, $all_temp_paths, 
 			$registrator, $ep_mail, $customer_name, $remark, 
@@ -485,7 +524,7 @@ class Po_register extends CI_Controller {
 		ob_end_clean();
 		echo $response_json ;
 	}
-		
+			
 	public function check_po_exists(){
 		$po_number = $this->input->post("po_number");
 		
@@ -594,7 +633,6 @@ class Po_register extends CI_Controller {
 
 		$new_line = $last_line + 1;
 		
-		// Obtener los datos de la fila original para la nueva inserción
 		$last_record = $this->db->get_where('po_register', ['id' => $record_id])->row();
 
 		if ($last_record) {
@@ -708,7 +746,6 @@ class Po_register extends CI_Controller {
 	}
 
 	public function extract_po() {
-		// Verificar si se han subido archivos
 		if (empty($_FILES['attachment']['name'])) {
 			echo json_encode(['status' => 'error', 'message' => 'No files provided.']);
 			return;
@@ -727,7 +764,6 @@ class Po_register extends CI_Controller {
 			// Lógica para archivos .eml
 			if ($extension === 'eml') {
 				try {
-					// Utiliza file_get_contents para leer el contenido del archivo
 					$eml_content = file_get_contents($tmp_name);
 					if ($eml_content === false) {
 						throw new Exception('Could not read EML file content.');
