@@ -74,7 +74,7 @@ class Ar_cash_back extends CI_Controller {
 		return null;
 	}
 
-	public function date_convert_dd_mm_yyyy($date) {)
+	public function date_convert_dd_mm_yyyy($date) {
 		if (is_numeric($date)) {		
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
 			return $date->format('Y-m-d');
