@@ -32,6 +32,7 @@ class Scm_gre_calculate extends CI_Controller {
 	}
 		
 	public function date_convert_mm_dd_yyyy($date) {
+    // Intentamos convertir con la lógica del valor numérico (excel date)
 		if (is_numeric($date)) {
 			// Si es un número, es probable que sea una fecha de Excel (número de días desde 1900-01-01)
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
@@ -44,7 +45,8 @@ class Scm_gre_calculate extends CI_Controller {
 		
 		$dateTime_dd_mmm_yy = DateTime::createFromFormat('d-M-y', $date_str);
     
-
+		// Si DateTime::createFromFormat devuelve un objeto DateTime, significa que la fecha fue parseada.
+		// Para este formato, no necesitamos la comparación estricta de formato si el objeto ya es válido.
 		if ($dateTime_dd_mmm_yy !== false) { // Verifica que no sea false (fallo en el parseo)
 			return $dateTime_dd_mmm_yy->format('Y-m-d'); // Devuelve yyyy-mm-dd
 		}
@@ -61,21 +63,27 @@ class Scm_gre_calculate extends CI_Controller {
 	}
 			
 	public function delete_temp_excel_file(){
-
+		// error_reporting(E_ALL);
+		// ini_set('display_errors', 1);
+		// Asegúrate de que la petición sea POST y que el nombre del archivo se envíe.
         if ($this->input->is_ajax_request() && $this->input->post('fileName')) {
             $fileNameToDelete = $this->input->post('fileName');
             $filePath = FCPATH . 'upload_file/Scm/scm_gre_calculate/' . $fileNameToDelete;
 
             if (file_exists($filePath)) {
                 if (unlink($filePath)) {
+                    // Si se borró con éxito
                     echo json_encode(['type' => 'success', 'msg' => 'File deleted successfully.']);
                 } else {
+                    // Si falló el borrado (ej. problemas de permisos)
                     echo json_encode(['type' => 'error', 'msg' => 'Failed to delete file. Check permissions.']);
                 }
             } else {
+                // Si el archivo ya no existe (quizás ya fue borrado por un cronjob o una limpieza manual)
                 echo json_encode(['type' => 'warning', 'msg' => 'File not found on server (might have been deleted already).']);
             }
         } else {
+            // Si la petición no es válida (no es AJAX o falta el nombre del archivo)
             echo json_encode(['type' => 'error', 'msg' => 'Invalid request to delete file.']);
         }
         exit; // Termina la ejecución para solo enviar JSON
@@ -90,30 +98,34 @@ class Scm_gre_calculate extends CI_Controller {
 	public function find_note_xml($invoice_data_to_search, $emp_number){
         $this->db->trans_start();    
 
-        $base_e_documents_path = FCPATH . 'eDocuments/'; 
-        $current_year = date('Y'); 
+        $base_e_documents_path = FCPATH . 'eDocuments/'; // Ruta base a la carpeta eDocuments
+        $current_year = date('Y'); // Obtener el año actual dinámicamente
 
+        // Subcarpetas específicas donde buscar los XML
         $target_subfolders = ['FACTURA_ELECTRONICA', 'NOTA_DE_CREDITO'];
 
         foreach ($invoice_data_to_search as $original_invoice_no => $search_value) {
-            $found_delivery_note = '';
-            $xml_found_and_processed = false;
+            $found_delivery_note = ''; // Reset para cada factura
+            $xml_found_and_processed = false; // Flag para saber si ya encontramos y procesamos el XML para esta factura
 
             if (empty($search_value)) {
                 log_message('info', 'Skipping file search for empty/null processed invoice_no for original: ' . $original_invoice_no);
-                $xml_found_and_processed = true;
+                $xml_found_and_processed = true; // No hay nada que buscar, consideramos "procesado"
             } else {
+                // Iterar sobre cada mes (01 a 12)
                 for ($month = 1; $month <= 12; $month++) {
-                    if ($xml_found_and_processed) break;
+                    if ($xml_found_and_processed) break; // Salir del bucle de meses si ya se encontró el XML
 
                     $month_padded = str_pad($month, 2, '0', STR_PAD_LEFT); // Formato MM (ej. 01, 02)
                     $month_folder_path = $base_e_documents_path . $current_year . '/' . $month_padded . '/';
 
+                    // Verificar si la carpeta del mes existe antes de buscar dentro
                     if (!is_dir($month_folder_path)) {
                         log_message('debug', 'Monthly folder not found: ' . $month_folder_path);
                         continue; // Pasar al siguiente mes
                     }
 					
+                    // Iterar sobre las subcarpetas objetivo (FACTURA_ELECTRONICA, NOTA_DE_CREDITO)
                     foreach ($target_subfolders as $subfolder) {
                         if ($xml_found_and_processed) break; // Salir del bucle de subcarpetas si ya se encontró el XML
 
@@ -135,6 +147,7 @@ class Scm_gre_calculate extends CI_Controller {
                                 log_message('error', $error_msg);
                                 libxml_clear_errors();
                             } else {
+                                // --- Lógica para buscar el GuiaRem dentro del XML (TU CÓDIGO EXISTENTE Y FUNCIONAL) ---
                                 $ext_namespace_uri = 'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2';
                                 $xml->registerXPathNamespace('ext', $ext_namespace_uri);
                                 
@@ -169,10 +182,11 @@ class Scm_gre_calculate extends CI_Controller {
                         } else {
                             log_message('debug', 'XML file NOT FOUND for ' . $original_invoice_no . ' in ' . $expected_file_path);
                         }
-                    }
-                }
+                    } // Fin del foreach ($target_subfolders)
+                } // Fin del for ($month)
             }
             
+            // Actualizar la base de datos con el valor encontrado (o vacío si no se encontró)
             $this->gen_m->update("scm_gre_calculate", ['invoice_no' => $original_invoice_no, 'user_pr' => $emp_number], ['delivery_note' => $found_delivery_note]);
         }
 
@@ -249,11 +263,13 @@ class Scm_gre_calculate extends CI_Controller {
 	}
 	
 	public function downloadSpreadsheet($spreadsheet, $file_name_param) {
+        // Asegúrate de que el nombre del archivo es seguro y tiene la extensión correcta.
         $file_name = $file_name_param; 
         if (pathinfo($file_name, PATHINFO_EXTENSION) !== 'xlsx') {
-            $file_name .= '.xlsx';
+            $file_name .= '.xlsx'; // Asegura que tenga la extensión .xlsx
         }
-        
+         
+        // Podrías usar 'FCPATH . 'temp_exports/' como en la discusión anterior para los CSV.
         $upload_dir = FCPATH . 'upload_file/Scm/scm_gre_calculate/'; 
         if (!is_dir($upload_dir)) {
             mkdir($upload_dir, 0777, true);
@@ -278,8 +294,8 @@ class Scm_gre_calculate extends CI_Controller {
             $response = [
                 'type' => 'success',
                 'msg' => 'Report generated successfully!',
-                'downloadUrl' => base_url(str_replace(FCPATH, '', $save_path)),
-                'fileNameOnServer' => $file_name 
+                'downloadUrl' => base_url(str_replace(FCPATH, '', $save_path)), // Genera la URL relativa desde base_url
+                'fileNameOnServer' => $file_name // Nombre del archivo generado para borrarlo después
             ];
             
             header('Content-Type: application/json'); 
@@ -314,15 +330,15 @@ class Scm_gre_calculate extends CI_Controller {
 		
 		if (empty($emp_number)) {
             log_message('error', 'User not logged in during export_excel attempt (AJAX).');
-          
+            // Enviar respuesta JSON de error directamente
             echo json_encode(['type' => 'error', 'msg' => 'User not authenticated or session expired.']);
-            exit(); 
+            exit(); // Es crucial salir aquí para no continuar
         }
 
         if (empty($selected_encrypted_file_name) || !file_exists($uploaded_file_full_path)) {
             log_message('error', 'No valid file selected for export_excel (AJAX) or file not found: ' . $selected_encrypted_file_name);
             echo json_encode(['type' => 'error', 'msg' => 'No file selected or file does not exist for processing.']);
-            exit(); 
+            exit(); // Es crucial salir aquí
         }
 		
 		$invoice = [];
@@ -336,16 +352,24 @@ class Scm_gre_calculate extends CI_Controller {
 			}
 		}
 			
+		//echo '<pre>'; print_r($invoice);
 		
 		$this->find_note_xml($invoice, $emp_number);
 		
 		$spreadsheet_object = $this->generate_excel($emp_number);
 		
 		if ($spreadsheet_object) {
+            // --- NUEVA LÓGICA PARA EL NOMBRE DEL ARCHIVO GENERADO ---
+            // 1. Obtener el nombre del archivo original (sin la extensión .xlsx si ya la tiene)
+            // Asumo que selected_encrypted_file_name es el nombre del archivo en el servidor,
+            // que puede tener la extensión original. Necesitamos el "nombre base" para el prefijo.
             $original_file_name_without_ext = pathinfo($selected_encrypted_file_name, PATHINFO_FILENAME);
-
+            
+            // 2. Construir el nuevo nombre con el prefijo y la extensión .xlsx
             $excel_file_name = "[Process] " . $original_file_name_without_ext . ".xlsx";
-
+            // --------------------------------------------------------
+			//echo '<pre>'; print_r($excel_file_name);
+			//log_message('info', 'excel_file_name: ' . $excel_file_name);
             $this->downloadSpreadsheet($spreadsheet_object, $excel_file_name);
             
             if (file_exists($uploaded_file_full_path)) {
@@ -357,6 +381,7 @@ class Scm_gre_calculate extends CI_Controller {
             echo json_encode(['type' => 'error', 'msg' => 'Failed to generate the Excel report or no data available.']);
             exit(); 
         }
+		//$this->generate_excel($emp_number);
 	
 	}
 	
@@ -434,13 +459,20 @@ class Scm_gre_calculate extends CI_Controller {
 					$batch_data = [];
 				}
 			}
-
+			//echo '<pre>'; print_r($batch_data);
+			// Insertar los datos restantes en el lote
+			//echo '<pre>'; print_r($batch_data); return;
 			if (!empty($batch_data)) {
 				$this->gen_m->insert_m("scm_gre_calculate", $batch_data);
 			}
 		
+			
+			//$this->db->trans_complete();
+			
+			// Obtener el nombre original del archivo usando $_FILES
 			$originalFileName = $_FILES['attach']['name'];
 			
+			// Construir la ruta del archivo temporal
 			$tempFilePath = './upload_file/Scm/scm_gre_calculate/' . $originalFileName;
 
 			// Guardar el archivo Excel en la carpeta temporal con el nombre original
@@ -691,4 +723,90 @@ class Scm_gre_calculate extends CI_Controller {
 
 		return $resultados;
 	}
+
+	function findRemisionByModel_xml(string $searchModel = '50UM670H0UA.AWF', string $basePath = 'eDocuments/2024/', string $targetDir = 'GUIA_DE_REMISION', string $filePrefix = 'TM01'){ 
+		$resultados = [];
+
+		// --- Definición de Variables Locales Fijas ---
+		$namespaceCbc = 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2';
+		$namespaceCac = 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2';
+		
+		// XPath para encontrar todos los IDs de los artículos
+		$xpathModelo = '//cac:DespatchLine/cac:Item/cac:SellersItemIdentification/cbc:ID';
+
+		// 1. Recorrer las carpetas de los meses (01 a 12)
+		for ($month = 1; $month <= 12; $month++) {
+			$monthStr = str_pad($month, 2, '0', STR_PAD_LEFT); // '01', '02', '03', etc.
+			$remisionDir = $basePath . $monthStr . DIRECTORY_SEPARATOR . $targetDir;
+			
+			if (!is_dir($remisionDir)) continue;
+
+			echo "🔍 Analizando directorio: " . $monthStr . DIRECTORY_SEPARATOR . $targetDir . "\n";
+			
+			try {
+				// Usa glob() para obtener solo archivos .xml que empiecen con el prefijo
+				$xmlFiles = glob($remisionDir . DIRECTORY_SEPARATOR . $filePrefix . '*.xml');
+
+				foreach ($xmlFiles as $xmlPath) {
+					$fileName = basename($xmlPath);
+					
+					// --- Lógica de Carga y Limpieza de XML (robusta) ---
+					try {
+						$xmlContent = file_get_contents($xmlPath);
+						if ($xmlContent === false) continue;
+						
+						// Limpieza de declaraciones conflictivas
+						$xmlContentCleaned = preg_replace('/xmlns:schemaLocation\s*=\s*".*?"/i', '', $xmlContent, 1);
+						$xmlContentCleaned = preg_replace('/xmlns:xsi\s*=\s*".*?"/i', '', $xmlContentCleaned, 1);
+						
+						$xml = simplexml_load_string($xmlContentCleaned, 'SimpleXMLElement', LIBXML_NOCDATA | LIBXML_NOERROR);
+
+						if ($xml === false) {
+							// Manejo de error al cargar XML
+							continue;
+						}
+
+						// 2. Registrar Namespaces
+						$xml->registerXPathNamespace('cbc', $namespaceCbc);
+						$xml->registerXPathNamespace('cac', $namespaceCac);
+
+						// 3. BUSCAR EL MODELO ESPECÍFICO
+						$modeloNodes = $xml->xpath($xpathModelo);
+						$encontrado = false;
+
+						foreach ($modeloNodes as $modeloNode) {
+							$modelo = (string)$modeloNode;
+							
+							// Comparación insensible a mayúsculas y minúsculas
+							if (strtolower($modelo) === strtolower($searchModel)) {
+								$encontrado = true;
+								break; // Modelo encontrado, salimos del bucle interno
+							}
+						}
+
+						// 4. Registrar resultado con el mes y el nombre del archivo
+						if ($encontrado) {
+							$resultados[] = [
+								'mes' => $monthStr, // <-- Añadido el mes
+								'archivo' => $fileName, // <-- Nombre del archivo
+								'ruta_completa' => $xmlPath,
+								'modelo_buscado' => $searchModel
+							];
+							
+							echo "  ✅ Éxito en **$fileName** (Mes: $monthStr): El modelo **$searchModel** fue encontrado.\n";
+						} 
+						
+					} catch (\Exception $e) {
+						echo "  ❌ Error al procesar XML $fileName: " . $e->getMessage() . "\n";
+					}
+				}
+
+			} catch (\Exception $e) {
+				echo "Error al recorrer el directorio $remisionDir: " . $e->getMessage() . "\n";
+			}
+		}
+
+		return $resultados;
+	}
+
 }
