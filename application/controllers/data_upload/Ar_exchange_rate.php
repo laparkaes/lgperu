@@ -24,7 +24,7 @@ class Ar_exchange_rate extends CI_Controller {
 	}
 	
 	public function proxy_dnit(){
-		$content = file_get_contents('https://www.dnit.gov.py/web/portal-institucional/cotizaciones');
+		$content = file_get_contents("https://www.dnit.gov.py/web/portal-institucional/cotizaciones");
 		$content = str_replace("script", "div", $content);
 		$content = str_replace("link", "div", $content);
 		$content = str_replace("meta", "div", $content);
@@ -59,8 +59,9 @@ class Ar_exchange_rate extends CI_Controller {
 	}
 	
 	public function upload_pen(){
-		set_time_limit(300);
-		
+		//set_time_limit(300);
+		set_time_limit(0);
+		ini_set("memory_limit", -1);
 		$date_start = $this->input->get("f");
 		$date_end = $this->input->get("t");
 		
@@ -100,8 +101,4 @@ class Ar_exchange_rate extends CI_Controller {
 		echo json_encode(["type" => "success", "msg" => "Exchage rate USD > PEN has been updated."]);
 	}
 	
-	public function test(){
-		$ex = $this->my_func->load_exchange_rate_sbs("2025-06-17");
-		print_r($ex);
-	}
 }

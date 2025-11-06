@@ -1,11 +1,13 @@
-<div class="pagetitle">
-	<h1>Exchange Rate</h1>
-	<nav>
-		<ol class="breadcrumb">
-			<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
-			<li class="breadcrumb-item active">Exchange Rate</li>
-		</ol>
-	</nav>
+<div class="d-flex justify-content-between align-items-start">
+	<div class="pagetitle">
+		<h1>Exchange Rate</h1>
+		<nav>
+			<ol class="breadcrumb">
+				<li class="breadcrumb-item"><a href="<?= base_url() ?>dashboard">Dashboard</a></li>
+				<li class="breadcrumb-item active">Exchange Rate</li>
+			</ol>
+		</nav>
+	</div>
 </div>
 <section class="section">
 	<div class="row">
@@ -109,9 +111,13 @@ document.addEventListener("DOMContentLoaded", () => {
 			const currentYear = new Date().getFullYear();
 			var data = [];
 			$(".journal-content-article").each(function(index, element) {
-				var month_year = $(element).find(".section__midtitle").html().replace("Tipos de cambios del mes de ", "").split(" ");
-				month_year[1] = parseInt(month_year[1], 10) // year to int
+				// var month_year = $(element).find(".section__midtitle").html().replace("Tipos de cambios del mes de ", "").split(" ");
+				// console.log(month_year);
+				// month_year[1] = parseInt(month_year[1], 10) // year to int
 				
+				var title_str = $(element).find(".section__midtitle").html().replace("Tipos de cambios del mes de ", "").trim();
+				var month_year = title_str.split(/\s+/);
+				//console.log(month_year);
 				if (currentYear > (month_year[1] + 1)) return;
 				
 				var td_aux;
@@ -131,7 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				});
 			});
 			
-			console.log(data);
+			//console.log(data);
 			
 			ajax_simple({data: data}, "data_upload/ar_exchange_rate/upload_pyg").done(function(res) {
 				swal_redirection(res.type, res.msg, "data_upload/ar_exchange_rate");
