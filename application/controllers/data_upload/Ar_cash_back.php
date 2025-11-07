@@ -16,7 +16,8 @@ class Ar_cash_back extends CI_Controller {
 		$this->load->model('general_model', 'gen_m');
 	}
 	
-	public function index(){		
+	public function index(){
+		
 		$dates = $this->get_period();
 		$data = [
 			"dates"		=> $dates,
@@ -70,12 +71,12 @@ class Ar_cash_back extends CI_Controller {
 		if (count($aux) == 3) {
 			return $aux[2]."-".$aux[0]."-".$aux[1]; // yyyy-mm-dd
 		}
-
+		
 		return null;
 	}
 
 	public function date_convert_dd_mm_yyyy($date) {
-		if (is_numeric($date)) {		
+		if (is_numeric($date)) {
 			$date = DateTime::createFromFormat('U', ($date - 25569) * 86400);
 			return $date->format('Y-m-d');
 		}
@@ -96,30 +97,34 @@ class Ar_cash_back extends CI_Controller {
 		$date_formats = ['d-M-y', 'd-M-Y', 'm/d/Y', 'Y-m-d'];
 		foreach ($date_formats as $format) {
 			$date_object = DateTime::createFromFormat($format, $excel_date);
-			if ($date_object && $date_object->format($format) === $excel_date) {
+			if ($date_object) {
 				return $date_object->format('Y-m-d');
 			}
 		}
-
 		return null;
 	}
 
 	public function cleanCode($code) {
+		// Definir los prefijos y sufijos a eliminar
 		$code = trim($code);
-		$prefixes = ['O_'];
-		$suffixes = ['_CM', '_PEN', '_PEN_CM', '_1_CM', '_IGVND', '-R', '-I', '_Reversa1', '_FSE', '_IRNODOM']; // Sufijos a eliminar al final
+		$prefixes = ['O_']; // Prefijos a eliminar al inicio
+		$suffixes = ['_CM', '_PEN', '_PEN_CM', '_1_CM', '_IGVND', '-R', '-I', '_Reversa1', '_FSE', '_IRNODOM'];
 		
 		if (is_array($code)) {
+			// Si $code es un array, convertirlo en una cadena
 			$code = implode(',', $code);
 		}
 
+		// Eliminar prefijos si existen
 		foreach ($prefixes as $prefix) {
 			if (strpos($code, $prefix) === 0) {
 				$code = substr($code, strlen($prefix));
-				break;
+				break; // Salir después de encontrar y eliminar un prefijo
 			}
 		}
-
+	
+		
+		 // Eliminar sufijos si existen
 		foreach ($suffixes as $suffix) {
 			if (substr($code, -strlen($suffix)) === $suffix) {
 				$code = substr($code, 0, -strlen($suffix));
@@ -519,6 +524,7 @@ class Ar_cash_back extends CI_Controller {
 		$list_update_group = [];
 		$list_origin = [];
 		
+		// Filter to get daily book data
 		$s = ['period_name', 'effective_date', 'invoice_number', 'net_entered_debit', 'accounting_unit', 'transaction_number', 'je_id', 'type_voucher', 'serie_voucher', 'number_voucher', 'currency', 'account', 'vendor_customer', 'account_name'];
 		$w = ['period_name' => $period];
 		$w_in = [
@@ -548,13 +554,16 @@ class Ar_cash_back extends CI_Controller {
 			}
 
 			 // Group batch numbers values
-			if ($item_d->account_name === 'Foreign Currency Deposit_Ordinary' || $item_d->account_name === 'Deposit_Ordinary'){			
-				foreach ($data_group as &$item) {
-					if ($item['net_entered_debit'] == $item_d->net_entered_debit && $item['apply_date'] === $item_d->effective_date){
-						if ($this->similar_customer($item_d->vendor_customer,  $item['customer'], 60)){ // Find similar customer name
-							$list_update_group[] = ['type_voucher' => 'VARIOS', 'serie_voucher' => 'VARIOS', 'number_voucher' => 'VARIOS', 'je_id' => $item_d->je_id, 'cash_back_updated' => $now];
-						}
-					} else continue;
+			if ($item_d->account_name === 'Foreign Currency Deposit_Ordinary' || $item_d->account_name === 'Deposit_Ordinary'){
+				$key_group = $item_d->currency . "_" . $item_d->effective_date . "_" . $item_d->net_entered_debit;
+				if (isset($data_group[$key_group])){
+					foreach ($data_group[$key_group] as &$item) {
+						if ($item['net_entered_debit'] == $item_d->net_entered_debit && $item['apply_date'] === $item_d->effective_date){
+							if ($this->similar_customer($item_d->vendor_customer,  $item['customer'], 60)){ // Find similar customer name
+								$list_update_group[] = ['type_voucher' => 'VARIOS', 'serie_voucher' => 'VARIOS', 'number_voucher' => 'VARIOS', 'je_id' => $item_d->je_id, 'cash_back_updated' => $now];
+							}
+						} else continue;
+					}
 				}
 			}
 			
@@ -567,7 +576,7 @@ class Ar_cash_back extends CI_Controller {
 				$list_update_group = [];
 			}
 		}
-
+		
 		if (!empty($list_update)) {
 			$this->gen_m->update_multi('tax_daily_book', $list_update, 'je_id');
 			$count = count($list_update) ?? 0;
@@ -607,7 +616,7 @@ class Ar_cash_back extends CI_Controller {
 			trim($sheet->getCell('E1')->getValue()),
 			trim($sheet->getCell('F1')->getValue())
 		];
-
+		//echo '<pre>'; print_r($h); return;
 		$header = ["Customer Code", "Customer Name", "Cheque/Note No", "Class", "Invoice No", "Reference No"];
 		$is_ok = true;
 		foreach ($h as $i => $h_i) {
@@ -665,16 +674,12 @@ class Ar_cash_back extends CI_Controller {
 				'batch_no'				=> trim($sheet->getCell('X'.$i)->getValue()),
 				'updated' 				=> $now,
 			];
-
+			
+			
+			//if (empty($row['invoice_number'])) continue;
 			if (empty($row['apply_date'])) continue;
 			if ($row['applied_amount'] == 0 && $row['chargback_created'] == 0) continue;
-			
-			$formato_entrada = 'd-M-y';
-			
-			$objeto_fecha = DateTime::createFromFormat($formato_entrada, $row['apply_date']);
-			if ($objeto_fecha !== false) {
-				$row['apply_date'] = $objeto_fecha->format('Y-m-d');
-			} else $row['apply_date'] = null;
+			$row['apply_date'] = $this->convert_date($row['apply_date']);
 			
 			if ($period === substr($row['apply_date'], 0, 7)){
 				$new_data = $this->performCalculations($row);
@@ -703,7 +708,7 @@ class Ar_cash_back extends CI_Controller {
 															'net_entered_debit' 	=> 0 ];
 				}
 				
-				$data_batch[$new_data['batch_no'] . "_" . $new_data['apply_date']]['net_entered_debit'] += $new_data['applied_amount'] + $new_data['chargback_created'];				
+				$data_batch[$new_data['batch_no'] . "_" . $new_data['apply_date']]['net_entered_debit'] += $new_data['applied_amount'] + $new_data['chargback_created'];
 				
 				if(!isset($count_group[$new_data['batch_no'] . "_" . $new_data['apply_date']])) $count_group[$new_data['batch_no'] . "_" . $new_data['apply_date']] = 0;
 				$count_group[$new_data['batch_no'] . "_" . $new_data['apply_date']] += 1;
@@ -718,7 +723,7 @@ class Ar_cash_back extends CI_Controller {
 				else continue;
 			} else continue;
 		}
-		
+
 		if (empty($data)) {
 			$error_msg = "Error: The file contained no valid rows for the selected period ($period) or was empty.";
 			return $error_msg;
