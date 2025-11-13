@@ -166,7 +166,7 @@ class Scm_shipping_status extends CI_Controller {
 			trim($sheet->getCell('E1')->getValue()),
 			trim($sheet->getCell('F1')->getValue())
 		];
-		echo '<pre>'; print_r($h);
+		//echo '<pre>'; print_r($h);
 		//sales order header
 		$header = ["Order No", "Line No", "Pick No", "Ship Set", "Seq", "Customer PO"];
 
