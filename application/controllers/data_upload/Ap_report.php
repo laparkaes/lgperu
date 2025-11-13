@@ -68,7 +68,7 @@ class Ap_report extends CI_Controller {
 		];
 	}
 
-	public function process($filename) {
+	public function process() {
 		set_time_limit(0);
 		ini_set("memory_limit", -1);
 
@@ -78,19 +78,6 @@ class Ap_report extends CI_Controller {
 		$spreadsheet = IOFactory::load("./upload/ap_report.xlsx");
 		$sheet = $spreadsheet->getSheetByName('MP');
 		//$sheet = $spreadsheet->getActiveSheet(0);
-		
-		// Get date values from file name
-		$pattern = '/SEMANA\s*(\d+)\s*-\s*(\d{4})\.xlsx/i';
-		if (preg_match($pattern, $filename, $matches)) {
-			$week = $matches[1]; // Week number
-
-			$month_year_block = $matches[2]; // mmyy
-			
-			$month = substr($month_year_block, 0, 2); // mm
-			$year_short = substr($month_year_block, 2, 2); // yy
-			
-			$year = "20" . $year_short; // Format "20xx"
-		}
 
 		//excel file header validation
 		$h = [
@@ -128,7 +115,7 @@ class Ap_report extends CI_Controller {
 
 			for($i = 2; $i <= $max_row; $i++){
 				$row = [
-					"year"							=> $year,
+					"year"							=> date('Y'),
 					"company" 						=> trim($sheet->getCell('A'.$i)->getValue()),
 					"division_name" 				=> trim($sheet->getCell('B'.$i)->getValue()),
 					"division_name_desc" 			=> trim($sheet->getCell('C'.$i)->getValue()),
@@ -250,9 +237,7 @@ class Ap_report extends CI_Controller {
 			$this->load->library('upload', $config);
 
 			if ($this->upload->do_upload('attach')){
-				$upload_data = $this->upload->data();
-				$original_file_name = $_FILES['attach']['name'];
-				$msg = $this->process($original_file_name);
+				$msg = $this->process();
 				
 				if ($msg) $type = "success";
 				else $msg = "Wrong file.";
