@@ -983,4 +983,29 @@ class Lgepr extends CI_Controller {
 		echo json_encode($res);
 	}
 
+	public function get_ap_report() {
+		//llamasys/api/lgepr/get_ap_report?key=lgepr
+		if ($this->input->get("key") === "lgepr") {
+			$res = [];
+			$data = $this->gen_m->filter('ap_report', false, null, null, null, [['week', 'asc']]);
+			
+			$week_number = date('W'); // Current week
+			$current_day_of_week = date('N');
+			
+			foreach ($data as $item){
+				$cloned_item = clone $item;
+				
+				if ($cloned_item->week < $week_number) $cloned_item->status = 'Paid';
+				else $cloned_item->status = 'Pending Payment';
+				
+				unset($cloned_item->id);
+				unset($cloned_item->key_ap);
+				unset($cloned_item->last_updated);
+				$res[] = clone $cloned_item;
+			}
+		} else $res = ["Key error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
 }
