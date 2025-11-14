@@ -47,8 +47,8 @@ class Ar_cash_back extends CI_Controller {
 		$current_year = date('Y');
 		$previous_year = $current_year - 1;
 		
-		$start_period = $previous_year . '-10';
-		$end_period = $current_year . '-12';
+		$start_period = $previous_year . '-10'; // Inicia en octubre del año anterior.
+		$end_period = $current_year . '-12'; // Termina en diciembre del año actual.
 
 		$this->db->distinct()->select($column_name);
 
@@ -516,51 +516,157 @@ class Ar_cash_back extends CI_Controller {
 		}
 		return $row;
 	}
+	
+	public function check_date_margin_match($posted_date_str, $apply_date_str, $max_margin_days = 3) {
+		try {
+			$posted_date = new DateTime($posted_date_str);
+		} catch (Exception $e) {
+			return false; 
+		}
 		
+		try {
+			$apply_date = new DateTime($apply_date_str);
+		} catch (Exception $e) {
+			return false; 
+		}
+
+		$posted_date_formatted = $posted_date->format('Y-m-d');
+
+		for ($i = 0; $i <= $max_margin_days; $i++) {
+			$target_date = clone $apply_date;
+			
+			if ($i > 0) {
+				$target_date->modify("+$i days");
+			}
+			
+			if ($target_date->format('Y-m-d') === $posted_date_formatted) {
+				return true;
+			}
+		}
+		
+		// 5. Si el bucle termina sin coincidencia
+		return false;
+	}
+	
+	function clean_comment_text($comment_text) {
+		$comment_text = strtoupper($comment_text);
+		$comment_text = preg_replace('/^CASH APPLY:\s*STATEMENT_LINE_ID:\s*\d+\s*/', '', $comment_text);
+		$comment_text = preg_replace('/^APPLY TRANSACTION\s*/', '', $comment_text);
+		$comment_text = preg_replace('/[^A-Z0-9\s\.\-]/', '', $comment_text);
+		$comment_text = trim(preg_replace('/\s+/', ' ', $comment_text));
+		
+		return trim($comment_text);
+	}
+	
+	function check_amount_match($debit_amount, $apply_amount) {
+		$debit_amount = (float)$debit_amount;
+		$apply_amount = (float)$apply_amount;
+
+
+		// 1. Verificación de Coincidencia Exacta (con tolerancia)
+		if (abs($debit_amount - $apply_amount) < 0.01) {
+			log_message('debug', "Match EXACTO o muy cercano (< 0.01). Resultado: TRUE");
+			return true;
+		}
+
+		$rounded_amount = ceil($apply_amount);
+	
+		$difference_from_rounded = $rounded_amount - $apply_amount;
+		$tolerance = 1e-6; // Tolerancia para la precisión de floats
+		
+		if (abs($difference_from_rounded - 0.01) < $tolerance) {
+	
+			if (abs($debit_amount - $rounded_amount) < 0.01) {
+				return true;
+			} else {
+				//log_message('debug', "Falló el Match de redondeo: {$debit_amount} NO coincide con {$rounded_amount}");
+			}
+		} else {
+			//log_message('debug', "APPLY_AMOUNT NO termina en .99 (Diferencia: {$difference_from_rounded}).");
+		}
+		
+		//log_message('debug', "No hay coincidencia exacta ni por redondeo. Resultado: FALSE");
+		return false;
+	}
+
 	public function update_daily_book($data, $period, $data_group) {
+		// Verificar con AR la logica para valor VARIOS en la hoja daily book
 		$now = date('Y-m-d H:i:s');
+		$net_debit_list = [];
 		$je_ids = [];
 		$list_update = [];
 		$list_update_group = [];
 		$list_origin = [];
-		
+		$count = 0; $count_group = 0;
 		// Filter to get daily book data
-		$s = ['period_name', 'effective_date', 'invoice_number', 'net_entered_debit', 'accounting_unit', 'transaction_number', 'je_id', 'type_voucher', 'serie_voucher', 'number_voucher', 'currency', 'account', 'vendor_customer', 'account_name'];
-		$w = ['period_name' => $period];
+		$s = ['period_name', 'effective_date', 'posted_date', 'invoice_number', 'net_entered_debit', 'accounting_unit', 'transaction_number', 'je_id', 'type_voucher', 'serie_voucher', 'number_voucher', 'currency', 'account', 'vendor_customer', 'account_name', 'description_ar_comments'];
+		$w = ['period_name' => $period, 'vendor_customer !=' => null];
 		$w_in = [
 			[
 				"field" => "accounting_unit NOT",
 				"values" => ["EPG", "INT"]
 			]
 		];
-		$daily_book = $this->gen_m->filter_select('tax_daily_book', false, $s, $w, null, $w_in); 
-		foreach ($daily_book as $item_d) {
-			$key = $item_d->effective_date . '_' . $item_d->net_entered_debit . '_' . $item_d->currency;
-			if (isset($data[$key]) && ($item_d->invoice_number === null || $item_d->invoice_number === '')) {
-				if(!empty($item_d->transaction_number) || $item_d->transaction_number !== '') {
-					foreach($data[$key] as $item_key) {
-						if ($item_key['transaction_number'] === $item_d->transaction_number) {
-							$list_update[] = ['type_voucher' => $item_key['type_voucher'], 'serie_voucher' => $item_key['serie_voucher'], 'number_voucher' => $item_key['number_voucher'],'je_id' => $item_d->je_id, 'cash_back_updated' => $now];				
-						} else continue;
+		$daily_book = $this->gen_m->filter_select('tax_daily_book', false, $s, $w, null, $w_in);		
+		
+		foreach($daily_book as $daily_item) {
+			$key = $daily_item->net_entered_debit . "_" . $daily_item->currency;
+			if (isset($data[$key]) && empty($daily_item->invoice_number)) {
+
+				$customer_name = $daily_item->vendor_customer;
+
+				$customer_match_count = array_reduce($data[$key], function ($carry, $item) use ($customer_name, $daily_item) {
+					// Utilizamos tu función similar_customer y net_entered_debit para la coincidencia
+					if ($this->similar_customer($customer_name, $item['customer'], 60) === True && $daily_item->net_entered_debit == $item['net_entered_debit']) {
+						$carry++;
 					}
-				}
-				elseif (empty($item_d->transaction_number) || $item_d->transaction_number === ''){
-					foreach($data[$key] as $item_key) {
-						if ($item_key['transaction_number'] === '' || empty($item_key['transaction_number'])) {
-							$list_update[] = ['type_voucher' => $item_key['type_voucher'], 'serie_voucher' => $item_key['serie_voucher'], 'number_voucher' => $item_key['number_voucher'],'je_id' => $item_d->je_id, 'cash_back_updated' => $now];
-						} else continue;
+					return $carry;
+				}, 0); // El valor inicial del conteo es 0
+				foreach ($data[$key] as $item){
+					if (strpos($item['customer'], 'SVC') !== false) {
+						$apply_amount = $item['net_entered_debit'];
+						if (!($this->check_amount_match($daily_item->net_entered_debit, $apply_amount))) {
+							continue; 
+						}
+
+						$cleaned_daily_comment = $this->clean_comment_text($daily_item->description_ar_comments);
+
+						$cleaned_item_comment = $this->clean_comment_text($item['description_ar_comments']);
+	
+						if ($cleaned_daily_comment === $cleaned_item_comment) {
+				
+							$list_update[] = ['type_voucher' => $item['type_voucher'], 'serie_voucher' => $item['serie_voucher'], 'number_voucher' => $item['number_voucher'],'je_id' => $daily_item->je_id, 'cash_back_updated' => $now];
+						}
+					} 
+					// if ($daily_item->vendor_customer === '')
+					if ($this->similar_customer($daily_item->vendor_customer,  $item['customer'], 60)===True && $daily_item->net_entered_debit == $item['net_entered_debit']){
+						if ($customer_match_count == 1 && strpos($item['customer'], 'SVC') === false) {
+							$list_update[] = ['type_voucher' => $item['type_voucher'], 'serie_voucher' => $item['serie_voucher'], 'number_voucher' => $item['number_voucher'], 'je_id' => $daily_item->je_id, 'cash_back_updated' => $now];
+
+						} elseif ($customer_match_count > 1) {							
+							if ($this->check_date_margin_match($daily_item->posted_date, $item['apply_date'], 3)) {
+								if (strpos($item['customer'], 'SVC') !== false) {
+									continue;
+								} elseif (!empty($daily_item->transaction_number) || $daily_item->transaction_number !== ''){
+									if ($item['transaction_number'] === $daily_item->transaction_number) {
+										$list_update[] = ['type_voucher' => $item['type_voucher'], 'serie_voucher' => $item['serie_voucher'], 'number_voucher' => $item['number_voucher'],'je_id' => $daily_item->je_id, 'cash_back_updated' => $now];
+									}
+								} else $list_update[] = ['type_voucher' => $item['type_voucher'], 'serie_voucher' => $item['serie_voucher'], 'number_voucher' => $item['number_voucher'],'je_id' => $daily_item->je_id, 'cash_back_updated' => $now];
+							}
+						}
 					}
 				}
 			}
-
-			 // Group batch numbers values
-			if ($item_d->account_name === 'Foreign Currency Deposit_Ordinary' || $item_d->account_name === 'Deposit_Ordinary'){
-				$key_group = $item_d->currency . "_" . $item_d->effective_date . "_" . $item_d->net_entered_debit;
+			
+			// Group batch numbers values
+			if ($daily_item->account_name === 'Foreign Currency Deposit_Ordinary' || $daily_item->account_name === 'Deposit_Ordinary'){
+				$key_group = $daily_item->currency . "_" . $daily_item->posted_date . "_" . $daily_item->net_entered_debit;
 				if (isset($data_group[$key_group])){
 					foreach ($data_group[$key_group] as &$item) {
-						if ($item['net_entered_debit'] == $item_d->net_entered_debit && $item['apply_date'] === $item_d->effective_date){
-							if ($this->similar_customer($item_d->vendor_customer,  $item['customer'], 60)){ // Find similar customer name
-								$list_update_group[] = ['type_voucher' => 'VARIOS', 'serie_voucher' => 'VARIOS', 'number_voucher' => 'VARIOS', 'je_id' => $item_d->je_id, 'cash_back_updated' => $now];
+						if ($item['net_entered_debit'] == $daily_item->net_entered_debit && $item['apply_date'] === $daily_item->posted_date){
+							if ($this->similar_customer($daily_item->vendor_customer,  $item['customer'], 60)){ // Find similar customer name
+								$list_update_group[] = ['type_voucher' => 'VARIOS', 'serie_voucher' => 'VARIOS', 'number_voucher' => 'VARIOS', 'je_id' => $daily_item->je_id, 'cash_back_updated' => $now];
+								
 							}
 						} else continue;
 					}
@@ -569,21 +675,25 @@ class Ar_cash_back extends CI_Controller {
 			
 			if (count($list_update) > 500){
 				$this->gen_m->update_multi('tax_daily_book', $list_update, 'je_id');
+				$count += count($list_update) ?? 0;
 				$list_update = [];
 			}
 			if (count($list_update_group) > 500){
 				$this->gen_m->update_multi('tax_daily_book', $list_update_group, 'je_id');
+				$count_group += count($list_update_group) ?? 0;
 				$list_update_group = [];
 			}
 		}
 		
+		
+		// echo '<pre>'; print_r($list_update);
 		if (!empty($list_update)) {
 			$this->gen_m->update_multi('tax_daily_book', $list_update, 'je_id');
-			$count = count($list_update) ?? 0;
+			$count += count($list_update) ?? 0;
 		}
 		if (!empty($list_update_group)) {
 			$this->gen_m->update_multi('tax_daily_book', $list_update_group, 'je_id');
-			$count_group = count($list_update_group) ?? 0;
+			$count_group += count($list_update_group) ?? 0;
 		}
 		if (empty($list_update_group) && empty($list_update)){
 			return 0;
@@ -639,6 +749,7 @@ class Ar_cash_back extends CI_Controller {
 		
 		$batch_size = 1000;
 		$data = [];
+		$data_apply_amount = [];
 		$data_batch = [];
 		$date_batch = [];
 		$data_group = [];
@@ -677,28 +788,32 @@ class Ar_cash_back extends CI_Controller {
 			
 			
 			//if (empty($row['invoice_number'])) continue;
-			if (empty($row['apply_date'])) continue;
+			//if (empty($row['apply_date'])) continue;
 			if ($row['applied_amount'] == 0 && $row['chargback_created'] == 0) continue;
 			$row['apply_date'] = $this->convert_date($row['apply_date']);
 			
+			// echo '<pre>'; print_r($row);
 			if ($period === substr($row['apply_date'], 0, 7)){
 				$new_data = $this->performCalculations($row);
 				
 				if (!empty($new_data['invoice_number']) || $new_data['invoice_number'] !== ''){
 					$new_data['applied_amount'] = number_format((float)$new_data['applied_amount'], 2, '.', '');
-					$data[$new_data['apply_date'] . '_' . $new_data['applied_amount'] . '_' . $new_data['currency']][] = [
-																						'apply_date' 			=> $new_data['apply_date'],
-																						'batch_no'				=> $new_data['batch_no'],
-																						'currency'				=> $new_data['currency'],
-																						'net_entered_debit' 	=> $new_data['applied_amount'],
-																						'transaction_number' 	=> $new_data['trx_number'],
-																						'invoice_number' 		=> $new_data['invoice_number'],
-																						'type_voucher' 			=> $new_data['type_voucher'],
-																						'serie_voucher' 		=> $new_data['serie_voucher'],
-																						'number_voucher' 		=> $new_data['number_voucher']];
+					$data[$new_data['applied_amount'] . '_' . $new_data['currency']][] = [
+																						'customer'							=> $new_data['customer_name'],
+																						'description_ar_comments'			=> $new_data['comments'],
+																						'apply_date' 						=> $new_data['apply_date'],
+																						'batch_no'							=> $new_data['batch_no'],
+																						'currency'							=> $new_data['currency'],
+																						'net_entered_debit' 				=> $new_data['applied_amount'],
+																						'transaction_number' 				=> $new_data['trx_number'],
+																						'invoice_number' 					=> $new_data['invoice_number'],
+																						'type_voucher' 						=> $new_data['type_voucher'],
+																						'serie_voucher' 					=> $new_data['serie_voucher'],
+																						'number_voucher' 					=> $new_data['number_voucher']];
+																						
 				}
 				
-				// Group by Batch no from Batch Inquiry				
+				// Group by Batch no from Batch Inquiry	
 				if (!isset($data_batch[$new_data['batch_no'] . "_" . $new_data['apply_date']])) {
 					$data_batch[$new_data['batch_no'] . "_" . $new_data['apply_date']] = [
 															'customer'				=> $new_data['customer_name'],
@@ -709,6 +824,7 @@ class Ar_cash_back extends CI_Controller {
 				}
 				
 				$data_batch[$new_data['batch_no'] . "_" . $new_data['apply_date']]['net_entered_debit'] += $new_data['applied_amount'] + $new_data['chargback_created'];
+				//$data_batch[$new_data['batch_no'] . "_" . $new_data['apply_date']]['net_entered_debit'] += $new_data['chargback_created'];
 				
 				if(!isset($count_group[$new_data['batch_no'] . "_" . $new_data['apply_date']])) $count_group[$new_data['batch_no'] . "_" . $new_data['apply_date']] = 0;
 				$count_group[$new_data['batch_no'] . "_" . $new_data['apply_date']] += 1;
@@ -716,6 +832,7 @@ class Ar_cash_back extends CI_Controller {
 			} else continue;
 		}
 		
+		//echo '<pre>'; print_r($data);
 		foreach ($data_batch as $item) {
 			if ($count_group[$item['batch_no'] . "_" . $item['apply_date']] > 1 && $item['net_entered_debit'] != 0) { // Validate number matched rows greater than 1 row
 				$key_batch = $item['apply_date'] . "_" . $item['net_entered_debit'] . "_" . $item['currency']; // key for data
