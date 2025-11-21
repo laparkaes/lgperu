@@ -386,6 +386,9 @@ class Lgepr extends CI_Controller {
 			$klo_wh = ['N4S'];
 			$apm_wh = ['N4M', 'N4E'];
 			$start_month = Date('Y-m-01');
+			$date_object_start = new DateTime($start_month);
+			$date_object_start->modify('first day of -3 months');
+			$start_pre_month = $date_object_start->format('Y-m-d');
 			$today = Date('Y-m-d'); //current date
 
 			$dayOfWeek = date('N', strtotime($today));
@@ -398,7 +401,7 @@ class Lgepr extends CI_Controller {
 
 			$from_current_inventory = '';
 			$stock_cbm = [];
-			$stock = $this->gen_m->filter('v_cbm_history_lastload', false, ['on_hand_cbm !=' => 0, 'updated >=' => $start_month . ' 00:00:00'], null, null, [['updated', 'asc']]);
+			$stock = $this->gen_m->filter('v_cbm_history_lastload', false, ['on_hand_cbm !=' => 0, 'updated >=' => $start_pre_month . ' 00:00:00'], null, null, [['updated', 'asc']]);
 			
 			foreach($stock as $item_stock){
 				$type = 'Current Inventory';
@@ -430,24 +433,37 @@ class Lgepr extends CI_Controller {
 										];
 				}
 				$data_cbm[$key]["qty"] += $item_stock->on_hand;
-				$data_cbm[$key]["cbm"] += $item_stock->on_hand_cbm;
-				
+				$data_cbm[$key]["cbm"] += $item_stock->on_hand_cbm;				
 			}
 			// Calculate ML
 			if (date('m') == 1 || date('m') === '01'){
 				$current_ml = $this->gen_m->filter_select('lgepr_most_likely', false, ['ml_actual'], ['yyyy' => date('Y'), 'mm' => 1]);
 				$past_ml = $this->gen_m->filter_select('lgepr_most_likely', false, ['ml_actual'], ['yyyy' => date('Y')-1, 'mm' => 12]);
+				$future_ml = $this->gen_m->filter_select('lgepr_most_likely', false, ['ml_actual'], ['yyyy' => date('Y'), 'mm' => 2]);
+			} elseif (date('m') == 12 || date('m') === '12'){
+				$current_ml = $this->gen_m->filter_select('lgepr_most_likely', false, ['ml_actual'], ['yyyy' => date('Y'), 'mm' => date('m')]);
+				$past_ml = $this->gen_m->filter_select('lgepr_most_likely', false, ['ml_actual'], ['yyyy' => date('Y'), 'mm' => date('m')-1]);
+				$future_ml = $this->gen_m->filter_select('lgepr_most_likely', false, ['ml_actual'], ['yyyy' => date('Y')+1, 'mm' => 1]);
 			} else {
 				$current_ml = $this->gen_m->filter_select('lgepr_most_likely', false, ['ml_actual'], ['yyyy' => date('Y'), 'mm' => date('m')]);
 				$past_ml = $this->gen_m->filter_select('lgepr_most_likely', false, ['ml_actual'], ['yyyy' => date('Y'), 'mm' => date('m')-1]);
+				$future_ml = $this->gen_m->filter_select('lgepr_most_likely', false, ['ml_actual'], ['yyyy' => date('Y'), 'mm' => date('m')+1]);
 			}
+
 			$current_ml_sum = 0;
 			foreach ($current_ml as $item) $current_ml_sum += $item->ml_actual;
 			$past_ml_sum = 0;
 			foreach ($past_ml as $item) $past_ml_sum += $item->ml_actual;
-
-			$start_month = Date('Y-m-01');
+			$future_ml_sum = 0;
+			if (empty($future_ml) || $future_ml === '') {
+				$future_ml_sum = $current_ml_sum;
+			} else {
+				foreach ($future_ml as $item) $future_ml_sum += $item->ml_actual;
+			}
 			
+			$start_month = Date('Y-m-01');
+			$first_week = date('Y-m-22');
+
 			$dayOfMonth = date('d', strtotime($today));
 			$lastMonthMaxDays = date('t', strtotime('first day of last month'));
 
@@ -466,14 +482,19 @@ class Lgepr extends CI_Controller {
 			}
 			$firstDayLastMonth = date('Y-m-d', strtotime('first day of last month'));
 			
+			// Sales
 			$cbm_total = 0;
-			$closed = $this->gen_m->filter_select('lgepr_closed_order', false, ['dash_company', 'dash_division', 'model', 'inventory_org', 'order_qty', 'closed_date', 'item_cbm', 'updated_at'],['item_cbm !=' => 0, 'closed_date >=' => $firstDayLastMonth, 'closed_date <' => $start_month]);
+			$cbm_total_f = 0;		
+			$closed = $this->gen_m->filter_select('lgepr_closed_order', false, ['dash_company', 'dash_division', 'model', 'inventory_org', 'order_qty', 'closed_date', 'item_cbm', 'updated_at'],['item_cbm !=' => 0, 'closed_date >=' => $firstDayLastMonth, 'closed_date <=' => $first_week]);
 			
 			foreach ($closed as $item) {
 				$type = 'Sales';
-				$key = $item->closed_date . "_" . $item->model . "_" . $item->dash_company . "_" . $item->dash_division . "_" . $item->inventory_org;		
-				$cbm_total += $item->item_cbm;
+				$key = $item->closed_date . "_" . $item->model . "_" . $item->dash_company . "_" . $item->dash_division . "_" . $item->inventory_org;
 				
+				if ($item->closed_date < $start_month){
+					$cbm_total += $item->item_cbm;
+				} else $cbm_total_f += $item->item_cbm;
+								
 				$dates = explode("-", $item->closed_date);
 				$year = $dates[0];
 				$month = $dates[1];
@@ -498,12 +519,33 @@ class Lgepr extends CI_Controller {
 									"updated" 			=> $item->updated_at
 						];
 					}
-				} elseif ($item->closed_date > $todayLastMonth){
+				} elseif ($item->closed_date > $todayLastMonth && $item->closed_date < $start_month){
 					if (!isset($data_cbm[$key])) {
 						$data_cbm[$key] = [
 									"type" 				=> $type,
 									"date"				=> date('Y-m-d', strtotime($item->closed_date . ' +1 month')),
-									"year" 				=> $year,
+									"year" 				=> ($month == 12 || $month === '12') ? $year + 1 : $year,
+									"month" 			=> ($month == 12 || $month === '12') ? 1 : $month + 1,
+									"day" 				=> $day,
+									"dash_company"		=> $item->dash_company,
+									"dash_division" 	=> $item->dash_division,
+									"model" 			=> $item->model,
+									"warehouse"			=> in_array($item->inventory_org, $klo_wh) ? 'KLO' : (in_array($item->inventory_org, $apm_wh) ? 'APM' : ''),
+									"org" 				=> $item->inventory_org,
+									"qty"				=> 0,
+									"container"			=> '',
+									"cbm" 				=> 0,
+									"updated" 			=> $item->updated_at
+						];
+					}
+					$data_cbm[$key]['cbm'] += $item->item_cbm;
+					$data_cbm[$key]['qty'] += $item->order_qty;
+				}elseif ($item->closed_date >= $start_month){
+					if (!isset($data_cbm[$key])) {
+						$data_cbm[$key] = [
+									"type" 				=> $type,
+									"date"				=> date('Y-m-d', strtotime($item->closed_date . ' +1 month')),
+									"year" 				=> ($month == 12 || $month === '12') ? $year + 1 : $year,
 									"month" 			=> ($month == 12 || $month === '12') ? 1 : $month + 1,
 									"day" 				=> $day,
 									"dash_company"		=> $item->dash_company,
@@ -521,12 +563,18 @@ class Lgepr extends CI_Controller {
 					$data_cbm[$key]['qty'] += $item->order_qty;
 				} else continue;
 			}
-			$var_ml = ($cbm_total/$past_ml_sum) * $current_ml_sum;
+
+			$var_ml = ($cbm_total/$past_ml_sum) * $current_ml_sum; // ML proportional with current dates and past dates
+			$var_fml = ($cbm_total_f/$current_ml_sum) * $future_ml_sum; // ML proportional with future dates and current dates
+
 			foreach ($data_cbm as $key => &$item) {
-				if ($item['type'] === 'Sales') $item['cbm'] = number_format((($item['cbm'] / $cbm_total) * $var_ml) * -1, 4);
-				else continue;
+				if ($item['date'] <= date('Y-m-t')){ // Comparative between changed dates
+					if ($item['type'] === 'Sales') $item['cbm'] = number_format((($item['cbm'] / $cbm_total) * $var_ml) * -1, 4); // Current date
+				} else {
+					if ($item['type'] === 'Sales') $item['cbm'] = number_format((($item['cbm'] / $cbm_total_f) * $var_fml) * -1, 4); // Future week
+				}
 			}
-			
+
 			// Real Sales
 			$sales = $this->gen_m->filter('lgepr_sales_order', false, ['cbm !=' => 0, 'appointment_date >=' => $yesterday, 'appointment_date !=' => null], null, null, [['appointment_date', 'asc']]);
 			
@@ -620,15 +668,15 @@ class Lgepr extends CI_Controller {
 				elseif((new DateTime($item_container->eta))->format('Y-m-d') > $today){
 					if(!isset($data_cbm[$key])){
 						$data_cbm[$key] = [
-								"type" 				=> $type, 
+								"type" 				=> $type,
 								"date"				=> $item_container->eta,
-								"year" 				=> $year, 
-								"month" 			=> $month, 
-								"day" 				=> $day, 
+								"year" 				=> $year,
+								"month" 			=> $month,
+								"day" 				=> $day,
 								"dash_company"		=> $item_container->company,
 								"dash_division" 	=> $item_container->division,
 								"model" 			=> $item_container->model,
-								"warehouse"			=> in_array($item_container->organization, $klo_wh) ? 'KLO' : (in_array($item_container->organization, $apm_wh) ? 'APM' : ''), 
+								"warehouse"			=> in_array($item_container->organization, $klo_wh) ? 'KLO' : (in_array($item_container->organization, $apm_wh) ? 'APM' : ''),
 								"org" 				=> $item_container->organization,
 								"qty"				=> 0,
 								"container"			=> $item_container->container,
@@ -935,4 +983,29 @@ class Lgepr extends CI_Controller {
 		echo json_encode($res);
 	}
 
+	public function get_ap_report() {
+		//llamasys/api/lgepr/get_ap_report?key=lgepr
+		if ($this->input->get("key") === "lgepr") {
+			$res = [];
+			$data = $this->gen_m->filter('ap_report', false, null, null, null, [['week', 'asc']]);
+			
+			$week_number = date('W'); // Current week
+			$current_day_of_week = date('N');
+			
+			foreach ($data as $item){
+				$cloned_item = clone $item;
+				
+				if ($cloned_item->week < $week_number) $cloned_item->status = 'Paid';
+				else $cloned_item->status = 'Pending Payment';
+				
+				unset($cloned_item->id);
+				unset($cloned_item->key_ap);
+				unset($cloned_item->last_updated);
+				$res[] = clone $cloned_item;
+			}
+		} else $res = ["Key error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
 }

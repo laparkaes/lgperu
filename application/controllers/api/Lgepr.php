@@ -1008,4 +1008,99 @@ class Lgepr extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode($res);
 	}
+	
+		public function get_ar_detail() {
+		//llamasys/api/lgepr/get_ar_detail?key=lgepr
+		if ($this->input->get("key") === "lgepr") {
+			$res = []; $key_list = [];
+			$data = $this->gen_m->filter('ar_detail', false, null, null, null, [['last_updated', 'desc']]);
+			foreach($data as $item) $key_list[] = $item->key_detail;
+			$exchange = [];
+			$exchange_rate = $this->gen_m->filter('exchange_rate', false, ['currency' => 'PEN']);
+			foreach ($exchange_rate as $item) $exchange[$item->date_apply] = $item;
+
+			foreach ($data as $item){
+				$cloned_item = clone $item;
+				
+				$current_date = new DateTime();
+				$current_date->modify('-1 day');
+				$bedore_date = $current_date->format('Y-m-d');
+				
+				if ($cloned_item->currency === 'PEN') {
+					$cloned_item->original_amount_entered_curr = number_format($cloned_item->original_amount_entered_curr / $exchange[$bedore_date]->sell, 2);
+					$cloned_item->offset = number_format($cloned_item->offset / $exchange[$bedore_date]->sell, 2);
+					$cloned_item->cash_receipt = number_format($cloned_item->cash_receipt / $exchange[$bedore_date]->sell, 2);
+					$cloned_item->on_account = number_format($cloned_item->on_account / $exchange[$bedore_date]->sell, 2);
+					$cloned_item->note_to_cash = number_format($cloned_item->note_to_cash / $exchange[$bedore_date]->sell, 2);
+					$cloned_item->cash_discount = number_format($cloned_item->cash_discount / $exchange[$bedore_date]->sell, 2);
+					$cloned_item->other_expense = number_format($cloned_item->other_expense / $exchange[$bedore_date]->sell, 2);
+					$cloned_item->note = number_format($cloned_item->note / $exchange[$bedore_date]->sell, 2);
+					$cloned_item->note_balance = number_format($cloned_item->note_balance / $exchange[$bedore_date]->sell, 2);
+					$cloned_item->balance_total = number_format($cloned_item->balance_total / $exchange[$bedore_date]->sell, 2);
+					$cloned_item->currency = 'USD';
+				}
+				
+				unset($cloned_item->id);
+				unset($cloned_item->key_detail);
+				unset($cloned_item->last_updated);
+				$res[] = clone $cloned_item;
+			}
+		} else $res = ["Key error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+
+	public function get_ar_aging() {
+		//llamasys/api/lgepr/get_ar_detail?key=lgepr
+		if ($this->input->get("key") === "lgepr") {
+			$res = [];
+			$data = $this->gen_m->filter('ar_aging', false, null, null, null, [['last_updated', 'desc']]);
+
+			foreach ($data as $item){
+				$cloned_item = clone $item;
+				
+				unset($cloned_item->id);
+				unset($cloned_item->key_aging);
+				unset($cloned_item->last_updated);
+				$res[] = clone $cloned_item;
+			}
+		} else $res = ["Key error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+
+	public function get_ar_cash_report() { // gl date
+		//llamasys/api/lgepr/get_ar_detail?key=lgepr
+		if ($this->input->get("key") === "lgepr") {
+			$res = [];
+			$data = $this->gen_m->filter('ar_cash_report', false, null, null, null, [['last_updated', 'desc']]);
+			
+			$exchange = [];
+			$exchange_rate = $this->gen_m->filter('exchange_rate', false, ['currency' => 'PEN']);
+			foreach ($exchange_rate as $item) $exchange[$item->date_apply] = $item;
+			
+			foreach ($data as $item){
+				$cloned_item = clone $item;
+				
+				if (isset($exchange[$cloned_item->gl_date])) {
+					if ($cloned_item->deposit_currency === 'PEN') {
+						$cloned_item->alloc_amount = number_format($cloned_item->alloc_amount / $exchange[$cloned_item->gl_date]->sell, 2);
+						$cloned_item->deposit_amount = number_format($cloned_item->deposit_amount / $exchange[$cloned_item->gl_date]->sell, 2);
+						$cloned_item->deposit_currency = 'USD';
+					}
+				} 
+				
+				unset($cloned_item->id);
+				unset($cloned_item->key_cash_report);
+				unset($cloned_item->last_updated);
+				$res[] = clone $cloned_item;
+			}
+		} else $res = ["Key error"];
+		
+		header('Content-Type: application/json');
+		echo json_encode($res);
+	}
+	
 }
