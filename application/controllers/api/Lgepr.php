@@ -1010,11 +1010,10 @@ class Lgepr extends CI_Controller {
 	}
 	
 		public function get_ar_detail() {
-		//llamasys/api/lgepr/get_ar_detail?key=lgepr
+			//llamasys/api/lgepr/get_ar_detail?key=lgepr
 		if ($this->input->get("key") === "lgepr") {
 			$res = []; $key_list = [];
 			$data = $this->gen_m->filter('ar_detail', false, null, null, null, [['last_updated', 'desc']]);
-			foreach($data as $item) $key_list[] = $item->key_detail;
 			$exchange = [];
 			$exchange_rate = $this->gen_m->filter('exchange_rate', false, ['currency' => 'PEN']);
 			foreach ($exchange_rate as $item) $exchange[$item->date_apply] = $item;
@@ -1024,24 +1023,38 @@ class Lgepr extends CI_Controller {
 				
 				$current_date = new DateTime();
 				$current_date->modify('-1 day');
-				$bedore_date = $current_date->format('Y-m-d');
+				$before_date = $current_date->format('Y-m-d');
 				
-				if ($cloned_item->currency === 'PEN') {
-					$cloned_item->original_amount_entered_curr = number_format($cloned_item->original_amount_entered_curr / $exchange[$bedore_date]->sell, 2);
-					$cloned_item->offset = number_format($cloned_item->offset / $exchange[$bedore_date]->sell, 2);
-					$cloned_item->cash_receipt = number_format($cloned_item->cash_receipt / $exchange[$bedore_date]->sell, 2);
-					$cloned_item->on_account = number_format($cloned_item->on_account / $exchange[$bedore_date]->sell, 2);
-					$cloned_item->note_to_cash = number_format($cloned_item->note_to_cash / $exchange[$bedore_date]->sell, 2);
-					$cloned_item->cash_discount = number_format($cloned_item->cash_discount / $exchange[$bedore_date]->sell, 2);
-					$cloned_item->other_expense = number_format($cloned_item->other_expense / $exchange[$bedore_date]->sell, 2);
-					$cloned_item->note = number_format($cloned_item->note / $exchange[$bedore_date]->sell, 2);
-					$cloned_item->note_balance = number_format($cloned_item->note_balance / $exchange[$bedore_date]->sell, 2);
-					$cloned_item->balance_total = number_format($cloned_item->balance_total / $exchange[$bedore_date]->sell, 2);
-					$cloned_item->currency = 'USD';
+				if (isset($exchange[$before_date])) {
+					if ($cloned_item->currency === 'PEN') {
+						$cloned_item->original_amount_entered_curr = number_format($cloned_item->original_amount_entered_curr / $exchange[$before_date]->sell, 2);
+						$cloned_item->offset = number_format($cloned_item->offset / $exchange[$before_date]->sell, 2);
+						$cloned_item->cash_receipt = number_format($cloned_item->cash_receipt / $exchange[$before_date]->sell, 2);
+						$cloned_item->on_account = number_format($cloned_item->on_account / $exchange[$before_date]->sell, 2);
+						$cloned_item->note_to_cash = number_format($cloned_item->note_to_cash / $exchange[$before_date]->sell, 2);
+						$cloned_item->cash_discount = number_format($cloned_item->cash_discount / $exchange[$before_date]->sell, 2);
+						$cloned_item->other_expense = number_format($cloned_item->other_expense / $exchange[$before_date]->sell, 2);
+						$cloned_item->note = number_format($cloned_item->note / $exchange[$before_date]->sell, 2);
+						$cloned_item->note_balance = number_format($cloned_item->note_balance / $exchange[$before_date]->sell, 2);
+						$cloned_item->balance_total = number_format($cloned_item->balance_total / $exchange[$before_date]->sell, 2);
+						$cloned_item->currency = 'USD';
+					}
+				} else {
+					if ($cloned_item->currency === 'PEN') {
+						$cloned_item->original_amount_entered_curr = 'Exchange Rate no updated (Report PI)';
+						$cloned_item->offset = 'Exchange Rate no updated (Report PI)';
+						$cloned_item->cash_receipt = 'Exchange Rate no updated (Report PI)';
+						$cloned_item->on_account = 'Exchange Rate no updated (Report PI)';
+						$cloned_item->note_to_cash = 'Exchange Rate no updated (Report PI)';
+						$cloned_item->cash_discount = 'Exchange Rate no updated (Report PI)';
+						$cloned_item->other_expense = 'Exchange Rate no updated (Report PI)';
+						$cloned_item->note ='Exchange Rate no updated (Report PI)';
+						$cloned_item->note_balance = 'Exchange Rate no updated (Report PI)';
+						$cloned_item->balance_total = 'Exchange Rate no updated (Report PI)';
+					}
 				}
 				
 				unset($cloned_item->id);
-				unset($cloned_item->key_detail);
 				unset($cloned_item->last_updated);
 				$res[] = clone $cloned_item;
 			}

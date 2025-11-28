@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 20, 2025 at 06:02 PM
+-- Generation Time: Nov 28, 2025 at 09:39 PM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 7.4.33
 
@@ -29,8 +29,6 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `ar_detail` (
   `id` int(11) NOT NULL,
-  `key_detail` varchar(255) DEFAULT NULL,
-  `status` varchar(255) DEFAULT NULL,
   `invoice_no` varchar(255) DEFAULT NULL,
   `ar_class` varchar(100) DEFAULT NULL,
   `ar_type` varchar(100) DEFAULT NULL,

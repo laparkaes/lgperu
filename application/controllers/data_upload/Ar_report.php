@@ -64,12 +64,11 @@ class Ar_report extends CI_Controller {
 		set_time_limit(0);
 		ini_set("memory_limit", -1);
 		
+		//delete all rows ar_detail 
+		$this->gen_m->truncate("ar_detail");
+		
 		$start_time = microtime(true);
 		$file_path = "./upload/" . $filename;
-
-		$key_list = [];
-		$data_cash = $this->gen_m->filter_select('ar_detail', false, 'key_detail'); 
-		foreach($data_cash as $item) $key_list[$item->key_detail] = $item->key_detail;
 
 		if (($handle = fopen($file_path, "r")) === FALSE) {
 			return "Error opening file: Could not read $filename.";
@@ -84,13 +83,13 @@ class Ar_report extends CI_Controller {
 			$is_ok = false;
 		} else {
 			for ($i = 0; $i < count($h_origin); $i++) {
-				// if (trim($h_file[$i]) !== $h_origin[$i]) $is_ok = false;
+				if (trim($h_file[$i]) !== $h_origin[$i]) $is_ok = false;
 			}
 		}
 
 		if ($is_ok){
-			$batch_data = []; $batch_data_update = [];
-			$inserted_rows = 0; $updated_rows = 0;
+			$batch_data = []; 
+			$inserted_rows = 0;
 			$processed_rows = 0;
 			$updated = date("Y-m-d H:i:s");
 			
@@ -161,29 +160,14 @@ class Ar_report extends CI_Controller {
 				$row["gl_date"] = $this->convert_date($row["gl_date"]);
 				$row["invoice_date"] = $this->convert_date($row["invoice_date"]);
 				$row["creation_date"] = $this->convert_date($row["creation_date"]);
-				$row["key_detail"] = $row['invoice_no'] . "_" . $row['gl_date'] . "_" . $row['period'] . "_" . $row['currency'] . "_" . $row['original_amount_entered_curr'] ."_". $row['balance_total'] . "_" . $row['ar_no'] . "_" . $row['reference_no'];
-				
-				if (!in_array($row['key_detail'], $key_list)) {
-					$row['status'] = 'Por Cobrar';
-					$batch_data[] = $row;
-				}else {
-					$row['status'] = 'Cobrado';
-					$batch_data_update[] = $row; 
-				}
-				
-				
+
+				$batch_data[] = $row;
+						
 				if (count($batch_data) > 1000) {
 					$this->gen_m->insert_m("ar_detail", $batch_data);
 					$inserted_rows += count($batch_data);
 					$batch_data = [];
 					unset($batch_data);
-				}
-				
-				if (count($batch_data_update) > 1000) {
-					$this->gen_m->update_multi('ar_detail', $batch_data_update, 'key_detail');
-					$updated_rows += count($batch_data_update);
-					$batch_data_update = [];
-					unset($batch_data_update);
 				}
 				
 			}
@@ -192,15 +176,10 @@ class Ar_report extends CI_Controller {
 				$this->gen_m->insert_m("ar_detail", $batch_data);
 				$inserted_rows += count($batch_data);
 			}
-			if(!empty($batch_data_update)){
-				$this->gen_m->update_multi('ar_detail', $batch_data_update, 'key_detail');
-				$updated_rows += count($batch_data_update);
-			}
-			
+
 			fclose($handle);
 
 			$msg = $inserted_rows . " rows inserted.<br>";
-			$msg .= $updated_rows . " rows updated.<br>";
 			$msg .= "Total time: " . number_Format(microtime(true) - $start_time, 2) . " secs.";
 			
 			return $msg;
@@ -296,10 +275,10 @@ class Ar_report extends CI_Controller {
 				
 				$row['key_aging'] = $row["period"] . "_" . $row["invoice_no"] . "_" . $row["bill_code"] . "_" . $row["bill_name"] . "_" . $row["currency"] . "_" . $row["trx_number"] . "_" . $row["amount"] . "_" . $row["reference_no"];
 				if (!in_array($row['key_aging'], $key_list)) {
-					$row["status"] = 'Por Cobrar';
+					$row["status"] = 'Cobrado';
 					$batch_data[] = $row;
 				} else {
-					$row["status"] = 'Cobrado';
+					$row["status"] = 'Por Cobrar';
 					$batch_data_update[] = $row;
 				}
 								
@@ -508,4 +487,6 @@ class Ar_report extends CI_Controller {
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg]);
 	}
+
 }
+
