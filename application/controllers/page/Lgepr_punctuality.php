@@ -1020,13 +1020,17 @@ class Lgepr_punctuality extends CI_Controller {
 		
 		//additional data set
 		//period list
-		$periods = [];
-		$jan = date("Y-01"); 
 		$now = date("Y-m");
+		$periods = [$now, date("Y-m", strtotime($now." -1 month"))];
+		
+		/*
+		$jan = date("Y-01"); 
+		
 		while(strtotime($now) >= strtotime($jan)){
 			$periods[] = $now;
 			$now = date("Y-m", strtotime($now." -1 month"));
 		}
+		*/
 		
 		//options to select in exception list for employee
 		$exceptions_emp = [
