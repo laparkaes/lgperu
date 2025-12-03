@@ -1009,8 +1009,8 @@ class Lgepr extends CI_Controller {
 		echo json_encode($res);
 	}
 	
-		public function get_ar_detail() {
-			//llamasys/api/lgepr/get_ar_detail?key=lgepr
+	public function get_ar_detail() {
+		//llamasys/api/lgepr/get_ar_detail?key=lgepr
 		if ($this->input->get("key") === "lgepr") {
 			$res = []; $key_list = [];
 			$data = $this->gen_m->filter('ar_detail', false, null, null, null, [['last_updated', 'desc']]);
