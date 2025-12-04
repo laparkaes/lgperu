@@ -127,7 +127,7 @@ class Scm_goodset_return extends CI_Controller {
 					'updated_at' => $now
 				];
 				
-				if ($row['reference_no']) $row['delivery_note'] = $this->get_gre($row['reference_no']);
+				if ($row['sales_invoice_no']) $row['delivery_note'] = $this->get_gre($row['sales_invoice_no']);
 				
 				//comma remove
 				if ($row["price"]) $row["price"] = str_replace(",", "", $row["price"]);
