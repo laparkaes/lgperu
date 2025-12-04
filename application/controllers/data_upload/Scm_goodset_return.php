@@ -200,8 +200,8 @@ class Scm_goodset_return extends CI_Controller {
         // Subcarpetas específicas donde buscar los XML
         $target_subfolders = ['FACTURA_ELECTRONICA', 'NOTA_DE_CREDITO'];
 
-		$original_invoice_no = "";
-		$search_value = "hola";
+		$original_invoice_no = "F001-00298980";
+		$search_value = "F001-00298980";
 		
         //foreach ($invoice_data_to_search as $original_invoice_no => $search_value) {
             $found_delivery_note = ''; // Reset para cada factura
