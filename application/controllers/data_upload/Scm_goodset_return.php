@@ -149,7 +149,7 @@ class Scm_goodset_return extends CI_Controller {
 				
 				$records++;
 				
-				print_r($row); echo "<br/><br/>";
+				//print_r($row); echo "<br/><br/>";
 			}
 			
 			$msg = number_format($records)." record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
@@ -195,21 +195,25 @@ class Scm_goodset_return extends CI_Controller {
 		$rmas = $this->gen_m->filter("scm_goodset_return", false, ["reference_no !=" => ""], null, null, null, 500);
 		
 		foreach($rmas as $item){
-			$aux = explode("-", $item->reference_no);
-			if (array_key_exists(2, $aux)){
-				$item->reference_no = $aux[1]."-".$aux[2];
-				echo $item->reference_no." >>> ".$this->get_gre($item->reference_no)."<br/>";
-			}
+			
+			echo $item->reference_no." >>> ".$this->get_gre($item->reference_no)."<br/>";
+
 		}
 	}
 	
-	public function get_gre($search_value = "F001-00298980"){
+	public function get_gre($search_value = "01-F001-00298980"){
 	
         $base_e_documents_path = FCPATH . 'eDocuments/'; // Ruta base a la carpeta eDocuments
         $current_year = date('Y'); // Obtener el año actual dinámicamente
 
         // Subcarpetas específicas donde buscar los XML
         $target_subfolders = ['FACTURA_ELECTRONICA', 'NOTA_DE_CREDITO'];
+
+		$aux = explode("-", $search_value);
+		if (array_key_exists(2, $aux)){
+			$search_value = $aux[1]."-".$aux[2];
+			//echo $item->reference_no." >>> ".$this->get_gre($item->reference_no)."<br/>";
+		}
 
 		$original_invoice_no = $search_value;
 		
