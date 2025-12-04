@@ -24,59 +24,30 @@
 							</div>
 						</form>
 					</div>
-					<table class="table datatable">
+					<table class="table datatable table-sm">
 						<thead>
 							<tr>
-								<th scope="col">Dept.</th>
 								<th scope="col">Type</th>
-								<th scope="col">Customer</th>
+								<th scope="col">RMA</th>
 								<th scope="col">Status</th>
-								<th scope="col">Division</th>
-								<th scope="col">Order</th>
-								<th scope="col">Line</th>
+								<th scope="col">Customer</th>
 								<th scope="col">Model</th>
-								<th scope="col">Qty</th>
-								<th scope="col">Amount (USD)</th>
-								<th scope="col">Org</th>
-								<th scope="col">Created</th>
-								<th scope="col">Request</th>
-								<th scope="col">Appointment</th>
-								<th scope="col">Shipment</th>
-								
-								<!--
-								<th scope="col">PEN</th>
-								<th scope="col">Level 1</th>
-								<th scope="col">Level 2</th>
-								<th scope="col">Level 3</th>
-								<th scope="col">Level 4</th>
-								-->
+								<th scope="col">Qty / Amount</th>
+								<th scope="col">Invo Date (SO)</th>
+								<th scope="col">Entry<br/>Approved<br/>Received</th>
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach($sales_orders as $item){ ?>
+							<?php foreach($goodset_returns as $item){ ?>
 							<tr>
-								<td><?= $item->customer_department ?></td>
-								<td><?= $item->order_category ?></td>
+								<td><?= $item->rma_type ?></td>
+								<td><?= $item->rma_no ?>_<?= $item->rma_line_no ?></td>
+								<td><?= $item->status ?></td>
 								<td><?= $item->bill_to_name ?></td>
-								<td><?= $item->line_status ?></td>
-								<td><?= $item->dash_division ?></td>
-								<td><?= $item->order_no ?></td>
-								<td><?= $item->line_no ?></td>
-								<td><?= $item->model ?></td>
-								<td><?= $item->ordered_qty ?></td>
-								<td><?= number_format($item->sales_amount_usd, 2) ?></td>
-								<td><?= $item->inventory_org ?></td>
-								<td><?= $item->create_date ?></td>
-								<td><?= $item->req_arrival_date_to ?></td>
-								<td><?= $item->appointment_date ?></td>
-								<td><?= $item->shipment_date ?></td>
-								<!--
-								<td><?= number_format($item->sales_amount, 2) ?></td>
-								<td><?= $item->product_level1_name ?></td>
-								<td><?= $item->product_level2_name ?></td>
-								<td><?= $item->product_level3_name ?></td>
-								<td><?= $item->product_level4_name ?></td>
-								-->
+								<td><?= $item->model ?><br/><?= $item->product_level1 ?></td>
+								<td><?= abs($item->entry_qty) ?> units<br/><?= $item->currency ?> <?= number_format(abs($item->entry_amt), 2) ?></td>
+								<td><?= $item->sales_invoice_date ?><br/><?= $item->sales_order_no ?></td>
+								<td><?= $item->entry_date ?><br/><?= $item->approval_date ?><br/><?= $item->receiving_date ?></td>
 							</tr>
 							<?php } ?>
 						</tbody>

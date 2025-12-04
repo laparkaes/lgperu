@@ -24,9 +24,6 @@ class Scm_goodset_return extends CI_Controller {
 		
 		$o = [["entry_date", "desc"], ["approval_date", "desc"], ["receiving_date", "desc"]];
 		
-		$w = ["rma_no" => $row["rma_no"], "rma_line_no" => $row["rma_line_no"]];
-		if ($this->gen_m->filter("scm_goodset_return", false, $w)) $this->gen_m->update("scm_goodset_return", $w, $row);
-		
 		$data = [
 			"goodset_returns"	=> $this->gen_m->filter("scm_goodset_return", false, null, null, null, $o, 5000),
 			"main" 			=> "data_upload/scm_goodset_return/index",
@@ -131,6 +128,12 @@ class Scm_goodset_return extends CI_Controller {
 					'updated_at' => $now
 				];
 				
+				//comma remove
+				if ($row["price"]) $row["price"] = str_replace(",", "", $row["price"]);
+				if ($row["entry_amt"]) $row["entry_amt"] = str_replace(",", "", $row["entry_amt"]);
+				if ($row["entry_qty"]) $row["entry_qty"] = str_replace(",", "", $row["entry_qty"]);
+				if ($row["approval_qty"]) $row["approval_qty"] = str_replace(",", "", $row["approval_qty"]);
+				if ($row["receiving_qty"]) $row["receiving_qty"] = str_replace(",", "", $row["receiving_qty"]);
 				
 				//date convert: dd/mm/yyyy > yyyy-mm-dd
 				if ($row["sales_invoice_date"]) $row["sales_invoice_date"] = $this->my_func->date_convert($row["sales_invoice_date"]);
@@ -146,7 +149,7 @@ class Scm_goodset_return extends CI_Controller {
 				
 				$records++;
 				
-				//print_r($row); echo "<br/><br/>";
+				print_r($row); echo "<br/><br/>";
 			}
 			
 			$msg = number_format($records)." record uploaded in ".number_Format(microtime(true) - $start_time, 2)." secs.";
@@ -186,6 +189,100 @@ class Scm_goodset_return extends CI_Controller {
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg]);
+	}
+	
+	public function test(){
+		
+		$search_value = "hola";
+		
+        //foreach ($invoice_data_to_search as $original_invoice_no => $search_value) {
+            $found_delivery_note = ''; // Reset para cada factura
+            $xml_found_and_processed = false; // Flag para saber si ya encontramos y procesamos el XML para esta factura
+
+            if (empty($search_value)) {
+                log_message('info', 'Skipping file search for empty/null processed invoice_no for original: ' . $original_invoice_no);
+                $xml_found_and_processed = true; // No hay nada que buscar, consideramos "procesado"
+            } else {
+                // Iterar sobre cada mes (01 a 12)
+                for ($month = 1; $month <= 12; $month++) {
+                    if ($xml_found_and_processed) break; // Salir del bucle de meses si ya se encontró el XML
+
+                    $month_padded = str_pad($month, 2, '0', STR_PAD_LEFT); // Formato MM (ej. 01, 02)
+                    $month_folder_path = $base_e_documents_path . $current_year . '/' . $month_padded . '/';
+
+                    // Verificar si la carpeta del mes existe antes de buscar dentro
+                    if (!is_dir($month_folder_path)) {
+                        log_message('debug', 'Monthly folder not found: ' . $month_folder_path);
+                        continue; // Pasar al siguiente mes
+                    }
+					
+                    // Iterar sobre las subcarpetas objetivo (FACTURA_ELECTRONICA, NOTA_DE_CREDITO)
+                    foreach ($target_subfolders as $subfolder) {
+                        if ($xml_found_and_processed) break; // Salir del bucle de subcarpetas si ya se encontró el XML
+
+                        $target_path = $month_folder_path . $subfolder . '/';
+                        $expected_file_path = $target_path . $search_value . '.xml';
+
+                        log_message('debug', 'Attempting to find XML at: ' . $expected_file_path);
+
+                        if (file_exists($expected_file_path)) {
+                            libxml_use_internal_errors(true); // Habilitar manejo interno de errores XML
+                            $xml = simplexml_load_file($expected_file_path);
+
+                            if ($xml === false) {
+                                $xml_errors = libxml_get_errors();
+                                $error_msg = "XML parsing error for file {$expected_file_path}: ";
+                                foreach ($xml_errors as $error) {
+                                    $error_msg .= $error->message . " ";
+                                }
+                                log_message('error', $error_msg);
+                                libxml_clear_errors();
+                            } else {
+                                // --- Lógica para buscar el GuiaRem dentro del XML (TU CÓDIGO EXISTENTE Y FUNCIONAL) ---
+                                $ext_namespace_uri = 'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2';
+                                $xml->registerXPathNamespace('ext', $ext_namespace_uri);
+                                
+                                $default_namespaces = $xml->getDocNamespaces(true);
+                                $default_namespace_uri = isset($default_namespaces['']) ? $default_namespaces[''] : null;
+                                $guia_rem_nodes = []; // Inicializar array para resultados
+                                $xpath_query_used = ''; // Para fines de log
+
+                                if ($default_namespace_uri) {
+                                    $xml->registerXPathNamespace('def', $default_namespace_uri);
+                                    $xpath_query_used = '//ext:UBLExtension/ext:ExtensionContent/def:CustomText/def:Text[@name="GuiaRem"]';
+                                    $guia_rem_nodes = $xml->xpath($xpath_query_used);
+
+                                    if (empty($guia_rem_nodes)) {
+                                        $xpath_query_used = '//ext:UBLExtension/ext:ExtensionContent/CustomText/Text[@name="GuiaRem"]';
+                                        $guia_rem_nodes = $xml->xpath($xpath_query_used);
+                                    }
+                                } else {
+                                    $xpath_query_used = '//ext:UBLExtension/ext:ExtensionContent/CustomText/Text[@name="GuiaRem"]';
+                                    $guia_rem_nodes = $xml->xpath($xpath_query_used);
+                                }
+                                
+                                if (!empty($guia_rem_nodes)) {
+                                    $found_delivery_note = (string)$guia_rem_nodes[0];
+                                    log_message('info', 'Found delivery note: ' . $found_delivery_note . ' for invoice: ' . $original_invoice_no . ' in ' . $expected_file_path);
+                                    $xml_found_and_processed = true; // Marcar como encontrado y procesado
+                                } else {
+                                    log_message('warning', 'Delivery note (GuiaRem) not found in XML: ' . $expected_file_path . ' using XPath: ' . $xpath_query_used);
+                                }
+                            }
+                            libxml_clear_errors(); // Siempre limpiar errores después de procesar
+                        } else {
+                            log_message('debug', 'XML file NOT FOUND for ' . $original_invoice_no . ' in ' . $expected_file_path);
+                        }
+                    } // Fin del foreach ($target_subfolders)
+                } // Fin del for ($month)
+            }
+            
+			echo $found_delivery_note;
+			
+            // Actualizar la base de datos con el valor encontrado (o vacío si no se encontró)
+           // $this->gen_m->update("scm_gre_calculate", ['invoice_no' => $original_invoice_no, 'user_pr' => $emp_number], ['delivery_note' => $found_delivery_note]);
+        //}
+		
 	}
 	
 }
