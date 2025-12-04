@@ -70,7 +70,6 @@ class Scm_goodset_return extends CI_Controller {
 		
 			for($i = 2; $i <= $max_row; $i++){
 				$row = [
-				
 					'rma_type'=> trim($sheet->getCell('A'.$i)->getValue()),
 					'order_type'=> trim($sheet->getCell('B'.$i)->getValue()),
 					'rma_no'=> trim($sheet->getCell('C'.$i)->getValue()),
@@ -127,6 +126,8 @@ class Scm_goodset_return extends CI_Controller {
 					'rnp_no'=> trim($sheet->getCell('BB'.$i)->getValue()),
 					'updated_at' => $now
 				];
+				
+				if ($row['reference_no']) $row['delivery_note'] = $this->get_gre($row['reference_no']);
 				
 				//comma remove
 				if ($row["price"]) $row["price"] = str_replace(",", "", $row["price"]);
