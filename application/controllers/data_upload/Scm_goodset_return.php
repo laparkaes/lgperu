@@ -196,7 +196,7 @@ class Scm_goodset_return extends CI_Controller {
 		
 		foreach($rmas as $item){
 			$aux = explode("-", $item->reference_no);
-			if ($aux){
+			if (array_key_exists(2, $aux)){
 				$item->reference_no = $aux[1]."-".$aux[2];
 				echo $item->reference_no." >>> ".$this->get_gre($item->reference_no)."<br/>";
 			}
