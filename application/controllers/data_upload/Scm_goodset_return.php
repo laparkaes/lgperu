@@ -192,16 +192,20 @@ class Scm_goodset_return extends CI_Controller {
 	}
 	
 	public function test(){
+		$rmas = $this->gen_m->filter("scm_goodset_return", false, ["reference_no !=" => ""], null, null, null, 500);
 		
-		
+		foreach($rmas as $item) echo $item->reference_no." >>> ".$this->get_gre($item->reference_no)."<br/>";
+	}
+	
+	public function get_gre($search_value = "F001-00298980"){
+	
         $base_e_documents_path = FCPATH . 'eDocuments/'; // Ruta base a la carpeta eDocuments
         $current_year = date('Y'); // Obtener el año actual dinámicamente
 
         // Subcarpetas específicas donde buscar los XML
         $target_subfolders = ['FACTURA_ELECTRONICA', 'NOTA_DE_CREDITO'];
 
-		$original_invoice_no = "F001-00298980";
-		$search_value = "F001-00298980";
+		$original_invoice_no = $search_value;
 		
         //foreach ($invoice_data_to_search as $original_invoice_no => $search_value) {
             $found_delivery_note = ''; // Reset para cada factura
@@ -285,7 +289,7 @@ class Scm_goodset_return extends CI_Controller {
                 } // Fin del for ($month)
             }
             
-			echo $found_delivery_note;
+			return $found_delivery_note;
 			
             // Actualizar la base de datos con el valor encontrado (o vacío si no se encontró)
            // $this->gen_m->update("scm_gre_calculate", ['invoice_no' => $original_invoice_no, 'user_pr' => $emp_number], ['delivery_note' => $found_delivery_note]);
