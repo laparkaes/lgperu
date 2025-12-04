@@ -194,7 +194,11 @@ class Scm_goodset_return extends CI_Controller {
 	public function test(){
 		$rmas = $this->gen_m->filter("scm_goodset_return", false, ["reference_no !=" => ""], null, null, null, 500);
 		
-		foreach($rmas as $item) echo $item->reference_no." >>> ".$this->get_gre($item->reference_no)."<br/>";
+		foreach($rmas as $item){
+			$aux = explode("-", $item->reference_no);
+			$item->reference_no = $aux[1]."-".$aux[2];
+			echo $item->reference_no." >>> ".$this->get_gre($item->reference_no)."<br/>";
+		}
 	}
 	
 	public function get_gre($search_value = "F001-00298980"){
