@@ -193,6 +193,14 @@ class Scm_goodset_return extends CI_Controller {
 	
 	public function test(){
 		
+		
+        $base_e_documents_path = FCPATH . 'eDocuments/'; // Ruta base a la carpeta eDocuments
+        $current_year = date('Y'); // Obtener el año actual dinámicamente
+
+        // Subcarpetas específicas donde buscar los XML
+        $target_subfolders = ['FACTURA_ELECTRONICA', 'NOTA_DE_CREDITO'];
+
+		
 		$search_value = "hola";
 		
         //foreach ($invoice_data_to_search as $original_invoice_no => $search_value) {
