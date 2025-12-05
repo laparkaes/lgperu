@@ -47,11 +47,56 @@ class Ap_report extends CI_Controller {
 		return null;
 	}
 	
+	public function export_excel(){
+		
+		$data = $this->gen_m->filter('lgepr_tax_pcge', false);
+		$template_path = './template/lgepr_tax_pcge_template.xlsx';
+		
+		try {
+            $spreadsheet = IOFactory::load($template_path);
+        } catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
+            die('Error loading the Excel template: ' . $e->getMessage());
+        }
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		$start_row = 3;
+        $current_row = $start_row;
+		
+        if ($data) {
+            foreach ($data as $row) {            
+                $sheet->setCellValue('A' . $current_row, $row->from_period); 			// Column A: From Period                              
+                $sheet->setCellValue('B' . $current_row, $row->to_period); 				// Column B: To Period                          
+                $sheet->setCellValue('C' . $current_row, $row->accounting_unit); 		// Column C: Accounting Unit
+				$sheet->setCellValue('D' . $current_row, $row->accounting_unit_desc); 	// Column D: Accounting Unit Desc
+				$sheet->setCellValue('E' . $current_row, $row->account); 				// Column E: Account
+				$sheet->setCellValue('F' . $current_row, $row->account_desc); 			// Column F: Account Desc
+				$sheet->setCellValue('G' . $current_row, $row->pcge); 					// Column G: PCGE
+				$sheet->setCellValue('H' . $current_row, $row->pcge_decripcion); 		// Column H: PCGE Description
+
+                $current_row++;
+            }
+        }
+		
+		$filename = "PCGE_" . date('Y-m') . ".xlsx";
+		ob_end_clean(); //Clean buffer
+		
+        // Header configuration for download
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = new Xlsx($spreadsheet);
+        
+        // Save output directly to the browser
+        $writer->save('php://output');
+        exit;
+	}
+	
 	function get_month_from_week($week_number, $year = null) {
 		if ($year === null) {
 			$year = date('Y');
 		}
-		
+
 		$date_string = "{$year}W{$week_number}";
 		
 		$monday_timestamp = strtotime($date_string);
@@ -71,14 +116,13 @@ class Ap_report extends CI_Controller {
 	public function process() {
 		set_time_limit(0);
 		ini_set("memory_limit", -1);
-
 		$start_time = microtime(true);
 		
 		//load excel file
 		$spreadsheet = IOFactory::load("./upload/ap_report.xlsx");
 		$sheet = $spreadsheet->getSheetByName('MP');
 		//$sheet = $spreadsheet->getActiveSheet(0);
-
+		
 		//excel file header validation
 		$h = [
 			trim($sheet->getCell('A1')->getValue()),
@@ -103,16 +147,18 @@ class Ap_report extends CI_Controller {
 			$batch_data =[]; $batch_exist_data = [];
 			$batch_size = 80;
 			$key_list = []; $inserted_rows = 0; $updated_rows = 0;
-			$data_ap_list = [];
+			$data_ap_list = []; $week_list = [];
 			
 			$data_key = $this->gen_m->filter('ap_report', false);
 			if ($data_key) {
 				foreach ($data_key as $item) {
 					$key_list[] = $item->key_ap;
 					$data_ap_list[$item->key_ap] = $item;
+					$week_list[] = $item->week;
 				}
 			}
-
+			$week_list = array_values(array_unique($week_list));
+			//echo '<pre>'; print_r($week_list); return;
 			for($i = 2; $i <= $max_row; $i++){
 				$row = [
 					"year"							=> date('Y'),
@@ -172,34 +218,38 @@ class Ap_report extends CI_Controller {
 				$row['invoice_received_date'] = $this->convert_date($row['invoice_received_date']);
 
 				$row['key_ap'] = $row['division_name'] . "_" . $row['account_name'] . "_" . $row['invoice_num'] . "_" . $row['currency'];
-				
-				if (!in_array($row['key_ap'], $key_list)) {
-					
-					$batch_data[]=$row;
-					if(count($batch_data)>=$batch_size){
-						$this->gen_m->insert_m("ap_report", $batch_data);
-						$inserted_rows += count($batch_data);
-						//echo '<pre>'; print_r($batch_data);
-						$batch_data = [];
-						unset($batch_data);
-					}
-					
-				} else {
-					// update rows or avoid rows
-					if (isset($data_ap_list[$row['key_ap']])){
-						$key_excel = $row['week'].'_'.$row['company'].'_'.$row['department_name'].'_'.$row['invoice_num'].'_'.$row['invoice_date'].'_'.$row['invoice_amount'].'_'.$row['amount_remaining_fun'].'_'.$row['voucher_number'].'_'.$row['gl_date'].'_'.$row['creation_date'].'_'.$row['biz_reg_no'].'_'.$row['item_amount'].'_'.$row['tax_amount'];
-						
-						$key_db = $data_ap_list[$row['key_ap']]->week.'_'.$data_ap_list[$row['key_ap']]->company.'_'.$data_ap_list[$row['key_ap']]->department_name.'_'.$data_ap_list[$row['key_ap']]->invoice_num.'_'.$data_ap_list[$row['key_ap']]->invoice_date.'_'.$data_ap_list[$row['key_ap']]->invoice_amount.'_'.$data_ap_list[$row['key_ap']]->amount_remaining_fun.'_'.$data_ap_list[$row['key_ap']]->voucher_number.'_'.$data_ap_list[$row['key_ap']]->gl_date.'_'.$data_ap_list[$row['key_ap']]->creation_date.'_'.$data_ap_list[$row['key_ap']]->biz_reg_no.'_'.$data_ap_list[$row['key_ap']]->item_amount.'_'.$data_ap_list[$row['key_ap']]->tax_amount;
-						
-						if ($key_excel === $key_db) { // If equal rows, avoid 
-							continue;
-						} else {
-							$batch_exist_data[] = $row; // rows to update
-						}
-					}		
-				}
-			}
+								
+				$batch_data[] = $row;
+				$week = $row['week'];
 
+				// if (!in_array($row['key_ap'], $key_list)) {
+					
+					// $batch_data[]=$row;
+					// if(count($batch_data)>=$batch_size){
+						// $this->gen_m->insert_m("ap_report", $batch_data);
+						// $inserted_rows += count($batch_data);
+						// $batch_data = [];
+						// unset($batch_data);
+					// }
+					
+				// } else {
+					// // update rows or avoid rows
+					// if (isset($data_ap_list[$row['key_ap']])){
+						// $key_excel = $row['week'].'_'.$row['company'].'_'.$row['department_name'].'_'.$row['invoice_num'].'_'.$row['invoice_date'].'_'.$row['invoice_amount'].'_'.$row['amount_remaining_fun'].'_'.$row['voucher_number'].'_'.$row['gl_date'].'_'.$row['creation_date'].'_'.$row['biz_reg_no'].'_'.$row['item_amount'].'_'.$row['tax_amount'];
+						
+						// $key_db = $data_ap_list[$row['key_ap']]->week.'_'.$data_ap_list[$row['key_ap']]->company.'_'.$data_ap_list[$row['key_ap']]->department_name.'_'.$data_ap_list[$row['key_ap']]->invoice_num.'_'.$data_ap_list[$row['key_ap']]->invoice_date.'_'.$data_ap_list[$row['key_ap']]->invoice_amount.'_'.$data_ap_list[$row['key_ap']]->amount_remaining_fun.'_'.$data_ap_list[$row['key_ap']]->voucher_number.'_'.$data_ap_list[$row['key_ap']]->gl_date.'_'.$data_ap_list[$row['key_ap']]->creation_date.'_'.$data_ap_list[$row['key_ap']]->biz_reg_no.'_'.$data_ap_list[$row['key_ap']]->item_amount.'_'.$data_ap_list[$row['key_ap']]->tax_amount;
+						
+						// if ($key_excel === $key_db) { // If equal rows, avoid 
+							// continue;
+						// } else {
+							// $batch_exist_data[] = $row; // rows to update
+						// }
+					// }		
+				// }
+			}
+			
+			if (in_array($week, $week_list)) $this->gen_m->delete('ap_report', ['week' => $row['week']]); // Delete all rows with an exist week
+			// Insertar cualquier dato restante en el lote
 			if (!empty($batch_data)) {
 				$this->gen_m->insert_m("ap_report", $batch_data);
 				$inserted_rows += count($batch_data);
@@ -207,15 +257,18 @@ class Ap_report extends CI_Controller {
 				unset($batch_data);
 			}
 			
-			if ($batch_exist_data) {
-				$this->gen_m->update_multi('ap_report', $batch_exist_data, 'key_ap');
-				$updated_rows = count($batch_exist_data);
-				$batch_exist_data = [];
-			}
+			// if ($batch_exist_data) {
+				// $this->gen_m->update_multi('ap_report', $batch_exist_data, 'key_ap');
+				// $updated_rows = count($batch_exist_data);
+				// //echo '<pre>'; print_r($batch_exist_data);
+				// $batch_exist_data = [];
+			// }
 			
 			$msg = $inserted_rows . " rows inserted.<br>";
-			$msg .= $updated_rows . " rows updated.<br>";
+			//$msg .= $updated_rows . " rows updated.<br>";
+			$msg .= "Week " . $week . " updated.<br>";
 			$msg .= "Total time: " . number_Format(microtime(true) - $start_time, 2) . " secs.";
+			//$msg =  $count . " records upload in ".number_Format(microtime(true) - $start_time, 2)." secs.";
 			//$this->db->trans_complete();
 			return $msg;			
 		}else return "";

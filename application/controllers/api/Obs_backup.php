@@ -82,7 +82,6 @@ class Obs extends CI_Controller {
 			//$w = ["closed_date >=" => date("2024-12-01"), "inventory_org" => "N4E"];
 			//$w = ["closed_date >=" => date("Y-m-01"), "inventory_org" => "N4E"];
 			$w = ["closed_date >=" => date("Y-m-01")];
-			//$w = ["closed_date >=" => date("Y-m-1", strtotime("first day of -1 months"))];
 			$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			
 			$res = $this->gen_m->filter("v_obs_closed_order_magento_v3", false, $w, null, null, $o);
@@ -222,7 +221,6 @@ class Obs extends CI_Controller {
 		}
 
 		$from = date("Y-m-1"); // Primer día del mes actual
-		//$from = date("Y-m-1", strtotime("first day of -1 months"));
 		$res = [];
 		//$where_string_c = "(inventory_org = 'N4E' OR (inventory_org = 'N4S' AND sub_inventory = 'GOODSET-OB')) AND order_date >= '$from'";
 		//$where_string_s = "(inventory_org = 'N4E' OR (inventory_org = 'N4S' AND sub_inventory = 'GOODSET-OB')) AND create_date >= '$from'";
