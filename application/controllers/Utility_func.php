@@ -429,9 +429,9 @@ class Utility_func extends CI_Controller {
 		
 		$to = [
 			/* CFO */ "wonshik.woo@lge.com", "mariela.carbajal@lge.com", "bion.hwang@lge.com", "mario.rosazza@lge.com", "enrique.salazar@lge.com", "angella.castro@lge.com", "melisa.carbajal@lge.com",
-			"juan.gonzales@lge.com", "nicolas1.nigro@lge.com", "georgio.park@lge.com", "ricardo.alvarez@lge.com",
+			"juan.gonzales@lge.com", "nicolas1.nigro@lge.com", "ricardo.alvarez@lge.com",
 			/* DP */ "renato.freundt@lge.com", "dario.vargas@lge.com", "wagner.rojas@lge.com", "victorj.sanchez@lge.com", "mauricio.meza@lge.com", 
-			/* CEO, PM */ "andre.cho@lge.com", "minaalicia.park@lge.com", "muhyun.han@lge.com", "sanguk.jeong@lge.com", "rony.cortez@lge.com", "seongmin1.lee@lge.com", "patrick.lee@lge.com", "patricia.pandolfi@lge.com", 
+			/* CEO, PM */ "youngrok2.kim@lge.com", "minaalicia.park@lge.com", "muhyun.han@lge.com", "sanguk.jeong@lge.com", "rony.cortez@lge.com", "seongmin1.lee@lge.com", "ph.choe@lge.com", "patricia.pandolfi@lge.com", 
 		];
 		//$to = ["georgio.park@lge.com", "nicolas.nigro@lgepartner.com"];
 		
@@ -840,11 +840,11 @@ class Utility_func extends CI_Controller {
 		
 		$to = [
 			/* CFO */ "wonshik.woo@lge.com", "mariela.carbajal@lge.com", "bion.hwang@lge.com", "mario.rosazza@lge.com", "enrique.salazar@lge.com", "angella.castro@lge.com", "melisa.carbajal@lge.com",
-			"juan.gonzales@lge.com", "nicolas1.nigro@lge.com", "georgio.park@lge.com", "ricardo.alvarez@lge.com",
+			"juan.gonzales@lge.com", "nicolas1.nigro@lge.com", "ricardo.alvarez@lge.com",
 			/* DP */ "renato.freundt@lge.com", "dario.vargas@lge.com", "wagner.rojas@lge.com", "victorj.sanchez@lge.com", "mauricio.meza@lge.com", 
-			/* CEO, PM */ "andre.cho@lge.com", "minaalicia.park@lge.com", "muhyun.han@lge.com", "sanguk.jeong@lge.com", "rony.cortez@lge.com", "seongmin1.lee@lge.com", "patrick.lee@lge.com", "patricia.pandolfi@lge.com", 
+			/* CEO, PM */ "youngrok2.kim@lge.com", "minaalicia.park@lge.com", "muhyun.han@lge.com", "sanguk.jeong@lge.com", "rony.cortez@lge.com", "seongmin1.lee@lge.com", "ph.choe@lge.com", "patricia.pandolfi@lge.com", 
 		];
-		$to = ["georgio.park@lge.com"];
+		$to = ["ricardo.alvarez@lge.com"];
 		
 		$subject = "[Custom] Container arrival plan";
 		$content = $this->load->view('email/custom_container_aging', $data, true);
