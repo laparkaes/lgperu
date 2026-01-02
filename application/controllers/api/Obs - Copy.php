@@ -81,8 +81,7 @@ class Obs extends CI_Controller {
 		if ($this->input->get("key") === "lgepr"){
 			//$w = ["closed_date >=" => date("2024-12-01"), "inventory_org" => "N4E"];
 			//$w = ["closed_date >=" => date("Y-m-01"), "inventory_org" => "N4E"];
-			//$w = ["closed_date >=" => date("Y-m-01")];
-			  $w = ["closed_date >=" => date("Y-m-01", strtotime("first day of last month"))];
+			$w = ["closed_date >=" => date("Y-m-01")];
 			//$w = ["closed_date >=" => date("Y-m-1", strtotime("first day of -1 months"))];
 			$o = [["closed_date", "desc"], ["order_no", "desc"], ["line_no", "desc"]];
 			
