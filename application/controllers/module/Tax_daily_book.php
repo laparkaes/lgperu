@@ -920,7 +920,11 @@ class Tax_daily_book extends CI_Controller {
 		$dataStart = microtime(true);
 		
 		$period = $this->input->post('period');
-		
+		$firstDay = (new DateTime($period . '-01'))->format('Y-m-d');
+		$lastDay = (new DateTime($period . '-01'))
+					->modify('last day of this month')
+					->format('Y-m-d');
+
 		if (!$period) {
 			echo "Error: Periodo no proporcionado";
 			return;
@@ -941,8 +945,6 @@ class Tax_daily_book extends CI_Controller {
 	
 		$columnMap = ["type_voucher" => 'CJ', "serie_voucher" => 'CK', "number_voucher" => 'CL'];
 
-
-		
 		
 		$vendor_char_map = [];
 		foreach ($this->number_document($period) as $biz) {
@@ -956,9 +958,7 @@ class Tax_daily_book extends CI_Controller {
 		$banks_account_code = ['SCOTIA'=>'09', 'BCP'=>'02', 'CITI'=>'07', 'INTER'=>'03', 'BBVA'=>'11', 'NACION'=>'18'];
 		// Obtener los valores de number_document (solo una vez)
 		$biz_map = [];
-
-		
-		
+	
 		$ruc_tax_register = $this->gen_m->filter_select("tax_purchase_register", false, ['invoice_number', 'customer_vat_no']);
 		$invoice_map = [];
 		foreach ($ruc_tax_register as $record) {
@@ -971,34 +971,39 @@ class Tax_daily_book extends CI_Controller {
 			$pcge_map[$item_pcge->account] = [$item_pcge->pcge, $item_pcge->pcge_decripcion];			
 		}
 		
-		$bank_code_data = $this->gen_m->filter_select('ar_bank_code', false, ['bank_name', 'date_operation', 'number_operation', 'total_amount']);
+		//$bank_code_data = $this->gen_m->filter_select('ar_bank_code', false, ['bank_name', 'date_operation', 'number_operation', 'total_amount'], ['date_operation <=' => $lastDay, 'date_operation' >= $firstDay]);
+		$bank_code_data = $this->gen_m->filter_select('ar_bank_code', false, ['bank_name', 'date_operation', 'number_operation', 'total_amount', 'currency'], ['date_operation LIKE' => "{$period}%"]);
 		$bank_code_map = [];
 
 		foreach ($bank_code_data as $item_bank_code) {
 			$date = $item_bank_code->date_operation;
-			if (!isset($bank_code_map[$date])) {
-				$bank_code_map[$date] = [];
-			}
+			// if (!isset($bank_code_map[$date])) {
+				// $bank_code_map[$date] = [];
+			// }
 
-			$bank_code_map[$date][] = [
+			$bank_code_map[$date . "_" . $item_bank_code->bank_name . "_" . $item_bank_code->total_amount . "_" . $item_bank_code->currency][] = [
 				'bank_name' => $item_bank_code->bank_name,
 				'number_operation' => $item_bank_code->number_operation,
 				'total_amount' => $item_bank_code->total_amount
 			];
 		}
-
+		
 		$bizEnd = microtime(true);
 
 		$fetchStart = microtime(true);
+		// Group by credit card
 		$batchSize = 5000;
 		$batchData = [];
 		$batchSpecialData = [];
 		$row_num = 6;
 		$sum_net_accounted_debit_pos = 0;
 		$sum_net_accounted_debit_ne = 0;
+		$count_bank_code = [];
 		$data_start = microtime(true);
 		$allData = $this->fetch_large_data('tax_daily_book', $where, $batchSize);
 		$data_end = microtime(true);
+		
+		
 		foreach ($allData as $row) {
 			if ($row->accounting_unit !== 'EPG' && $row->accounting_unit !== 'INT') {
 				$dataRow = [];
@@ -1034,7 +1039,7 @@ class Tax_daily_book extends CI_Controller {
 			
 				// Agregar datos de las columnas especiales
 				foreach ($columnMap as $key => $col) {
-					if (isset($row->$key)) {						
+					if (isset($row->$key)) {
 						$batchSpecialData[] = [$col . $row_num, $row->$key];
 					}
 				}
@@ -1079,7 +1084,7 @@ class Tax_daily_book extends CI_Controller {
 				$batchSpecialData[] = ["CU" . $row_num, 1];	
 				
 				// Columnas CW, CX y CZ
-				if (strpos($batchSpecialData_pcge, '10') === 0){
+				if (strpos($batchSpecialData_pcge, '10') === 0) {
 					
 					if(!empty($row->bank_name)){
 						$parts = explode('_', $row->bank_name, 3);
@@ -1119,17 +1124,15 @@ class Tax_daily_book extends CI_Controller {
 					}
 					
 					// Fill DA column
-					if (isset($bank_code_map[$row->effective_date])) {
-						foreach($bank_code_map[$row->effective_date] as $item_date){
-							if($bank_name === 'SCOTIA'){
-								$bank_name = 'SCB';
-							}
+					if($bank_name === 'SCOTIA'){
+						$bank_name = 'SCB';
+					}
+					if (isset($bank_code_map[$row->effective_date . "_" . $bank_name . "_" . $row->net_entered_debit . "_" . $row->currency])) {
+						if (!isset($count_bank_code[$row->effective_date . "_" . $bank_name . "_" . $row->net_entered_debit . "_" . $row->currency])) $count_bank_code[$row->effective_date . "_" . $bank_name . "_" . $row->net_entered_debit . "_" . $row->currency] = 0;
 						
-							if($bank_name ===  $item_date['bank_name'] && $row->net_entered_debit == $item_date['total_amount']){
-								$batchSpecialData[] = ["DA" . $row_num, $item_date['number_operation'] ?? ""];
-								break;
-							}
-						}
+						$batchSpecialData[] = ["DA" . $row_num, $bank_code_map[$row->effective_date . "_" . $bank_name . "_" . $row->net_entered_debit . "_" . $row->currency][$count_bank_code[$row->effective_date . "_" . $bank_name . "_" . $row->net_entered_debit . "_" . $row->currency]]['number_operation'] ?? ""];
+						
+						$count_bank_code[$row->effective_date . "_" . $bank_name . "_" . $row->net_entered_debit . "_" . $row->currency] += 1;
 					}
 					
 					// Fill CY column

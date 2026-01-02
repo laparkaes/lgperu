@@ -56,7 +56,7 @@ class Scm_order_status extends CI_Controller {
 			"POR CONFIRMAR CITA", 
 			"POR SOLICITAR CITA", 
 			"REFACTURACION", 
-			"REGULARIZACION", 
+			"REGULARIZACION",
 			"POR CANCELAR PEDIDO", 
 			"SIN DISTRIBUCION", 
 			"SIN LINEA DE CREDITO", 
@@ -101,6 +101,7 @@ class Scm_order_status extends CI_Controller {
 	}
 	
 	public function om_update(){
+		
 		$data = $this->input->post();
 		
 		$appointment_aux = "";
@@ -128,8 +129,6 @@ class Scm_order_status extends CI_Controller {
 			$type = "danger";
 			$msg = "An error occured. Try again.";
 		}
-		
-		
 		
 		header('Content-Type: application/json');
 		echo json_encode(["type" => $type, "msg" => $msg]);
@@ -482,8 +481,7 @@ class Scm_order_status extends CI_Controller {
 			$om_line_status = $item['om_line_status'];
 			$this->gen_e->update_srv8("T_OPEN_ORDER", "[SO NO] = '{$order_no}' AND [SO Line NO] = '{$line_no}'", ["STATUS" => $om_line_status]);
 		}
-				
-		//$this->gen_e->update_srv8("T_OPEN_ORDER", [], ["STATUS" => NULL]); // Column Status NULL for all data
+
 		ini_set('sqlsrv.ClientBufferMaxKBSize', 100000); // 20MB
 	}
 	
@@ -496,7 +494,7 @@ class Scm_order_status extends CI_Controller {
 		$db_connection = $this->gen_e->db;
 		foreach ($data_open_status as $row) {
 			$sql = "INSERT INTO [T_OPEN_STATUS] ([SO NO], [SO Line NO], [SO Line ID], [ESTATUS], [PLAN DE ENTREGA], [WEEK], [last_update_date], [last_updated_by]) VALUES (";
-
+			
 			$values = [];
 			$values[] = $db_connection->escape_str($row['SO NO']);
 			$values[] = $db_connection->escape_str($row['SO Line NO']);
@@ -506,31 +504,28 @@ class Scm_order_status extends CI_Controller {
 			$values[] = $db_connection->escape_str($row['WEEK']);
 			$values[] = $db_connection->escape_str($row['last_update_date']);
 			$values[] = $db_connection->escape_str($row['last_updated_by']);
-
+			
 			$sql .= "'" . implode("', '", $values) . "');";
 			
 			$db_connection->query($sql);
 		}
 		
 		$this->update_open_order($data_open_order);
-		//$orders = $this->gen_e->all("T_OPEN_ORDER");
+
 		ini_set('sqlsrv.ClientBufferMaxKBSize', 100000); // 20MB
 	}
 	
 	public function update_test () {
 		$this->load->model('general_espr_model', 'gen_e');	
 		
-		//$this->gen_e->update_srv8("T_OPEN_ORDER", [], ["STATUS" => NULL]); //Column Status NULL for all data
 		ini_set('sqlsrv.ClientBufferMaxKBSize', 100000); // 20MB
 
-		$orders = $this->gen_e->sql_query("SELECT * FROM T_OPEN_STATUS");
-		//$orders = $this->gen_e->sql_query("SELECT * FROM T_OPEN_ORDER");
-		//$orders = $this->gen_e->all("T_OPEN_ORDER", [], '', '', false);
-		//echo $this->db->last_query();
+		$orders = $this->gen_e->sql_query("SELECT * FROM T_OPEN_ORDER");
+
 		echo '<pre>'; print_r($orders);
 	}
 	
-	public function update_status(){
+	public function update_status() {
 		ini_set('memory_limit', -1);
 		set_time_limit(0);
 		
@@ -575,7 +570,7 @@ class Scm_order_status extends CI_Controller {
 			
 			$data_open_order = [];
 
-			for($i = 3; $i <= $max_row; $i++){
+			for($i = 3; $i <= $max_row; $i++) {
 				$row = [
 					'model' 			=> trim($sheet->getCell('B'.$i)->getValue()),
 					'bill_to_name' 		=> trim($sheet->getCell('C'.$i)->getValue()),
@@ -606,12 +601,18 @@ class Scm_order_status extends CI_Controller {
 					$to_ship = $this->gen_m->filter_select('scm_shipping_status', false, ['to_ship'], ['order_no' => $row['order_no'], 'line_no' => $row['line_no']]);
 					$row['om_appointment'] = $to_ship[0]->to_ship;
 				}
+				
+				if (strpos($row['om_line_status'], "N/A") !== false) $row['om_line_status'] = null;
+				
 				$batch_data[] = ['order_line' => $order_line, 'om_line_status' => $row['om_line_status'], 'om_appointment' => $row['om_appointment'], 'om_updated_at' => $row['om_updated_at']];
 				
 				$data_open_status[] = ['SO NO' => $row['order_no'], 'SO Line NO' => $row['line_no'], 'SO Line ID' => NULL, 'ESTATUS' => $row['om_line_status'], 'PLAN DE ENTREGA' => $row['om_appointment'], 'WEEK' => null, 'last_update_date' => Date('Y-m-d H:i:s'), 'last_updated_by' => $emp_number];
-			}	
+			}
 
 			$row_counter = count($batch_data);
+			
+			// update sales order table
+			$this->gen_m->update_multi('lgepr_sales_order', $batch_data, 'order_line');
 			
 			// update sql tables
 			$this->update_open_status($data_open_status, $data_open_order);
